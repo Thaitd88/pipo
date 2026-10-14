@@ -65,21 +65,22 @@ def find_matching_image(dish_name: str, current_image_url: Optional[str] = None)
 
     best_file = None
 
-    # Ưu tiên 1: Trùng khớp hoàn toàn tên chuẩn hóa
-    for f, fn in file_norms.items():
-        if fn == dish_norm:
-            best_file = f
-            break
-
-    # Ưu tiên 2: Trùng khớp file hiện tại nếu file đó tồn tại
-    if not best_file and current_image_url:
+    # Ưu tiên 1: Nếu đã có ảnh hiện tại trong DB và file đó tồn tại trên đĩa -> GIỮ NGUYÊN ảnh người dùng đã chọn!
+    if current_image_url:
         try:
             curr_clean = current_image_url.split('?')[0]
             curr_base = urllib.parse.unquote(os.path.basename(curr_clean))
-            if curr_base in file_norms:
+            if curr_base in files or curr_base in file_norms:
                 best_file = curr_base
         except Exception:
             pass
+
+    # Ưu tiên 2: Trùng khớp hoàn toàn tên đã chuẩn hóa
+    if not best_file:
+        for f, fn in file_norms.items():
+            if fn == dish_norm:
+                best_file = f
+                break
 
     # Ưu tiên 3: Tiền tố / hậu tố (ví dụ món có dấu + lòng mề xào)
     if not best_file:

@@ -1134,8 +1134,8 @@
     }
 
     async function openDishModal(dishId) {
-      loadCategories();
-      if (allIngredients.length === 0) loadIngredients();
+      await loadCategories();
+      if (allIngredients.length === 0) await loadIngredients();
 
       const modal = document.getElementById("dishModal");
       const delBtn = document.getElementById("btnDeleteDish");
@@ -1417,9 +1417,10 @@
           }
 
           alert("✅ " + data.message);
+          currentKitchenCatFilter = catId || 'ALL';
           closeDishModal();
-          loadKitchenMenu();
-          loadBomDishes();
+          await loadKitchenMenu();
+          await loadBomDishes();
         } else {
           alert("Lỗi: " + (data.detail || "Không thể lưu món"));
         }

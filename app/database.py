@@ -395,60 +395,32 @@ def sync_dish_calories(conn):
     conn.commit()
 
 def ensure_six_categories(conn):
-    """Tự động chuyển đổi và đồng bộ sang 6 nhóm món chính nếu database trên server vẫn ở cấu hình cũ."""
+    """Đảm bảo có đủ 6 nhóm danh mục chuẩn nếu cơ sở dữ liệu chưa có danh mục nào."""
     cursor = conn.cursor()
     cursor.execute("SELECT count(*) as cnt FROM categories")
     count = cursor.fetchone()["cnt"]
-    cursor.execute("SELECT name FROM categories WHERE id = 1")
-    cat1_row = cursor.fetchone()
-    cat1_name = cat1_row["name"] if cat1_row else ""
 
-    if count < 6 or "nhà hàng" in cat1_name.lower():
+    if count == 0:
         SIX_CATEGORIES = [
             (1, "Khai Vị", "🥗", 1, {"en": "Appetizers & Starters", "zh": "精选开胃前菜", "ko": "에피타이저 (전채요리)", "ru": "Аппетитные закуски"}),
             (2, "Gà - Vịt", "🍗", 2, {"en": "Poultry (Chicken & Duck)", "zh": "特色家禽 (土鸡/烤鸭)", "ko": "닭 & 오리 특선 요리", "ru": "Блюда из птицы (курица, утка)"}),
             (3, "Heo - Bò", "🥩", 3, {"en": "Pork & Beef Specialties", "zh": "经典猪肉 & 牛肉", "ko": "돼지고기 & 소고기 요리", "ru": "Мясные блюда (свинина, говядина)"}),
             (4, "Hải Sản", "🦐", 4, {"en": "Fresh Seafood", "zh": "鲜美海鲜特撰", "ko": "신선한 해산물 요리", "ru": "Свежие морепродукты"}),
-            (5, "Cơm - Mì", "🍚", 5, {"en": "Rice & Noodles", "zh": "主食精选 (黄金炒饭/炒面)", "ko": "식사류 (볶음밥 & 볶음면)", "ru": "Рис и жареная лапша"}),
+            (5, "Cơm - Mì", "🍚", 5, {"en": "Rice & Noodles", "zh": "主食精选 (黄金炒饭/炒面)", "ko": "식사류 (볶음밥 & 볶음面)", "ru": "Рис и жареная лапша"}),
             (6, "Đồ Uống", "🍹", 6, {"en": "Beverages & Drinks", "zh": "冷饮果汁 & 啤酒", "ko": "시원한 음료 & 맥주", "ru": "Прохладительные напитки и пиво"})
         ]
 
-        cursor.execute("DELETE FROM categories")
         for cat_id, name, icon, order, trans in SIX_CATEGORIES:
             cursor.execute("""
-                INSERT INTO categories (id, name, icon, display_order, is_active, translations_json)
+                INSERT OR IGNORE INTO categories (id, name, icon, display_order, is_active, translations_json)
                 VALUES (?, ?, ?, ?, 1, ?)
             """, (cat_id, name, icon, order, json.dumps(trans, ensure_ascii=False)))
-
-        cursor.execute("SELECT id, name, description FROM menu_items")
-        dishes = cursor.fetchall()
-
-        for d in dishes:
-            dish_id = d["id"]
-            d_lower = (d["description"] or "").lower()
-            n_lower = d["name"].lower()
-
-            if any(k in d_lower for k in ["cafe", "trà", "nước ép", "nước khoáng", "nước ngọt", "lon", "bia", "chai 500ml"]) or any(k in n_lower for k in ["trà", "nước ép", "pepsi", "coca", "aquarius", "revive", "bia", "nước suối"]):
-                c_id = 6
-            elif any(k in d_lower for k in ["cơm - mì", "dĩa/tô", "mì 1.5"]) or any(k in n_lower for k in ["cơm chiên", "mì xào"]):
-                c_id = 5
-            elif any(k in d_lower for k in ["hàu", "nghêu", "tôm", "ốc hương", "ốc móng tay", "bạch tuộc", "hải sản"]) or any(k in n_lower for k in ["hàu", "nghêu", "tôm", "ốc", "bạch tuộc", "mực"]):
-                c_id = 4
-            elif any(k in d_lower for k in ["gà - vịt", "gà 6 món", "gà nguyên con", "cánh gà", "chân gà", "vịt"]) or any(k in n_lower for k in ["gà", "vịt"]):
-                c_id = 2
-            elif any(k in d_lower for k in ["heo", "bò"]) or any(k in n_lower for k in ["heo", "bò"]):
-                c_id = 3
-            else:
-                c_id = 1
-
-            cursor.execute("UPDATE menu_items SET category_id = ? WHERE id = ?", (c_id, dish_id))
-
         conn.commit()
 
 def ensure_main_menu_classification(conn):
     """
-    Phân loại và đồng bộ 3 Nhóm Thực Đơn Lớn (Menu Nhà Hàng, Menu Cơm Trưa, Menu Cafe / Ăn Sáng).
-    Bổ sung các món điểm tâm & cafe đặc trưng nếu chưa có.
+    Đảm bảo các cột phân loại 3 Nhóm Thực Đơn Lớn tồn tại.
+    Chỉ thiết lập mặc định RESTAURANT cho các món chưa có giá trị, bảo toàn tuyệt đối mọi chỉnh sửa của người dùng.
     """
     cursor = conn.cursor()
     try:
@@ -456,15 +428,15 @@ def ensure_main_menu_classification(conn):
     except Exception:
         pass
     try:
-        cursor.execute("ALTER TABLE menu_items ADD COLUMN main_menu_type TEXT DEFAULT 'RESTAURANT,LUNCH,CAFE'")
+        cursor.execute("ALTER TABLE menu_items ADD COLUMN main_menu_type TEXT DEFAULT 'RESTAURANT'")
     except Exception:
         pass
 
-    # Mặc định tất cả các món thuộc Menu Nhà Hàng (tạm thời để trống Menu Cơm Trưa và Menu Cafe/Sáng theo yêu cầu)
+    # Chỉ gán RESTAURANT cho món nào chưa có main_menu_type (NULL hoặc rỗng), bảo toàn chỉnh sửa của người dùng
     cursor.execute("""
         UPDATE menu_items 
         SET main_menu_type = 'RESTAURANT'
-        WHERE main_menu_type IS NULL OR main_menu_type = '' OR main_menu_type LIKE '%LUNCH%' OR main_menu_type LIKE '%CAFE%'
+        WHERE main_menu_type IS NULL OR main_menu_type = ''
     """)
     conn.commit()
 

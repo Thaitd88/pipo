@@ -1902,8 +1902,11 @@
     }
 
     async function openMenuItemModal(item = null) {
+      if (!allCategories || allCategories.length === 0) {
+        await loadAdminMenu();
+      }
       const selCat = document.getElementById("itemFormCategory");
-      selCat.innerHTML = allCategories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+      selCat.innerHTML = allCategories.map(c => `<option value="${c.id}">${c.icon || '🍽️'} ${c.name}</option>`).join('');
 
       await loadAdminInventory();
 
@@ -2132,7 +2135,10 @@
             await saveAdminBomForDish(savedDishId);
           }
           closeMenuItemModal();
-          loadAdminMenu();
+          // Hiển thị danh mục vừa chọn hoặc Tất cả để người dùng thấy ngay món vừa sửa
+          currentAdminCatFilter = catId || 'ALL';
+          await loadAdminMenu();
+          alert("✅ Đã lưu và cập nhật món ăn thành công!");
         } else {
           const err = await res.json();
           alert("Lỗi: " + (err.detail || "Không thể lưu món"));

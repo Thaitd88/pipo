@@ -7,6 +7,7 @@ import os
 import io
 import re
 import uuid
+import urllib.parse
 from PIL import Image, ImageOps
 from ..database import get_db, DATA_DIR
 from ..services.translator import translate_dish, translate_category_name
@@ -93,10 +94,27 @@ def get_full_menu():
         cat_dict[c["id"]] = {**c, "items": []}
 
     for item in items:
-        # Tự động nhận diện ảnh mới nhất từ thư mục dishes theo tên món
-        match = find_matching_image(item["name"], item.get("image_url"))
-        if match:
-            item["image_url"] = match["url"]
+        img_url = (item.get("image_url") or "").strip()
+        if img_url:
+            # Nếu món đã có ảnh (link ngoài hoặc ảnh người dùng gán) -> TUYỆT ĐỐI GIỮ NGUYÊN!
+            # Nếu là file nội bộ trong static/dishes, gắn thêm timestamp ?v= để chống cache trình duyệt
+            if img_url.startswith("/static/dishes/"):
+                try:
+                    clean_path = img_url.split("?")[0]
+                    base_name = urllib.parse.unquote(os.path.basename(clean_path))
+                    local_path = os.path.join(DISHES_DIR, base_name)
+                    if os.path.exists(local_path):
+                        mtime = int(os.path.getmtime(local_path))
+                        item["image_url"] = f"{clean_path}?v={mtime}"
+                    else:
+                        item["image_url"] = clean_path
+                except Exception:
+                    pass
+        else:
+            # Chỉ khi món HOÀN TOÀN CHƯA CÓ ẢNH -> Mới tự động tìm ảnh theo tên món trong thư mục dishes
+            match = find_matching_image(item["name"], None)
+            if match:
+                item["image_url"] = match["url"]
 
         # Parse options JSON
         if item.get("options_json"):
