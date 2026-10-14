@@ -36,6 +36,8 @@ class MenuItemCreate(BaseModel):
     translations: Optional[Dict[str, Any]] = None
     is_available: Optional[int] = 1
     calories: Optional[int] = 0
+    out_of_ingredients: Optional[int] = 0
+    main_menu_type: Optional[str] = "RESTAURANT,LUNCH,CAFE"
 
 class MenuItemUpdate(BaseModel):
     category_id: Optional[int] = None
@@ -49,6 +51,8 @@ class MenuItemUpdate(BaseModel):
     translations: Optional[Dict[str, Any]] = None
     is_available: Optional[int] = None
     calories: Optional[int] = None
+    out_of_ingredients: Optional[int] = None
+    main_menu_type: Optional[str] = None
 
 class BulkMenuImportRequest(BaseModel):
     raw_text: Optional[str] = ""
@@ -249,8 +253,8 @@ def create_menu_item(item: MenuItemCreate):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO menu_items (category_id, name, description, price, image_url, station, options_json, translations_json, is_available, calories)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO menu_items (category_id, name, description, price, image_url, station, options_json, translations_json, is_available, calories, out_of_ingredients, main_menu_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         item.category_id,
         item.name.strip(),
@@ -261,7 +265,9 @@ def create_menu_item(item: MenuItemCreate):
         item.options_json or "[]",
         translations_str,
         item.is_available if item.is_available is not None else 1,
-        item.calories or 0
+        item.calories or 0,
+        item.out_of_ingredients or 0,
+        item.main_menu_type or "RESTAURANT,LUNCH,CAFE"
     ))
     new_id = cursor.lastrowid
     conn.commit()
@@ -299,6 +305,8 @@ def update_menu_item(item_id: int, item: MenuItemUpdate):
     options_json = item.options_json if item.options_json is not None else existing_dict["options_json"]
     is_available = item.is_available if item.is_available is not None else existing_dict["is_available"]
     calories = item.calories if item.calories is not None else existing_dict.get("calories", 0)
+    out_of_ingredients = item.out_of_ingredients if item.out_of_ingredients is not None else existing_dict.get("out_of_ingredients", 0)
+    main_menu_type = item.main_menu_type if item.main_menu_type is not None else existing_dict.get("main_menu_type", "RESTAURANT,LUNCH,CAFE")
 
     translations_str = item.translations_json
     if item.translations is not None and not translations_str:
@@ -313,9 +321,9 @@ def update_menu_item(item_id: int, item: MenuItemUpdate):
 
     cursor.execute("""
         UPDATE menu_items
-        SET category_id = ?, name = ?, description = ?, price = ?, image_url = ?, station = ?, options_json = ?, translations_json = ?, is_available = ?, calories = ?
+        SET category_id = ?, name = ?, description = ?, price = ?, image_url = ?, station = ?, options_json = ?, translations_json = ?, is_available = ?, calories = ?, out_of_ingredients = ?, main_menu_type = ?
         WHERE id = ?
-    """, (category_id, name, description, price, image_url, station, options_json, translations_str, is_available, calories, item_id))
+    """, (category_id, name, description, price, image_url, station, options_json, translations_str, is_available, calories, out_of_ingredients, main_menu_type, item_id))
     conn.commit()
 
     cursor.execute("SELECT * FROM menu_items WHERE id = ?", (item_id,))
@@ -362,17 +370,55 @@ def toggle_item_stock(item_id: int):
     """Bật/tắt trạng thái còn hàng / hết hàng."""
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT is_available FROM menu_items WHERE id = ?", (item_id,))
+    cursor.execute("SELECT is_available, out_of_ingredients FROM menu_items WHERE id = ?", (item_id,))
     item = cursor.fetchone()
     if not item:
         conn.close()
         raise HTTPException(status_code=404, detail="Món ăn không tồn tại")
     
     new_status = 0 if item["is_available"] == 1 else 1
-    cursor.execute("UPDATE menu_items SET is_available = ? WHERE id = ?", (new_status, item_id))
+    # Nếu bật lại còn hàng thì reset luôn out_of_ingredients
+    new_out = 0 if new_status == 1 else item["out_of_ingredients"]
+    cursor.execute("UPDATE menu_items SET is_available = ?, out_of_ingredients = ? WHERE id = ?", (new_status, new_out, item_id))
     conn.commit()
     conn.close()
-    return {"status": "SUCCESS", "item_id": item_id, "is_available": new_status}
+    return {"status": "SUCCESS", "item_id": item_id, "is_available": new_status, "out_of_ingredients": new_out}
+
+@router.post("/item/{item_id}/toggle-out-of-ingredients")
+def toggle_out_of_ingredients(item_id: int):
+    """
+    Bếp bật/tắt báo hết nguyên vật liệu (NVL) cho món ăn.
+    Khi out_of_ingredients = 1: món tạm hết NVL và tự động chuyển is_available = 0.
+    Khi out_of_ingredients = 0: món đã có lại NVL và tự động chuyển is_available = 1.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, is_available, out_of_ingredients FROM menu_items WHERE id = ?", (item_id,))
+    item = cursor.fetchone()
+    if not item:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Món ăn không tồn tại")
+    
+    current_out = item["out_of_ingredients"] or 0
+    new_out = 0 if current_out == 1 else 1
+    new_available = 0 if new_out == 1 else 1
+    
+    cursor.execute("""
+        UPDATE menu_items 
+        SET out_of_ingredients = ?, is_available = ? 
+        WHERE id = ?
+    """, (new_out, new_available, item_id))
+    conn.commit()
+    conn.close()
+    
+    return {
+        "status": "SUCCESS",
+        "item_id": item_id,
+        "dish_name": item["name"],
+        "out_of_ingredients": new_out,
+        "is_available": new_available,
+        "message": f"Món '{item['name']}' đã được đánh dấu: {'TẠM HẾT NGUYÊN LIỆU' if new_out == 1 else 'ĐÃ CÓ LẠI NGUYÊN LIỆU'}"
+    }
 
 def _parse_price(raw_price: Any) -> int:
     """Chuyển đổi chuỗi giá (VD: '85000', '85.000', '85,000', '85k', '85K') sang số nguyên VNĐ."""

@@ -86,12 +86,12 @@
 
   <!-- Header Nhà Hàng & Bàn -->
   <header class="sticky top-0 z-40 bg-emerald-800 text-white shadow-md">
-    <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center space-x-2">
+    <div class="max-w-md mx-auto px-4 py-2.5 flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
         <img src="/static/logo.png" alt="PiPo Garden" class="w-10 h-10 rounded-full object-contain bg-white/95 p-0.5 shadow-sm">
         <div>
           <h1 class="font-bold text-base leading-tight">PiPo Garden</h1>
-          <p class="text-xs text-emerald-200" id="headerSubText">Ẩm Thực Sân Vườn Sinh Thái</p>
+          <p class="text-[11px] text-emerald-200 font-medium" id="headerSubText">Nhà Hàng, Bể Bơi, Cafe, Pickleball</p>
         </div>
       </div>
       
@@ -111,8 +111,40 @@
       </div>
     </div>
 
+    <!-- 3 Nhóm Thực Đơn Lớn Chính (3 Ô Lớn Ngay Dưới Logo) -->
+    <div class="bg-emerald-900/95 px-3 py-2 border-t border-emerald-700/60 shadow-xs">
+      <div class="max-w-md mx-auto grid grid-cols-3 gap-2" id="mainMenuSelector">
+        <!-- Ô 1: Menu Nhà Hàng -->
+        <button type="button" onclick="selectMainMenu('RESTAURANT')" id="mainMenuBtn-RESTAURANT" class="main-menu-btn relative flex flex-col items-center justify-center p-2 rounded-2xl border-2 transition-all duration-200 shadow-sm active:scale-95 bg-white border-emerald-400 text-stone-900 ring-2 ring-emerald-300">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-emerald-100 text-emerald-800 mb-0.5 icon-box">
+            🍽️
+          </div>
+          <span class="text-xs font-black tracking-tight leading-tight text-center title-text" id="mainMenuText-RESTAURANT">Menu Nhà Hàng</span>
+          <span class="text-[9px] text-stone-500 mt-0.5 leading-none text-center sub-text" id="mainMenuSubText-RESTAURANT">Đặc sản, tiệc</span>
+        </button>
+
+        <!-- Ô 2: Menu Cơm Trưa -->
+        <button type="button" onclick="selectMainMenu('LUNCH')" id="mainMenuBtn-LUNCH" class="main-menu-btn relative flex flex-col items-center justify-center p-2 rounded-2xl border-2 transition-all duration-200 shadow-sm active:scale-95 bg-emerald-950/50 border-emerald-700/50 text-emerald-100 hover:bg-emerald-950/80">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-white/10 text-white mb-0.5 icon-box">
+            🍚
+          </div>
+          <span class="text-xs font-black tracking-tight leading-tight text-center title-text" id="mainMenuText-LUNCH">Menu Cơm Trưa</span>
+          <span class="text-[9px] text-emerald-300/80 mt-0.5 leading-none text-center sub-text" id="mainMenuSubText-LUNCH">Cơm phần, mì</span>
+        </button>
+
+        <!-- Ô 3: Menu Cafe / Ăn Sáng -->
+        <button type="button" onclick="selectMainMenu('CAFE')" id="mainMenuBtn-CAFE" class="main-menu-btn relative flex flex-col items-center justify-center p-2 rounded-2xl border-2 transition-all duration-200 shadow-sm active:scale-95 bg-emerald-950/50 border-emerald-700/50 text-emerald-100 hover:bg-emerald-950/80">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-white/10 text-white mb-0.5 icon-box">
+            ☕
+          </div>
+          <span class="text-xs font-black tracking-tight leading-tight text-center title-text" id="mainMenuText-CAFE">Menu Cafe/Sáng</span>
+          <span class="text-[9px] text-emerald-300/80 mt-0.5 leading-none text-center sub-text" id="mainMenuSubText-CAFE">Cà phê & sáng</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Thanh Danh Mục Trượt Ngang (Lớn hơn, Màu sắc rực rỡ) -->
-    <div class="bg-emerald-950/95 px-3 py-2.5 border-t border-emerald-700/60 overflow-x-auto no-scrollbar flex items-center gap-2.5 shadow-inner" id="categoryTabs">
+    <div class="bg-emerald-950/95 px-3 py-2 border-t border-emerald-700/60 overflow-x-auto no-scrollbar flex items-center gap-2 shadow-inner" id="categoryTabs">
       <!-- Sẽ được render bởi JS -->
     </div>
   </header>
@@ -234,11 +266,26 @@
           <div class="flex-1">
             <h3 id="modalItemName" class="text-lg sm:text-xl font-black text-stone-900 leading-tight">Tên Món Ăn</h3>
             <div id="modalItemSubInfo" class="flex items-center gap-2 mt-1 text-xs text-stone-500">
-              <span class="inline-flex items-center gap-1 text-emerald-700 font-semibold"><i class="fa-solid fa-circle-check text-[10px]"></i> Sẵn sàng phục vụ</span>
+              <span id="modalItemStatusBadge" class="inline-flex items-center gap-1 text-emerald-700 font-semibold"><i class="fa-solid fa-circle-check text-[10px]"></i> Sẵn sàng phục vụ</span>
             </div>
           </div>
           <div class="text-right flex-shrink-0">
             <div id="modalItemPrice" class="text-lg sm:text-xl font-black text-emerald-700">0 đ</div>
+          </div>
+        </div>
+
+        <!-- Cảnh báo Bếp Tạm Hết NVL Chế Biến -->
+        <div id="modalOutOfIngredientsAlert" class="hidden p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 text-amber-950 text-xs flex items-start gap-2.5 shadow-xs">
+          <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm flex-shrink-0 mt-0.5 shadow-2xs">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <div class="font-bold text-amber-900 text-xs flex items-center gap-1.5" id="modalOutOfIngredientsTitle">
+              Bếp tạm hết nguyên liệu chế biến
+            </div>
+            <div class="text-[11px] text-amber-800 mt-1 leading-relaxed" id="modalOutOfIngredientsDesc">
+              Hôm nay nguyên liệu tươi của món này đã được dùng hết. Quý khách vui lòng chọn món thơm ngon khác trong thực đơn nhé!
+            </div>
           </div>
         </div>
 
@@ -388,7 +435,16 @@
     const I18N = {
       vi: {
         flag: "🇻🇳", label: "VI", name: "Tiếng Việt",
-        restaurant_sub: "Ẩm Thực Sân Vườn Sinh Thái",
+        restaurant_sub: "Nhà Hàng, Bể Bơi, Cafe, Pickleball",
+        main_menu_restaurant: "Menu Nhà Hàng",
+        main_menu_restaurant_sub: "Đặc sản, tiệc",
+        main_menu_lunch: "Menu Cơm Trưa",
+        main_menu_lunch_sub: "Cơm phần, mì",
+        main_menu_cafe: "Menu Cafe/Sáng",
+        main_menu_cafe_sub: "Cà phê & sáng",
+        dish_out_of_ingredients_badge: "Tạm hết NVL",
+        dish_out_of_ingredients_title: "Bếp tạm hết nguyên liệu chế biến",
+        dish_out_of_ingredients_desc: "Hôm nay nguyên liệu tươi của món này đã được dùng hết. Quý khách vui lòng chọn món thơm ngon khác trong thực đơn nhé!",
         banner_tag: "✨ MENU ĐIỆN TỬ TỰ ĐỘNG",
         banner_greeting: (table) => `Xin chào quý khách tại ${table}!`,
         banner_desc: "Chọn món và gửi đơn, bếp sẽ tự động in phiếu và nấu ngay trong ít phút.",
@@ -430,7 +486,16 @@
       },
       en: {
         flag: "🇬🇧", label: "EN", name: "English",
-        restaurant_sub: "Eco Garden Dining & Grill",
+        restaurant_sub: "Restaurant, Swimming Pool, Cafe, Pickleball",
+        main_menu_restaurant: "Restaurant Menu",
+        main_menu_restaurant_sub: "Specialties & Grill",
+        main_menu_lunch: "Lunch Menu",
+        main_menu_lunch_sub: "Rice & noodles",
+        main_menu_cafe: "Cafe / Morning",
+        main_menu_cafe_sub: "Coffee & breakfast",
+        dish_out_of_ingredients_badge: "Out of ingredients",
+        dish_out_of_ingredients_title: "Temporarily out of ingredients",
+        dish_out_of_ingredients_desc: "Fresh ingredients for this dish are temporarily sold out today. Please select another delicious item from our menu!",
         banner_tag: "✨ SMART QR ORDERING",
         banner_greeting: (table) => `Welcome to ${table}!`,
         banner_desc: "Select dishes and submit. The kitchen will prepare your order in minutes.",
@@ -472,7 +537,16 @@
       },
       zh: {
         flag: "🇨🇳", label: "ZH", name: "中文",
-        restaurant_sub: "生态花园特色美馔",
+        restaurant_sub: "特色餐厅 · 阳光泳池 · 休闲咖啡 · 匹克球场",
+        main_menu_restaurant: "特色主厨餐厅",
+        main_menu_restaurant_sub: "花园名菜 · 烧烤火锅",
+        main_menu_lunch: "精品商务午餐",
+        main_menu_lunch_sub: "简餐便饭 · 炒饭炒面",
+        main_menu_cafe: "咖啡与早点",
+        main_menu_cafe_sub: "越式早茶 · 滴漏咖啡",
+        dish_out_of_ingredients_badge: "原料暂时售罄",
+        dish_out_of_ingredients_title: "后厨新鲜食材暂时用尽",
+        dish_out_of_ingredients_desc: "本店今日该道菜品的新鲜原材料已用完，十分抱歉！请您品尝挑选菜单中的其他美味佳肴。",
         banner_tag: "✨ 智能电子菜单",
         banner_greeting: (table) => `欢迎光临 ${table}！`,
         banner_desc: "选择您喜爱的菜品并下单，后厨将自动打印并为您烹饪。",
@@ -514,7 +588,16 @@
       },
       ko: {
         flag: "🇰🇷", label: "KO", name: "한국어",
-        restaurant_sub: "자연 친화 가든 레스토랑 & 그릴",
+        restaurant_sub: "레스토랑 · 야외 수영장 · 가든 카페 · 피클볼",
+        main_menu_restaurant: "가든 레스토랑",
+        main_menu_restaurant_sub: "특선 요리 · 전골 & 바비큐",
+        main_menu_lunch: "점심 특선 식사",
+        main_menu_lunch_sub: "정식 · 볶음밥 & 볶음면",
+        main_menu_cafe: "카페 & 모닝 조식",
+        main_menu_cafe_sub: "커피 · 티 & 아침 식사",
+        dish_out_of_ingredients_badge: "식재료 소진",
+        dish_out_of_ingredients_title: "주방 신선 식재료 소진",
+        dish_out_of_ingredients_desc: "오늘 이 메뉴의 신선한 재료가 모두 소진되었습니다. 다른 맛있는 메뉴를 선택해 주시기 바랍니다!",
         banner_tag: "✨ 스마트 QR 주문",
         banner_greeting: (table) => `${table}에 오신 것을 환영합니다!`,
         banner_desc: "메뉴를 선택해 주문하시면 주방에서 즉시 조리를 시작합니다.",
@@ -556,7 +639,16 @@
       },
       ru: {
         flag: "🇷🇺", label: "RU", name: "Русский",
-        restaurant_sub: "Эко-ресторан в саду и гриль",
+        restaurant_sub: "Ресторан, Бассейн, Кафе, Пиклбол",
+        main_menu_restaurant: "Меню Ресторана",
+        main_menu_restaurant_sub: "Специалитеты и гриль",
+        main_menu_lunch: "Обеденное Меню",
+        main_menu_lunch_sub: "Обеды, рис и лапша",
+        main_menu_cafe: "Кафе и Завтраки",
+        main_menu_cafe_sub: "Кофе, чай и завтраки",
+        dish_out_of_ingredients_badge: "Нет ингредиентов",
+        dish_out_of_ingredients_title: "Временно закончились ингредиенты",
+        dish_out_of_ingredients_desc: "Свежие ингредиенты для этого блюда сегодня закончились. Пожалуйста, выберите другое аппетитное блюдо из меню!",
         banner_tag: "✨ ЭЛЕКТРОННОЕ МЕНЮ",
         banner_greeting: (table) => `Добро пожаловать за ${table}!`,
         banner_desc: "Выберите блюда и оформите заказ. Кухня начнет приготовление за считанные минуты.",
@@ -599,6 +691,7 @@
     };
 
     let currentLang = localStorage.getItem("pipo_lang") || "vi";
+    let currentMainMenu = localStorage.getItem("pipo_main_menu") || "RESTAURANT";
     let menuData = [];
     let cart = [];
     let currentModalItem = null;
@@ -607,6 +700,12 @@
 
     // 1. Khởi chạy khi load trang
     document.addEventListener("DOMContentLoaded", () => {
+      // Nhận diện tự động nếu bàn cafe
+      const isCafeTable = (TABLE_INFO.branchType === "CAFE" || (TABLE_INFO.area || "").toLowerCase().includes("cafe") || (TABLE_INFO.code || "").toUpperCase().startsWith("CF"));
+      if (isCafeTable && !localStorage.getItem("pipo_main_menu")) {
+        currentMainMenu = "CAFE";
+      }
+
       // Khôi phục giỏ hàng đã lưu trước đó nếu có (khi đổi ngôn ngữ tự làm mới trang)
       const savedCart = localStorage.getItem("pipo_cart_" + TABLE_INFO.id);
       if (savedCart) {
@@ -620,6 +719,7 @@
         applyLanguage(currentLang);
       }
 
+      updateMainMenuButtonsUI();
       fetchMenu();
       updateCartUI();
       connectCustomerWebSocket();
@@ -697,6 +797,20 @@
       }
       if (document.getElementById("modalCalorieSubText")) {
         document.getElementById("modalCalorieSubText").innerText = dict.calorie_sub || "Tính chuẩn theo định lượng NVL chế biến";
+      }
+
+      // 3 Main Menu Buttons Text
+      if (document.getElementById("mainMenuText-RESTAURANT")) {
+        document.getElementById("mainMenuText-RESTAURANT").innerText = dict.main_menu_restaurant || "Menu Nhà Hàng";
+        document.getElementById("mainMenuSubText-RESTAURANT").innerText = dict.main_menu_restaurant_sub || "Đặc sản, tiệc";
+      }
+      if (document.getElementById("mainMenuText-LUNCH")) {
+        document.getElementById("mainMenuText-LUNCH").innerText = dict.main_menu_lunch || "Menu Cơm Trưa";
+        document.getElementById("mainMenuSubText-LUNCH").innerText = dict.main_menu_lunch_sub || "Cơm phần, mì";
+      }
+      if (document.getElementById("mainMenuText-CAFE")) {
+        document.getElementById("mainMenuText-CAFE").innerText = dict.main_menu_cafe || "Menu Cafe/Sáng";
+        document.getElementById("mainMenuSubText-CAFE").innerText = dict.main_menu_cafe_sub || "Cà phê & sáng";
       }
     }
 
@@ -872,15 +986,58 @@
       return 'ALL';
     }
 
-    // 3. Render 6 nhóm lớn + Tất cả (Nổi bật, nút to, màu sắc riêng biệt)
+    // Helper kiểm tra món có thuộc Menu chính đang chọn hay không
+    function isItemInMainMenu(item, menuType) {
+      if (!menuType || menuType === "ALL") return true;
+      if (!item.main_menu_type) return true;
+      const parts = item.main_menu_type.split(",").map(s => s.trim().toUpperCase());
+      return parts.includes(menuType.toUpperCase()) || parts.includes("ALL");
+    }
+
+    function selectMainMenu(menuKey) {
+      currentMainMenu = menuKey;
+      localStorage.setItem("pipo_main_menu", menuKey);
+      updateMainMenuButtonsUI();
+      activeCategoryId = 'ALL';
+      renderCategories();
+      renderMenu();
+    }
+
+    function updateMainMenuButtonsUI() {
+      const menus = ['RESTAURANT', 'LUNCH', 'CAFE'];
+      menus.forEach(m => {
+        const btn = document.getElementById(`mainMenuBtn-${m}`);
+        const title = document.getElementById(`mainMenuText-${m}`);
+        const sub = document.getElementById(`mainMenuSubText-${m}`);
+        if (!btn) return;
+        if (m === currentMainMenu) {
+          btn.className = "main-menu-btn relative flex flex-col items-center justify-center p-2 rounded-2xl border-2 transition-all duration-200 shadow-md active:scale-95 bg-white border-emerald-400 text-stone-900 ring-2 ring-emerald-300 scale-[1.02]";
+          if (title) title.className = "text-xs font-black tracking-tight leading-tight text-center text-stone-900";
+          if (sub) sub.className = "text-[9px] text-stone-500 mt-0.5 leading-none text-center";
+        } else {
+          btn.className = "main-menu-btn relative flex flex-col items-center justify-center p-2 rounded-2xl border-2 transition-all duration-200 shadow-sm active:scale-95 bg-emerald-950/50 border-emerald-700/50 text-emerald-100 hover:bg-emerald-950/80";
+          if (title) title.className = "text-xs font-black tracking-tight leading-tight text-center text-emerald-100";
+          if (sub) sub.className = "text-[9px] text-emerald-300/80 mt-0.5 leading-none text-center";
+        }
+      });
+    }
+
+    // 3. Render 6 nhóm lớn + Tất cả (Lọc theo Menu Chính đang chọn)
     function renderCategories() {
       const container = document.getElementById("categoryTabs");
       if (!menuData || menuData.length === 0) return;
       if (!activeCategoryId) {
-        activeCategoryId = determineInitialCategory();
+        activeCategoryId = 'ALL';
       }
 
-      const totalDishes = menuData.reduce((sum, c) => sum + (c.items ? c.items.length : 0), 0);
+      // Đếm số món thực tế thuộc Menu chính đang chọn
+      let totalDishes = 0;
+      const filteredCats = menuData.map(cat => {
+        const items = (cat.items || []).filter(it => isItemInMainMenu(it, currentMainMenu));
+        totalDishes += items.length;
+        return { ...cat, matchingCount: items.length };
+      });
+
       const isAllActive = (activeCategoryId === 'ALL' || !activeCategoryId);
 
       // Nút "Tất cả món"
@@ -893,13 +1050,13 @@
       `;
 
       // 6 Nút nhóm món ăn
-      html += menuData.map((cat) => {
+      html += filteredCats.map((cat) => {
         const isActive = (cat.id === activeCategoryId);
         const theme = getCategoryTheme(cat.id);
-        const count = (cat.items || []).length;
+        const count = cat.matchingCount;
 
         return `
-          <button id="cat-tab-${cat.id}" onclick="selectCategoryTab(${cat.id})" class="flex-shrink-0 whitespace-nowrap px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-center gap-2 ${isActive ? theme.activeBtn : theme.inactiveBtn}">
+          <button id="cat-tab-${cat.id}" onclick="selectCategoryTab(${cat.id})" class="flex-shrink-0 whitespace-nowrap px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-center gap-2 ${isActive ? theme.activeBtn : theme.inactiveBtn} ${count === 0 ? 'opacity-40' : ''}">
             <span class="text-base sm:text-lg">${cat.icon || theme.icon}</span>
             <span>${getCategoryName(cat)}</span>
             <span class="text-[11px] px-2 py-0.5 rounded-full font-bold ${isActive ? theme.activePill : theme.inactivePill}">${count}</span>
@@ -926,7 +1083,7 @@
       }, 50);
     }
 
-    // 4. Render thực đơn trực tiếp theo 6 nhóm lớn với Bảng Tiêu Đề Nổi Bật
+    // 4. Render thực đơn trực tiếp theo 6 nhóm lớn với Bảng Tiêu Đề Nổi Bật & Báo Hết NVL
     function renderMenu() {
       const container = document.getElementById("menuContainer");
       if (!menuData || menuData.length === 0) {
@@ -939,14 +1096,13 @@
         ? menuData.filter(c => c.id === activeCategoryId)
         : menuData;
 
-      if (selectedCats.length === 0) {
-        container.innerHTML = `<div class="text-center py-12 text-stone-400 text-sm">Không có món ăn trong nhóm này.</div>`;
-        return;
-      }
-
-      container.innerHTML = selectedCats.map(cat => {
+      let hasAnyDish = false;
+      const html = selectedCats.map(cat => {
         const theme = getCategoryTheme(cat.id);
-        const items = cat.items || [];
+        // Lọc các món thuộc Menu chính đang chọn (Nhà Hàng, Cơm Trưa, Cafe/Sáng)
+        const items = (cat.items || []).filter(it => isItemInMainMenu(it, currentMainMenu));
+        if (items.length === 0) return '';
+        hasAnyDish = true;
         const catName = getCategoryName(cat);
 
         return `
@@ -975,19 +1131,20 @@
             </div>
           </div>
 
-          <!-- Danh sách món ăn nằm trực tiếp trong nhóm này (Không đẻ nhóm phụ) -->
+          <!-- Danh sách món ăn nằm trực tiếp trong nhóm này -->
           <div class="grid grid-cols-1 gap-3">
             ${items.map(item => {
               const itemName = getItemName(item);
               const itemDesc = getItemDesc(item);
               const parsed = parsePortionAndDesc(itemDesc);
-              const isAvailable = item.is_available === 1;
+              const isOutOfIngredients = (item.out_of_ingredients === 1);
+              const isAvailable = (item.is_available === 1 && !isOutOfIngredients);
 
               return `
-              <div onclick="openItemModal(${item.id})" class="cursor-pointer bg-white rounded-2xl p-3 shadow-xs hover:shadow-md ${theme.borderHover} border border-stone-200/80 flex gap-3 items-center active:scale-[0.99] transition ${!isAvailable ? 'opacity-60 grayscale' : ''}">
+              <div onclick="openItemModal(${item.id})" class="cursor-pointer bg-white rounded-2xl p-3 shadow-xs hover:shadow-md ${theme.borderHover} border border-stone-200/80 flex gap-3 items-center active:scale-[0.99] transition ${!isAvailable ? 'opacity-70 bg-stone-50/70' : ''}">
                 <!-- Ảnh món -->
                 <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden flex-shrink-0 bg-stone-50 border border-stone-100 group/thumb">
-                  <img src="${item.image_url || '/static/logo.png'}" alt="${itemName}" loading="lazy" onerror="this.onerror=null; this.src='/static/logo.png';" class="w-full h-full object-cover transition duration-300 group-hover/thumb:scale-110">
+                  <img src="${item.image_url || '/static/logo.png'}" alt="${itemName}" loading="lazy" onerror="this.onerror=null; this.src='/static/logo.png';" class="w-full h-full object-cover transition duration-300 group-hover/thumb:scale-110 ${!isAvailable ? 'grayscale-[40%]' : ''}">
                   <div class="absolute inset-0 bg-black/25 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white">
                     <i class="fa-solid fa-magnifying-glass-plus text-xs"></i>
                   </div>
@@ -1007,16 +1164,21 @@
                   ` : ''}
                   <div class="mt-1.5 flex items-center justify-between">
                     <span class="font-black ${theme.priceColor} text-sm">${formatVND(item.price)}</span>
-                    ${isAvailable ? `
+                    ${isOutOfIngredients ? `
+                      <span class="text-[10px] font-black text-rose-800 bg-rose-50 border border-rose-300 px-2.5 py-1 rounded-xl flex items-center gap-1 shadow-2xs">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-600 text-[10px]"></i>
+                        <span>${t('dish_out_of_ingredients_badge')}</span>
+                      </span>
+                    ` : (isAvailable ? `
                       <button type="button" onclick="event.stopPropagation(); openItemModal(${item.id})" class="${theme.btnAction} font-bold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 shadow-xs">
                         <span>${t('btn_add_short')}</span>
                         <i class="fa-solid fa-plus text-[10px]"></i>
                       </button>
                     ` : `
-                      <span class="text-[10px] font-bold text-rose-500 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
+                      <span class="text-[10px] font-bold text-stone-500 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full">
                         Hết hàng
                       </span>
-                    `}
+                    `)}
                   </div>
                 </div>
               </div>
@@ -1024,6 +1186,18 @@
           </div>
         </div>
       `}).join('');
+
+      if (!hasAnyDish) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-stone-400 text-xs bg-white rounded-2xl border border-stone-200 p-6">
+            <i class="fa-solid fa-utensils text-2xl text-stone-300 mb-2"></i>
+            <p class="font-semibold text-stone-600">Chưa có món ăn nào trong thực đơn này.</p>
+            <p class="text-[11px] text-stone-400 mt-1">Quý khách vui lòng chọn nhóm thực đơn khác ở trên nhé!</p>
+          </div>
+        `;
+      } else {
+        container.innerHTML = html;
+      }
     }
 
     // 5. Modal chi tiết món & Ảnh phóng to
@@ -1075,6 +1249,45 @@
       if (priceBtnEl) priceBtnEl.innerText = formatVND(item.price * modalQty);
 
       document.getElementById("modalItemNote").value = "";
+
+      // Xử lý Cảnh báo Tạm Hết NVL
+      const isOutOfIngredients = (item.out_of_ingredients === 1);
+      const outAlert = document.getElementById("modalOutOfIngredientsAlert");
+      const addBtn = document.getElementById("modalAddToCartBtn");
+      const statusBadge = document.getElementById("modalItemStatusBadge");
+
+      if (outAlert) {
+        if (isOutOfIngredients) {
+          outAlert.classList.remove("hidden");
+          document.getElementById("modalOutOfIngredientsTitle").innerText = t('dish_out_of_ingredients_title');
+          document.getElementById("modalOutOfIngredientsDesc").innerText = t('dish_out_of_ingredients_desc');
+          if (statusBadge) {
+            statusBadge.className = "inline-flex items-center gap-1 text-rose-700 font-bold";
+            statusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-[10px]"></i> ${t('dish_out_of_ingredients_badge')}`;
+          }
+          if (addBtn) {
+            addBtn.disabled = true;
+            addBtn.className = "flex-1 bg-stone-200 text-stone-500 font-bold py-2.5 px-4 rounded-xl cursor-not-allowed flex items-center justify-center text-xs";
+            addBtn.innerHTML = `<span>⚠️ ${t('dish_out_of_ingredients_badge')}</span>`;
+          }
+        } else {
+          outAlert.classList.add("hidden");
+          if (statusBadge) {
+            statusBadge.className = "inline-flex items-center gap-1 text-emerald-700 font-semibold";
+            statusBadge.innerHTML = `<i class="fa-solid fa-circle-check text-[10px]"></i> Sẵn sàng phục vụ`;
+          }
+          if (addBtn) {
+            addBtn.disabled = !item.is_available;
+            if (item.is_available) {
+              addBtn.className = "flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-between text-sm";
+              addBtn.innerHTML = `<span id="modalAddToCartBtnText">${t('btn_add_to_cart')}</span><span id="modalAddToCartBtnPrice" class="font-extrabold bg-emerald-700/60 px-2.5 py-0.5 rounded-lg text-xs">${formatVND(item.price * modalQty)}</span>`;
+            } else {
+              addBtn.className = "flex-1 bg-stone-200 text-stone-500 font-bold py-2.5 px-4 rounded-xl cursor-not-allowed flex items-center justify-center text-xs";
+              addBtn.innerHTML = `<span>Hết hàng</span>`;
+            }
+          }
+        }
+      }
 
       const optContainer = document.getElementById("modalOptionsContainer");
       optContainer.innerHTML = (item.options || []).map((opt) => `

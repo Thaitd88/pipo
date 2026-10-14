@@ -68,7 +68,11 @@
         <button onclick="setStationFilter('BAR')" id="filter-BAR" class="station-tab px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold">🍹 Quầy Bar</button>
       </div>
 
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3">
+        <button onclick="openQuickOutOfIngredientsModal()" class="px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold flex items-center gap-1.5 transition shadow-xs text-xs">
+          <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+          <span>⚡ Báo Hết NVL Nhanh</span>
+        </button>
         <button id="btnAudioToggle" onclick="toggleAudio()" class="px-3 py-1.5 rounded-xl border border-stone-200 bg-stone-50 text-stone-700 font-semibold flex items-center gap-1.5 hover:bg-stone-100 transition shadow-xs">
           <i class="fa-solid fa-bell text-amber-600" id="audioIcon"></i>
           <span id="audioText">Chuông: BẬT</span>
@@ -105,7 +109,23 @@
       </div>
     </div>
 
-    <!-- Bộ lọc 2 Nhóm Lớn: Menu Nhà Hàng & Menu Cafe / Ăn Sáng -->
+    <!-- Bộ lọc 3 Nhóm Thực Đơn Lớn (Menu Nhà Hàng, Menu Cơm Trưa & Menu Cafe / Ăn Sáng) -->
+    <div class="flex items-center gap-2 mb-3 overflow-x-auto pb-1" id="kitchenMainMenuTabs">
+      <button onclick="setKitchenMainMenuFilter('ALL')" id="kMainMenu-ALL" class="k-mainmenu-tab px-4 py-2 rounded-xl text-xs font-black bg-stone-900 text-white shadow-xs">
+        ✨ Tất Cả Thực Đơn
+      </button>
+      <button onclick="setKitchenMainMenuFilter('RESTAURANT')" id="kMainMenu-RESTAURANT" class="k-mainmenu-tab px-4 py-2 rounded-xl text-xs font-bold bg-white border border-stone-300 text-stone-700 hover:bg-stone-50">
+        🍽️ Menu Nhà Hàng
+      </button>
+      <button onclick="setKitchenMainMenuFilter('LUNCH')" id="kMainMenu-LUNCH" class="k-mainmenu-tab px-4 py-2 rounded-xl text-xs font-bold bg-white border border-stone-300 text-stone-700 hover:bg-stone-50">
+        🍚 Menu Cơm Trưa
+      </button>
+      <button onclick="setKitchenMainMenuFilter('CAFE')" id="kMainMenu-CAFE" class="k-mainmenu-tab px-4 py-2 rounded-xl text-xs font-bold bg-white border border-stone-300 text-stone-700 hover:bg-stone-50">
+        ☕ Menu Cafe / Ăn Sáng
+      </button>
+    </div>
+
+    <!-- 6 Nhóm danh mục chi tiết -->
     <div class="flex items-center gap-2 overflow-x-auto mb-5 pb-1" id="kitchenMenuCategoryTabs"></div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="kitchenMenuList"></div>
@@ -253,6 +273,31 @@
             <label class="block text-stone-700 font-semibold mb-1">Mô tả món ăn (Tiếng Việt)</label>
             <textarea id="dishDescVi" rows="2" placeholder="Ví dụ: Thịt bò Fuji hảo hạng nướng trên đá nham thạch 300 độ..." class="w-full bg-white border border-stone-300 rounded-xl px-3.5 py-2 text-stone-900 focus:outline-none focus:border-amber-600"></textarea>
           </div>
+
+          <div class="sm:col-span-2 bg-stone-50 p-3.5 rounded-xl border border-stone-200">
+            <label class="block text-stone-700 font-bold mb-2">Thuộc các nhóm Menu lớn: <span class="text-rose-500">*</span></label>
+            <div class="flex flex-wrap gap-4 text-xs font-bold text-stone-800">
+              <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-stone-300 hover:border-emerald-500 transition">
+                <input type="checkbox" id="chkMenuRestaurant" class="w-4 h-4 text-emerald-600 rounded">
+                <span>🍽️ Menu Nhà Hàng</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-stone-300 hover:border-amber-500 transition">
+                <input type="checkbox" id="chkMenuLunch" class="w-4 h-4 text-amber-600 rounded">
+                <span>🍚 Menu Cơm Trưa</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-stone-300 hover:border-teal-500 transition">
+                <input type="checkbox" id="chkMenuCafe" class="w-4 h-4 text-teal-600 rounded">
+                <span>☕ Menu Cafe / Ăn Sáng</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="flex items-center gap-2.5 cursor-pointer bg-amber-50 p-3 rounded-xl border border-amber-300 text-xs font-bold text-amber-950">
+              <input type="checkbox" id="chkOutOfIngredients" class="w-4 h-4 text-amber-600 rounded">
+              <span>⚠️ Đang tạm hết nguyên vật liệu (Báo hết NVL cho khách và phục vụ)</span>
+            </label>
+          </div>
         </div>
 
         <!-- Khung Dịch Tự Động Sang 4 Thứ Tiếng -->
@@ -352,6 +397,46 @@
             <i class="fa-solid fa-floppy-disk"></i> Lưu Món Ăn
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: BÁO HẾT NGUYÊN VẬT LIỆU NHANH CHO BẾP -->
+  <!-- ======================================================== -->
+  <div id="quickOutOfIngredientsModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-xl w-full border border-stone-200 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div class="px-6 py-4 bg-amber-500 text-stone-950 flex items-center justify-between">
+        <div>
+          <h3 class="font-black text-sm sm:text-base flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            Quản Lý Tồn Món & Báo Hết NVL Nhanh
+          </h3>
+          <p class="text-[11px] text-amber-950 font-medium mt-0.5">Bật báo hết NVL để khách đặt bàn & phục vụ thấy thông báo ngay lập tức</p>
+        </div>
+        <button onclick="closeQuickOutOfIngredientsModal()" class="w-8 h-8 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Search Box -->
+      <div class="p-4 border-b border-stone-200 bg-stone-50">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-stone-400 text-xs"></i>
+          <input type="text" id="quickOutSearchInput" oninput="renderQuickOutOfIngredientsList()" placeholder="Tìm kiếm tên món ăn (ví dụ: gà, ốc, hàu, bò...)" class="w-full bg-white border border-stone-300 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-amber-600 font-medium">
+        </div>
+      </div>
+
+      <!-- List of dishes with toggle buttons -->
+      <div class="p-4 overflow-y-auto flex-1 space-y-2 divide-y divide-stone-100" id="quickOutOfIngredientsList">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="px-6 py-3 border-t border-stone-200 bg-stone-50 flex items-center justify-between text-xs">
+        <span class="text-stone-500" id="quickOutSummaryText">Đang tải danh sách món...</span>
+        <button onclick="closeQuickOutOfIngredientsModal()" class="px-4 py-1.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold transition">
+          Xong & Đóng
+        </button>
       </div>
     </div>
   </div>
@@ -518,7 +603,7 @@
 
                 return `
                   <div class="bg-stone-50 p-3 rounded-xl border border-stone-200">
-                    <div class="flex items-start justify-between">
+                    <div class="flex items-start justify-between gap-2">
                       <div class="flex items-start gap-2 flex-1">
                         <span class="w-6 h-6 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-black flex items-center justify-center flex-shrink-0">${item.quantity}</span>
                         <div>
@@ -526,7 +611,12 @@
                           ${item.note ? `<div class="text-xs text-amber-700 italic mt-0.5">${item.note}</div>` : ''}
                         </div>
                       </div>
-                      ${statusBadge}
+                      <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                        ${statusBadge}
+                        <button onclick="quickToggleOutOfIngredientsByDishName('${(item.item_name || '').replace(/'/g, "\\'")}', ${item.item_id || 0})" title="Báo hết nguyên vật liệu cho món này" class="text-[10px] text-amber-900 hover:text-stone-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-2 py-0.5 rounded-lg font-bold transition flex items-center gap-1">
+                          <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Hết NVL
+                        </button>
+                      </div>
                     </div>
                     ${actionBtn}
                   </div>
@@ -591,6 +681,7 @@
     // ==========================================
     // 2. QUẢN LÝ MÓN ĂN & MENU
     // ==========================================
+    let currentKitchenMainMenuFilter = 'ALL';
     let currentKitchenCatFilter = 'ALL';
     let kitchenCategories = [];
 
@@ -605,9 +696,24 @@
 
         renderKitchenMenuTabs();
         renderKitchenMenuItems();
+        if (!document.getElementById("quickOutOfIngredientsModal").classList.contains("hidden")) {
+          renderQuickOutOfIngredientsList();
+        }
       } catch (e) {
         console.error(e);
       }
+    }
+
+    function setKitchenMainMenuFilter(filterType) {
+      currentKitchenMainMenuFilter = filterType;
+      document.querySelectorAll(".k-mainmenu-tab").forEach(tab => {
+        tab.className = "k-mainmenu-tab px-4 py-2 rounded-xl text-xs font-bold bg-white border border-stone-300 text-stone-700 hover:bg-stone-50";
+      });
+      const activeTab = document.getElementById(`kMainMenu-${filterType}`);
+      if (activeTab) {
+        activeTab.className = "k-mainmenu-tab px-4 py-2 rounded-xl text-xs font-black bg-stone-900 text-white shadow-xs";
+      }
+      renderKitchenMenuItems();
     }
 
     function setKitchenCatFilter(catId) {
@@ -655,9 +761,26 @@
 
     function renderKitchenMenuItems() {
       const container = document.getElementById("kitchenMenuList");
-      const filtered = currentKitchenCatFilter === 'ALL'
-        ? kitchenMenu
-        : kitchenMenu.filter(it => it.category_id === currentKitchenCatFilter);
+      const filtered = kitchenMenu.filter(it => {
+        if (currentKitchenMainMenuFilter !== 'ALL') {
+          const mainTypes = (it.main_menu_type || 'RESTAURANT,LUNCH,CAFE').split(',').map(s => s.trim());
+          if (!mainTypes.includes(currentKitchenMainMenuFilter)) return false;
+        }
+        if (currentKitchenCatFilter !== 'ALL' && it.category_id !== currentKitchenCatFilter) {
+          return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-12 text-stone-400 bg-white rounded-2xl border border-stone-200 p-8">
+            <i class="fa-solid fa-bowl-food text-4xl mb-2 text-stone-300"></i>
+            <p class="font-medium text-xs">Không có món ăn nào trong bộ lọc này.</p>
+          </div>
+        `;
+        return;
+      }
 
       container.innerHTML = filtered.map(item => {
         const trans = item.translations || {};
@@ -665,21 +788,41 @@
         const hasZh = trans.zh && trans.zh.name;
         const hasKo = trans.ko && trans.ko.name;
         const hasRu = trans.ru && trans.ru.name;
+        const isOutOfIngredients = item.out_of_ingredients === 1;
+
+        const mainTypes = (item.main_menu_type || 'RESTAURANT,LUNCH,CAFE').split(',').map(s => s.trim());
+        let menuBadges = '';
+        if (mainTypes.includes('RESTAURANT')) menuBadges += `<span class="bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.2 rounded text-[9px] font-bold">🍽️ Nhà Hàng</span> `;
+        if (mainTypes.includes('LUNCH')) menuBadges += `<span class="bg-blue-100 text-blue-900 border border-blue-300 px-1.5 py-0.2 rounded text-[9px] font-bold">🍚 Cơm Trưa</span> `;
+        if (mainTypes.includes('CAFE')) menuBadges += `<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 px-1.5 py-0.2 rounded text-[9px] font-bold">☕ Cafe</span> `;
 
         return `
-        <div class="bg-white border border-stone-200 rounded-2xl p-4 flex flex-col justify-between hover:shadow-md transition space-y-3">
+        <div class="bg-white border ${isOutOfIngredients ? 'border-amber-400 bg-amber-50/20 shadow-sm' : 'border-stone-200'} rounded-2xl p-4 flex flex-col justify-between hover:shadow-md transition space-y-3">
           <div class="flex items-start gap-3">
-            <img src="${item.image_url || '/static/logo.png'}" onerror="this.onerror=null; this.src='/static/logo.png';" class="w-16 h-16 rounded-xl object-cover bg-stone-50 border border-stone-200 flex-shrink-0 p-0.5">
+            <div class="relative flex-shrink-0">
+              <img src="${item.image_url || '/static/logo.png'}" onerror="this.onerror=null; this.src='/static/logo.png';" class="w-16 h-16 rounded-xl object-cover bg-stone-50 border border-stone-200 p-0.5">
+              ${isOutOfIngredients ? `
+                <div class="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center p-1 text-center">
+                  <span class="text-[9px] text-amber-300 font-black leading-tight">HẾT<br>NVL</span>
+                </div>
+              ` : ''}
+            </div>
             <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 truncate max-w-[140px]">${item.category_name || ''}</span>
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 truncate max-w-[130px]">${item.category_name || ''}</span>
                 <span class="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-mono font-bold">${item.station}</span>
               </div>
               <h4 class="font-bold text-sm text-stone-900 truncate mt-1">${item.name}</h4>
               <p class="text-[11px] text-stone-500 truncate">${item.description || ''}</p>
+              
               <div class="flex items-center justify-between mt-1">
                 <div class="text-xs text-emerald-700 font-bold">${formatVND(item.price)}</div>
                 <div class="text-[10px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">🔥 ${item.calories || 0} kcal</div>
+              </div>
+
+              <!-- Badges Thực đơn lớn -->
+              <div class="flex flex-wrap gap-1 mt-1.5">
+                ${menuBadges}
               </div>
 
               <!-- Cờ Đa Ngôn Ngữ -->
@@ -693,13 +836,28 @@
             </div>
           </div>
 
-          <div class="flex items-center justify-between pt-2.5 border-t border-stone-100">
-            <button onclick="toggleStock(${item.id})" class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${item.is_available ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200' : 'bg-rose-100 text-rose-800 border border-rose-300 hover:bg-rose-200'}">
-              ${item.is_available ? 'Còn hàng' : 'Hết hàng'}
-            </button>
-            <button onclick="openDishModal(${item.id})" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 flex items-center gap-1.5 transition">
-              <i class="fa-solid fa-pen-to-square text-[10px] text-amber-600"></i> Sửa & Dịch
-            </button>
+          <!-- Quick status & Actions -->
+          <div class="space-y-2 pt-2.5 border-t border-stone-100">
+            <div class="flex items-center justify-between gap-1.5">
+              ${isOutOfIngredients ? `
+                <button onclick="toggleKitchenOutOfIngredients(${item.id})" class="flex-1 py-1 px-2 rounded-xl text-[11px] font-black bg-rose-500 hover:bg-rose-600 text-white shadow-xs transition flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-triangle-exclamation"></i> Hết NVL (Bấm để Mở)
+                </button>
+              ` : `
+                <button onclick="toggleKitchenOutOfIngredients(${item.id})" class="flex-1 py-1 px-2 rounded-xl text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 transition flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-ban text-amber-600"></i> Báo Hết NVL
+                </button>
+              `}
+              <button onclick="toggleStock(${item.id})" class="py-1 px-2.5 rounded-xl text-[11px] font-bold transition ${item.is_available ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200' : 'bg-stone-200 text-stone-700 hover:bg-stone-300'}">
+                ${item.is_available ? 'Đang bật bán' : 'Tắt bán'}
+              </button>
+            </div>
+
+            <div class="flex justify-end">
+              <button onclick="openDishModal(${item.id})" class="w-full py-1.5 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 flex items-center justify-center gap-1.5 transition">
+                <i class="fa-solid fa-pen-to-square text-[10px] text-amber-600"></i> Sửa Chi Tiết & Dịch
+              </button>
+            </div>
           </div>
         </div>
       `;
@@ -709,6 +867,101 @@
     async function toggleStock(itemId) {
       await fetch(`/api/menu/item/${itemId}/toggle-stock`, { method: "POST" });
       loadKitchenMenu();
+    }
+
+    async function toggleKitchenOutOfIngredients(itemId) {
+      try {
+        const res = await fetch(`/api/menu/item/${itemId}/toggle-out-of-ingredients`, { method: "POST" });
+        const data = await res.json();
+        if (res.ok) {
+          await loadKitchenMenu();
+        } else {
+          alert("Lỗi: " + (data.detail || "Không thể cập nhật trạng thái nguyên vật liệu"));
+        }
+      } catch (e) {
+        alert("Lỗi kết nối");
+      }
+    }
+
+    function openQuickOutOfIngredientsModal() {
+      document.getElementById("quickOutOfIngredientsModal").classList.remove("hidden");
+      document.getElementById("quickOutSearchInput").value = "";
+      renderQuickOutOfIngredientsList();
+    }
+
+    function closeQuickOutOfIngredientsModal() {
+      document.getElementById("quickOutOfIngredientsModal").classList.add("hidden");
+    }
+
+    function renderQuickOutOfIngredientsList() {
+      const container = document.getElementById("quickOutOfIngredientsList");
+      const search = (document.getElementById("quickOutSearchInput").value || "").toLowerCase().trim();
+
+      let list = kitchenMenu;
+      if (search) {
+        list = list.filter(it => it.name.toLowerCase().includes(search) || (it.category_name && it.category_name.toLowerCase().includes(search)));
+      }
+
+      const outCount = kitchenMenu.filter(it => it.out_of_ingredients === 1).length;
+      document.getElementById("quickOutSummaryText").innerText = `Đang có ${outCount} món tạm hết NVL trong toàn bộ hệ thống`;
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center text-xs text-stone-400">Không tìm thấy món nào phù hợp với từ khóa "${search}".</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(item => {
+        const isOut = item.out_of_ingredients === 1;
+        return `
+          <div class="py-2.5 px-3 flex items-center justify-between gap-3 hover:bg-stone-50 rounded-xl transition">
+            <div class="flex items-center gap-3 min-w-0">
+              <img src="${item.image_url || '/static/logo.png'}" onerror="this.src='/static/logo.png';" class="w-10 h-10 rounded-lg object-cover bg-stone-100 flex-shrink-0">
+              <div class="min-w-0">
+                <div class="font-bold text-xs text-stone-900 truncate">${item.name}</div>
+                <div class="text-[10px] text-stone-500 flex items-center gap-2">
+                  <span>${item.category_name || ''}</span>
+                  <span>•</span>
+                  <span class="font-bold text-emerald-700">${formatVND(item.price)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+              ${isOut ? `
+                <span class="text-[10px] bg-rose-100 text-rose-800 border border-rose-300 px-2 py-0.5 rounded-full font-bold">
+                  ⚠️ Đang Hết NVL
+                </span>
+                <button onclick="toggleKitchenOutOfIngredients(${item.id})" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition">
+                  Mở Lại Món
+                </button>
+              ` : `
+                <button onclick="toggleKitchenOutOfIngredients(${item.id})" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs shadow-xs transition flex items-center gap-1">
+                  <i class="fa-solid fa-triangle-exclamation"></i> Báo Hết NVL
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function quickToggleOutOfIngredientsByDishName(dishName, itemId) {
+      let target = null;
+      if (itemId) {
+        target = kitchenMenu.find(m => m.id === itemId);
+      }
+      if (!target && dishName) {
+        target = kitchenMenu.find(m => m.name.toLowerCase() === dishName.toLowerCase());
+      }
+
+      if (target) {
+        const action = target.out_of_ingredients === 1 ? "MỞ LẠI MÓN (Đã có đủ NVL)" : "BÁO HẾT NVL (Khách quét QR sẽ thấy món tạm hết NVL)";
+        if (confirm(`Bạn muốn ${action} cho món "${target.name}"?`)) {
+          await toggleKitchenOutOfIngredients(target.id);
+        }
+      } else {
+        openQuickOutOfIngredientsModal();
+      }
     }
 
     let allCategories = [];
@@ -740,6 +993,12 @@
         document.getElementById("dishImageUrl").value = "";
         document.getElementById("dishDescVi").value = "";
 
+        // Default 3 Main Menus & Out of Ingredients
+        document.getElementById("chkMenuRestaurant").checked = true;
+        document.getElementById("chkMenuLunch").checked = true;
+        document.getElementById("chkMenuCafe").checked = false;
+        document.getElementById("chkOutOfIngredients").checked = false;
+
         ['en', 'zh', 'ko', 'ru'].forEach(l => {
           document.getElementById(`transName-${l}`).value = "";
           document.getElementById(`transDesc-${l}`).value = "";
@@ -759,6 +1018,15 @@
         document.getElementById("dishStation").value = dish.station || "HOT_KITCHEN";
         document.getElementById("dishImageUrl").value = dish.image_url || "";
         document.getElementById("dishDescVi").value = dish.description || "";
+
+        // Main Menus Checkboxes
+        const mainTypes = (dish.main_menu_type || 'RESTAURANT,LUNCH,CAFE').split(',').map(s => s.trim());
+        document.getElementById("chkMenuRestaurant").checked = mainTypes.includes('RESTAURANT');
+        document.getElementById("chkMenuLunch").checked = mainTypes.includes('LUNCH');
+        document.getElementById("chkMenuCafe").checked = mainTypes.includes('CAFE');
+
+        // Out of Ingredients Checkbox
+        document.getElementById("chkOutOfIngredients").checked = (dish.out_of_ingredients === 1);
 
         if (dish.image_url) {
           const previewBox = document.getElementById("kitchenImagePreviewBox");
@@ -898,6 +1166,17 @@
       if (isNaN(price) || price < 0) { alert("Vui lòng nhập giá bán hợp lệ"); return; }
       if (!catId) { alert("Vui lòng chọn danh mục thực đơn"); return; }
 
+      // 3 Main Menus
+      const menus = [];
+      if (document.getElementById("chkMenuRestaurant").checked) menus.push("RESTAURANT");
+      if (document.getElementById("chkMenuLunch").checked) menus.push("LUNCH");
+      if (document.getElementById("chkMenuCafe").checked) menus.push("CAFE");
+      if (menus.length === 0) menus.push("RESTAURANT");
+      const mainMenuType = menus.join(",");
+
+      // Out of ingredients
+      const outOfIngredients = document.getElementById("chkOutOfIngredients").checked ? 1 : 0;
+
       const transObj = {};
       ['en', 'zh', 'ko', 'ru'].forEach(l => {
         transObj[l] = {
@@ -915,6 +1194,8 @@
         price: price,
         image_url: img,
         station: station,
+        main_menu_type: mainMenuType,
+        out_of_ingredients: outOfIngredients,
         options_json: "[]",
         translations_json: hasAnyTrans ? JSON.stringify(transObj) : null
       };
