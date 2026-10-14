@@ -35,6 +35,7 @@ class MenuItemCreate(BaseModel):
     translations_json: Optional[str] = None
     translations: Optional[Dict[str, Any]] = None
     is_available: Optional[int] = 1
+    calories: Optional[int] = 0
 
 class MenuItemUpdate(BaseModel):
     category_id: Optional[int] = None
@@ -47,6 +48,7 @@ class MenuItemUpdate(BaseModel):
     translations_json: Optional[str] = None
     translations: Optional[Dict[str, Any]] = None
     is_available: Optional[int] = None
+    calories: Optional[int] = None
 
 class BulkMenuImportRequest(BaseModel):
     raw_text: Optional[str] = ""
@@ -247,8 +249,8 @@ def create_menu_item(item: MenuItemCreate):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO menu_items (category_id, name, description, price, image_url, station, options_json, translations_json, is_available)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO menu_items (category_id, name, description, price, image_url, station, options_json, translations_json, is_available, calories)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         item.category_id,
         item.name.strip(),
@@ -258,7 +260,8 @@ def create_menu_item(item: MenuItemCreate):
         item.station or "HOT_KITCHEN",
         item.options_json or "[]",
         translations_str,
-        item.is_available if item.is_available is not None else 1
+        item.is_available if item.is_available is not None else 1,
+        item.calories or 0
     ))
     new_id = cursor.lastrowid
     conn.commit()
@@ -295,6 +298,7 @@ def update_menu_item(item_id: int, item: MenuItemUpdate):
     station = item.station if item.station is not None else existing_dict["station"]
     options_json = item.options_json if item.options_json is not None else existing_dict["options_json"]
     is_available = item.is_available if item.is_available is not None else existing_dict["is_available"]
+    calories = item.calories if item.calories is not None else existing_dict.get("calories", 0)
 
     translations_str = item.translations_json
     if item.translations is not None and not translations_str:
@@ -309,9 +313,9 @@ def update_menu_item(item_id: int, item: MenuItemUpdate):
 
     cursor.execute("""
         UPDATE menu_items
-        SET category_id = ?, name = ?, description = ?, price = ?, image_url = ?, station = ?, options_json = ?, translations_json = ?, is_available = ?
+        SET category_id = ?, name = ?, description = ?, price = ?, image_url = ?, station = ?, options_json = ?, translations_json = ?, is_available = ?, calories = ?
         WHERE id = ?
-    """, (category_id, name, description, price, image_url, station, options_json, translations_str, is_available, item_id))
+    """, (category_id, name, description, price, image_url, station, options_json, translations_str, is_available, calories, item_id))
     conn.commit()
 
     cursor.execute("SELECT * FROM menu_items WHERE id = ?", (item_id,))

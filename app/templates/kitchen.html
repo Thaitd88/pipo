@@ -677,7 +677,10 @@
               </div>
               <h4 class="font-bold text-sm text-stone-900 truncate mt-1">${item.name}</h4>
               <p class="text-[11px] text-stone-500 truncate">${item.description || ''}</p>
-              <div class="text-xs text-emerald-700 font-bold">${formatVND(item.price)}</div>
+              <div class="flex items-center justify-between mt-1">
+                <div class="text-xs text-emerald-700 font-bold">${formatVND(item.price)}</div>
+                <div class="text-[10px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">🔥 ${item.calories || 0} kcal</div>
+              </div>
 
               <!-- Cờ Đa Ngôn Ngữ -->
               <div class="flex items-center gap-1 mt-1.5 text-[10px]">

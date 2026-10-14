@@ -324,10 +324,62 @@ def init_db():
     # Tự động đồng bộ và di chuyển sang 6 nhóm danh mục chuẩn
     ensure_six_categories(conn)
 
+    # Tự động tính toán và đồng bộ chỉ số Calo theo định lượng NVL (BOM)
+    sync_dish_calories(conn)
+
     # Đảm bảo toàn bộ danh mục và món ăn đều có dữ liệu đa ngôn ngữ
     seed_translations_if_missing(conn)
 
     conn.close()
+
+def sync_dish_calories(conn):
+    """Tính toán và đồng bộ chỉ số Calo cho toàn bộ món ăn dựa theo định lượng NVL (BOM)."""
+    cursor = conn.cursor()
+    try:
+        cursor.execute("ALTER TABLE menu_items ADD COLUMN calories INTEGER DEFAULT 0")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE inventory_items ADD COLUMN calories_per_unit REAL DEFAULT 0")
+    except Exception:
+        pass
+
+    ING_CALORIES = {
+        'NVL01': 850, 'NVL02': 820, 'NVL03': 860, 'NVL04': 65, 'NVL05': 480,
+        'NVL06': 2690, 'NVL07': 1650, 'NVL08': 2150, 'NVL09': 2800, 'NVL10': 2450,
+        'NVL11': 2900, 'NVL12': 2300, 'NVL13': 1120, 'NVL14': 1600, 'NVL15': 85,
+        'NVL16': 580, 'NVL17': 230, 'NVL18': 170, 'NVL19': 320, 'NVL20': 1750,
+        'NVL21': 280, 'NVL22': 4200, 'NVL23': 78, 'NVL24': 110, 'NVL25': 480,
+        'NVL26': 950, 'NVL27': 10, 'NVL28': 820, 'NVL29': 310, 'NVL30': 2600,
+        'NVL31': 780, 'NVL32': 2150, 'NVL33': 840, 'NVL34': 7200, 'NVL35': 360,
+        'NVL36': 240, 'NVL37': 380, 'NVL38': 300, 'NVL39': 1100, 'NVL40': 1580,
+        'NVL41': 0, 'NVL42': 139, 'NVL43': 145, 'NVL44': 86, 'NVL45': 95,
+        'NVL46': 142, 'NVL47': 145, 'NVL48': 105, 'NVL100': 880
+    }
+
+    for code, cal in ING_CALORIES.items():
+        cursor.execute("UPDATE inventory_items SET calories_per_unit = ? WHERE code = ?", (cal, code))
+
+    cursor.execute("SELECT id, name FROM menu_items")
+    dishes = cursor.fetchall()
+    for d in dishes:
+        mid = d["id"]
+        cursor.execute("""
+            SELECT i.code, r.quantity, i.calories_per_unit
+            FROM recipe_bom r
+            JOIN inventory_items i ON r.ingredient_id = i.id
+            WHERE r.menu_item_id = ?
+        """, (mid,))
+        bom_items = cursor.fetchall()
+        total_cal = 0
+        for b in bom_items:
+            qty = b["quantity"]
+            c_unit = b["calories_per_unit"] or ING_CALORIES.get(b["code"], 500)
+            total_cal += qty * c_unit
+
+        cursor.execute("UPDATE menu_items SET calories = ? WHERE id = ?", (round(total_cal), mid))
+
+    conn.commit()
 
 def ensure_six_categories(conn):
     """Tự động chuyển đổi và đồng bộ sang 6 nhóm món chính nếu database trên server vẫn ở cấu hình cũ."""

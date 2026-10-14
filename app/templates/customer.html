@@ -250,12 +250,19 @@
           </div>
           <p id="modalItemDesc" class="text-xs sm:text-sm text-stone-600 leading-relaxed bg-stone-50 p-3 rounded-xl border border-stone-100">Mô tả món ăn...</p>
           
-          <!-- Hộp Hiển Thị Định Lượng / Khẩu Phần Món Đa Ngôn Ngữ -->
-          <div id="modalItemPortionBox" class="hidden mt-2 p-3 bg-amber-50/90 rounded-xl border border-amber-200/80 flex items-start gap-2.5 shadow-xs">
-            <span class="text-base text-amber-700 mt-0.5">⚖️</span>
-            <div class="flex-1 min-w-0">
-              <div id="modalPortionTitleText" class="text-[11px] font-bold text-amber-900 uppercase tracking-wide">Định lượng / Quy cách:</div>
-              <div id="modalPortionValText" class="text-xs font-semibold text-amber-950 mt-0.5 leading-snug">...</div>
+          <!-- Hộp Hiển Thị Chỉ Số Calo / Năng Lượng Ước Tính Từ Định Lượng NVL -->
+          <div id="modalItemCalorieBox" class="mt-2.5 p-3 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 rounded-2xl border border-amber-300/80 flex items-center justify-between shadow-2xs">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center text-sm shadow-xs flex-shrink-0">
+                <i class="fa-solid fa-fire-flame-curved"></i>
+              </div>
+              <div>
+                <div id="modalCalorieTitleText" class="text-[11px] font-bold text-amber-950 uppercase tracking-wide">Năng lượng ước tính:</div>
+                <div id="modalCalorieSubText" class="text-[10px] text-stone-500">Tính chuẩn theo định lượng NVL chế biến</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <span id="modalCalorieValText" class="text-base font-black text-orange-600">0 kcal</span>
             </div>
           </div>
         </div>
@@ -416,7 +423,9 @@
         st_ready: "Món đã xong (Đang bưng)",
         st_served: "Đã lên bàn ✅",
         item_status_updated: (name) => `Cập nhật: Món ${name} đã đổi trạng thái!`,
-        portion_label: "Định lượng",
+        calorie_label: "Calo",
+        calorie_title: "Năng lượng ước tính:",
+        calorie_sub: "Tính chuẩn theo định lượng NVL chế biến",
         all_categories: "Tất cả món"
       },
       en: {
@@ -456,7 +465,9 @@
         st_ready: "Ready (Serving) 🍽️",
         st_served: "Served ✅",
         item_status_updated: (name) => `Update: ${name} status has changed!`,
-        portion_label: "Portion / Weight",
+        calorie_label: "Calories",
+        calorie_title: "Estimated Calories:",
+        calorie_sub: "Calculated from ingredient recipe",
         all_categories: "All Dishes"
       },
       zh: {
@@ -496,7 +507,9 @@
         st_ready: "出锅待传菜 🍽️",
         st_served: "已上桌 ✅",
         item_status_updated: (name) => `菜品 ${name} 状态已更新！`,
-        portion_label: "份量 / 净重",
+        calorie_label: "卡路里",
+        calorie_title: "预估热量 (卡路里)：",
+        calorie_sub: "基于后厨食材配方精准换算",
         all_categories: "全部菜品"
       },
       ko: {
@@ -536,7 +549,9 @@
         st_ready: "조리 완료 (서빙 중) 🍽️",
         st_served: "서빙 완료 ✅",
         item_status_updated: (name) => `알림: ${name} 조리 상태가 변경되었습니다!`,
-        portion_label: "정량 / 구성",
+        calorie_label: "칼로리",
+        calorie_title: "예상 열량 (칼로리):",
+        calorie_sub: "원재료 계량 기준 자동 계산",
         all_categories: "전체 메뉴"
       },
       ru: {
@@ -565,7 +580,7 @@
         btn_add_to_cart: "В корзину",
         btn_add_short: "Выбрать",
         modal_tap_zoom: "Увеличить фото",
-        modal_detail_title: "Детали и описание:",
+        modal_detail_title: "Детали và описание:",
         order_progress_title: "Статус приготовления блюд",
         toast_added: (qty, name) => `Добавлено ${qty}x ${name}`,
         toast_order_success: "🎉 Заказ отправлен! Кухня готовит ваши блюда...",
@@ -576,7 +591,9 @@
         st_ready: "Готово к подаче 🍽️",
         st_served: "Подано на стол ✅",
         item_status_updated: (name) => `Статус блюда ${name} изменился!`,
-        portion_label: "Порция / Вес",
+        calorie_label: "Калории",
+        calorie_title: "Калорийность (ккал):",
+        calorie_sub: "Рассчитано по весу ингредиентов",
         all_categories: "Все блюда"
       }
     };
@@ -674,6 +691,13 @@
       document.getElementById("cartTotalLabel").innerText = dict.total_this_round;
       document.getElementById("btnSubmitOrderText").innerText = dict.btn_submit_order;
       document.getElementById("orderProgressTitle").innerText = dict.order_progress_title;
+
+      if (document.getElementById("modalCalorieTitleText")) {
+        document.getElementById("modalCalorieTitleText").innerText = dict.calorie_title || "Năng lượng ước tính:";
+      }
+      if (document.getElementById("modalCalorieSubText")) {
+        document.getElementById("modalCalorieSubText").innerText = dict.calorie_sub || "Tính chuẩn theo định lượng NVL chế biến";
+      }
     }
 
     // Lấy tên món và mô tả theo ngôn ngữ đã chọn
@@ -704,8 +728,7 @@
         const idx = fullDesc.indexOf(m);
         if (idx !== -1) {
           const desc = fullDesc.substring(0, idx).replace(/[•·\-–\s]+$/, "").trim();
-          const portion = fullDesc.substring(idx + m.length).trim();
-          return { desc, portion };
+          return { desc, portion: "" };
         }
       }
       return { desc: fullDesc, portion: "" };
@@ -976,8 +999,12 @@
                 <!-- Thông tin món -->
                 <div class="flex-1 min-w-0">
                   <h4 class="font-bold text-sm text-stone-900 truncate hover:text-emerald-800 transition">${itemName}</h4>
-                  ${parsed.desc ? `<p class="text-[11px] text-stone-500 line-clamp-1 mt-0.5">${parsed.desc}</p>` : ''}
-                  ${parsed.portion ? `<div class="mt-1 flex items-center gap-1 text-[10px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60 w-fit max-w-full truncate"><i class="fa-solid fa-scale-balanced text-[9px] text-amber-600"></i> <span class="truncate">${t('portion_label')}: ${parsed.portion}</span></div>` : ''}
+                  ${(item.calories !== undefined && item.calories !== null) ? `
+                    <div class="mt-1 flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/80 w-fit">
+                      <span class="text-[10px] text-orange-500">🔥</span>
+                      <span>${item.calories} kcal</span>
+                    </div>
+                  ` : ''}
                   <div class="mt-1.5 flex items-center justify-between">
                     <span class="font-black ${theme.priceColor} text-sm">${formatVND(item.price)}</span>
                     ${isAvailable ? `
@@ -1036,18 +1063,11 @@
 
       document.getElementById("modalItemDesc").innerText = parsed.desc || localizedDesc || (localizedName + " - Đặc sản tươi ngon tại PiPo Garden, được các đầu bếp chế biến công phu, chuẩn vị.");
       
-      // Hiển thị hộp định lượng chuyên biệt
-      const portionBox = document.getElementById("modalItemPortionBox");
-      const portionTitle = document.getElementById("modalPortionTitleText");
-      const portionVal = document.getElementById("modalPortionValText");
-      if (portionBox && portionVal) {
-        if (parsed.portion) {
-          portionBox.classList.remove("hidden");
-          if (portionTitle) portionTitle.innerText = `${t('portion_label')}:`;
-          portionVal.innerText = parsed.portion;
-        } else {
-          portionBox.classList.add("hidden");
-        }
+      // Hiển thị hộp chỉ số Calo tính chuẩn từ định lượng NVL
+      const calBox = document.getElementById("modalItemCalorieBox");
+      const calVal = document.getElementById("modalCalorieValText");
+      if (calBox && calVal) {
+        calVal.innerText = `${item.calories !== undefined ? item.calories : 0} kcal`;
       }
       document.getElementById("modalQtyDisplay").innerText = modalQty;
       
