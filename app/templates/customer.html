@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PiPo Garden - Gọi Món Tại Bàn | Smart QR Ordering</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+  </style>
+</head>
+<body class="bg-stone-100 text-stone-800 pb-28">
+
+  <!-- ======================================================== -->
+  <!-- MODAL CHỌN NGÔN NGỮ (WELCOME SCREEN / CHỌN NGÔN NGỮ) -->
+  <!-- ======================================================== -->
+  <div id="languageModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-center">
+      <img src="/static/logo.png" alt="PiPo Garden" class="w-20 h-20 rounded-full object-contain mx-auto mb-2 drop-shadow-md">
+      <h2 class="text-xl font-black text-stone-900 tracking-tight">PiPo Garden</h2>
+      <p id="langModalTitle" class="text-xs text-stone-500 mt-1 mb-5">Vui lòng chọn ngôn ngữ / Please select your language</p>
+
+      <div class="space-y-2.5">
+        <button onclick="selectLanguage('vi')" class="w-full flex items-center justify-between p-3.5 rounded-2xl border-2 border-stone-200 hover:border-emerald-600 hover:bg-emerald-50 active:scale-98 transition group">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🇻🇳</span>
+            <div class="text-left">
+              <div class="font-bold text-sm text-stone-900 group-hover:text-emerald-900">Tiếng Việt</div>
+              <div class="text-[10px] text-stone-400">Ngôn ngữ mặc định</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-stone-300 group-hover:text-emerald-600"></i>
+        </button>
+
+        <button onclick="selectLanguage('en')" class="w-full flex items-center justify-between p-3.5 rounded-2xl border-2 border-stone-200 hover:border-emerald-600 hover:bg-emerald-50 active:scale-98 transition group">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🇬🇧</span>
+            <div class="text-left">
+              <div class="font-bold text-sm text-stone-900 group-hover:text-emerald-900">English</div>
+              <div class="text-[10px] text-stone-400">English Menu</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-stone-300 group-hover:text-emerald-600"></i>
+        </button>
+
+        <button onclick="selectLanguage('zh')" class="w-full flex items-center justify-between p-3.5 rounded-2xl border-2 border-stone-200 hover:border-emerald-600 hover:bg-emerald-50 active:scale-98 transition group">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🇨🇳</span>
+            <div class="text-left">
+              <div class="font-bold text-sm text-stone-900 group-hover:text-emerald-900">中文</div>
+              <div class="text-[10px] text-stone-400">简体中文菜单</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-stone-300 group-hover:text-emerald-600"></i>
+        </button>
+
+        <button onclick="selectLanguage('ko')" class="w-full flex items-center justify-between p-3.5 rounded-2xl border-2 border-stone-200 hover:border-emerald-600 hover:bg-emerald-50 active:scale-98 transition group">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🇰🇷</span>
+            <div class="text-left">
+              <div class="font-bold text-sm text-stone-900 group-hover:text-emerald-900">한국어</div>
+              <div class="text-[10px] text-stone-400">한국어 메뉴</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-stone-300 group-hover:text-emerald-600"></i>
+        </button>
+
+        <button onclick="selectLanguage('ru')" class="w-full flex items-center justify-between p-3.5 rounded-2xl border-2 border-stone-200 hover:border-emerald-600 hover:bg-emerald-50 active:scale-98 transition group">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🇷🇺</span>
+            <div class="text-left">
+              <div class="font-bold text-sm text-stone-900 group-hover:text-emerald-900">Русский</div>
+              <div class="text-[10px] text-stone-400">Русское меню</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-stone-300 group-hover:text-emerald-600"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Nhà Hàng & Bàn -->
+  <header class="sticky top-0 z-40 bg-emerald-800 text-white shadow-md">
+    <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <img src="/static/logo.png" alt="PiPo Garden" class="w-10 h-10 rounded-full object-contain bg-white/95 p-0.5 shadow-sm">
+        <div>
+          <h1 class="font-bold text-base leading-tight">PiPo Garden</h1>
+          <p class="text-xs text-emerald-200" id="headerSubText">Ẩm Thực Sân Vườn Sinh Thái</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <!-- Nút Đổi Ngôn Ngữ Nhanh Trên Header -->
+        <button onclick="openLanguageModal()" class="bg-emerald-900/90 hover:bg-emerald-700 border border-emerald-500/60 px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 transition shadow-xs active:scale-95" title="Đổi ngôn ngữ / Change language">
+          <span id="currentLangFlag">🇻🇳</span>
+          <span id="currentLangCode">VI</span>
+          <i class="fa-solid fa-chevron-down text-[9px] text-emerald-300"></i>
+        </button>
+
+        <!-- Tên Bàn -->
+        <div class="bg-emerald-950/80 border border-emerald-600/50 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="headerTableName">{{ table.name }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thanh Danh Mục Trượt Ngang (Lớn hơn, Màu sắc rực rỡ) -->
+    <div class="bg-emerald-950/95 px-3 py-2.5 border-t border-emerald-700/60 overflow-x-auto no-scrollbar flex items-center gap-2.5 shadow-inner" id="categoryTabs">
+      <!-- Sẽ được render bởi JS -->
+    </div>
+  </header>
+
+  <!-- Banner Chào Mừng -->
+  <div class="max-w-md mx-auto p-4">
+    <div class="bg-gradient-to-r from-emerald-700 to-teal-800 text-white rounded-2xl p-4 shadow-sm relative overflow-hidden">
+      <div class="relative z-10">
+        <div id="bannerBadge" class="inline-block bg-amber-400/20 text-amber-300 text-[11px] font-bold px-2 py-0.5 rounded-full mb-1">
+          ✨ MENU ĐIỆN TỬ TỰ ĐỘNG
+        </div>
+        <h2 id="bannerGreeting" class="text-lg font-bold">Xin chào quý khách tại {{ table.name }}!</h2>
+        <p id="bannerDesc" class="text-xs text-emerald-100 mt-1">Chọn món và gửi đơn, bếp sẽ tự động in phiếu và nấu ngay trong ít phút.</p>
+      </div>
+      <div class="absolute -right-4 -bottom-4 text-7xl opacity-10">🍲</div>
+    </div>
+  </div>
+
+  <!-- Danh Sách Thực Đơn -->
+  <main class="max-w-md mx-auto px-4 space-y-6" id="menuContainer">
+    <div class="text-center py-12 text-stone-400">
+      <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-600 mb-2"></i>
+      <p class="text-sm" id="loadingMenuText">Đang tải thực đơn PiPo Garden...</p>
+    </div>
+  </main>
+
+  <!-- Khung Đơn Đang Chế Biến (Live Tracking) -->
+  <section id="liveOrderTracker" class="max-w-md mx-auto px-4 mt-6 hidden">
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+          <h3 id="orderProgressTitle" class="font-bold text-sm text-stone-800">Tiến Độ Làm Món Của Bàn</h3>
+        </div>
+        <span class="text-xs text-stone-500 font-mono" id="orderLiveId">#...</span>
+      </div>
+
+      <div class="mt-3 space-y-2.5" id="liveOrderItemsList">
+        <!-- Render danh sách món đang nấu -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Nút Tiện Ích Gọi Phục Vụ Nhanh (Fixed Bottom Above Cart) -->
+  <div class="max-w-md mx-auto px-4 mt-6 mb-4">
+    <div class="grid grid-cols-4 gap-2 text-center text-xs">
+      <button onclick="callService('ICE')" class="bg-white border border-stone-200 py-2 rounded-xl shadow-xs active:bg-stone-50 transition flex flex-col items-center">
+        <span class="text-base mb-0.5">🧊</span>
+        <span id="btnTextIce" class="font-medium text-[11px]">Xin thêm đá</span>
+      </button>
+      <button onclick="callService('TISSUE')" class="bg-white border border-stone-200 py-2 rounded-xl shadow-xs active:bg-stone-50 transition flex flex-col items-center">
+        <span class="text-base mb-0.5">🥢</span>
+        <span id="btnTextTissue" class="font-medium text-[11px]">Khăn & Bát</span>
+      </button>
+      <button onclick="callService('WAITER')" class="bg-white border border-stone-200 py-2 rounded-xl shadow-xs active:bg-stone-50 transition flex flex-col items-center">
+        <span class="text-base mb-0.5">🔔</span>
+        <span id="btnTextWaiter" class="font-medium text-[11px]">Gọi nhân viên</span>
+      </button>
+      <button onclick="callService('BILL')" class="bg-amber-50 border border-amber-200 text-amber-900 py-2 rounded-xl shadow-xs active:bg-amber-100 transition flex flex-col items-center">
+        <span class="text-base mb-0.5">💳</span>
+        <span id="btnTextBill" class="font-medium text-[11px]">Thanh toán</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Thanh Giỏ Hàng Nổi (Bottom Bar) -->
+  <div id="cartBar" class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200 p-3 shadow-lg transform translate-y-full transition-transform duration-300">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="cursor-pointer" onclick="openCartModal()">
+        <div class="flex items-center gap-2">
+          <div class="relative">
+            <span class="text-2xl">🛒</span>
+            <span id="cartCountBadge" class="absolute -top-1 -right-2 bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-4 text-center">0</span>
+          </div>
+          <div>
+            <div id="cartTotalPrice" class="font-bold text-stone-900 text-base leading-tight">0 đ</div>
+            <div id="cartTapDetailsText" class="text-[11px] text-stone-500">Chạm để xem chi tiết</div>
+          </div>
+        </div>
+      </div>
+      <button onclick="openCartModal()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold px-5 py-2.5 rounded-xl shadow-md transition text-sm flex items-center gap-1.5">
+        <span id="cartBtnViewText">Xem giỏ hàng</span>
+        <i class="fa-solid fa-chevron-right text-xs"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL CHI TIẾT MÓN & ẢNH PHÓNG TO (Modifiers, Description & Large Photo) -->
+  <div id="itemModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden" onclick="if(event.target === this) closeItemModal()">
+    <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-200">
+      
+      <!-- Ảnh món to nổi bật (Enlarged Hero Image) -->
+      <div class="relative w-full h-56 sm:h-64 bg-stone-100 flex-shrink-0 cursor-pointer group" onclick="openPhotoLightbox(currentModalItem?.image_url, getItemName(currentModalItem), currentModalItem?.price)">
+        <img id="modalItemImage" src="/static/logo.png" alt="Ảnh món ăn" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" onerror="this.onerror=null; this.src='/static/logo.png';">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 pointer-events-none"></div>
+
+        <!-- Nút Đóng X góc trên phải -->
+        <button type="button" onclick="event.stopPropagation(); closeItemModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 hover:bg-black/75 text-white flex items-center justify-center transition shadow backdrop-blur-xs z-10">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+
+        <!-- Huy hiệu phân nhóm (Gà - Vịt, Hải sản, v.v...) -->
+        <div id="modalItemBadge" class="absolute top-3 left-3 bg-emerald-600/90 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm backdrop-blur-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-utensils text-[10px]"></i>
+          <span id="modalItemBadgeText">Món ngon</span>
+        </div>
+
+        <!-- Nút chạm phóng to ảnh toàn màn hình -->
+        <div class="absolute bottom-3 right-3 bg-black/60 hover:bg-black/85 backdrop-blur-xs text-white text-[11px] font-medium px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow transition">
+          <i class="fa-solid fa-magnifying-glass-plus text-xs text-emerald-300"></i>
+          <span id="modalTapToZoomText">Xem ảnh to</span>
+        </div>
+      </div>
+
+      <!-- Nội dung chi tiết có cuộn -->
+      <div class="p-5 overflow-y-auto flex-1 space-y-4">
+        <!-- Tên món & Giá -->
+        <div class="flex items-start justify-between gap-3 border-b border-stone-100 pb-3">
+          <div class="flex-1">
+            <h3 id="modalItemName" class="text-lg sm:text-xl font-black text-stone-900 leading-tight">Tên Món Ăn</h3>
+            <div id="modalItemSubInfo" class="flex items-center gap-2 mt-1 text-xs text-stone-500">
+              <span class="inline-flex items-center gap-1 text-emerald-700 font-semibold"><i class="fa-solid fa-circle-check text-[10px]"></i> Sẵn sàng phục vụ</span>
+            </div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <div id="modalItemPrice" class="text-lg sm:text-xl font-black text-emerald-700">0 đ</div>
+          </div>
+        </div>
+
+        <!-- Khung mô tả chi tiết món -->
+        <div>
+          <div class="text-xs font-bold text-stone-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-info text-emerald-600 text-[11px]"></i>
+            <span id="modalDetailTitleText">Chi tiết & Mô tả món:</span>
+          </div>
+          <p id="modalItemDesc" class="text-xs sm:text-sm text-stone-600 leading-relaxed bg-stone-50 p-3 rounded-xl border border-stone-100">Mô tả món ăn...</p>
+          
+          <!-- Hộp Hiển Thị Định Lượng / Khẩu Phần Món Đa Ngôn Ngữ -->
+          <div id="modalItemPortionBox" class="hidden mt-2 p-3 bg-amber-50/90 rounded-xl border border-amber-200/80 flex items-start gap-2.5 shadow-xs">
+            <span class="text-base text-amber-700 mt-0.5">⚖️</span>
+            <div class="flex-1 min-w-0">
+              <div id="modalPortionTitleText" class="text-[11px] font-bold text-amber-900 uppercase tracking-wide">Định lượng / Quy cách:</div>
+              <div id="modalPortionValText" class="text-xs font-semibold text-amber-950 mt-0.5 leading-snug">...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tùy chọn Options (nếu món có tùy chọn) -->
+        <div id="modalOptionsContainer" class="space-y-3"></div>
+
+        <!-- Ghi chú riêng cho đầu bếp -->
+        <div>
+          <label id="modalItemNoteLabel" class="block text-xs font-semibold text-stone-700 mb-1 flex items-center gap-1">
+            <i class="fa-solid fa-pen text-stone-400 text-[10px]"></i>
+            <span>Ghi chú riêng cho đầu bếp:</span>
+          </label>
+          <input type="text" id="modalItemNote" placeholder="Ví dụ: Không cay, ít tiêu, chín kỹ..." class="w-full text-xs p-2.5 rounded-xl border border-stone-200 focus:outline-none focus:border-emerald-600 bg-stone-50/50">
+        </div>
+      </div>
+
+      <!-- Footer: Số lượng & Nút Thêm vào giỏ -->
+      <div class="p-4 bg-stone-50/90 border-t border-stone-200 flex items-center justify-between gap-3 flex-shrink-0">
+        <div class="flex items-center border border-stone-300 rounded-xl overflow-hidden bg-white shadow-2xs">
+          <button type="button" onclick="changeModalQty(-1)" class="w-9 h-9 flex items-center justify-center text-stone-600 active:bg-stone-200 font-bold text-base select-none">-</button>
+          <span id="modalQtyDisplay" class="w-8 text-center text-stone-800 font-bold text-sm select-none">1</span>
+          <button type="button" onclick="changeModalQty(1)" class="w-9 h-9 flex items-center justify-center text-stone-600 active:bg-stone-200 font-bold text-base select-none">+</button>
+        </div>
+        <button type="button" onclick="confirmAddToCart()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-between text-sm" id="modalAddToCartBtn">
+          <span id="modalAddToCartBtnText">Thêm vào giỏ</span>
+          <span id="modalAddToCartBtnPrice" class="font-extrabold bg-emerald-700/60 px-2.5 py-0.5 rounded-lg text-xs">0 đ</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL XEM ẢNH MÓN PHÓNG TO TOÀN MÀN HÌNH (Photo Lightbox) -->
+  <div id="photoLightboxModal" class="fixed inset-0 z-60 bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-4 hidden animate-in fade-in duration-200" onclick="closePhotoLightbox()">
+    <!-- Top Bar -->
+    <div class="w-full max-w-2xl flex items-center justify-between text-white py-2 z-10" onclick="event.stopPropagation()">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+        <span id="lightboxDishName" class="font-bold text-sm sm:text-base text-stone-100 truncate">Tên món ăn</span>
+      </div>
+      <button type="button" onclick="closePhotoLightbox()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Image Display (Centered, Maximized) -->
+    <div class="flex-1 flex items-center justify-center w-full max-w-3xl p-2" onclick="event.stopPropagation()">
+      <img id="lightboxImage" src="/static/logo.png" alt="Ảnh phóng to" class="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl border border-white/10" onerror="this.onerror=null; this.src='/static/logo.png';">
+    </div>
+
+    <!-- Bottom info -->
+    <div class="w-full max-w-2xl text-center py-2 text-stone-400 text-xs flex items-center justify-between z-10" onclick="event.stopPropagation()">
+      <span id="lightboxDishPrice" class="text-emerald-400 font-bold text-sm"></span>
+      <span class="text-[11px] text-stone-400"><i class="fa-solid fa-hand-pointer mr-1"></i> Chạm ra ngoài hoặc bấm X để đóng</span>
+    </div>
+  </div>
+
+  <!-- MODAL GIỎ HÀNG & GỬI ĐƠN -->
+  <div id="cartModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl">
+      <!-- Header giỏ hàng -->
+      <div class="p-4 border-b border-stone-100 flex items-center justify-between">
+        <div>
+          <h3 id="modalCartHeaderTitle" class="font-bold text-base text-stone-900">Giỏ Món Của {{ table.name }}</h3>
+          <p id="modalCartHeaderSub" class="text-xs text-stone-500">Kiểm tra lại các món trước khi gửi vào bếp</p>
+        </div>
+        <button onclick="closeCartModal()" class="text-stone-400 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Danh sách món trong giỏ -->
+      <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 space-y-3">
+        <!-- Render danh sách giỏ hàng -->
+      </div>
+
+      <!-- Footer giỏ hàng -->
+      <div class="p-4 border-t border-stone-100 bg-stone-50 space-y-3">
+        <div>
+          <label id="cartGeneralNoteLabel" class="block text-xs font-semibold text-stone-700 mb-1">Ghi chú chung cho toàn bàn:</label>
+          <input type="text" id="orderGeneralNote" placeholder="Ví dụ: Món nướng lên trước, xin thêm chén..." class="w-full text-xs p-2.5 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-emerald-600">
+        </div>
+
+        <div class="flex items-center justify-between text-sm">
+          <span id="cartTotalLabel" class="text-stone-500">Tổng tiền đợt này:</span>
+          <span id="modalCartTotal" class="font-bold text-lg text-emerald-800">0 đ</span>
+        </div>
+
+        <button id="btnSubmitOrder" onclick="submitOrderToKitchen()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2">
+          <i class="fa-solid fa-paper-plane text-xs"></i>
+          <span id="btnSubmitOrderText">XÁC NHẬN GỬI VÀO BẾP</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST THÔNG BÁO -->
+  <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-stone-900/90 text-white text-xs px-4 py-2.5 rounded-full shadow-lg opacity-0 transition-opacity pointer-events-none flex items-center gap-2">
+    <i class="fa-solid fa-check text-emerald-400"></i>
+    <span id="toastMsg">Thông báo</span>
+  </div>
+
+  <script>
+    const TABLE_INFO = {
+      id: {{ table.id }},
+      code: "{{ table.table_code }}",
+      name: "{{ table.name }}",
+      area: "{{ table.area }}",
+      branchType: "{{ table.branch_type | default('RESTAURANT') }}",
+      qrToken: "{{ qr_token }}"
+    };
+
+    const MENU_SETTINGS = {
+      morningStartHour: {{ menu_settings.morning_start_hour if menu_settings else 6 }},
+      morningEndHour: {{ menu_settings.morning_end_hour if menu_settings else 11 }},
+      routingMode: "{{ menu_settings.routing_mode if menu_settings else 'TIME_AND_BRANCH' }}"
+    };
+
+    // ==========================================
+    // BỘ TỪ ĐIỂN 5 THỨ TIẾNG CHO GIAO DIỆN
+    // ==========================================
+    const I18N = {
+      vi: {
+        flag: "🇻🇳", label: "VI", name: "Tiếng Việt",
+        restaurant_sub: "Ẩm Thực Sân Vườn Sinh Thái",
+        banner_tag: "✨ MENU ĐIỆN TỬ TỰ ĐỘNG",
+        banner_greeting: (table) => `Xin chào quý khách tại ${table}!`,
+        banner_desc: "Chọn món và gửi đơn, bếp sẽ tự động in phiếu và nấu ngay trong ít phút.",
+        loading_menu: "Đang tải thực đơn PiPo Garden...",
+        call_ice: "Xin thêm đá",
+        call_tissue: "Khăn & Bát",
+        call_waiter: "Gọi nhân viên",
+        call_bill: "Thanh toán",
+        cart_view: "Xem giỏ hàng",
+        cart_tap_details: "Chạm để xem chi tiết",
+        cart_empty: "Chưa có món nào trong giỏ",
+        cart_title: (table) => `Giỏ Món Của ${table}`,
+        cart_desc: "Kiểm tra lại các món trước khi gửi vào bếp",
+        general_note_label: "Ghi chú chung cho toàn bàn:",
+        general_note_ph: "Ví dụ: Món nướng lên trước, xin thêm chén...",
+        item_note_label: "Ghi chú riêng cho đầu bếp:",
+        item_note_ph: "Ví dụ: Không cay, ít tiêu, chín kỹ...",
+        total_this_round: "Tổng tiền đợt này:",
+        btn_submit_order: "XÁC NHẬN GỬI VÀO BẾP",
+        btn_submitting: "Đang gửi vào bếp...",
+        btn_add_to_cart: "Thêm vào giỏ",
+        btn_add_short: "Thêm",
+        modal_tap_zoom: "Xem ảnh to",
+        modal_detail_title: "Chi tiết & Mô tả món:",
+        order_progress_title: "Tiến độ làm món của bàn",
+        toast_added: (qty, name) => `Đã thêm ${qty}x ${name}`,
+        toast_order_success: "🎉 Đơn đã gửi vào bếp! Bếp đang in phiếu làm món...",
+        toast_service_sent: "Đã gửi yêu cầu tới nhân viên!",
+        select_lang_title: "Vui lòng chọn ngôn ngữ của bạn",
+        st_queued: "Bếp đã nhận (Chờ nấu)",
+        st_cooking: "Đang chế biến 🔥",
+        st_ready: "Món đã xong (Đang bưng)",
+        st_served: "Đã lên bàn ✅",
+        item_status_updated: (name) => `Cập nhật: Món ${name} đã đổi trạng thái!`,
+        portion_label: "Định lượng",
+        all_categories: "Tất cả món"
+      },
+      en: {
+        flag: "🇬🇧", label: "EN", name: "English",
+        restaurant_sub: "Eco Garden Dining & Grill",
+        banner_tag: "✨ SMART QR ORDERING",
+        banner_greeting: (table) => `Welcome to ${table}!`,
+        banner_desc: "Select dishes and submit. The kitchen will prepare your order in minutes.",
+        loading_menu: "Loading PiPo Garden menu...",
+        call_ice: "More Ice",
+        call_tissue: "Tissue & Bowl",
+        call_waiter: "Call Staff",
+        call_bill: "Bill / Pay",
+        cart_view: "View Cart",
+        cart_tap_details: "Tap to review items",
+        cart_empty: "Your cart is empty",
+        cart_title: (table) => `Cart for ${table}`,
+        cart_desc: "Review selected dishes before submitting to the kitchen",
+        general_note_label: "General note for the table:",
+        general_note_ph: "e.g.: Serve grill first, extra bowls...",
+        item_note_label: "Special instruction for chef:",
+        item_note_ph: "e.g.: Non-spicy, well-done, less salt...",
+        total_this_round: "Order total:",
+        btn_submit_order: "SUBMIT TO KITCHEN",
+        btn_submitting: "Sending to kitchen...",
+        btn_add_to_cart: "Add to Cart",
+        btn_add_short: "Add",
+        modal_tap_zoom: "Tap to enlarge photo",
+        modal_detail_title: "Details & Description:",
+        order_progress_title: "Order preparation status",
+        toast_added: (qty, name) => `Added ${qty}x ${name}`,
+        toast_order_success: "🎉 Order sent! Kitchen is preparing your dishes...",
+        toast_service_sent: "Request sent to staff!",
+        select_lang_title: "Please select your language",
+        st_queued: "Queued (Waiting to cook)",
+        st_cooking: "Cooking now 🔥",
+        st_ready: "Ready (Serving) 🍽️",
+        st_served: "Served ✅",
+        item_status_updated: (name) => `Update: ${name} status has changed!`,
+        portion_label: "Portion / Weight",
+        all_categories: "All Dishes"
+      },
+      zh: {
+        flag: "🇨🇳", label: "ZH", name: "中文",
+        restaurant_sub: "生态花园特色美馔",
+        banner_tag: "✨ 智能电子菜单",
+        banner_greeting: (table) => `欢迎光临 ${table}！`,
+        banner_desc: "选择您喜爱的菜品并下单，后厨将自动打印并为您烹饪。",
+        loading_menu: "正在加载 PiPo Garden 菜单...",
+        call_ice: "加冰块",
+        call_tissue: "纸巾碗筷",
+        call_waiter: "呼叫服务员",
+        call_bill: "买单结账",
+        cart_view: "查看购物车",
+        cart_tap_details: "点击查看已选菜品",
+        cart_empty: "购物车暂无菜品",
+        cart_title: (table) => `${table} 的购物车`,
+        cart_desc: "下单至厨房前请核对菜品",
+        general_note_label: "整桌特别要求：",
+        general_note_ph: "例如：烧烤先上，多备小碗...",
+        item_note_label: "后厨特别备注：",
+        item_note_ph: "例如：不辣，微辣，少油少盐...",
+        total_this_round: "本次消费总额：",
+        btn_submit_order: "确认下单至厨房",
+        btn_submitting: "正在提交至厨房...",
+        btn_add_to_cart: "加入购物车",
+        btn_add_short: "加入",
+        modal_tap_zoom: "点击放大",
+        modal_detail_title: "菜品详情与描述：",
+        order_progress_title: "整桌上菜制作进度",
+        toast_added: (qty, name) => `已添加 ${qty}份 ${name}`,
+        toast_order_success: "🎉 订单已送达后厨！大厨正在烹饪...",
+        toast_service_sent: "呼叫已发送至服务人员！",
+        select_lang_title: "请选择您的语言 / Language",
+        st_queued: "后厨已接单 (排队中)",
+        st_cooking: "正在烹饪制作 🔥",
+        st_ready: "出锅待传菜 🍽️",
+        st_served: "已上桌 ✅",
+        item_status_updated: (name) => `菜品 ${name} 状态已更新！`,
+        portion_label: "份量 / 净重",
+        all_categories: "全部菜品"
+      },
+      ko: {
+        flag: "🇰🇷", label: "KO", name: "한국어",
+        restaurant_sub: "자연 친화 가든 레스토랑 & 그릴",
+        banner_tag: "✨ 스마트 QR 주문",
+        banner_greeting: (table) => `${table}에 오신 것을 환영합니다!`,
+        banner_desc: "메뉴를 선택해 주문하시면 주방에서 즉시 조리를 시작합니다.",
+        loading_menu: "PiPo Garden 메뉴를 불러오는 중...",
+        call_ice: "얼음 추가",
+        call_tissue: "물티슈/앞접시",
+        call_waiter: "직원 호출",
+        call_bill: "계산 요청",
+        cart_view: "장바구니 보기",
+        cart_tap_details: "주문 내역 확인",
+        cart_empty: "장바구니가 비어 있습니다",
+        cart_title: (table) => `${table} 장바구니`,
+        cart_desc: "주방으로 주문을 전송하기 전에 확인해 주세요",
+        general_note_label: "테이블 전체 요청사항:",
+        general_note_ph: "예: 구이 먼저 서빙, 앞접시 추가...",
+        item_note_label: "주방 조리 요청사항:",
+        item_note_ph: "예: 안 맵게, 덜 짜게, 웰던...",
+        total_this_round: "이번 주문 합계:",
+        btn_submit_order: "주방으로 주문 전송",
+        btn_submitting: "주문 전송 중...",
+        btn_add_to_cart: "장바구니 담기",
+        btn_add_short: "담기",
+        modal_tap_zoom: "큰 사진 보기",
+        modal_detail_title: "메뉴 상세 및 설명:",
+        order_progress_title: "주문 메뉴 조리 현황",
+        toast_added: (qty, name) => `${name} ${qty}개 담았습니다`,
+        toast_order_success: "🎉 주문이 주방으로 전송되었습니다! 조리를 시작합니다...",
+        toast_service_sent: "직원 호출 요청이 전송되었습니다!",
+        select_lang_title: "언어를 선택해 주세요 / Language",
+        st_queued: "주문 접수 (조리 대기)",
+        st_cooking: "맛있게 조리 중 🔥",
+        st_ready: "조리 완료 (서빙 중) 🍽️",
+        st_served: "서빙 완료 ✅",
+        item_status_updated: (name) => `알림: ${name} 조리 상태가 변경되었습니다!`,
+        portion_label: "정량 / 구성",
+        all_categories: "전체 메뉴"
+      },
+      ru: {
+        flag: "🇷🇺", label: "RU", name: "Русский",
+        restaurant_sub: "Эко-ресторан в саду и гриль",
+        banner_tag: "✨ ЭЛЕКТРОННОЕ МЕНЮ",
+        banner_greeting: (table) => `Добро пожаловать за ${table}!`,
+        banner_desc: "Выберите блюда и оформите заказ. Кухня начнет приготовление за считанные минуты.",
+        loading_menu: "Загрузка меню PiPo Garden...",
+        call_ice: "Больше льда",
+        call_tissue: "Салфетки/приборы",
+        call_waiter: "Официант",
+        call_bill: "Счет / Оплата",
+        cart_view: "Корзина",
+        cart_tap_details: "Нажмите для просмотра",
+        cart_empty: "В корзине пока нет блюд",
+        cart_title: (table) => `Корзина для ${table}`,
+        cart_desc: "Проверьте выбранные блюда перед отправкой на кухню",
+        general_note_label: "Пожелания для всего стола:",
+        general_note_ph: "Например: Гриль подать первым...",
+        item_note_label: "Пожелание шеф-повару:",
+        item_note_ph: "Например: Не острое, без лука...",
+        total_this_round: "Итого к заказу:",
+        btn_submit_order: "ОТПРАВИТЬ НА КУХНЮ",
+        btn_submitting: "Отправка на кухню...",
+        btn_add_to_cart: "В корзину",
+        btn_add_short: "Выбрать",
+        modal_tap_zoom: "Увеличить фото",
+        modal_detail_title: "Детали и описание:",
+        order_progress_title: "Статус приготовления блюд",
+        toast_added: (qty, name) => `Добавлено ${qty}x ${name}`,
+        toast_order_success: "🎉 Заказ отправлен! Кухня готовит ваши блюда...",
+        toast_service_sent: "Запрос отправлен персоналу!",
+        select_lang_title: "Пожалуйста, выберите язык / Language",
+        st_queued: "Принят кухней (В очереди)",
+        st_cooking: "Готовится на огне 🔥",
+        st_ready: "Готово к подаче 🍽️",
+        st_served: "Подано на стол ✅",
+        item_status_updated: (name) => `Статус блюда ${name} изменился!`,
+        portion_label: "Порция / Вес",
+        all_categories: "Все блюда"
+      }
+    };
+
+    let currentLang = localStorage.getItem("pipo_lang") || "vi";
+    let menuData = [];
+    let cart = [];
+    let currentModalItem = null;
+    let modalQty = 1;
+    let selectedOptions = {};
+
+    // 1. Khởi chạy khi load trang
+    document.addEventListener("DOMContentLoaded", () => {
+      // Khôi phục giỏ hàng đã lưu trước đó nếu có (khi đổi ngôn ngữ tự làm mới trang)
+      const savedCart = localStorage.getItem("pipo_cart_" + TABLE_INFO.id);
+      if (savedCart) {
+        try { cart = JSON.parse(savedCart); } catch (e) { cart = []; }
+      }
+
+      // Nếu khách chưa chọn ngôn ngữ bao giờ -> hiển thị Modal Chọn Ngôn Ngữ Chào Mừng
+      if (!localStorage.getItem("pipo_lang")) {
+        openLanguageModal();
+      } else {
+        applyLanguage(currentLang);
+      }
+
+      fetchMenu();
+      updateCartUI();
+      connectCustomerWebSocket();
+    });
+
+    function openLanguageModal() {
+      document.getElementById("languageModal").classList.remove("hidden");
+    }
+
+    function closeLanguageModal() {
+      document.getElementById("languageModal").classList.add("hidden");
+    }
+
+    function selectLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem("pipo_lang", lang);
+      // Lưu lại giỏ hàng hiện tại trước khi làm mới trang
+      localStorage.setItem("pipo_cart_" + TABLE_INFO.id, JSON.stringify(cart));
+      // Tự động làm mới trang để chuyển toàn bộ giao diện và dữ liệu sang ngôn ngữ khách chọn
+      location.reload();
+    }
+
+    function t(key, ...args) {
+      const dict = I18N[currentLang] || I18N["vi"];
+      const val = dict[key];
+      if (typeof val === "function") {
+        return val(...args);
+      }
+      return val || (I18N["vi"][key] || key);
+    }
+
+    function applyLanguage(lang) {
+      const dict = I18N[lang] || I18N["vi"];
+      document.getElementById("currentLangFlag").innerText = dict.flag;
+      document.getElementById("currentLangCode").innerText = dict.label;
+      document.getElementById("headerSubText").innerText = dict.restaurant_sub;
+      document.getElementById("bannerBadge").innerText = dict.banner_tag;
+      document.getElementById("bannerGreeting").innerText = dict.banner_greeting(TABLE_INFO.name);
+      document.getElementById("bannerDesc").innerText = dict.banner_desc;
+      document.getElementById("loadingMenuText").innerText = dict.loading_menu;
+
+      // Quick Service buttons
+      document.getElementById("btnTextIce").innerText = dict.call_ice;
+      document.getElementById("btnTextTissue").innerText = dict.call_tissue;
+      document.getElementById("btnTextWaiter").innerText = dict.call_waiter;
+      document.getElementById("btnTextBill").innerText = dict.call_bill;
+
+      // Cart bar
+      document.getElementById("cartTapDetailsText").innerText = dict.cart_tap_details;
+      document.getElementById("cartBtnViewText").innerText = dict.cart_view;
+
+      // Modals
+      if (document.getElementById("modalTapToZoomText")) {
+        document.getElementById("modalTapToZoomText").innerText = dict.modal_tap_zoom || "Xem ảnh to";
+      }
+      if (document.getElementById("modalDetailTitleText")) {
+        document.getElementById("modalDetailTitleText").innerText = dict.modal_detail_title || "Chi tiết & Mô tả món:";
+      }
+      document.getElementById("modalItemNoteLabel").innerText = dict.item_note_label;
+      document.getElementById("modalItemNote").placeholder = dict.item_note_ph;
+      const addBtnTextEl = document.getElementById("modalAddToCartBtnText");
+      if (addBtnTextEl) addBtnTextEl.innerText = dict.btn_add_to_cart;
+      else if (document.getElementById("modalAddToCartBtn")) document.getElementById("modalAddToCartBtn").innerText = dict.btn_add_to_cart;
+
+      document.getElementById("modalCartHeaderTitle").innerText = dict.cart_title(TABLE_INFO.name);
+      document.getElementById("modalCartHeaderSub").innerText = dict.cart_desc;
+      document.getElementById("cartGeneralNoteLabel").innerText = dict.general_note_label;
+      document.getElementById("orderGeneralNote").placeholder = dict.general_note_ph;
+      document.getElementById("cartTotalLabel").innerText = dict.total_this_round;
+      document.getElementById("btnSubmitOrderText").innerText = dict.btn_submit_order;
+      document.getElementById("orderProgressTitle").innerText = dict.order_progress_title;
+    }
+
+    // Lấy tên món và mô tả theo ngôn ngữ đã chọn
+    function getItemName(item) {
+      if (currentLang !== "vi" && item.translations && item.translations[currentLang] && item.translations[currentLang].name) {
+        return item.translations[currentLang].name;
+      }
+      return item.name;
+    }
+
+    function getItemDesc(item) {
+      if (currentLang !== "vi" && item.translations && item.translations[currentLang] && item.translations[currentLang].description) {
+        return item.translations[currentLang].description;
+      }
+      return item.description || "";
+    }
+
+    function parsePortionAndDesc(fullDesc) {
+      if (!fullDesc) return { desc: "", portion: "" };
+      const markers = [
+        "Định lượng:", "định lượng:",
+        "Quantity:", "quantity:", "Portion:", "portion:",
+        "份量：", "份量:", "数量：", "数量:",
+        "정량:", "수량:",
+        "Количество:", "Порция:", "порция:"
+      ];
+      for (const m of markers) {
+        const idx = fullDesc.indexOf(m);
+        if (idx !== -1) {
+          const desc = fullDesc.substring(0, idx).replace(/[•·\-–\s]+$/, "").trim();
+          const portion = fullDesc.substring(idx + m.length).trim();
+          return { desc, portion };
+        }
+      }
+      return { desc: fullDesc, portion: "" };
+    }
+
+    function getCategoryName(cat) {
+      if (currentLang !== "vi" && cat.translations && cat.translations[currentLang]) {
+        return cat.translations[currentLang];
+      }
+      return cat.name;
+    }
+
+    // 2. Tải menu từ Server
+    async function fetchMenu() {
+      try {
+        const res = await fetch("/api/menu");
+        menuData = await res.json();
+        renderCategories();
+        renderMenu();
+      } catch (err) {
+        console.error("Lỗi tải menu:", err);
+      }
+    }
+
+    function formatVND(amount) {
+      return new Intl.NumberFormat('vi-VN').format(amount) + " đ";
+    }
+
+    let activeCategoryId = 'ALL';
+
+    const CATEGORY_THEMES = {
+      1: {
+        name: 'Khai Vị',
+        icon: '🥗',
+        activeBtn: 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40 ring-2 ring-emerald-300 scale-[1.03]',
+        inactiveBtn: 'bg-emerald-950/60 text-emerald-200 hover:bg-emerald-900 border border-emerald-700/60',
+        activePill: 'bg-white/20 text-white',
+        inactivePill: 'bg-emerald-900 text-emerald-300',
+        bannerGrad: 'from-emerald-700 via-teal-700 to-emerald-800',
+        borderHover: 'hover:border-emerald-400',
+        priceColor: 'text-emerald-700',
+        btnAction: 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white',
+        badgeBg: 'bg-emerald-600 text-white'
+      },
+      2: {
+        name: 'Gà - Vịt',
+        icon: '🍗',
+        activeBtn: 'bg-amber-500 text-stone-950 font-black shadow-md shadow-amber-950/40 ring-2 ring-amber-300 scale-[1.03]',
+        inactiveBtn: 'bg-amber-950/60 text-amber-200 hover:bg-amber-900 border border-amber-700/60',
+        activePill: 'bg-black/20 text-stone-950 font-bold',
+        inactivePill: 'bg-amber-900 text-amber-300',
+        bannerGrad: 'from-amber-600 via-orange-600 to-amber-700',
+        borderHover: 'hover:border-amber-400',
+        priceColor: 'text-amber-800',
+        btnAction: 'bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white',
+        badgeBg: 'bg-amber-500 text-stone-950 font-bold'
+      },
+      3: {
+        name: 'Heo - Bò',
+        icon: '🥩',
+        activeBtn: 'bg-rose-600 text-white shadow-md shadow-rose-950/40 ring-2 ring-rose-300 scale-[1.03]',
+        inactiveBtn: 'bg-rose-950/60 text-rose-200 hover:bg-rose-900 border border-rose-700/60',
+        activePill: 'bg-white/20 text-white',
+        inactivePill: 'bg-rose-900 text-rose-300',
+        bannerGrad: 'from-rose-700 via-red-600 to-rose-800',
+        borderHover: 'hover:border-rose-400',
+        priceColor: 'text-rose-700',
+        btnAction: 'bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white',
+        badgeBg: 'bg-rose-600 text-white'
+      },
+      4: {
+        name: 'Hải Sản',
+        icon: '🦐',
+        activeBtn: 'bg-sky-600 text-white shadow-md shadow-sky-950/40 ring-2 ring-sky-300 scale-[1.03]',
+        inactiveBtn: 'bg-sky-950/60 text-sky-200 hover:bg-sky-900 border border-sky-700/60',
+        activePill: 'bg-white/20 text-white',
+        inactivePill: 'bg-sky-900 text-sky-300',
+        bannerGrad: 'from-sky-700 via-blue-600 to-indigo-800',
+        borderHover: 'hover:border-sky-400',
+        priceColor: 'text-sky-700',
+        btnAction: 'bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white',
+        badgeBg: 'bg-sky-600 text-white'
+      },
+      5: {
+        name: 'Cơm - Mì',
+        icon: '🍚',
+        activeBtn: 'bg-purple-600 text-white shadow-md shadow-purple-950/40 ring-2 ring-purple-300 scale-[1.03]',
+        inactiveBtn: 'bg-purple-950/60 text-purple-200 hover:bg-purple-900 border border-purple-700/60',
+        activePill: 'bg-white/20 text-white',
+        inactivePill: 'bg-purple-900 text-purple-300',
+        bannerGrad: 'from-purple-700 via-violet-600 to-purple-800',
+        borderHover: 'hover:border-purple-400',
+        priceColor: 'text-purple-700',
+        btnAction: 'bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white',
+        badgeBg: 'bg-purple-600 text-white'
+      },
+      6: {
+        name: 'Đồ Uống',
+        icon: '🍹',
+        activeBtn: 'bg-teal-500 text-white shadow-md shadow-teal-950/40 ring-2 ring-teal-200 scale-[1.03]',
+        inactiveBtn: 'bg-teal-950/60 text-teal-200 hover:bg-teal-900 border border-teal-700/60',
+        activePill: 'bg-white/20 text-white',
+        inactivePill: 'bg-teal-900 text-teal-300',
+        bannerGrad: 'from-teal-700 via-cyan-600 to-teal-800',
+        borderHover: 'hover:border-teal-400',
+        priceColor: 'text-teal-700',
+        btnAction: 'bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white',
+        badgeBg: 'bg-teal-500 text-white'
+      }
+    };
+
+    function getCategoryTheme(catId) {
+      return CATEGORY_THEMES[catId] || {
+        name: 'Món Ăn',
+        icon: '🍲',
+        activeBtn: 'bg-stone-800 text-white shadow-md ring-2 ring-stone-400 scale-[1.03]',
+        inactiveBtn: 'bg-stone-900/60 text-stone-300 hover:bg-stone-800 border border-stone-700',
+        activePill: 'bg-white/20 text-white',
+        inactivePill: 'bg-stone-800 text-stone-300',
+        bannerGrad: 'from-stone-700 via-stone-800 to-stone-900',
+        borderHover: 'hover:border-stone-400',
+        priceColor: 'text-stone-800',
+        btnAction: 'bg-stone-800 hover:bg-stone-900 text-white',
+        badgeBg: 'bg-stone-800 text-white'
+      };
+    }
+
+    function determineInitialCategory() {
+      if (!menuData || menuData.length === 0) return 'ALL';
+      const isCafeTable = (TABLE_INFO.branchType === "CAFE" || (TABLE_INFO.area || "").toLowerCase().includes("cafe") || (TABLE_INFO.code || "").toUpperCase().startsWith("CF"));
+
+      const headerTbl = document.getElementById("headerTableName");
+      if (headerTbl) {
+        headerTbl.innerText = `${isCafeTable ? '☕' : '🍽️'} ${TABLE_INFO.name}`;
+      }
+
+      if (isCafeTable) {
+        const drinkCat = menuData.find(c => c.id === 6 || (c.name && c.name.toLowerCase().includes("uống")));
+        return drinkCat ? drinkCat.id : 'ALL';
+      }
+      return 'ALL';
+    }
+
+    // 3. Render 6 nhóm lớn + Tất cả (Nổi bật, nút to, màu sắc riêng biệt)
+    function renderCategories() {
+      const container = document.getElementById("categoryTabs");
+      if (!menuData || menuData.length === 0) return;
+      if (!activeCategoryId) {
+        activeCategoryId = determineInitialCategory();
+      }
+
+      const totalDishes = menuData.reduce((sum, c) => sum + (c.items ? c.items.length : 0), 0);
+      const isAllActive = (activeCategoryId === 'ALL' || !activeCategoryId);
+
+      // Nút "Tất cả món"
+      let html = `
+        <button onclick="selectCategoryTab('ALL')" class="flex-shrink-0 whitespace-nowrap px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-center gap-2 ${isAllActive ? 'bg-amber-400 text-stone-950 font-black shadow-md shadow-amber-950/40 ring-2 ring-amber-300 scale-[1.03]' : 'bg-emerald-950/60 text-emerald-200 hover:bg-emerald-900 border border-emerald-700/60'}">
+          <span class="text-base">✨</span>
+          <span>${t('all_categories')}</span>
+          <span class="text-[11px] px-2 py-0.5 rounded-full font-bold ${isAllActive ? 'bg-black/20 text-stone-950' : 'bg-emerald-900 text-emerald-300'}">${totalDishes}</span>
+        </button>
+      `;
+
+      // 6 Nút nhóm món ăn
+      html += menuData.map((cat) => {
+        const isActive = (cat.id === activeCategoryId);
+        const theme = getCategoryTheme(cat.id);
+        const count = (cat.items || []).length;
+
+        return `
+          <button id="cat-tab-${cat.id}" onclick="selectCategoryTab(${cat.id})" class="flex-shrink-0 whitespace-nowrap px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-center gap-2 ${isActive ? theme.activeBtn : theme.inactiveBtn}">
+            <span class="text-base sm:text-lg">${cat.icon || theme.icon}</span>
+            <span>${getCategoryName(cat)}</span>
+            <span class="text-[11px] px-2 py-0.5 rounded-full font-bold ${isActive ? theme.activePill : theme.inactivePill}">${count}</span>
+          </button>
+        `;
+      }).join('');
+
+      container.innerHTML = html;
+    }
+
+    function selectCategoryTab(catId) {
+      activeCategoryId = catId;
+      renderCategories();
+      renderMenu();
+
+      // Cuộn mượt thanh danh mục đến nút vừa chọn
+      setTimeout(() => {
+        const el = catId === 'ALL' 
+          ? document.getElementById("categoryTabs")?.firstElementChild 
+          : document.getElementById(`cat-tab-${catId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      }, 50);
+    }
+
+    // 4. Render thực đơn trực tiếp theo 6 nhóm lớn với Bảng Tiêu Đề Nổi Bật
+    function renderMenu() {
+      const container = document.getElementById("menuContainer");
+      if (!menuData || menuData.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-stone-400 text-sm">${t('loading_menu')}</div>`;
+        return;
+      }
+
+      // Lọc theo nhóm món đang chọn (nếu chọn 'ALL' thì hiển thị tất cả 6 nhóm)
+      const selectedCats = (activeCategoryId && activeCategoryId !== 'ALL')
+        ? menuData.filter(c => c.id === activeCategoryId)
+        : menuData;
+
+      if (selectedCats.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-stone-400 text-sm">Không có món ăn trong nhóm này.</div>`;
+        return;
+      }
+
+      container.innerHTML = selectedCats.map(cat => {
+        const theme = getCategoryTheme(cat.id);
+        const items = cat.items || [];
+        const catName = getCategoryName(cat);
+
+        return `
+        <div id="cat-${cat.id}" class="space-y-3 pt-2">
+          <!-- Bảng Tiêu Đề Nhóm Món TO RÕ, NỔI BẬT VỚI MÀU SẮC ĐẶC TRƯNG -->
+          <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r ${theme.bannerGrad} p-4 text-white shadow-md flex items-center justify-between">
+            <div class="relative z-10 flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-2xl shadow-inner border border-white/25 flex-shrink-0">
+                ${cat.icon || theme.icon}
+              </div>
+              <div>
+                <h3 class="font-black text-base sm:text-lg tracking-tight text-white flex items-center gap-1.5 leading-tight">
+                  <span>${catName}</span>
+                </h3>
+                <p class="text-[11px] text-white/85 font-medium mt-0.5">${items.length} món ngon đặc sắc</p>
+              </div>
+            </div>
+            <div class="relative z-10 flex-shrink-0">
+              <span class="text-xs font-black bg-white/25 backdrop-blur-xs border border-white/30 px-3 py-1.5 rounded-xl text-white shadow-2xs">
+                ${items.length} món
+              </span>
+            </div>
+            <!-- Biểu tượng trang trí chìm nền -->
+            <div class="absolute -right-2 -bottom-4 text-7xl opacity-15 select-none pointer-events-none">
+              ${cat.icon || theme.icon}
+            </div>
+          </div>
+
+          <!-- Danh sách món ăn nằm trực tiếp trong nhóm này (Không đẻ nhóm phụ) -->
+          <div class="grid grid-cols-1 gap-3">
+            ${items.map(item => {
+              const itemName = getItemName(item);
+              const itemDesc = getItemDesc(item);
+              const parsed = parsePortionAndDesc(itemDesc);
+              const isAvailable = item.is_available === 1;
+
+              return `
+              <div onclick="openItemModal(${item.id})" class="cursor-pointer bg-white rounded-2xl p-3 shadow-xs hover:shadow-md ${theme.borderHover} border border-stone-200/80 flex gap-3 items-center active:scale-[0.99] transition ${!isAvailable ? 'opacity-60 grayscale' : ''}">
+                <!-- Ảnh món -->
+                <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden flex-shrink-0 bg-stone-50 border border-stone-100 group/thumb">
+                  <img src="${item.image_url || '/static/logo.png'}" alt="${itemName}" loading="lazy" onerror="this.onerror=null; this.src='/static/logo.png';" class="w-full h-full object-cover transition duration-300 group-hover/thumb:scale-110">
+                  <div class="absolute inset-0 bg-black/25 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white">
+                    <i class="fa-solid fa-magnifying-glass-plus text-xs"></i>
+                  </div>
+                  <span class="absolute bottom-1 right-1 bg-black/60 text-white text-[9px] px-1 rounded flex items-center gap-0.5">
+                    <i class="fa-solid fa-expand text-[8px]"></i>
+                  </span>
+                </div>
+
+                <!-- Thông tin món -->
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-bold text-sm text-stone-900 truncate hover:text-emerald-800 transition">${itemName}</h4>
+                  ${parsed.desc ? `<p class="text-[11px] text-stone-500 line-clamp-1 mt-0.5">${parsed.desc}</p>` : ''}
+                  ${parsed.portion ? `<div class="mt-1 flex items-center gap-1 text-[10px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60 w-fit max-w-full truncate"><i class="fa-solid fa-scale-balanced text-[9px] text-amber-600"></i> <span class="truncate">${t('portion_label')}: ${parsed.portion}</span></div>` : ''}
+                  <div class="mt-1.5 flex items-center justify-between">
+                    <span class="font-black ${theme.priceColor} text-sm">${formatVND(item.price)}</span>
+                    ${isAvailable ? `
+                      <button type="button" onclick="event.stopPropagation(); openItemModal(${item.id})" class="${theme.btnAction} font-bold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 shadow-xs">
+                        <span>${t('btn_add_short')}</span>
+                        <i class="fa-solid fa-plus text-[10px]"></i>
+                      </button>
+                    ` : `
+                      <span class="text-[10px] font-bold text-rose-500 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
+                        Hết hàng
+                      </span>
+                    `}
+                  </div>
+                </div>
+              </div>
+            `}).join('')}
+          </div>
+        </div>
+      `}).join('');
+    }
+
+    // 5. Modal chi tiết món & Ảnh phóng to
+    function openItemModal(itemId) {
+      let item = null;
+      let foundCat = null;
+      for (let c of menuData) {
+        let f = c.items.find(x => x.id === itemId);
+        if (f) { item = f; foundCat = c; break; }
+      }
+      if (!item) return;
+
+      currentModalItem = item;
+      modalQty = 1;
+      selectedOptions = {};
+
+      const localizedName = getItemName(item);
+      const localizedDesc = getItemDesc(item);
+      const parsed = parsePortionAndDesc(localizedDesc);
+
+      // Nhóm món chuẩn theo danh mục
+      const grpName = foundCat ? getCategoryName(foundCat) : "Món ngon";
+      const theme = getCategoryTheme(foundCat ? foundCat.id : 1);
+
+      const modalImg = document.getElementById("modalItemImage");
+      if (modalImg) modalImg.src = item.image_url || "/static/logo.png";
+
+      document.getElementById("modalItemName").innerText = localizedName;
+      document.getElementById("modalItemPrice").innerText = formatVND(item.price);
+      
+      const modalBadge = document.getElementById("modalItemBadge");
+      if (modalBadge) {
+        modalBadge.className = `absolute top-3 left-3 bg-gradient-to-r ${theme.bannerGrad} text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md backdrop-blur-xs flex items-center gap-1.5`;
+      }
+      const badgeEl = document.getElementById("modalItemBadgeText");
+      if (badgeEl) badgeEl.innerText = `${foundCat ? (foundCat.icon || '') : ''} ${grpName}`;
+
+      document.getElementById("modalItemDesc").innerText = parsed.desc || localizedDesc || (localizedName + " - Đặc sản tươi ngon tại PiPo Garden, được các đầu bếp chế biến công phu, chuẩn vị.");
+      
+      // Hiển thị hộp định lượng chuyên biệt
+      const portionBox = document.getElementById("modalItemPortionBox");
+      const portionTitle = document.getElementById("modalPortionTitleText");
+      const portionVal = document.getElementById("modalPortionValText");
+      if (portionBox && portionVal) {
+        if (parsed.portion) {
+          portionBox.classList.remove("hidden");
+          if (portionTitle) portionTitle.innerText = `${t('portion_label')}:`;
+          portionVal.innerText = parsed.portion;
+        } else {
+          portionBox.classList.add("hidden");
+        }
+      }
+      document.getElementById("modalQtyDisplay").innerText = modalQty;
+      
+      const priceBtnEl = document.getElementById("modalAddToCartBtnPrice");
+      if (priceBtnEl) priceBtnEl.innerText = formatVND(item.price * modalQty);
+
+      document.getElementById("modalItemNote").value = "";
+
+      const optContainer = document.getElementById("modalOptionsContainer");
+      optContainer.innerHTML = (item.options || []).map((opt) => `
+        <div>
+          <div class="text-xs font-semibold text-stone-700 mb-1.5">${opt.name}</div>
+          <div class="flex flex-wrap gap-2">
+            ${opt.options.map((choice, cIdx) => `
+              <button type="button" onclick="selectOption('${opt.name}', '${choice}', this)" class="opt-btn text-xs px-3 py-1.5 rounded-lg border border-stone-200 text-stone-700 ${cIdx === 0 ? 'border-emerald-600 bg-emerald-50 text-emerald-800 font-medium' : ''}">
+                ${choice}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      // Gán option mặc định
+      (item.options || []).forEach(opt => {
+        if (opt.options.length > 0) selectedOptions[opt.name] = opt.options[0];
+      });
+
+      document.getElementById("itemModal").classList.remove("hidden");
+    }
+
+    function selectOption(optName, choice, btn) {
+      selectedOptions[optName] = choice;
+      const parent = btn.parentElement;
+      parent.querySelectorAll(".opt-btn").forEach(b => {
+        b.className = "opt-btn text-xs px-3 py-1.5 rounded-lg border border-stone-200 text-stone-700";
+      });
+      btn.className = "opt-btn text-xs px-3 py-1.5 rounded-lg border border-emerald-600 bg-emerald-50 text-emerald-800 font-medium";
+    }
+
+    function changeModalQty(delta) {
+      modalQty = Math.max(1, modalQty + delta);
+      document.getElementById("modalQtyDisplay").innerText = modalQty;
+      if (currentModalItem) {
+        const priceBtnEl = document.getElementById("modalAddToCartBtnPrice");
+        if (priceBtnEl) priceBtnEl.innerText = formatVND(currentModalItem.price * modalQty);
+      }
+    }
+
+    function closeItemModal() {
+      document.getElementById("itemModal").classList.add("hidden");
+    }
+
+    // Modal xem ảnh lớn toàn màn hình (Photo Lightbox)
+    function openPhotoLightbox(imgUrl, dishName, price) {
+      const modal = document.getElementById("photoLightboxModal");
+      const img = document.getElementById("lightboxImage");
+      const nameEl = document.getElementById("lightboxDishName");
+      const priceEl = document.getElementById("lightboxDishPrice");
+
+      if (img) img.src = imgUrl || "/static/logo.png";
+      if (nameEl) nameEl.innerText = dishName || "Ảnh món ăn";
+      if (priceEl) priceEl.innerText = price ? formatVND(price) : "";
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function closePhotoLightbox() {
+      const modal = document.getElementById("photoLightboxModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    // Đóng popup bằng phím ESC
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closePhotoLightbox();
+        closeItemModal();
+        closeCartModal();
+      }
+    });
+
+    function confirmAddToCart() {
+      if (!currentModalItem) return;
+      const note = document.getElementById("modalItemNote").value.trim();
+      const modArray = Object.keys(selectedOptions).map(k => ({ name: k, value: selectedOptions[k] }));
+
+      // Thêm vào giỏ
+      cart.push({
+        item_id: currentModalItem.id,
+        raw_item: currentModalItem,
+        price: currentModalItem.price,
+        quantity: modalQty,
+        note: note,
+        modifiers: modArray
+      });
+
+      localStorage.setItem("pipo_cart_" + TABLE_INFO.id, JSON.stringify(cart));
+
+      const localizedName = getItemName(currentModalItem);
+      closeItemModal();
+      updateCartUI();
+      showToast(t("toast_added", modalQty, localizedName));
+    }
+
+    // 6. Cập nhật giao diện giỏ hàng
+    function updateCartUI() {
+      const totalQty = cart.reduce((sum, it) => sum + it.quantity, 0);
+      const totalPrice = cart.reduce((sum, it) => sum + (it.price * it.quantity), 0);
+
+      const cartBar = document.getElementById("cartBar");
+      if (totalQty > 0) {
+        cartBar.classList.remove("translate-y-full");
+        document.getElementById("cartCountBadge").innerText = totalQty;
+        document.getElementById("cartTotalPrice").innerText = formatVND(totalPrice);
+      } else {
+        cartBar.classList.add("translate-y-full");
+      }
+    }
+
+    function openCartModal() {
+      const container = document.getElementById("cartItemsList");
+      if (cart.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-stone-400 text-xs">${t('cart_empty')}</div>`;
+      } else {
+        container.innerHTML = cart.map((it, idx) => {
+          const itemName = getItemName(it.raw_item);
+          return `
+          <div class="flex items-center justify-between bg-stone-50 p-2.5 rounded-xl border border-stone-200/70">
+            <div class="flex-1 min-w-0 pr-2">
+              <div class="font-bold text-xs text-stone-900 truncate">${it.quantity}x ${itemName}</div>
+              <div class="text-[11px] text-emerald-700 font-semibold">${formatVND(it.price * it.quantity)}</div>
+              ${it.modifiers.length > 0 ? `<div class="text-[10px] text-stone-500">${it.modifiers.map(m => m.value).join(', ')}</div>` : ''}
+              ${it.note ? `<div class="text-[10px] text-amber-700 font-medium italic">Ghi chú: ${it.note}</div>` : ''}
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="removeCartItem(${idx})" class="text-stone-400 hover:text-rose-500 p-1 text-xs" title="Xóa">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        `}).join('');
+      }
+
+      const totalPrice = cart.reduce((sum, it) => sum + (it.price * it.quantity), 0);
+      document.getElementById("modalCartTotal").innerText = formatVND(totalPrice);
+      document.getElementById("cartModal").classList.remove("hidden");
+    }
+
+    function closeCartModal() {
+      document.getElementById("cartModal").classList.add("hidden");
+    }
+
+    function removeCartItem(idx) {
+      cart.splice(idx, 1);
+      localStorage.setItem("pipo_cart_" + TABLE_INFO.id, JSON.stringify(cart));
+      updateCartUI();
+      openCartModal();
+    }
+
+    // 7. GỬI ĐƠN HÀNG VÀO BẾP (Bếp sẽ tự in phiếu KOT)
+    async function submitOrderToKitchen() {
+      if (cart.length === 0) return;
+
+      const btn = document.getElementById("btnSubmitOrder");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> ${t('btn_submitting')}`;
+
+      const generalNote = document.getElementById("orderGeneralNote").value.trim();
+
+      const payload = {
+        table_id: TABLE_INFO.id,
+        customer_note: generalNote,
+        items: cart.map(it => ({
+          item_id: it.item_id,
+          quantity: it.quantity,
+          note: it.note,
+          modifiers: it.modifiers
+        }))
+      };
+
+      try {
+        const res = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          playAudioTone(600, 0.2);
+          showToast(t("toast_order_success"));
+          
+          // Reset giỏ và xóa cache giỏ hàng
+          cart = [];
+          localStorage.removeItem("pipo_cart_" + TABLE_INFO.id);
+          document.getElementById("orderGeneralNote").value = "";
+          updateCartUI();
+          closeCartModal();
+
+          // Kích hoạt thanh theo dõi tiến độ
+          activateLiveTracker(data.order_id);
+        } else {
+          showToast("❌ " + (data.detail || "Error"));
+        }
+      } catch (err) {
+        showToast("⚠️ Mạng bị gián đoạn! Quý khách vui lòng kết nối Wi-Fi [PiPo Garden] hoặc liên hệ nhân viên để được hỗ trợ gọi món.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane text-xs"></i> <span>${t('btn_submit_order')}</span>`;
+      }
+    }
+
+    // 8. Theo dõi tiến độ đơn hàng thời gian thực
+    function activateLiveTracker(orderId) {
+      const tracker = document.getElementById("liveOrderTracker");
+      tracker.classList.remove("hidden");
+      document.getElementById("orderLiveId").innerText = `Đơn #${orderId}`;
+      fetchActiveOrdersForTable();
+    }
+
+    async function fetchActiveOrdersForTable() {
+      try {
+        const res = await fetch("/api/orders/active");
+        const orders = await res.json();
+        const myOrders = orders.filter(o => o.table_id === TABLE_INFO.id);
+        
+        if (myOrders.length > 0) {
+          const tracker = document.getElementById("liveOrderTracker");
+          tracker.classList.remove("hidden");
+          const itemsList = document.getElementById("liveOrderItemsList");
+
+          let allItems = [];
+          myOrders.forEach(o => allItems.push(...o.items));
+
+          const statusMap = {
+            "QUEUED": { text: t("st_queued"), color: "text-amber-600 bg-amber-50 border-amber-200" },
+            "COOKING": { text: t("st_cooking"), color: "text-orange-600 bg-orange-50 border-orange-200" },
+            "READY": { text: t("st_ready"), color: "text-emerald-600 bg-emerald-50 border-emerald-200" },
+            "SERVED": { text: t("st_served"), color: "text-stone-500 bg-stone-50 border-stone-200" }
+          };
+
+          itemsList.innerHTML = allItems.map(it => {
+            const st = statusMap[it.status] || { text: it.status, color: "text-stone-500" };
+            return `
+              <div class="flex items-center justify-between text-xs py-1.5 border-b border-stone-50">
+                <span class="font-medium text-stone-800">[${it.quantity}] ${it.item_name}</span>
+                <span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${st.color}">
+                  ${st.text}
+                </span>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 9. Nút dịch vụ gọi nhanh
+    async function callService(type) {
+      try {
+        const res = await fetch("/api/orders/service-call", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ table_id: TABLE_INFO.id, call_type: type })
+        });
+        const data = await res.json();
+        playAudioTone(800, 0.15);
+        showToast(t("toast_service_sent"));
+      } catch (err) {
+        showToast("Error");
+      }
+    }
+
+    // 10. WebSocket khách hàng (Real-time updates)
+    function connectCustomerWebSocket() {
+      const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${location.host}/ws/customer/${TABLE_INFO.id}`;
+      const ws = new WebSocket(wsUrl);
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === "ITEM_STATUS_CHANGED") {
+            playAudioTone(700, 0.2);
+            showToast(t("item_status_updated", data.item_name));
+            fetchActiveOrdersForTable();
+          } else if (data.event === "SESSION_CLOSED") {
+            alert(data.message);
+            location.reload();
+          }
+        } catch (e) {}
+      };
+
+      ws.onclose = () => {
+        setTimeout(connectCustomerWebSocket, 4000);
+      };
+    }
+
+    // Tiện ích âm thanh bằng Web Audio API
+    function playAudioTone(freq, duration) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      document.getElementById("toastMsg").innerText = msg;
+      toast.classList.remove("opacity-0");
+      setTimeout(() => toast.classList.add("opacity-0"), 2500);
+    }
+  </script>
+</body>
+</html>

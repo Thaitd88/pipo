@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Không Gian Phục Vụ & Món Ăn Các Bàn | PiPo Garden Waiter</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-stone-100 text-stone-800 min-h-screen flex flex-col pb-12">
+
+  <!-- Header Phục Vụ -->
+  <header class="bg-purple-900 text-white px-6 py-3.5 shadow-md flex items-center justify-between sticky top-0 z-30">
+    <div class="flex items-center space-x-3">
+      <img src="/static/logo.png" alt="PiPo Garden Logo" class="w-11 h-11 rounded-full object-cover shadow-md border-2 border-purple-300/60 bg-white">
+      <div>
+        <h1 class="font-bold text-base leading-tight flex items-center gap-2">
+          PiPo Garden - Nhân Viên Phục Vụ
+          <span class="text-[10px] bg-purple-950 text-purple-300 border border-purple-700 px-2 py-0.5 rounded-full font-semibold">Bàn & Ra Món</span>
+        </h1>
+        <p class="text-xs text-purple-200">Theo dõi món ăn từng bàn • Bưng món • Hỗ trợ khách</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <div class="text-xs bg-purple-950/70 border border-purple-800 px-3 py-1.5 rounded-xl flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="font-medium">Phục Vụ Ca Trực</span>
+      </div>
+      <button onclick="logoutWaiter()" class="px-3 py-1.5 rounded-xl bg-purple-950 hover:bg-purple-800 text-purple-200 text-xs font-bold transition flex items-center gap-1">
+        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+      </button>
+    </div>
+  </header>
+
+  <!-- Thanh Cảnh Báo Yêu Cầu Phục Vụ (Xin đá / Khăn / Gọi nhân viên) -->
+  <div class="bg-white border-b border-stone-200 px-6 py-3 shadow-xs">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <div class="flex items-center gap-2 text-xs font-bold text-stone-700">
+        <i class="fa-solid fa-bell text-amber-500 animate-bounce"></i>
+        <span>Yêu Cầu Từ Khách:</span>
+      </div>
+      <div id="waiterServiceCalls" class="flex-1 flex items-center gap-2 overflow-x-auto">
+        <span class="text-xs text-stone-400 italic">Hiện không có bàn nào yêu cầu hỗ trợ</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Danh Sách Các Bàn Đang Có Những Món Gì -->
+  <main class="max-w-7xl mx-auto p-6 flex-1 w-full space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-black text-stone-900">Danh Sách Món Ăn Theo Từng Bàn</h2>
+        <p class="text-xs text-stone-500 mt-0.5">Theo dõi thời gian thực bàn nào đang chờ nấu, món nào bếp đã xong cần bưng ra ngay</p>
+      </div>
+
+      <div class="flex items-center gap-3 text-xs">
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-400"></span> Chờ nấu</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Đang nấu</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span> <strong>Bếp đã xong (Cần bưng)</strong></span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-stone-300"></span> Đã lên bàn</span>
+      </div>
+    </div>
+
+    <!-- Grid Các Bàn Đang Phục Vụ -->
+    <div id="waiterTablesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="text-center py-20 text-stone-400 col-span-full">
+        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-600 mb-2"></i>
+        <p class="text-xs">Đang tải dữ liệu bàn và món ăn...</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let activeOrdersData = [];
+    let allTablesData = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchWaiterData();
+      connectWaiterWebSocket();
+      setInterval(fetchWaiterData, 6000);
+    });
+
+    async function fetchWaiterData() {
+      try {
+        const [ordersRes, tablesRes, overviewRes] = await Promise.all([
+          fetch("/api/orders/active"),
+          fetch("/api/tables"),
+          fetch("/api/pos/overview")
+        ]);
+        activeOrdersData = await ordersRes.json();
+        allTablesData = await tablesRes.json();
+        const overview = await overviewRes.json();
+
+        renderServiceCalls(overview.pending_calls || []);
+        renderTablesAndDishes();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderServiceCalls(calls) {
+      const container = document.getElementById("waiterServiceCalls");
+      if (calls.length === 0) {
+        container.innerHTML = `<span class="text-xs text-stone-400 italic">Hiện không có bàn nào yêu cầu hỗ trợ</span>`;
+        return;
+      }
+      container.innerHTML = calls.map(c => `
+        <div class="flex items-center gap-2 bg-amber-50 border border-amber-300 text-amber-900 px-3 py-1 rounded-xl text-xs font-semibold animate-pulse">
+          <span>🔔 <strong>${c.table_name}:</strong> ${c.call_type}</span>
+          <button onclick="dismissCall(${c.id})" class="text-xs bg-amber-200 hover:bg-amber-300 text-amber-900 px-2 py-0.5 rounded-lg ml-1 font-bold">
+            Đã xử lý ✓
+          </button>
+        </div>
+      `).join('');
+    }
+
+    async function dismissCall(callId) {
+      await fetch(`/api/pos/service-call/${callId}/dismiss`, { method: "POST" });
+      fetchWaiterData();
+    }
+
+    function renderTablesAndDishes() {
+      const container = document.getElementById("waiterTablesGrid");
+      
+      // Lọc các bàn đang có đơn hàng hoặc đang OCCUPIED
+      const occupiedTables = allTablesData.filter(t => t.status === 'OCCUPIED' || t.status === 'BILLING');
+
+      if (occupiedTables.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full bg-white rounded-3xl p-12 text-center border border-stone-200 shadow-xs">
+            <div class="text-4xl mb-3">🍃</div>
+            <h3 class="font-bold text-stone-700 text-base">Hiện không có bàn nào đang ngồi</h3>
+            <p class="text-xs text-stone-400 mt-1">Khi khách vào bàn và quét mã QR gọi món, danh sách món sẽ xuất hiện tại đây.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = occupiedTables.map(table => {
+        // Tìm các đơn của bàn này
+        const tableOrders = activeOrdersData.filter(o => o.table_id === table.id);
+        
+        let allItems = [];
+        tableOrders.forEach(o => {
+          (o.items || []).forEach(it => {
+            allItems.push({ ...it, orderRound: o.round_number, orderId: o.id });
+          });
+        });
+
+        // Đếm các món đã xong sẵn sàng bưng (READY)
+        const readyCount = allItems.filter(it => it.status === 'READY').length;
+
+        return `
+          <div class="bg-white rounded-3xl border ${readyCount > 0 ? 'border-emerald-500 shadow-md ring-2 ring-emerald-500/20' : 'border-stone-200 shadow-xs'} overflow-hidden flex flex-col justify-between">
+            <!-- Header Bàn -->
+            <div class="p-4 ${readyCount > 0 ? 'bg-emerald-50/70 border-b border-emerald-100' : 'bg-stone-50 border-b border-stone-100'} flex items-center justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-black text-base text-stone-900">${table.name}</h3>
+                  <span class="text-[10px] bg-white border border-stone-200 px-2 py-0.5 rounded-full font-bold text-stone-600">${table.area}</span>
+                </div>
+                <div class="text-[11px] text-stone-500 mt-0.5">
+                  Sức chứa: ${table.capacity} khách • Mã: ${table.table_code}
+                </div>
+              </div>
+
+              ${readyCount > 0 ? `
+                <div class="bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs animate-bounce flex items-center gap-1.5">
+                  <i class="fa-solid fa-bell"></i>
+                  <span>${readyCount} MÓN ĐÃ XONG!</span>
+                </div>
+              ` : `
+                <span class="text-xs bg-blue-100 text-blue-800 font-bold px-2.5 py-1 rounded-full">
+                  Đang dùng bữa
+                </span>
+              `}
+            </div>
+
+            <!-- Danh Sách Món Của Bàn -->
+            <div class="p-4 flex-1 space-y-2.5 overflow-y-auto max-h-80">
+              ${allItems.length === 0 ? `
+                <div class="text-center py-8 text-stone-400 text-xs italic">Bàn chưa gửi đơn gọi món nào</div>
+              ` : allItems.map(item => {
+                let badge = "";
+                let actionBtn = "";
+
+                if (item.status === 'QUEUED') {
+                  badge = `<span class="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-semibold">Chờ bếp nấu</span>`;
+                } else if (item.status === 'COOKING') {
+                  badge = `<span class="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-semibold">Đang nấu 🔥</span>`;
+                } else if (item.status === 'READY') {
+                  badge = `<span class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full font-black animate-pulse">BẾP ĐÃ XONG 🛎️</span>`;
+                  actionBtn = `
+                    <button onclick="markItemServed(${item.id})" class="mt-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-1.5 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+                      <i class="fa-solid fa-check"></i>
+                      <span>ĐÃ BƯNG RA BÀN XONG</span>
+                    </button>
+                  `;
+                } else if (item.status === 'SERVED') {
+                  badge = `<span class="text-[10px] bg-stone-100 text-stone-500 px-2 py-0.5 rounded-full">Đã lên bàn ✓</span>`;
+                }
+
+                return `
+                  <div class="p-2.5 rounded-2xl border ${item.status === 'READY' ? 'border-emerald-300 bg-emerald-50/30' : 'border-stone-100 bg-stone-50/60'}">
+                    <div class="flex items-start justify-between">
+                      <div class="flex items-start gap-2">
+                        <span class="w-5 h-5 rounded-md bg-purple-100 text-purple-800 font-black text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+                          ${item.quantity}
+                        </span>
+                        <div>
+                          <div class="font-bold text-xs text-stone-900">${item.item_name}</div>
+                          ${item.note ? `<div class="text-[11px] text-amber-700 font-medium italic mt-0.5">⚠️ ${item.note}</div>` : ''}
+                          ${item.modifiers && item.modifiers.length > 0 ? `<div class="text-[10px] text-stone-400 mt-0.5">${item.modifiers.map(m => m.value).join(', ')}</div>` : ''}
+                        </div>
+                      </div>
+                      ${badge}
+                    </div>
+                    ${actionBtn}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Footer Bàn -->
+            <div class="p-3 bg-stone-50 border-t border-stone-100 flex items-center justify-between text-xs">
+              <span class="text-stone-500 font-medium">Tổng ${allItems.length} món</span>
+              <a href="/table/${table.qr_token}" target="_blank" class="text-purple-700 hover:text-purple-900 font-bold flex items-center gap-1">
+                <span>Gọi thêm món</span>
+                <i class="fa-solid fa-plus text-[10px]"></i>
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function markItemServed(itemId) {
+      try {
+        const res = await fetch(`/api/orders/item/${itemId}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "SERVED" })
+        });
+        if (res.ok) {
+          fetchWaiterData();
+        }
+      } catch (e) {
+        alert("Lỗi cập nhật");
+      }
+    }
+
+    function logoutWaiter() {
+      if (confirm("Đăng xuất khỏi không gian phục vụ?")) {
+        fetch("/api/auth/logout", { method: "POST" }).then(() => {
+          window.location.href = "/";
+        });
+      }
+    }
+
+    function connectWaiterWebSocket() {
+      const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${location.host}/ws/pos`;
+      const ws = new WebSocket(wsUrl);
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === "NEW_ORDER" || data.event === "SERVICE_CALL" || data.event === "ITEM_STATUS_CHANGED" || data.event === "ORDER_ITEMS_COMPLETED") {
+            fetchWaiterData();
+          }
+        } catch (e) {}
+      };
+
+      ws.onclose = () => setTimeout(connectWaiterWebSocket, 3000);
+    }
+  </script>
+</body>
+</html>

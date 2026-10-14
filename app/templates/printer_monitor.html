@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mô Phỏng Máy In Bếp (Thermal Printer Simulator) | PiPo Garden</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #1e222d; color: #d1d5db; }
+    .ticket-paper {
+      background: #fffef7;
+      color: #111827;
+      font-family: "Courier New", Courier, monospace;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+    .ticket-paper::after {
+      content: "";
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: radial-gradient(circle, transparent, transparent 50%, #fffef7 50%, #fffef7 100%);
+      background-size: 16px 16px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-stone-900 border-b border-stone-800 px-6 py-4 flex items-center justify-between shadow-lg">
+    <div class="flex items-center space-x-3">
+      <img src="/static/logo.png" alt="PiPo Garden Logo" class="w-11 h-11 rounded-full object-cover shadow-md border-2 border-amber-400/60 bg-white">
+      <div>
+        <h1 class="font-bold text-lg text-white flex items-center gap-2">
+          PiPo Garden - Máy In Nhiệt Nhà Bếp Ảo (80mm KOT Simulator)
+          <span id="connStatus" class="text-xs bg-emerald-950 text-emerald-400 border border-emerald-800 px-2.5 py-0.5 rounded-full font-semibold">Đã kết nối</span>
+        </h1>
+        <p class="text-xs text-stone-400">Giả lập máy in Xprinter XP-C300H / Sunmi nhận lệnh in thời gian thực từ Cloud</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button onclick="testPrintSample()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-play"></i> In Thử 1 Phiếu Mẫu
+      </button>
+      <button onclick="clearHistory()" class="px-3.5 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-bold transition">
+        <i class="fa-solid fa-trash"></i> Xóa lịch sử
+      </button>
+    </div>
+  </header>
+
+  <!-- Màn Hình Giả Lập Máy In Bếp -->
+  <main class="flex-1 max-w-6xl mx-auto p-6 w-full flex flex-col md:flex-row gap-8">
+    
+    <!-- Cột Trái: Khe Máy In Thân Máy Xprinter -->
+    <div class="w-full md:w-96 flex-shrink-0 flex flex-col items-center">
+      <div class="w-full bg-stone-800 rounded-3xl p-6 border-4 border-stone-700 shadow-2xl relative">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <div class="font-black text-sm text-stone-200 tracking-wider">XPRINTER XP-C300H</div>
+            <div class="text-[10px] text-stone-500">MÁY IN BẾP CHỐNG DẦU MỠ - CÒI BÁO ĐỘNG</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="ledPower" class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+            <span id="ledAlert" class="w-3 h-3 rounded-full bg-stone-600"></span>
+          </div>
+        </div>
+
+        <!-- Khe đùn giấy in -->
+        <div class="h-3 bg-stone-950 rounded-full w-full border border-stone-900 shadow-inner mb-4"></div>
+
+        <!-- Phiếu in mới nhất đang đùn ra -->
+        <div class="overflow-hidden min-h-[360px] flex justify-center">
+          <div id="activeTicketWrapper" class="w-full">
+            <div class="text-stone-500 text-xs text-center py-24 italic">
+              <i class="fa-solid fa-receipt text-3xl mb-2 text-stone-600"></i>
+              <p>Đang chờ lệnh in từ bàn khách...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nút Feed & Status -->
+        <div class="mt-4 pt-3 border-t border-stone-700 flex justify-between items-center text-[11px] text-stone-400">
+          <span>Khổ giấy: 80mm</span>
+          <span class="text-emerald-400 font-mono">LAN: 192.168.1.201:9100</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cột Phải: Lịch Sử Các Phiếu Đã In -->
+    <div class="flex-1 flex flex-col">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-bold text-sm text-stone-300">Lịch Sử Phiếu In Bếp Hôm Nay (<span id="ticketCount">0</span>)</h2>
+        <span class="text-xs text-stone-500">Tự động lưu và cập nhật tức thì</span>
+      </div>
+
+      <div id="ticketsHistory" class="flex-1 overflow-y-auto space-y-4 max-h-[calc(100vh-200px)] pr-2">
+        <!-- Render lịch sử vé -->
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let printedTickets = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      connectPrinterWebSocket();
+    });
+
+    function connectPrinterWebSocket() {
+      const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${location.host}/ws/printer`;
+      const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        document.getElementById("connStatus").className = "text-xs bg-emerald-950 text-emerald-400 border border-emerald-800 px-2.5 py-0.5 rounded-full font-semibold";
+        document.getElementById("connStatus").innerText = "Đã kết nối";
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === "PRINT_JOB") {
+            handleIncomingPrintJob(data);
+            // Gửi ACK lại cho server
+            ws.send(JSON.stringify({
+              event: "JOB_COMPLETED",
+              job_id: data.job_id,
+              station: data.station,
+              success: true
+            }));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      ws.onclose = () => {
+        document.getElementById("connStatus").className = "text-xs bg-rose-950 text-rose-400 border border-rose-800 px-2.5 py-0.5 rounded-full font-semibold";
+        document.getElementById("connStatus").innerText = "Mất kết nối (Đang thử lại...)";
+        setTimeout(connectPrinterWebSocket, 3000);
+      };
+    }
+
+    function handleIncomingPrintJob(job) {
+      // 1. Nhấp nháy đèn LED báo động đỏ & Còi hú
+      triggerKitchenAlarm();
+
+      // 2. Thêm vào danh sách phiếu
+      printedTickets.unshift({
+        id: job.job_id,
+        station: job.station,
+        text: job.ticket_text,
+        time: new Date().toLocaleTimeString('vi-VN')
+      });
+
+      renderLatestTicket(job.ticket_text);
+      renderHistory();
+    }
+
+    function triggerKitchenAlarm() {
+      // Âm thanh còi hú 3 tiếng BÍP
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [0, 0.25, 0.5].forEach(delay => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.frequency.value = 1400; // Tiếng còi máy in nhiệt
+          gain.gain.setValueAtTime(0.2, ctx.currentTime + delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.15);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + delay);
+          osc.stop(ctx.currentTime + delay + 0.15);
+        });
+      } catch (e) {}
+
+      // Nhấp nháy đèn LED đỏ
+      const led = document.getElementById("ledAlert");
+      led.className = "w-3 h-3 rounded-full bg-rose-500 shadow-[0_0_12px_#f43f5e] animate-ping";
+      setTimeout(() => {
+        led.className = "w-3 h-3 rounded-full bg-stone-600";
+      }, 3000);
+    }
+
+    function renderLatestTicket(text) {
+      const container = document.getElementById("activeTicketWrapper");
+      container.innerHTML = `
+        <div class="ticket-paper p-5 rounded-t-lg text-xs leading-relaxed animate-in slide-in-from-top duration-300">
+          <div class="text-[10px] text-stone-400 text-center mb-1">=== MÁY IN NHIỆT 80MM TỰ ĐỘNG IN ===</div>
+          <pre class="whitespace-pre-wrap font-mono text-[11px] leading-tight font-semibold text-stone-900">${escapeHtml(text)}</pre>
+        </div>
+      `;
+    }
+
+    function renderHistory() {
+      document.getElementById("ticketCount").innerText = printedTickets.length;
+      const historyContainer = document.getElementById("ticketsHistory");
+      historyContainer.innerHTML = printedTickets.map((t, idx) => `
+        <div class="bg-stone-850 border border-stone-800 rounded-2xl p-4 shadow">
+          <div class="flex items-center justify-between text-xs text-stone-400 pb-2 border-b border-stone-700/60 mb-2">
+            <span class="font-bold text-amber-400">Phiếu #${t.id} - ${t.station}</span>
+            <span>${t.time}</span>
+          </div>
+          <pre class="bg-stone-900 p-3 rounded-xl text-[11px] font-mono text-emerald-400 whitespace-pre-wrap leading-tight">${escapeHtml(t.text)}</pre>
+        </div>
+      `).join('');
+    }
+
+    function clearHistory() {
+      printedTickets = [];
+      document.getElementById("activeTicketWrapper").innerHTML = `
+        <div class="text-stone-500 text-xs text-center py-24 italic">
+          <i class="fa-solid fa-receipt text-3xl mb-2 text-stone-600"></i>
+          <p>Đang chờ lệnh in từ bàn khách...</p>
+        </div>
+      `;
+      renderHistory();
+    }
+
+    function testPrintSample() {
+      const sampleText = 
+`        NHÀ HÀNG PIPO GARDEN
+      *** PHIẾU BẾP NÓNG (NƯỚNG/LẨU) ***
+==========================================
+ BÀN: BÀN VƯỜN 01 (Khu Sân Vườn)
+ Đơn số: #999 | Đợt gọi món: 1
+ Giờ gọi: ${new Date().toLocaleTimeString('vi-VN')} - 03/10/2026
+------------------------------------------
+ SL  TÊN MÓN                       STT
+------------------------------------------
+[2]  Bò Fuji Nướng Đá Núi Lửa
+     * Tùy chọn: Mức độ chín: Vừa (Medium)
+     >>> GHI CHÚ: Không tiêu, đĩa đá thật nóng
+------------------------------------------
+[1]  Lẩu Thái Hải Sản Tomyum Sân Vườn
+     * Tùy chọn: Độ cay: Chua cay vừa
+------------------------------------------
+LƯU Ý CỦA BÀN: Khách đi nhóm gia đình
+------------------------------------------
+     *** VUI LÒNG LÀM MÓN NGAY ***
+          PiPo Garden System
+`;
+      handleIncomingPrintJob({
+        job_id: Math.floor(Math.random() * 800) + 100,
+        station: "HOT_KITCHEN",
+        ticket_text: sampleText
+      });
+    }
+
+    function escapeHtml(string) {
+      return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+          '/': '&#x2F;',
+          '=': '&#x3D;',
+          '`': '&#x60;'
+        }[s];
+      });
+    }
+  </script>
+</body>
+</html>

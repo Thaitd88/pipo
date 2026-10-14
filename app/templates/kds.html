@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KDS - Màn Hình Nhà Bếp | PiPo Garden</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-stone-100 text-stone-800 min-h-screen flex flex-col">
+
+  <!-- Header KDS (Nền Sáng Thanh Lịch) -->
+  <header class="bg-amber-800 text-white px-6 py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
+    <div class="flex items-center space-x-3">
+      <img src="/static/logo.png" alt="PiPo Garden Logo" class="w-11 h-11 rounded-full object-cover shadow-md border-2 border-amber-300/60 bg-white">
+      <div>
+        <h1 class="text-base font-bold text-white flex items-center gap-2">
+          PiPo Garden - Màn Hình Bếp KDS
+          <span class="text-xs bg-amber-950/80 text-amber-200 border border-amber-600 px-2 py-0.5 rounded-full font-semibold">Live Mode</span>
+        </h1>
+        <p class="text-xs text-amber-100">Điều phối chế biến món ăn thời gian thực</p>
+      </div>
+    </div>
+
+    <!-- Bộ lọc trạm & Âm thanh -->
+    <div class="flex items-center gap-4">
+      <div class="flex bg-amber-950/40 p-1 rounded-xl border border-amber-700/60 text-xs font-semibold">
+        <button onclick="setStationFilter('ALL')" id="filter-ALL" class="station-tab px-3 py-1.5 rounded-lg bg-amber-600 text-white shadow-xs">Tất cả</button>
+        <button onclick="setStationFilter('HOT_KITCHEN')" id="filter-HOT_KITCHEN" class="station-tab px-3 py-1.5 rounded-lg text-amber-200 hover:text-white">🔥 Bếp Nóng</button>
+        <button onclick="setStationFilter('COLD_KITCHEN')" id="filter-COLD_KITCHEN" class="station-tab px-3 py-1.5 rounded-lg text-amber-200 hover:text-white">🥗 Bếp Lạnh</button>
+        <button onclick="setStationFilter('BAR')" id="filter-BAR" class="station-tab px-3 py-1.5 rounded-lg text-amber-200 hover:text-white">🍹 Quầy Bar</button>
+      </div>
+
+      <button id="btnAudioToggle" onclick="toggleAudio()" class="px-3 py-1.5 rounded-xl border border-amber-700 bg-amber-900/60 text-xs font-semibold text-white hover:bg-amber-900 flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-bell text-amber-300" id="audioIcon"></i>
+        <span id="audioText">Bật chuông báo</span>
+      </button>
+
+      <div class="text-right">
+        <div id="liveClock" class="text-sm font-mono font-bold text-amber-100 bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-700/60">00:00:00</div>
+        <div class="text-[10px] text-amber-200 mt-0.5">Giờ bếp</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Danh Sách Vé Món (Tickets Grid) -->
+  <main class="flex-1 p-6 overflow-x-auto">
+    <div id="ticketsGrid" class="flex gap-4 items-start min-h-[calc(100vh-140px)]">
+      <div class="text-stone-400 text-sm m-auto text-center py-20 bg-white p-12 rounded-2xl border border-stone-200 shadow-xs">
+        <i class="fa-solid fa-utensils text-4xl mb-3 text-stone-300"></i>
+        <p>Hiện chưa có đơn gọi món nào cần làm. Bếp đang sẵn sàng!</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let activeOrders = [];
+    let currentStation = 'ALL';
+    let audioEnabled = false;
+
+    // 1. Đồng hồ thời gian thực
+    setInterval(() => {
+      document.getElementById("liveClock").innerText = new Date().toLocaleTimeString('vi-VN');
+      updateTimers();
+    }, 1000);
+
+    // 2. Tải đơn hàng ban đầu
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchActiveOrders();
+      connectKdsWebSocket();
+    });
+
+    async function fetchActiveOrders() {
+      try {
+        const res = await fetch("/api/orders/active");
+        activeOrders = await res.json();
+        renderTickets();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function setStationFilter(station) {
+      currentStation = station;
+      document.querySelectorAll(".station-tab").forEach(tab => {
+        tab.className = "station-tab px-3 py-1.5 rounded-lg text-amber-200 hover:text-white";
+      });
+      document.getElementById(`filter-${station}`).className = "station-tab px-3 py-1.5 rounded-lg bg-amber-600 text-white shadow-xs";
+      renderTickets();
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const icon = document.getElementById("audioIcon");
+      const text = document.getElementById("audioText");
+      if (audioEnabled) {
+        playKitchenChime();
+        icon.className = "fa-solid fa-bell text-amber-300 animate-bounce";
+        text.innerText = "Chuông: BẬT";
+      } else {
+        icon.className = "fa-solid fa-bell-slash text-amber-300/60";
+        text.innerText = "Chuông: TẮT";
+      }
+    }
+
+    function playKitchenChime() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.frequency.value = 880;
+        gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start();
+        osc1.stop(ctx.currentTime + 0.6);
+
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.frequency.value = 587.33;
+        gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.2);
+        gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.0);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(ctx.currentTime + 0.2);
+        osc2.stop(ctx.currentTime + 1.0);
+      } catch (e) {}
+    }
+
+    // 3. Render các thẻ vé món (Tickets)
+    function renderTickets() {
+      const container = document.getElementById("ticketsGrid");
+
+      const validOrders = activeOrders.map(order => {
+        let filteredItems = order.items.filter(it => it.status !== 'SERVED');
+        if (currentStation !== 'ALL') {
+          filteredItems = filteredItems.filter(it => it.station === currentStation);
+        }
+        return { ...order, filteredItems };
+      }).filter(o => o.filteredItems.length > 0);
+
+      if (validOrders.length === 0) {
+        container.innerHTML = `
+          <div class="text-stone-400 text-sm m-auto text-center py-20 bg-white p-12 rounded-2xl border border-stone-200 shadow-xs">
+            <i class="fa-solid fa-utensils text-4xl mb-3 text-stone-300"></i>
+            <p>Không có món nào đang chờ chế biến trong trạm này.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = validOrders.map(order => {
+        const orderTime = new Date(order.created_at || Date.now());
+        const elapsedMins = Math.floor((Date.now() - orderTime) / 60000);
+
+        let timerColor = "bg-emerald-100 text-emerald-800 border-emerald-300";
+        if (elapsedMins >= 10 && elapsedMins < 15) {
+          timerColor = "bg-amber-100 text-amber-800 border-amber-300";
+        } else if (elapsedMins >= 15) {
+          timerColor = "bg-rose-100 text-rose-800 border-rose-300 animate-pulse";
+        }
+
+        return `
+          <div class="w-80 flex-shrink-0 bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm flex flex-col hover:border-amber-400 transition">
+            <!-- Header vé -->
+            <div class="p-3.5 bg-stone-50 border-b border-stone-200 flex items-center justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-black text-base text-stone-900">${order.table_name}</span>
+                  <span class="text-[10px] bg-stone-200 text-stone-700 px-1.5 py-0.5 rounded font-mono font-bold">Đợt ${order.round_number}</span>
+                </div>
+                <div class="text-xs text-stone-500">${order.area} • Đơn #${order.id}</div>
+              </div>
+              <div class="px-2.5 py-1 rounded-xl border text-xs font-mono font-bold ${timerColor}" data-created="${order.created_at}">
+                <i class="fa-regular fa-clock mr-1"></i>
+                <span class="timer-display">${elapsedMins}p</span>
+              </div>
+            </div>
+
+            <!-- Ghi chú chung của khách -->
+            ${order.customer_note ? `
+              <div class="bg-amber-50 border-b border-amber-200 px-3.5 py-2 text-xs text-amber-800 flex items-start gap-1.5 font-medium">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5"></i>
+                <span><strong>Lưu ý bàn:</strong> ${order.customer_note}</span>
+              </div>
+            ` : ''}
+
+            <!-- Danh sách món -->
+            <div class="p-3 space-y-2.5 flex-1 overflow-y-auto">
+              ${order.filteredItems.map(item => {
+                let statusBadge = "";
+                let actionBtn = "";
+
+                if (item.status === 'QUEUED') {
+                  statusBadge = `<span class="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full font-bold">Chờ nấu</span>`;
+                  actionBtn = `<button onclick="updateItemStatus(${item.id}, 'COOKING')" class="w-full mt-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-1.5 rounded-xl transition shadow-xs">BẮT ĐẦU NẤU 🔥</button>`;
+                } else if (item.status === 'COOKING') {
+                  statusBadge = `<span class="text-[10px] bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 rounded-full font-bold">Đang nấu</span>`;
+                  actionBtn = `<button onclick="updateItemStatus(${item.id}, 'READY')" class="w-full mt-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs py-1.5 rounded-xl transition shadow-xs">XONG / RA BÀN 🛎️</button>`;
+                } else if (item.status === 'READY') {
+                  statusBadge = `<span class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full font-bold">Đã xong (Chờ bưng)</span>`;
+                  actionBtn = `<button onclick="updateItemStatus(${item.id}, 'SERVED')" class="w-full mt-2 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-xs py-1.5 rounded-xl transition">ĐÃ BƯNG RA BÀN ✅</button>`;
+                }
+
+                return `
+                  <div class="bg-stone-50 p-3 rounded-xl border border-stone-200">
+                    <div class="flex items-start justify-between">
+                      <div class="flex items-start gap-2 flex-1">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-black flex items-center justify-center flex-shrink-0">
+                          ${item.quantity}
+                        </span>
+                        <div>
+                          <div class="font-bold text-sm text-stone-900">${item.item_name}</div>
+                          ${item.note ? `<div class="text-xs text-amber-700 font-medium italic mt-0.5">⚠️ ${item.note}</div>` : ''}
+                        </div>
+                      </div>
+                      ${statusBadge}
+                    </div>
+                    ${actionBtn}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Footer nút hoàn tất vé -->
+            <div class="p-3 bg-stone-50 border-t border-stone-200 flex justify-between items-center">
+              <span class="text-xs text-stone-500">${order.filteredItems.length} món</span>
+              <button onclick="completeAllItemsInOrder(${order.id})" class="text-xs text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1">
+                <span>Hoàn tất tất cả</span>
+                <i class="fa-solid fa-check-double text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateTimers() {
+      document.querySelectorAll("[data-created]").forEach(el => {
+        const created = el.getAttribute("data-created");
+        if (created) {
+          const mins = Math.floor((Date.now() - new Date(created)) / 60000);
+          const displayEl = el.querySelector(".timer-display");
+          if (displayEl) displayEl.innerText = `${mins}p`;
+        }
+      });
+    }
+
+    async function updateItemStatus(itemId, newStatus) {
+      try {
+        const res = await fetch(`/api/orders/item/${itemId}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus })
+        });
+        if (res.ok) {
+          await fetchActiveOrders();
+        } else {
+          alert("Lỗi khi cập nhật trạng thái món");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function completeAllItemsInOrder(orderId) {
+      if (!confirm("Xác nhận đã hoàn thành toàn bộ các món trong vé này?")) return;
+      try {
+        const res = await fetch(`/api/orders/${orderId}/complete-all`, { method: "PATCH" });
+        if (res.ok) {
+          await fetchActiveOrders();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // 4. WebSocket kết nối KDS
+    function connectKdsWebSocket() {
+      const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${location.host}/ws/kds`;
+      const ws = new WebSocket(wsUrl);
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === "NEW_ORDER") {
+            if (audioEnabled) playKitchenChime();
+            fetchActiveOrders();
+          } else if (data.event === "ITEM_STATUS_CHANGED" || data.event === "ORDER_ITEMS_COMPLETED") {
+            fetchActiveOrders();
+          }
+        } catch (e) {}
+      };
+
+      ws.onclose = () => {
+        setTimeout(connectKdsWebSocket, 3000);
+      };
+    }
+  </script>
+</body>
+</html>

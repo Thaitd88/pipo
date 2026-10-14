@@ -1,0 +1,32 @@
+{
+  "server_ws_url": "ws://127.0.0.1:8000/ws/printer",
+  "cloud_ws_url": "wss://pipo.n2.tinhgon.xyz/ws/printer",
+  "cloud_api_url": "https://pipo.n2.tinhgon.xyz",
+  "local_api_url": "http://127.0.0.1:8000",
+  "sync_interval_sec": 20,
+  "reconnect_interval_sec": 3,
+  "simulate_mode": true,
+  "printers": {
+    "HOT_KITCHEN": {
+      "name": "Máy in Bếp Nóng (Xprinter XP-C300H)",
+      "type": "tcp",
+      "host": "192.168.1.201",
+      "port": 9100,
+      "enabled": false
+    },
+    "BAR": {
+      "name": "Máy in Quầy Pha Chế",
+      "type": "tcp",
+      "host": "192.168.1.202",
+      "port": 9100,
+      "enabled": false
+    },
+    "COLD_KITCHEN": {
+      "name": "Máy in Bếp Lạnh",
+      "type": "tcp",
+      "host": "192.168.1.203",
+      "port": 9100,
+      "enabled": false
+    }
+  }
+}

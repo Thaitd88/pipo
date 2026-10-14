@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Không Gian Bếp & Định Lượng BOM | PiPo Garden</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-stone-100 text-stone-800 min-h-screen flex flex-col">
+
+  <!-- Header Kitchen Hub (Nền Sáng Thanh Lịch) -->
+  <header class="bg-amber-800 text-white px-6 py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
+    <div class="flex items-center space-x-3">
+      <img src="/static/logo.png" alt="PiPo Garden Logo" class="w-11 h-11 rounded-full object-cover shadow-md border-2 border-amber-300/60 bg-white">
+      <div>
+        <h1 class="text-base font-bold text-white flex items-center gap-2">
+          PiPo Garden - Không Gian Nhà Bếp
+          <span class="text-[10px] bg-amber-950/80 text-amber-200 border border-amber-600 px-2 py-0.5 rounded-full font-semibold">Chef Hub</span>
+        </h1>
+        <p class="text-xs text-amber-100">Điều phối chế biến • Quản lý món • Định lượng BOM trừ kho</p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex items-center gap-3">
+      <div class="flex bg-amber-950/40 p-1 rounded-xl border border-amber-700/60 text-xs font-semibold">
+        <button onclick="switchKitchenTab('kds')" id="tabBtn-kds" class="kitchen-tab px-3.5 py-1.5 rounded-lg bg-amber-600 text-white shadow-xs">
+          <i class="fa-solid fa-tv mr-1"></i> Màn hình KDS
+        </button>
+        <button onclick="switchKitchenTab('menu')" id="tabBtn-menu" class="kitchen-tab px-3.5 py-1.5 rounded-lg text-amber-200 hover:text-white">
+          <i class="fa-solid fa-utensils mr-1"></i> Quản lý Món
+        </button>
+        <button onclick="switchKitchenTab('bom')" id="tabBtn-bom" class="kitchen-tab px-3.5 py-1.5 rounded-lg text-amber-200 hover:text-white">
+          <i class="fa-solid fa-cubes-stacked mr-1"></i> Định Lượng BOM
+        </button>
+      </div>
+
+      <a href="/inventory" target="_blank" class="px-3 py-1.5 rounded-xl bg-amber-950/60 hover:bg-amber-900 text-amber-100 text-xs font-bold flex items-center gap-1.5 border border-amber-700">
+        <i class="fa-solid fa-warehouse text-emerald-300"></i> Kho NVL
+      </a>
+
+      <!-- User / Logout -->
+      <div class="flex items-center gap-2 pl-2 border-l border-amber-700 text-xs">
+        <span class="text-amber-100 font-bold" id="chefName">Bếp Trưởng</span>
+        <button onclick="logoutKitchen()" class="text-amber-200 hover:text-white text-xs p-1" title="Đăng xuất">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================== -->
+  <!-- TAB 1: MÀN HÌNH KDS (ĐIỀU PHỐI NẤU MÓN & TỰ TRỪ KHO) -->
+  <!-- ======================================================== -->
+  <div id="kitchenContent-kds" class="tab-pane flex-1 flex flex-col">
+    <!-- Sub-header KDS filter -->
+    <div class="bg-white px-6 py-2.5 border-b border-stone-200 flex items-center justify-between text-xs shadow-xs">
+      <div class="flex items-center gap-2">
+        <span class="text-stone-500 font-bold"><i class="fa-solid fa-filter text-amber-700"></i> Lọc trạm:</span>
+        <button onclick="setStationFilter('ALL')" id="filter-ALL" class="station-tab px-3 py-1.5 rounded-xl bg-emerald-700 text-white font-bold shadow-xs">Tất cả</button>
+        <button onclick="setStationFilter('HOT_KITCHEN')" id="filter-HOT_KITCHEN" class="station-tab px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold">🔥 Bếp Nóng</button>
+        <button onclick="setStationFilter('COLD_KITCHEN')" id="filter-COLD_KITCHEN" class="station-tab px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold">🥗 Bếp Lạnh</button>
+        <button onclick="setStationFilter('BAR')" id="filter-BAR" class="station-tab px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold">🍹 Quầy Bar</button>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <button id="btnAudioToggle" onclick="toggleAudio()" class="px-3 py-1.5 rounded-xl border border-stone-200 bg-stone-50 text-stone-700 font-semibold flex items-center gap-1.5 hover:bg-stone-100 transition shadow-xs">
+          <i class="fa-solid fa-bell text-amber-600" id="audioIcon"></i>
+          <span id="audioText">Chuông: BẬT</span>
+        </button>
+        <div id="liveClock" class="font-mono text-emerald-800 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">00:00:00</div>
+      </div>
+    </div>
+
+    <!-- Tickets Grid -->
+    <main class="flex-1 p-6 overflow-x-auto">
+      <div id="ticketsGrid" class="flex gap-4 items-start min-h-[calc(100vh-160px)]"></div>
+    </main>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- TAB 2: QUẢN LÝ MÓN ĂN & MENU BẾP (BẬT/TẮT HẾT HÀNG) -->
+  <!-- ======================================================== -->
+  <div id="kitchenContent-menu" class="tab-pane flex-1 p-6 max-w-7xl mx-auto w-full hidden">
+    <div class="bg-white border border-stone-200 rounded-2xl p-5 mb-6 flex flex-wrap items-center justify-between gap-4 shadow-xs">
+      <div>
+        <h2 class="text-base font-bold text-stone-900 flex items-center gap-2">
+          Quản Lý Món Ăn & Đa Ngôn Ngữ PiPo Garden
+          <span class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full font-semibold">5 Ngôn Ngữ</span>
+        </h2>
+        <p class="text-xs text-stone-500 mt-0.5">Tạo món tiếng Việt, hệ thống tự động dịch sang Anh, Trung, Hàn, Nga. Bật/tắt món còn hàng hoặc hết hàng.</p>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button onclick="openDishModal(null)" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5">
+          <i class="fa-solid fa-plus"></i> Thêm Món Mới (Tự Động Dịch)
+        </button>
+        <button onclick="loadKitchenMenu()" class="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-xs font-bold text-stone-700 border border-stone-200 flex items-center gap-1.5">
+          <i class="fa-solid fa-arrows-rotate"></i> Làm mới
+        </button>
+      </div>
+    </div>
+
+    <!-- Bộ lọc 2 Nhóm Lớn: Menu Nhà Hàng & Menu Cafe / Ăn Sáng -->
+    <div class="flex items-center gap-2 overflow-x-auto mb-5 pb-1" id="kitchenMenuCategoryTabs"></div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="kitchenMenuList"></div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- TAB 3: ĐỊNH LƯỢNG NGUYÊN VẬT LIỆU MÓN ĂN (RECIPE BOM) -->
+  <!-- ======================================================== -->
+  <div id="kitchenContent-bom" class="tab-pane flex-1 p-6 max-w-7xl mx-auto w-full hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Cột Trái: Chọn món ăn để xem / cấu hình BOM (5 cột) -->
+      <div class="lg:col-span-5 bg-white border border-stone-200 rounded-2xl p-4 flex flex-col max-h-[calc(100vh-140px)] shadow-xs">
+        <div class="pb-3 border-b border-stone-200 mb-3">
+          <h3 class="font-bold text-sm text-stone-900">Chọn Món Cần Định Lượng (BOM)</h3>
+          <p class="text-xs text-stone-500">Chọn món để xem nguyên liệu tiêu hao và giá vốn</p>
+        </div>
+        <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="bomDishesList"></div>
+      </div>
+
+      <!-- Cột Phải: Bảng Chi Tiết Định Lượng Của Món (7 cột) -->
+      <div class="lg:col-span-7 bg-white border border-stone-200 rounded-2xl p-5 flex flex-col justify-between max-h-[calc(100vh-140px)] shadow-xs">
+        <div>
+          <div class="flex items-center justify-between pb-3 border-b border-stone-200 mb-4">
+            <div>
+              <div class="text-xs text-amber-700 font-bold uppercase tracking-wider">Cấu Hình Định Lượng Tiêu Hao</div>
+              <h3 class="text-base font-black text-stone-900 mt-0.5" id="bomDishTitle">Chưa chọn món</h3>
+            </div>
+            <button onclick="addBomIngredientRow()" class="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition flex items-center gap-1 shadow-xs">
+              <i class="fa-solid fa-plus text-[10px]"></i> Thêm Nguyên Liệu
+            </button>
+          </div>
+
+          <!-- Bảng các nguyên liệu định lượng -->
+          <div class="overflow-y-auto max-h-[calc(100vh-320px)] border border-stone-200 rounded-xl">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-stone-50 text-stone-600 font-semibold border-b border-stone-200">
+                <tr>
+                  <th class="py-2.5 px-3">Nguyên vật liệu kho</th>
+                  <th class="py-2.5 px-3">SL tiêu hao</th>
+                  <th class="py-2.5 px-2">ĐVT</th>
+                  <th class="py-2.5 px-3 bg-amber-50/70 text-amber-900 border-x border-amber-200/60">Quy đổi sang Gram (g)</th>
+                  <th class="py-2.5 px-3 text-right">Chi phí vốn</th>
+                  <th class="py-2.5 px-2 text-center w-8"></th>
+                </tr>
+              </thead>
+              <tbody id="bomIngredientsTableBody" class="divide-y divide-stone-100">
+                <!-- Render dòng nguyên liệu -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Footer Cột Phải -->
+        <div class="pt-4 border-t border-stone-200 mt-4 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-6">
+            <div>
+              <div class="text-xs text-stone-500">Tổng trọng lượng quy đổi:</div>
+              <div class="text-lg font-black text-amber-700 font-mono" id="bomTotalGrams">0 g</div>
+            </div>
+            <div class="h-8 w-px bg-stone-200"></div>
+            <div>
+              <div class="text-xs text-stone-500">Ước tính giá vốn (Cost of Goods):</div>
+              <div class="text-xl font-black text-emerald-800" id="bomEstimatedCost">0 đ</div>
+            </div>
+          </div>
+          <button id="btnSaveBom" onclick="saveCurrentBom()" disabled class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5">
+            <i class="fa-solid fa-check"></i> Lưu Cấu Hình BOM
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: THÊM / CHỈNH SỬA MÓN ĂN & DỊCH TỰ ĐỘNG -->
+  <!-- ======================================================== -->
+  <div id="dishModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full border border-stone-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-stone-50 border-b border-stone-200 flex items-center justify-between">
+        <h3 class="font-bold text-base text-stone-900 flex items-center gap-2" id="dishModalTitle">
+          Thêm Món Ăn Mới
+        </h3>
+        <button onclick="closeDishModal()" class="text-stone-400 hover:text-stone-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-4 text-xs">
+        <input type="hidden" id="dishEditId">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="sm:col-span-2">
+            <label class="block text-stone-700 font-semibold mb-1">Tên món ăn (Tiếng Việt) <span class="text-rose-500">*</span></label>
+            <input type="text" id="dishNameVi" placeholder="Ví dụ: Bò Fuji Nướng Đá Núi Lửa" class="w-full bg-white border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none focus:border-amber-600 font-semibold">
+          </div>
+
+          <div>
+            <label class="block text-stone-700 font-semibold mb-1">Danh mục thực đơn <span class="text-rose-500">*</span></label>
+            <select id="dishCategoryId" class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2.5 text-stone-900 focus:outline-none focus:border-amber-600">
+              <!-- Render danh mục -->
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-stone-700 font-semibold mb-1">Giá bán (VNĐ) <span class="text-rose-500">*</span></label>
+            <input type="number" id="dishPrice" placeholder="195000" class="w-full bg-white border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none focus:border-amber-600 font-bold">
+          </div>
+
+          <div>
+            <label class="block text-stone-700 font-semibold mb-1">Trạm chế biến bếp</label>
+            <select id="dishStation" class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2.5 text-stone-900 focus:outline-none focus:border-amber-600">
+              <option value="HOT_KITCHEN">🔥 Bếp Nóng (Hot Kitchen)</option>
+              <option value="COLD_KITCHEN">🥗 Bếp Lạnh (Cold Kitchen / Salad)</option>
+              <option value="BAR">🍹 Quầy Bar / Pha Chế</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-stone-700 font-semibold mb-1">Hình ảnh món ăn (Tự động nén & Auto-resize):</label>
+            <div class="flex items-center gap-2">
+              <input type="text" id="dishImageUrl" placeholder="/static/dishes/... hoặc link ảnh" class="flex-1 bg-white border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none focus:border-amber-600 font-mono text-xs">
+              <label class="cursor-pointer px-3.5 py-2.5 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs transition flex-shrink-0">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Tải ảnh lên</span>
+                <input type="file" id="dishImageFileUpload" accept="image/*" class="hidden" onchange="uploadKitchenDishImage(this)">
+              </label>
+            </div>
+            <div id="kitchenImagePreviewBox" class="hidden mt-2 p-2.5 bg-stone-50 rounded-xl border border-stone-200 flex items-center gap-3">
+              <img id="kitchenImagePreviewImg" src="" class="w-14 h-14 rounded-lg object-cover bg-white border border-stone-200 flex-shrink-0">
+              <div class="flex-1 min-w-0">
+                <div id="kitchenImageInfo" class="text-xs font-bold text-emerald-800 truncate">✅ Đã tối ưu ảnh WebP</div>
+                <div class="text-[10px] text-stone-500 mt-0.5">Tự động nén siêu nhẹ & mượt cho hệ thống</div>
+              </div>
+              <button type="button" onclick="clearKitchenDishImage()" class="text-stone-400 hover:text-rose-500 p-1.5 text-xs" title="Xóa ảnh">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-stone-700 font-semibold mb-1">Mô tả món ăn (Tiếng Việt)</label>
+            <textarea id="dishDescVi" rows="2" placeholder="Ví dụ: Thịt bò Fuji hảo hạng nướng trên đá nham thạch 300 độ..." class="w-full bg-white border border-stone-300 rounded-xl px-3.5 py-2 text-stone-900 focus:outline-none focus:border-amber-600"></textarea>
+          </div>
+        </div>
+
+        <!-- Khung Dịch Tự Động Sang 4 Thứ Tiếng -->
+        <div class="bg-amber-50/60 border border-amber-200 rounded-2xl p-4 mt-2">
+          <div class="flex items-center justify-between pb-3 border-b border-amber-200 mb-3">
+            <div>
+              <div class="font-bold text-amber-900 text-xs flex items-center gap-1.5">
+                <span>🤖 Bản Dịch Đa Ngôn Ngữ</span>
+                <span class="text-[10px] bg-amber-200 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full font-semibold">AI Translate</span>
+              </div>
+              <p class="text-[11px] text-stone-500 mt-0.5">Bấm nút để tự động dịch hoặc bạn có thể chỉnh sửa thủ công từng thứ tiếng.</p>
+            </div>
+
+            <!-- Nút bấm Dịch Tự Động -->
+            <button type="button" id="btnAutoTranslate" onclick="triggerAutoTranslateDish()" class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5">
+              <i class="fa-solid fa-wand-magic-sparkles text-[11px]"></i>
+              <span id="btnAutoTranslateText">Dịch Tự Động (4 Thứ Tiếng)</span>
+            </button>
+          </div>
+
+          <!-- Tabs chọn ngôn ngữ xem/sửa -->
+          <div class="flex gap-1.5 bg-stone-100 p-1 rounded-xl mb-3 border border-stone-200">
+            <button type="button" onclick="switchTransTab('en')" id="transTab-en" class="trans-tab flex-1 py-1.5 rounded-lg bg-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-xs">
+              <span>🇬🇧</span> English
+            </button>
+            <button type="button" onclick="switchTransTab('zh')" id="transTab-zh" class="trans-tab flex-1 py-1.5 rounded-lg text-stone-600 hover:text-stone-900 font-bold text-xs flex items-center justify-center gap-1">
+              <span>🇨🇳</span> 中文
+            </button>
+            <button type="button" onclick="switchTransTab('ko')" id="transTab-ko" class="trans-tab flex-1 py-1.5 rounded-lg text-stone-600 hover:text-stone-900 font-bold text-xs flex items-center justify-center gap-1">
+              <span>🇰🇷</span> 한국어
+            </button>
+            <button type="button" onclick="switchTransTab('ru')" id="transTab-ru" class="trans-tab flex-1 py-1.5 rounded-lg text-stone-600 hover:text-stone-900 font-bold text-xs flex items-center justify-center gap-1">
+              <span>🇷🇺</span> Русский
+            </button>
+          </div>
+
+          <!-- Panel EN -->
+          <div id="transPanel-en" class="trans-panel space-y-2.5">
+            <div>
+              <label class="block text-stone-600 font-medium mb-1">Dish Name (English):</label>
+              <input type="text" id="transName-en" placeholder="Fuji Beef Grilled on Volcanic Rock..." class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-600 text-xs">
+            </div>
+            <div>
+              <label class="block text-stone-600 font-medium mb-1">Description (English):</label>
+              <input type="text" id="transDesc-en" placeholder="Tender and aromatic Fuji beef sizzling on natural lava stone..." class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-600 text-xs">
+            </div>
+          </div>
+
+          <!-- Panel ZH -->
+          <div id="transPanel-zh" class="trans-panel space-y-2.5 hidden">
+            <div>
+              <label class="block text-stone-600 font-medium mb-1">菜品名称 (中文):</label>
+              <input type="text" id="transName-zh" placeholder="火山石烤富士牛肉..." class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-600 text-xs">
+            </div>
+            <div>
+              <label class="block text-stone-600 font-medium mb-1">菜品描述 (中文):</label>
+              <input type="text" id="transDesc-zh" placeholder="富士牛肉在天然火山岩石上滋滋作响..." class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-600 text-xs">
+            </div>
+          </div>
+
+          <!-- Panel KO -->
+          <div id="transPanel-ko" class="trans-panel space-y-2.5 hidden">
+            <div>
+              <label class="block text-stone-600 font-medium mb-1">메뉴 이름 (한국어):</label>
+              <input type="text" id="transName-ko" placeholder="화산석 후지 소고기 구이..." class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-600 text-xs">
+            </div>
+            <div>
+              <label class="block text-stone-600 font-medium mb-1">메뉴 설명 (한국어):</label>
+              <input type="text" id="transDesc-ko" placeholder="천연 화산석 위에서 지글지글 구워내는 부드러운 후지 소고기..." class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-600 text-xs">
+            </div>
+          </div>
+
+          <!-- Panel RU -->
+          <div id="transPanel-ru" class="trans-panel space-y-2.5 hidden">
+            <div>
+              <label class="block text-stone-600 font-medium mb-1">Название блюда (Русский):</label>
+              <input type="text" id="transName-ru" placeholder="Говядина Фудзи на вулканическом камне..." class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-600 text-xs">
+            </div>
+            <div>
+              <label class="block text-stone-600 font-medium mb-1">Описание блюда (Русский):</label>
+              <input type="text" id="transDesc-ru" placeholder="Ароматная и нежная говядина Фудзи, обжаренная на вулканическом камне..." class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-600 text-xs">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 border-t border-stone-200 bg-stone-50 flex items-center justify-between">
+        <button type="button" id="btnDeleteDish" onclick="deleteCurrentDish()" class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition hidden">
+          <i class="fa-regular fa-trash-can mr-1"></i> Xóa Món
+        </button>
+        <div class="flex items-center gap-2 ml-auto">
+          <button type="button" onclick="closeDishModal()" class="px-4 py-2 rounded-xl border border-stone-300 bg-white hover:bg-stone-100 text-stone-700 text-xs font-bold transition">
+            Hủy Bỏ
+          </button>
+          <button type="button" id="btnSaveDish" onclick="saveDish()" class="px-6 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Món Ăn
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeOrders = [];
+    let currentStation = 'ALL';
+    let audioEnabled = true;
+    let kitchenMenu = [];
+    let allIngredients = [];
+    let selectedDishForBom = null;
+    let currentBomRows = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchActiveOrders();
+      connectKdsWebSocket();
+      loadKitchenMenu();
+      loadCategories();
+      loadIngredients();
+      loadBomDishes();
+
+      setInterval(() => {
+        document.getElementById("liveClock").innerText = new Date().toLocaleTimeString('vi-VN');
+      }, 1000);
+    });
+
+    function formatVND(amount) {
+      return new Intl.NumberFormat('vi-VN').format(amount) + " đ";
+    }
+
+    function switchKitchenTab(tab) {
+      document.querySelectorAll(".tab-pane").forEach(p => p.classList.add("hidden"));
+      document.querySelectorAll(".kitchen-tab").forEach(t => {
+        t.className = "kitchen-tab px-3.5 py-1.5 rounded-lg text-amber-200 hover:text-white";
+      });
+      document.getElementById(`kitchenContent-${tab}`).classList.remove("hidden");
+      document.getElementById(`tabBtn-${tab}`).className = "kitchen-tab px-3.5 py-1.5 rounded-lg bg-amber-600 text-white shadow-xs";
+
+      if (tab === 'menu') loadKitchenMenu();
+      if (tab === 'bom') loadBomDishes();
+    }
+
+    function logoutKitchen() {
+      if (confirm("Đăng xuất khỏi không gian bếp?")) {
+        fetch("/api/auth/logout", { method: "POST" }).then(() => {
+          window.location.href = "/";
+        });
+      }
+    }
+
+    // ==========================================
+    // 1. KDS TICKETS (ĐIỀU PHỐI & TỰ TRỪ KHO)
+    // ==========================================
+    async function fetchActiveOrders() {
+      try {
+        const res = await fetch("/api/orders/active");
+        activeOrders = await res.json();
+        renderTickets();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function setStationFilter(station) {
+      currentStation = station;
+      document.querySelectorAll(".station-tab").forEach(tab => {
+        tab.className = "station-tab px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold";
+      });
+      document.getElementById(`filter-${station}`).className = "station-tab px-3 py-1.5 rounded-xl bg-emerald-700 text-white font-bold shadow-xs";
+      renderTickets();
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const icon = document.getElementById("audioIcon");
+      const text = document.getElementById("audioText");
+      if (audioEnabled) {
+        playKitchenChime();
+        icon.className = "fa-solid fa-bell text-amber-600 animate-bounce";
+        text.innerText = "Chuông: BẬT";
+      } else {
+        icon.className = "fa-solid fa-bell-slash text-stone-400";
+        text.innerText = "Chuông: TẮT";
+      }
+    }
+
+    function playKitchenChime() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.6);
+      } catch (e) {}
+    }
+
+    function renderTickets() {
+      const container = document.getElementById("ticketsGrid");
+      const validOrders = activeOrders.map(order => {
+        let filteredItems = order.items.filter(it => it.status !== 'SERVED');
+        if (currentStation !== 'ALL') {
+          filteredItems = filteredItems.filter(it => it.station === currentStation);
+        }
+        return { ...order, filteredItems };
+      }).filter(o => o.filteredItems.length > 0);
+
+      if (validOrders.length === 0) {
+        container.innerHTML = `
+          <div class="text-stone-400 text-sm m-auto text-center py-20 bg-white p-12 rounded-2xl border border-stone-200 shadow-xs">
+            <i class="fa-solid fa-utensils text-4xl mb-3 text-stone-300"></i>
+            <p>Hiện không có món nào đang chờ chế biến. Bếp đã sẵn sàng!</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = validOrders.map(order => {
+        const elapsedMins = Math.floor((Date.now() - new Date(order.created_at || Date.now())) / 60000);
+        let timerColor = "bg-emerald-100 text-emerald-800 border-emerald-300";
+        if (elapsedMins >= 10 && elapsedMins < 15) timerColor = "bg-amber-100 text-amber-800 border-amber-300";
+        else if (elapsedMins >= 15) timerColor = "bg-rose-100 text-rose-800 border-rose-300 animate-pulse";
+
+        return `
+          <div class="w-80 flex-shrink-0 bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm flex flex-col hover:border-amber-400 transition">
+            <div class="p-3.5 bg-stone-50 border-b border-stone-200 flex items-center justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-black text-base text-stone-900">${order.table_name}</span>
+                  <span class="text-[10px] bg-stone-200 text-stone-700 px-1.5 py-0.5 rounded font-mono font-bold">Đợt ${order.round_number}</span>
+                </div>
+                <div class="text-xs text-stone-500">${order.area} • Đơn #${order.id}</div>
+              </div>
+              <div class="px-2.5 py-1 rounded-xl border text-xs font-mono font-bold ${timerColor}">
+                <i class="fa-regular fa-clock mr-1"></i> ${elapsedMins}p
+              </div>
+            </div>
+
+            ${order.customer_note ? `
+              <div class="bg-amber-50 border-b border-amber-200 px-3.5 py-2 text-xs text-amber-800 font-medium">
+                <strong>Lưu ý:</strong> ${order.customer_note}
+              </div>
+            ` : ''}
+
+            <div class="p-3 space-y-2.5 flex-1 overflow-y-auto">
+              ${order.filteredItems.map(item => {
+                let statusBadge = "";
+                let actionBtn = "";
+
+                if (item.status === 'QUEUED') {
+                  statusBadge = `<span class="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full font-bold">Chờ nấu</span>`;
+                  actionBtn = `<button onclick="updateItemStatus(${item.id}, 'COOKING')" class="w-full mt-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-1.5 rounded-xl transition shadow-xs">BẮT ĐẦU NẤU (Tự Trừ Kho) 🔥</button>`;
+                } else if (item.status === 'COOKING') {
+                  statusBadge = `<span class="text-[10px] bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 rounded-full font-bold">Đang nấu</span>`;
+                  actionBtn = `<button onclick="updateItemStatus(${item.id}, 'READY')" class="w-full mt-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs py-1.5 rounded-xl transition shadow-xs">XONG / RA BÀN 🛎️</button>`;
+                } else if (item.status === 'READY') {
+                  statusBadge = `<span class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full font-bold">Chờ bưng</span>`;
+                  actionBtn = `<button onclick="updateItemStatus(${item.id}, 'SERVED')" class="w-full mt-2 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-xs py-1.5 rounded-xl">ĐÃ BƯNG RA BÀN ✅</button>`;
+                }
+
+                return `
+                  <div class="bg-stone-50 p-3 rounded-xl border border-stone-200">
+                    <div class="flex items-start justify-between">
+                      <div class="flex items-start gap-2 flex-1">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-black flex items-center justify-center flex-shrink-0">${item.quantity}</span>
+                        <div>
+                          <div class="font-bold text-sm text-stone-900">${item.item_name}</div>
+                          ${item.note ? `<div class="text-xs text-amber-700 italic mt-0.5">${item.note}</div>` : ''}
+                        </div>
+                      </div>
+                      ${statusBadge}
+                    </div>
+                    ${actionBtn}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="p-3 bg-stone-50 border-t border-stone-200 flex justify-between items-center">
+              <span class="text-xs text-stone-500">${order.filteredItems.length} món</span>
+              <button onclick="completeAllItems(${order.id})" class="text-xs text-emerald-700 hover:text-emerald-800 font-bold">
+                Hoàn tất vé (Trừ kho) <i class="fa-solid fa-check-double text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function updateItemStatus(itemId, newStatus) {
+      try {
+        const res = await fetch(`/api/orders/item/${itemId}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus })
+        });
+        if (res.ok) {
+          await fetchActiveOrders();
+        } else {
+          alert("Lỗi cập nhật món");
+        }
+      } catch (e) {
+        alert("Lỗi kết nối");
+      }
+    }
+
+    async function completeAllItems(orderId) {
+      try {
+        const res = await fetch(`/api/orders/${orderId}/complete-all`, { method: "PATCH" });
+        if (res.ok) await fetchActiveOrders();
+      } catch (e) {}
+    }
+
+    function connectKdsWebSocket() {
+      const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${location.host}/ws/kds`;
+      const ws = new WebSocket(wsUrl);
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === "NEW_ORDER") {
+            if (audioEnabled) playKitchenChime();
+            fetchActiveOrders();
+          } else if (data.event === "ITEM_STATUS_CHANGED" || data.event === "ORDER_ITEMS_COMPLETED") {
+            fetchActiveOrders();
+          }
+        } catch (e) {}
+      };
+      ws.onclose = () => setTimeout(connectKdsWebSocket, 3000);
+    }
+
+    // ==========================================
+    // 2. QUẢN LÝ MÓN ĂN & MENU
+    // ==========================================
+    let currentKitchenCatFilter = 'ALL';
+    let kitchenCategories = [];
+
+    async function loadKitchenMenu() {
+      try {
+        const res = await fetch("/api/menu");
+        const cats = await res.json();
+        kitchenCategories = cats;
+        let items = [];
+        cats.forEach(c => items.push(...c.items));
+        kitchenMenu = items;
+
+        renderKitchenMenuTabs();
+        renderKitchenMenuItems();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function setKitchenCatFilter(catId) {
+      currentKitchenCatFilter = catId;
+      renderKitchenMenuTabs();
+      renderKitchenMenuItems();
+    }
+
+    function renderKitchenMenuTabs() {
+      const tabContainer = document.getElementById("kitchenMenuCategoryTabs");
+      if (!tabContainer) return;
+
+      const kitchenCatColors = {
+        1: { active: 'bg-emerald-600 text-white shadow-xs', inactive: 'bg-emerald-50 text-emerald-900 border border-emerald-200 hover:bg-emerald-100', pillActive: 'bg-white/20 text-white', pillInactive: 'bg-emerald-200 text-emerald-900' },
+        2: { active: 'bg-amber-500 text-stone-950 font-bold shadow-xs', inactive: 'bg-amber-50 text-amber-950 border border-amber-200 hover:bg-amber-100', pillActive: 'bg-black/20 text-stone-950', pillInactive: 'bg-amber-200 text-amber-950' },
+        3: { active: 'bg-rose-600 text-white shadow-xs', inactive: 'bg-rose-50 text-rose-950 border border-rose-200 hover:bg-rose-100', pillActive: 'bg-white/20 text-white', pillInactive: 'bg-rose-200 text-rose-950' },
+        4: { active: 'bg-sky-600 text-white shadow-xs', inactive: 'bg-sky-50 text-sky-950 border border-sky-200 hover:bg-sky-100', pillActive: 'bg-white/20 text-white', pillInactive: 'bg-sky-200 text-sky-950' },
+        5: { active: 'bg-purple-600 text-white shadow-xs', inactive: 'bg-purple-50 text-purple-950 border border-purple-200 hover:bg-purple-100', pillActive: 'bg-white/20 text-white', pillInactive: 'bg-purple-200 text-purple-950' },
+        6: { active: 'bg-teal-600 text-white shadow-xs', inactive: 'bg-teal-50 text-teal-950 border border-teal-200 hover:bg-teal-100', pillActive: 'bg-white/20 text-white', pillInactive: 'bg-teal-200 text-teal-950' }
+      };
+
+      let html = `
+        <button onclick="setKitchenCatFilter('ALL')" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${currentKitchenCatFilter === 'ALL' ? 'bg-stone-900 text-white shadow-xs' : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'}">
+          <span>✨ Tất cả nhóm</span>
+          <span class="px-1.5 py-0.2 rounded-full text-[10px] ${currentKitchenCatFilter === 'ALL' ? 'bg-white/20 text-white' : 'bg-stone-100 text-stone-600'}">${kitchenMenu.length}</span>
+        </button>
+      `;
+      kitchenCategories.forEach(c => {
+        const active = currentKitchenCatFilter === c.id;
+        const color = kitchenCatColors[c.id] || {
+          active: 'bg-amber-700 text-white shadow-xs',
+          inactive: 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50',
+          pillActive: 'bg-amber-900 text-amber-100',
+          pillInactive: 'bg-stone-100 text-stone-600'
+        };
+        html += `
+          <button onclick="setKitchenCatFilter(${c.id})" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${active ? color.active : color.inactive}">
+            <span>${c.icon || '🍽️'} ${c.name}</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] ${active ? color.pillActive : color.pillInactive}">${(c.items || []).length}</span>
+          </button>
+        `;
+      });
+      tabContainer.innerHTML = html;
+    }
+
+    function renderKitchenMenuItems() {
+      const container = document.getElementById("kitchenMenuList");
+      const filtered = currentKitchenCatFilter === 'ALL'
+        ? kitchenMenu
+        : kitchenMenu.filter(it => it.category_id === currentKitchenCatFilter);
+
+      container.innerHTML = filtered.map(item => {
+        const trans = item.translations || {};
+        const hasEn = trans.en && trans.en.name;
+        const hasZh = trans.zh && trans.zh.name;
+        const hasKo = trans.ko && trans.ko.name;
+        const hasRu = trans.ru && trans.ru.name;
+
+        return `
+        <div class="bg-white border border-stone-200 rounded-2xl p-4 flex flex-col justify-between hover:shadow-md transition space-y-3">
+          <div class="flex items-start gap-3">
+            <img src="${item.image_url || '/static/logo.png'}" onerror="this.onerror=null; this.src='/static/logo.png';" class="w-16 h-16 rounded-xl object-cover bg-stone-50 border border-stone-200 flex-shrink-0 p-0.5">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 truncate max-w-[140px]">${item.category_name || ''}</span>
+                <span class="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-mono font-bold">${item.station}</span>
+              </div>
+              <h4 class="font-bold text-sm text-stone-900 truncate mt-1">${item.name}</h4>
+              <p class="text-[11px] text-stone-500 truncate">${item.description || ''}</p>
+              <div class="text-xs text-emerald-700 font-bold">${formatVND(item.price)}</div>
+
+              <!-- Cờ Đa Ngôn Ngữ -->
+              <div class="flex items-center gap-1 mt-1.5 text-[10px]">
+                <span title="Tiếng Việt">🇻🇳</span>
+                <span class="px-1.5 py-0.2 ${hasEn ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-400'} rounded text-[9px] font-bold" title="${hasEn ? trans.en.name : ''}">EN</span>
+                <span class="px-1.5 py-0.2 ${hasZh ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-400'} rounded text-[9px] font-bold" title="${hasZh ? trans.zh.name : ''}">ZH</span>
+                <span class="px-1.5 py-0.2 ${hasKo ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-400'} rounded text-[9px] font-bold" title="${hasKo ? trans.ko.name : ''}">KO</span>
+                <span class="px-1.5 py-0.2 ${hasRu ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-400'} rounded text-[9px] font-bold" title="${hasRu ? trans.ru.name : ''}">RU</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-2.5 border-t border-stone-100">
+            <button onclick="toggleStock(${item.id})" class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${item.is_available ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200' : 'bg-rose-100 text-rose-800 border border-rose-300 hover:bg-rose-200'}">
+              ${item.is_available ? 'Còn hàng' : 'Hết hàng'}
+            </button>
+            <button onclick="openDishModal(${item.id})" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-pen-to-square text-[10px] text-amber-600"></i> Sửa & Dịch
+            </button>
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    async function toggleStock(itemId) {
+      await fetch(`/api/menu/item/${itemId}/toggle-stock`, { method: "POST" });
+      loadKitchenMenu();
+    }
+
+    let allCategories = [];
+
+    async function loadCategories() {
+      try {
+        const res = await fetch("/api/menu/categories");
+        allCategories = await res.json();
+        const select = document.getElementById("dishCategoryId");
+        if (select) {
+          select.innerHTML = allCategories.map(c => `<option value="${c.id}">${c.icon || '🍽️'} ${c.name}</option>`).join('');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function openDishModal(dishId) {
+      loadCategories();
+      const modal = document.getElementById("dishModal");
+      const delBtn = document.getElementById("btnDeleteDish");
+
+      if (!dishId) {
+        document.getElementById("dishModalTitle").innerText = "Thêm Món Ăn Mới";
+        document.getElementById("dishEditId").value = "";
+        document.getElementById("dishNameVi").value = "";
+        document.getElementById("dishPrice").value = "";
+        document.getElementById("dishStation").value = "HOT_KITCHEN";
+        document.getElementById("dishImageUrl").value = "";
+        document.getElementById("dishDescVi").value = "";
+
+        ['en', 'zh', 'ko', 'ru'].forEach(l => {
+          document.getElementById(`transName-${l}`).value = "";
+          document.getElementById(`transDesc-${l}`).value = "";
+        });
+
+        delBtn.classList.add("hidden");
+        clearKitchenDishImage();
+      } else {
+        const dish = kitchenMenu.find(x => x.id === dishId);
+        if (!dish) return;
+
+        document.getElementById("dishModalTitle").innerText = `Chỉnh Sửa: ${dish.name}`;
+        document.getElementById("dishEditId").value = dish.id;
+        document.getElementById("dishNameVi").value = dish.name;
+        document.getElementById("dishCategoryId").value = dish.category_id;
+        document.getElementById("dishPrice").value = dish.price;
+        document.getElementById("dishStation").value = dish.station || "HOT_KITCHEN";
+        document.getElementById("dishImageUrl").value = dish.image_url || "";
+        document.getElementById("dishDescVi").value = dish.description || "";
+
+        if (dish.image_url) {
+          const previewBox = document.getElementById("kitchenImagePreviewBox");
+          if (previewBox) {
+            previewBox.classList.remove("hidden");
+            document.getElementById("kitchenImagePreviewImg").src = dish.image_url;
+            document.getElementById("kitchenImageInfo").innerText = "Ảnh hiện tại của món";
+          }
+        } else {
+          clearKitchenDishImage();
+        }
+
+        const trans = dish.translations || {};
+        ['en', 'zh', 'ko', 'ru'].forEach(l => {
+          document.getElementById(`transName-${l}`).value = (trans[l] && trans[l].name) ? trans[l].name : "";
+          document.getElementById(`transDesc-${l}`).value = (trans[l] && trans[l].description) ? trans[l].description : "";
+        });
+
+        delBtn.classList.remove("hidden");
+      }
+
+      switchTransTab('en');
+      modal.classList.remove("hidden");
+    }
+
+    async function uploadKitchenDishImage(input) {
+      if (!input.files || input.files.length === 0) return;
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const previewBox = document.getElementById("kitchenImagePreviewBox");
+      const previewImg = document.getElementById("kitchenImagePreviewImg");
+      const infoText = document.getElementById("kitchenImageInfo");
+
+      previewBox.classList.remove("hidden");
+      infoText.innerText = "⏳ Đang nén & auto-resize ảnh...";
+      infoText.className = "text-xs font-bold text-amber-700 truncate";
+
+      try {
+        const res = await fetch("/api/menu/upload-image", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById("dishImageUrl").value = data.image_url;
+          previewImg.src = data.image_url;
+          infoText.innerText = `✅ Đã tối ưu WebP: ${data.size_kb} KB (${data.width}x${data.height}px)`;
+          infoText.className = "text-xs font-bold text-emerald-700 truncate";
+        } else {
+          alert("Lỗi tải ảnh: " + (data.detail || "Không thể xử lý ảnh"));
+          previewBox.classList.add("hidden");
+        }
+      } catch (err) {
+        alert("Lỗi kết nối khi tải ảnh: " + err);
+        previewBox.classList.add("hidden");
+      } finally {
+        input.value = "";
+      }
+    }
+
+    function clearKitchenDishImage() {
+      document.getElementById("dishImageUrl").value = "";
+      const box = document.getElementById("kitchenImagePreviewBox");
+      if (box) box.classList.add("hidden");
+      const img = document.getElementById("kitchenImagePreviewImg");
+      if (img) img.src = "";
+    }
+
+    function closeDishModal() {
+      document.getElementById("dishModal").classList.add("hidden");
+    }
+
+    function switchTransTab(lang) {
+      document.querySelectorAll(".trans-panel").forEach(p => p.classList.add("hidden"));
+      document.querySelectorAll(".trans-tab").forEach(t => {
+        t.className = "trans-tab flex-1 py-1.5 rounded-lg text-stone-600 hover:text-stone-900 font-bold text-xs flex items-center justify-center gap-1";
+      });
+
+      const activePanel = document.getElementById(`transPanel-${lang}`);
+      if (activePanel) activePanel.classList.remove("hidden");
+      const activeTab = document.getElementById(`transTab-${lang}`);
+      if (activeTab) activeTab.className = "trans-tab flex-1 py-1.5 rounded-lg bg-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-xs";
+    }
+
+    async function triggerAutoTranslateDish() {
+      const name = document.getElementById("dishNameVi").value.trim();
+      const desc = document.getElementById("dishDescVi").value.trim();
+
+      if (!name) {
+        alert("Vui lòng nhập Tên món ăn (Tiếng Việt) trước khi bấm Dịch tự động!");
+        return;
+      }
+
+      const btn = document.getElementById("btnAutoTranslate");
+      const btnText = document.getElementById("btnAutoTranslateText");
+      btn.disabled = true;
+      btnText.innerText = "Đang dịch sang 4 thứ tiếng...";
+
+      try {
+        const res = await fetch("/api/menu/auto-translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: name, description: desc })
+        });
+        const data = await res.json();
+        if (res.ok && data.translations) {
+          ['en', 'zh', 'ko', 'ru'].forEach(l => {
+            if (data.translations[l]) {
+              document.getElementById(`transName-${l}`).value = data.translations[l].name || "";
+              document.getElementById(`transDesc-${l}`).value = data.translations[l].description || "";
+            }
+          });
+          alert("✅ Đã tự động dịch thành công sang 4 thứ tiếng (Anh, Trung, Hàn, Nga)!");
+        } else {
+          alert("Lỗi dịch tự động: " + (data.detail || "Không thành công"));
+        }
+      } catch (e) {
+        alert("Lỗi kết nối khi dịch tự động");
+      } finally {
+        btn.disabled = false;
+        btnText.innerText = "Dịch Tự Động (4 Thứ Tiếng)";
+      }
+    }
+
+    async function saveDish() {
+      const dishId = document.getElementById("dishEditId").value;
+      const name = document.getElementById("dishNameVi").value.trim();
+      const catId = parseInt(document.getElementById("dishCategoryId").value);
+      const price = parseInt(document.getElementById("dishPrice").value);
+      const station = document.getElementById("dishStation").value;
+      const img = document.getElementById("dishImageUrl").value.trim();
+      const desc = document.getElementById("dishDescVi").value.trim();
+
+      if (!name) { alert("Vui lòng nhập tên món ăn"); return; }
+      if (isNaN(price) || price < 0) { alert("Vui lòng nhập giá bán hợp lệ"); return; }
+      if (!catId) { alert("Vui lòng chọn danh mục thực đơn"); return; }
+
+      const transObj = {};
+      ['en', 'zh', 'ko', 'ru'].forEach(l => {
+        transObj[l] = {
+          name: document.getElementById(`transName-${l}`).value.trim(),
+          description: document.getElementById(`transDesc-${l}`).value.trim()
+        };
+      });
+
+      const hasAnyTrans = Object.values(transObj).some(o => o.name);
+
+      const payload = {
+        category_id: catId,
+        name: name,
+        description: desc,
+        price: price,
+        image_url: img,
+        station: station,
+        options_json: "[]",
+        translations_json: hasAnyTrans ? JSON.stringify(transObj) : null
+      };
+
+      const btn = document.getElementById("btnSaveDish");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu & Dịch...`;
+
+      try {
+        let res;
+        if (dishId) {
+          res = await fetch(`/api/menu/item/${dishId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          res = await fetch(`/api/menu/item`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+        }
+
+        const data = await res.json();
+        if (res.ok) {
+          alert("✅ " + data.message);
+          closeDishModal();
+          loadKitchenMenu();
+          loadBomDishes();
+        } else {
+          alert("Lỗi: " + (data.detail || "Không thể lưu món"));
+        }
+      } catch (e) {
+        alert("Lỗi kết nối khi lưu món");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu Món Ăn`;
+      }
+    }
+
+    async function deleteCurrentDish() {
+      const dishId = document.getElementById("dishEditId").value;
+      if (!dishId) return;
+
+      if (!confirm("Bạn có chắc chắn muốn xóa món này khỏi thực đơn?")) return;
+
+      try {
+        const res = await fetch(`/api/menu/item/${dishId}`, { method: "DELETE" });
+        const data = await res.json();
+        if (res.ok) {
+          alert("✅ " + data.message);
+          closeDishModal();
+          loadKitchenMenu();
+          loadBomDishes();
+        } else {
+          alert("Lỗi: " + data.detail);
+        }
+      } catch (e) {
+        alert("Lỗi kết nối khi xóa món");
+      }
+    }
+
+    // ==========================================
+    // 3. ĐỊNH LƯỢNG MÓN ĂN (RECIPE BOM)
+    // ==========================================
+    async function loadIngredients() {
+      try {
+        const res = await fetch("/api/inventory/items");
+        allIngredients = await res.json();
+      } catch (e) {}
+    }
+
+    async function loadBomDishes() {
+      try {
+        const res = await fetch("/api/inventory/menu-with-bom");
+        const dishes = await res.json();
+
+        const container = document.getElementById("bomDishesList");
+        container.innerHTML = dishes.map(d => `
+          <div onclick="selectDishForBom(${d.id})" class="p-3 rounded-xl border border-stone-200 bg-white hover:border-amber-400 hover:shadow-xs cursor-pointer transition flex items-center justify-between">
+            <div>
+              <div class="font-bold text-xs text-stone-900">${d.name}</div>
+              <div class="text-[11px] text-stone-500">${d.category_name} • Giá bán: ${formatVND(d.price)}</div>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] px-2 py-0.5 rounded font-bold ${d.ingredients_count > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-stone-100 text-stone-500'}">
+                ${d.ingredients_count} NVL
+              </span>
+              <div class="text-[10px] text-stone-400 mt-0.5">Vốn: ${formatVND(d.estimated_cost)}</div>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {}
+    }
+
+    async function selectDishForBom(dishId) {
+      try {
+        const res = await fetch(`/api/inventory/recipes/${dishId}`);
+        const data = await res.json();
+        selectedDishForBom = data.dish;
+        currentBomRows = data.ingredients.map(i => ({
+          ingredient_id: i.ingredient_id,
+          quantity: i.quantity,
+          unit: i.unit,
+          cost_price: i.cost_price,
+          name: i.ingredient_name
+        }));
+
+        document.getElementById("bomDishTitle").innerText = `${data.dish.name} (Giá bán: ${formatVND(data.dish.price)})`;
+        document.getElementById("btnSaveBom").disabled = false;
+        renderBomTable();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function getGramConversionInfo(unit) {
+      const u = (unit || '').trim().toLowerCase();
+      if (u === 'kg') return { factor: 1000, note: '1 kg = 1.000 g', isExact: true };
+      if (u === 'lít' || u === 'lit' || u === 'l') return { factor: 1000, note: '1 lít ≈ 1.000 g (ml)', isExact: true };
+      if (u === 'g' || u === 'gram' || u === 'gr' || u === 'ml') return { factor: 1, note: '1 g', isExact: true };
+      if (u === 'bìa') return { factor: 100, note: '≈100g/bìa', isExact: false };
+      if (u === 'vắt') return { factor: 80, note: '≈80g/vắt', isExact: false };
+      if (u === 'con') return { factor: 80, note: '≈80g/con', isExact: false };
+      if (u === 'quả') return { factor: 55, note: '≈55g/quả', isExact: false };
+      if (u === 'gói') return { factor: 50, note: '≈50g/gói', isExact: false };
+      return { factor: 1000, note: 'Quy đổi g', isExact: false };
+    }
+
+    function renderBomTable() {
+      const tbody = document.getElementById("bomIngredientsTableBody");
+      const totalGramsEl = document.getElementById("bomTotalGrams");
+      if (currentBomRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-stone-400">Món này chưa có định lượng nguyên vật liệu. Bấm "+ Thêm Nguyên Liệu" để cài đặt.</td></tr>`;
+        document.getElementById("bomEstimatedCost").innerText = "0 đ";
+        if (totalGramsEl) totalGramsEl.innerText = "0 g";
+        return;
+      }
+
+      let totalEstCost = 0;
+      let totalGrams = 0;
+      tbody.innerHTML = currentBomRows.map((row, idx) => {
+        const qty = parseFloat(row.quantity) || 0;
+        const lineCost = qty * (row.cost_price || 0);
+        totalEstCost += lineCost;
+
+        const conv = getGramConversionInfo(row.unit);
+        const gramsVal = Math.round(qty * conv.factor * 10) / 10;
+        totalGrams += gramsVal;
+
+        return `
+          <tr class="hover:bg-stone-50 transition">
+            <td class="py-2 px-3">
+              <select onchange="updateBomIngredient(${idx}, this.value)" class="bg-white border border-stone-300 rounded-lg p-1.5 text-xs text-stone-900 w-full">
+                ${allIngredients.map(ing => `
+                  <option value="${ing.id}" ${ing.id === row.ingredient_id ? 'selected' : ''}>
+                    ${ing.name} (${ing.code})
+                  </option>
+                `).join('')}
+              </select>
+            </td>
+            <td class="py-2 px-3">
+              <input type="number" step="0.001" min="0.001" value="${row.quantity}" onchange="updateBomQty(${idx}, this.value)" class="bg-white border border-stone-300 rounded-lg p-1.5 text-xs text-stone-900 w-20 font-mono">
+            </td>
+            <td class="py-2 px-2 text-stone-600 font-semibold">${row.unit || ''}</td>
+            <td class="py-2 px-3 bg-amber-50/40 border-x border-amber-100">
+              <div class="flex items-center gap-1.5">
+                <input type="number" step="1" min="1" value="${gramsVal}" onchange="updateBomGrams(${idx}, this.value)" title="Nhập số Gram để tự động quy đổi sang ${row.unit || 'ĐVT'}" class="bg-white border border-amber-300 focus:border-amber-600 rounded-lg p-1.5 text-xs text-amber-900 font-mono font-bold w-20">
+                <span class="text-amber-800 font-bold">g</span>
+                ${!conv.isExact ? `<span class="text-[10px] text-stone-400 whitespace-nowrap">(${conv.note})</span>` : ''}
+              </div>
+            </td>
+            <td class="py-2 px-3 text-right font-mono font-bold text-emerald-700">${formatVND(lineCost)}</td>
+            <td class="py-2 px-2 text-center">
+              <button onclick="removeBomRow(${idx})" class="text-stone-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash-can"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById("bomEstimatedCost").innerText = formatVND(totalEstCost);
+      if (totalGramsEl) {
+        const roundedTotal = Math.round(totalGrams);
+        totalGramsEl.innerText = roundedTotal >= 1000
+          ? `${roundedTotal.toLocaleString('vi-VN')} g (~${(roundedTotal / 1000).toFixed(2)} kg)`
+          : `${roundedTotal.toLocaleString('vi-VN')} g`;
+      }
+    }
+
+    function addBomIngredientRow() {
+      if (!selectedDishForBom) {
+        alert("Vui lòng chọn 1 món ăn ở danh sách bên trái trước!");
+        return;
+      }
+      if (allIngredients.length === 0) return;
+      const first = allIngredients[0];
+      currentBomRows.push({
+        ingredient_id: first.id,
+        quantity: 0.1,
+        unit: first.unit,
+        cost_price: first.cost_price,
+        name: first.name
+      });
+      renderBomTable();
+    }
+
+    function updateBomIngredient(idx, newIngId) {
+      const ing = allIngredients.find(i => i.id == newIngId);
+      if (ing) {
+        currentBomRows[idx].ingredient_id = ing.id;
+        currentBomRows[idx].unit = ing.unit;
+        currentBomRows[idx].cost_price = ing.cost_price;
+        currentBomRows[idx].name = ing.name;
+        renderBomTable();
+      }
+    }
+
+    function updateBomQty(idx, newQty) {
+      currentBomRows[idx].quantity = parseFloat(newQty) || 0;
+      renderBomTable();
+    }
+
+    function updateBomGrams(idx, newGrams) {
+      const g = parseFloat(newGrams) || 0;
+      const conv = getGramConversionInfo(currentBomRows[idx].unit);
+      const convertedQty = Math.round((g / conv.factor) * 10000) / 10000;
+      currentBomRows[idx].quantity = convertedQty;
+      renderBomTable();
+    }
+
+    function removeBomRow(idx) {
+      currentBomRows.splice(idx, 1);
+      renderBomTable();
+    }
+
+    async function saveCurrentBom() {
+      if (!selectedDishForBom) return;
+      const payload = {
+        items: currentBomRows.map(r => ({
+          ingredient_id: r.ingredient_id,
+          quantity: r.quantity
+        }))
+      };
+
+      try {
+        const res = await fetch(`/api/inventory/recipes/${selectedDishForBom.id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert("✅ " + data.message);
+          loadBomDishes();
+        } else {
+          alert("Lỗi: " + data.detail);
+        }
+      } catch (e) {
+        alert("Lỗi lưu định lượng");
+      }
+    }
+  </script>
+</body>
+</html>

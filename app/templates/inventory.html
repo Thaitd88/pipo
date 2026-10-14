@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Kho & Nhập Nguyên Vật Liệu | PiPo Garden Inventory</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-stone-100 text-stone-800 min-h-screen flex flex-col">
+
+  <!-- Header Kho -->
+  <header class="bg-emerald-950 text-white px-6 py-3.5 shadow-md flex items-center justify-between sticky top-0 z-30">
+    <div class="flex items-center space-x-3">
+      <img src="/static/logo.png" alt="PiPo Garden Logo" class="w-11 h-11 rounded-full object-cover shadow-md border-2 border-emerald-400/50 bg-white">
+      <div>
+        <h1 class="font-bold text-base leading-tight flex items-center gap-2">
+          PiPo Garden - Quản Lý Kho & NVL
+          <span class="text-[10px] bg-emerald-900 text-emerald-300 border border-emerald-700 px-2 py-0.5 rounded-full font-semibold">Tồn Kho & Tự Trừ BOM</span>
+        </h1>
+        <p class="text-xs text-emerald-300">Nhập kho nguyên vật liệu • Cảnh báo hết hàng • Trừ kho tự động theo món</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a href="/pos" class="px-3 py-1.5 rounded-xl bg-emerald-900 hover:bg-emerald-800 text-emerald-200 text-xs font-bold transition flex items-center gap-1.5">
+        <i class="fa-solid fa-arrow-left"></i> Về Thu Ngân
+      </a>
+      <a href="/kitchen" class="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold transition flex items-center gap-1.5">
+        <i class="fa-solid fa-kitchen-set"></i> Sang Bếp & BOM
+      </a>
+    </div>
+  </header>
+
+  <!-- KPI Tồn Kho -->
+  <div class="bg-white border-b border-stone-200 px-6 py-4 shadow-xs">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="flex items-center gap-3 p-3 rounded-2xl bg-stone-50 border border-stone-200">
+        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+        <div>
+          <div class="text-[11px] text-stone-500 font-medium">Tổng mặt hàng NVL</div>
+          <div class="text-lg font-black text-stone-900" id="statTotalItems">0</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 p-3 rounded-2xl bg-rose-50 border border-rose-200">
+        <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-800 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <div class="text-[11px] text-rose-700 font-medium">Cảnh báo sắp hết hàng</div>
+          <div class="text-lg font-black text-rose-800" id="statLowStock">0</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 p-3 rounded-2xl bg-blue-50 border border-blue-200">
+        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-coins"></i>
+        </div>
+        <div>
+          <div class="text-[11px] text-blue-700 font-medium">Tổng giá trị tồn kho</div>
+          <div class="text-lg font-black text-blue-900" id="statTotalStockValue">0 đ</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 p-3 rounded-2xl bg-purple-50 border border-purple-200">
+        <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-receipt"></i>
+        </div>
+        <div>
+          <div class="text-[11px] text-purple-700 font-medium">Biến động xuất/nhập</div>
+          <div class="text-lg font-black text-purple-900" id="statTxCount">0 lượt</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nội Dung Chính Quản Lý Kho -->
+  <main class="max-w-7xl mx-auto p-6 flex-1 w-full space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <!-- Tabs Kho -->
+      <div class="flex bg-stone-200/80 p-1 rounded-xl text-xs font-bold">
+        <button onclick="switchInventoryTab('stock')" id="invTab-stock" class="px-4 py-1.5 rounded-lg bg-emerald-800 text-white shadow-xs">
+          <i class="fa-solid fa-list mr-1"></i> Tồn Kho Hiện Tại
+        </button>
+        <button onclick="switchInventoryTab('history')" id="invTab-history" class="px-4 py-1.5 rounded-lg text-stone-600 hover:text-stone-900">
+          <i class="fa-solid fa-clock-rotate-left mr-1"></i> Lịch Sử Biến Động Kho
+        </button>
+      </div>
+
+      <!-- Nút Thêm Mới / Nhập Kho -->
+      <div class="flex items-center gap-2">
+        <button onclick="openNewItemModal()" class="bg-white border border-stone-300 hover:bg-stone-50 text-stone-700 font-bold text-xs px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
+          <i class="fa-solid fa-plus"></i> Thêm Mã NVL
+        </button>
+        <button onclick="openImportModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2 rounded-xl shadow transition flex items-center gap-1.5">
+          <i class="fa-solid fa-arrow-down"></i> TẠO PHIẾU NHẬP KHO
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 1: DANH SÁCH TỒN KHO -->
+    <div id="invContent-stock" class="bg-white rounded-3xl border border-stone-200 shadow-xs overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-stone-50 text-stone-500 font-semibold border-b border-stone-200">
+            <tr>
+              <th class="py-3.5 px-4">Mã NVL</th>
+              <th class="py-3.5 px-4">Tên nguyên vật liệu</th>
+              <th class="py-3.5 px-4 text-center">ĐVT</th>
+              <th class="py-3.5 px-4 text-right">Tồn kho hiện tại</th>
+              <th class="py-3.5 px-4 text-right">Định mức Min</th>
+              <th class="py-3.5 px-4 text-right">Đơn giá vốn</th>
+              <th class="py-3.5 px-4 text-center">Trạng thái</th>
+              <th class="py-3.5 px-4 text-right">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody" class="divide-y divide-stone-100"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: LỊCH SỬ XUẤT NHẬP KHO -->
+    <div id="invContent-history" class="bg-white rounded-3xl border border-stone-200 shadow-xs overflow-hidden hidden">
+      <div class="p-4 border-b border-stone-200 flex items-center justify-between">
+        <h3 class="font-bold text-sm text-stone-800">50 Giao Dịch Kho Gần Nhất (Nhập Hàng & Tự Trừ Món)</h3>
+        <span class="text-xs text-stone-400">Tự động trừ khi bếp bấm nấu món</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-stone-50 text-stone-500 font-semibold border-b border-stone-200">
+            <tr>
+              <th class="py-3.5 px-4">Thời gian</th>
+              <th class="py-3.5 px-4">Loại giao dịch</th>
+              <th class="py-3.5 px-4">Nguyên vật liệu</th>
+              <th class="py-3.5 px-4 text-right">Số lượng</th>
+              <th class="py-3.5 px-4">Nội dung / Chi tiết đơn hàng</th>
+              <th class="py-3.5 px-4 text-right">Người thực hiện</th>
+            </tr>
+          </thead>
+          <tbody id="transactionsTableBody" class="divide-y divide-stone-100"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: PHIẾU NHẬP KHO -->
+  <div id="importModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-base text-stone-900">Tạo Phiếu Nhập Kho Nguyên Vật Liệu</h3>
+        <button onclick="closeImportModal()" class="text-stone-400 p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form onsubmit="handleImportSubmit(event)" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">Chọn nguyên vật liệu *:</label>
+          <select id="importIngredientSelect" required class="w-full p-2.5 rounded-xl border border-stone-300 bg-white font-medium"></select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">Số lượng nhập *:</label>
+            <input type="number" step="0.1" min="0.1" id="importQty" required placeholder="Ví dụ: 10" class="w-full p-2.5 rounded-xl border border-stone-300 font-bold">
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">Đơn giá nhập (VNĐ):</label>
+            <input type="number" id="importCost" required placeholder="Ví dụ: 150000" class="w-full p-2.5 rounded-xl border border-stone-300">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">Nhà cung cấp:</label>
+          <input type="text" id="importSupplier" placeholder="Tên nhà cung cấp thực phẩm" class="w-full p-2.5 rounded-xl border border-stone-300">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">Ghi chú phiếu nhập:</label>
+          <input type="text" id="importNote" placeholder="Ví dụ: Nhập thịt tươi ca sáng" class="w-full p-2.5 rounded-xl border border-stone-300">
+        </div>
+
+        <div class="pt-3 flex justify-end gap-2 border-t border-stone-100">
+          <button type="button" onclick="closeImportModal()" class="px-4 py-2 rounded-xl border border-stone-300 text-stone-600 font-semibold">Hủy</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 text-white font-bold shadow-xs">Xác Nhận Nhập Kho</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: THÊM MÃ NVL MỚI -->
+  <div id="newItemModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-base text-stone-900">Thêm Mã Nguyên Vật Liệu Mới</h3>
+        <button onclick="closeNewItemModal()" class="text-stone-400 p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form onsubmit="handleNewItemSubmit(event)" class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">Mã NVL *:</label>
+            <input type="text" id="newItemCode" required placeholder="NVL15" class="w-full p-2.5 rounded-xl border border-stone-300 uppercase font-mono font-bold">
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">Đơn vị tính *:</label>
+            <input type="text" id="newItemUnit" required placeholder="kg / lít / lon / gói" class="w-full p-2.5 rounded-xl border border-stone-300">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">Tên nguyên vật liệu *:</label>
+          <input type="text" id="newItemName" required placeholder="Ví dụ: Thịt Heo Rừng" class="w-full p-2.5 rounded-xl border border-stone-300">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">Tồn kho ban đầu:</label>
+            <input type="number" step="0.1" id="newItemStock" value="0" class="w-full p-2.5 rounded-xl border border-stone-300">
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">Định mức Min cảnh báo:</label>
+            <input type="number" step="0.1" id="newItemMin" value="5" class="w-full p-2.5 rounded-xl border border-stone-300">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">Giá vốn dự kiến (VNĐ):</label>
+          <input type="number" id="newItemCost" value="0" class="w-full p-2.5 rounded-xl border border-stone-300">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">Nhà cung cấp:</label>
+          <input type="text" id="newItemSupplier" placeholder="Công ty cung cấp" class="w-full p-2.5 rounded-xl border border-stone-300">
+        </div>
+
+        <div class="pt-3 flex justify-end gap-2 border-t border-stone-100">
+          <button type="button" onclick="closeNewItemModal()" class="px-4 py-2 rounded-xl border border-stone-300 text-stone-600 font-semibold">Hủy</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 text-white font-bold shadow-xs">Tạo Mã NVL</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let inventoryItems = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadInventoryData();
+      loadTransactions();
+    });
+
+    function formatVND(amount) {
+      return new Intl.NumberFormat('vi-VN').format(amount) + " đ";
+    }
+
+    function switchInventoryTab(tab) {
+      if (tab === 'stock') {
+        document.getElementById("invContent-stock").classList.remove("hidden");
+        document.getElementById("invContent-history").classList.add("hidden");
+        document.getElementById("invTab-stock").className = "px-4 py-1.5 rounded-lg bg-emerald-800 text-white shadow-xs";
+        document.getElementById("invTab-history").className = "px-4 py-1.5 rounded-lg text-stone-600 hover:text-stone-900";
+        loadInventoryData();
+      } else {
+        document.getElementById("invContent-stock").classList.add("hidden");
+        document.getElementById("invContent-history").classList.remove("hidden");
+        document.getElementById("invTab-history").className = "px-4 py-1.5 rounded-lg bg-emerald-800 text-white shadow-xs";
+        document.getElementById("invTab-stock").className = "px-4 py-1.5 rounded-lg text-stone-600 hover:text-stone-900";
+        loadTransactions();
+      }
+    }
+
+    async function loadInventoryData() {
+      try {
+        const res = await fetch("/api/inventory/items");
+        inventoryItems = await res.json();
+
+        // Cập nhật KPI
+        document.getElementById("statTotalItems").innerText = inventoryItems.length;
+        const lowStockCount = inventoryItems.filter(i => i.is_low_stock === 1).length;
+        document.getElementById("statLowStock").innerText = lowStockCount;
+
+        const totalValue = inventoryItems.reduce((sum, i) => sum + (i.stock_quantity * i.cost_price), 0);
+        document.getElementById("statTotalStockValue").innerText = formatVND(totalValue);
+
+        // Render bảng
+        const tbody = document.getElementById("inventoryTableBody");
+        tbody.innerHTML = inventoryItems.map(item => `
+          <tr class="hover:bg-stone-50 transition ${item.is_low_stock ? 'bg-rose-50/30' : ''}">
+            <td class="py-3 px-4 font-mono font-bold text-stone-700">${item.code}</td>
+            <td class="py-3 px-4">
+              <div class="font-bold text-stone-900">${item.name}</div>
+              <div class="text-[10px] text-stone-400">${item.supplier || 'Chưa có NCC'}</div>
+            </td>
+            <td class="py-3 px-4 text-center font-semibold text-stone-600">${item.unit}</td>
+            <td class="py-3 px-4 text-right">
+              <span class="font-black text-sm ${item.is_low_stock ? 'text-rose-600 font-mono' : 'text-stone-900 font-mono'}">
+                ${item.stock_quantity}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-right text-stone-500 font-mono">${item.min_stock}</td>
+            <td class="py-3 px-4 text-right font-medium text-stone-700">${formatVND(item.cost_price)}</td>
+            <td class="py-3 px-4 text-center">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${item.is_low_stock ? 'bg-rose-100 text-rose-800 border border-rose-300 animate-pulse' : 'bg-emerald-100 text-emerald-800'}">
+                ${item.is_low_stock ? 'SẮP HẾT HÀNG' : 'Đủ tồn kho'}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-right">
+              <button onclick="quickImportFor(${item.id})" class="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold px-2 py-1 rounded-lg">
+                + Nhập thêm
+              </button>
+            </td>
+          </tr>
+        `).join('');
+
+        // Cập nhật select trong modal
+        const select = document.getElementById("importIngredientSelect");
+        select.innerHTML = inventoryItems.map(i => `
+          <option value="${i.id}">${i.name} (${i.code}) - Tồn: ${i.stock_quantity} ${i.unit}</option>
+        `).join('');
+
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadTransactions() {
+      try {
+        const res = await fetch("/api/inventory/transactions?limit=50");
+        const txs = await res.json();
+        document.getElementById("statTxCount").innerText = `${txs.length} lượt`;
+
+        const tbody = document.getElementById("transactionsTableBody");
+        tbody.innerHTML = txs.map(t => {
+          const isImport = t.transaction_type === 'IMPORT';
+          return `
+            <tr class="hover:bg-stone-50 transition">
+              <td class="py-3 px-4 text-stone-500 whitespace-nowrap">${t.created_at}</td>
+              <td class="py-3 px-4">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isImport ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}">
+                  ${isImport ? 'NHẬP KHO (+)' : 'XUẤT MÓN (-)'}
+                </span>
+              </td>
+              <td class="py-3 px-4">
+                <div class="font-bold text-stone-900">${t.ingredient_name}</div>
+                <div class="text-[10px] text-stone-400">${t.ingredient_code}</div>
+              </td>
+              <td class="py-3 px-4 text-right font-mono font-bold ${isImport ? 'text-blue-600' : 'text-rose-600'}">
+                ${t.quantity > 0 ? '+' : ''}${t.quantity} ${t.unit}
+              </td>
+              <td class="py-3 px-4 text-stone-700 max-w-md">${t.note || ''}</td>
+              <td class="py-3 px-4 text-right text-stone-500">${t.created_by}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function openImportModal() {
+      document.getElementById("importModal").classList.remove("hidden");
+    }
+
+    function closeImportModal() {
+      document.getElementById("importModal").classList.add("hidden");
+    }
+
+    function quickImportFor(id) {
+      document.getElementById("importIngredientSelect").value = id;
+      openImportModal();
+    }
+
+    async function handleImportSubmit(e) {
+      e.preventDefault();
+      const payload = {
+        ingredient_id: parseInt(document.getElementById("importIngredientSelect").value),
+        quantity: parseFloat(document.getElementById("importQty").value),
+        unit_price: parseInt(document.getElementById("importCost").value),
+        supplier: document.getElementById("importSupplier").value.trim(),
+        note: document.getElementById("importNote").value.trim()
+      };
+
+      try {
+        const res = await fetch("/api/inventory/import", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert("✅ " + data.message);
+          closeImportModal();
+          loadInventoryData();
+        } else {
+          alert("Lỗi: " + data.detail);
+        }
+      } catch (err) {
+        alert("Lỗi kết nối");
+      }
+    }
+
+    function openNewItemModal() {
+      document.getElementById("newItemModal").classList.remove("hidden");
+    }
+
+    function closeNewItemModal() {
+      document.getElementById("newItemModal").classList.add("hidden");
+    }
+
+    async function handleNewItemSubmit(e) {
+      e.preventDefault();
+      const payload = {
+        code: document.getElementById("newItemCode").value.trim(),
+        name: document.getElementById("newItemName").value.trim(),
+        unit: document.getElementById("newItemUnit").value.trim(),
+        stock_quantity: parseFloat(document.getElementById("newItemStock").value) || 0,
+        min_stock: parseFloat(document.getElementById("newItemMin").value) || 5,
+        cost_price: parseInt(document.getElementById("newItemCost").value) || 0,
+        supplier: document.getElementById("newItemSupplier").value.trim()
+      };
+
+      try {
+        const res = await fetch("/api/inventory/items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert("✅ " + data.message);
+          closeNewItemModal();
+          loadInventoryData();
+        } else {
+          alert("Lỗi: " + data.detail);
+        }
+      } catch (err) {
+        alert("Lỗi kết nối");
+      }
+    }
+  </script>
+</body>
+</html>

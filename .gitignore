@@ -1,0 +1,23 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local and temporary databases / volumes
+data/
+*.zip
+*.tar.gz
+
+# Scratch scripts
+scratch/
+
+# Environments & IDEs
+.env
+venv/
+.venv/
+env/
+.idea/
+.vscode/
+Thumbs.db
+Desktop.ini
+.DS_Store
