@@ -19,54 +19,56 @@
 </head>
 <body class="bg-stone-100 text-stone-800 min-h-screen flex flex-col">
 
-  <!-- Header POS / Admin -->
-  <header class="bg-emerald-900 text-white px-6 py-3 shadow-md flex items-center justify-between sticky top-0 z-30">
-    <div class="flex items-center space-x-3">
-      <img src="/static/logo.png" alt="PiPo Garden" class="w-10 h-10 rounded-full object-contain bg-white/95 p-0.5 shadow-sm">
-      <div>
-        <h1 class="font-bold text-lg leading-tight flex items-center gap-2">
-          PiPo Garden - Quản Trị & POS
-          <span class="text-[11px] bg-emerald-700/80 px-2 py-0.5 rounded-full font-medium">Phiên Bản 2.0</span>
-        </h1>
-        <p class="text-xs text-emerald-200">Điều phối gọi món, tự động in bếp & báo cáo doanh thu</p>
+  <!-- Header POS / Admin (Linh hoạt trên Mobile & Desktop) -->
+  <header class="bg-emerald-900 text-white shadow-md sticky top-0 z-30">
+    <div class="px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
+        <img src="/static/logo.png" alt="PiPo Garden" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-contain bg-white/95 p-0.5 shadow-sm flex-shrink-0">
+        <div class="min-w-0">
+          <h1 class="font-bold text-sm sm:text-lg leading-tight flex items-center gap-1.5 truncate">
+            <span>PiPo Garden</span>
+            <span class="text-[9px] sm:text-[11px] bg-emerald-700/80 px-2 py-0.5 rounded-full font-medium">POS 2.0</span>
+          </h1>
+          <p class="text-[11px] sm:text-xs text-emerald-200 truncate hidden sm:block">Điều phối gọi món, tự động in bếp & báo cáo doanh thu</p>
+        </div>
       </div>
-    </div>
-
-    <!-- Navigation Tabs -->
-    <div class="flex items-center gap-2">
-      <button onclick="switchTab('tables')" id="tabBtn-tables" class="nav-tab px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold shadow flex items-center gap-1.5">
-        <i class="fa-solid fa-border-all"></i> Sơ đồ bàn
-      </button>
-      <button onclick="switchTab('reports')" id="tabBtn-reports" class="nav-tab px-3 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-800 text-emerald-200 text-xs font-bold flex items-center gap-1.5 transition">
-        <i class="fa-solid fa-chart-line"></i> Báo cáo doanh thu
-      </button>
-      <button onclick="switchTab('kitchen')" id="tabBtn-kitchen" class="nav-tab px-3 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-800 text-emerald-200 text-xs font-bold flex items-center gap-1.5 transition">
-        <i class="fa-solid fa-tv"></i> Giám sát bếp KDS
-      </button>
-      <button onclick="switchTab('qrcodes')" id="tabBtn-qrcodes" class="nav-tab px-3 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-800 text-emerald-200 text-xs font-bold flex items-center gap-1.5 transition">
-        <i class="fa-solid fa-qrcode"></i> In mã QR bàn
-      </button>
-
-      <div class="h-6 w-px bg-emerald-800 mx-1"></div>
-
-      <a href="/kds" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-white text-xs font-bold flex items-center gap-1 transition" title="Màn hình bếp">
-        <i class="fa-solid fa-tv"></i> Bếp
-      </a>
-      <a href="/printer-monitor" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold flex items-center gap-1 transition" title="Máy in bếp ảo">
-        <i class="fa-solid fa-print"></i> Máy In Ảo
-      </a>
 
       <!-- Thông tin nhân viên đăng nhập -->
-      <div id="userProfileSection" class="ml-2 flex items-center gap-2 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-800 text-xs">
+      <div id="userProfileSection" class="flex items-center gap-2 bg-emerald-950/80 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-emerald-800 text-xs flex-shrink-0">
         <div class="w-6 h-6 rounded-full bg-emerald-700 flex items-center justify-center text-xs">👤</div>
-        <div class="text-left">
-          <div class="font-bold leading-tight" id="userDisplayName">Chưa đăng nhập</div>
-          <div class="text-[10px] text-emerald-300" id="userRoleBadge">Khách</div>
+        <div class="text-left hidden sm:block">
+          <div class="font-bold leading-tight text-xs" id="userDisplayName">Chưa đăng nhập</div>
+          <div class="text-[9px] text-emerald-300" id="userRoleBadge">Khách</div>
         </div>
-        <button id="authBtn" onclick="handleAuthAction()" class="ml-1 text-[11px] text-amber-300 hover:text-white font-semibold underline">
+        <button id="authBtn" onclick="handleAuthAction()" class="text-[11px] text-amber-300 hover:text-white font-semibold underline">
           Đăng nhập
         </button>
       </div>
+    </div>
+
+    <!-- Navigation Tabs (Trượt mượt trên mobile) -->
+    <div class="px-3 sm:px-6 py-1.5 bg-emerald-950/70 border-t border-emerald-800/60 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar">
+      <button onclick="switchTab('tables')" id="tabBtn-tables" class="nav-tab px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold shadow flex-shrink-0 flex items-center gap-1.5 whitespace-nowrap">
+        <i class="fa-solid fa-border-all"></i> Sơ đồ bàn
+      </button>
+      <button onclick="switchTab('reports')" id="tabBtn-reports" class="nav-tab px-3 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-800 text-emerald-200 text-xs font-bold flex-shrink-0 flex items-center gap-1.5 transition whitespace-nowrap">
+        <i class="fa-solid fa-chart-line"></i> Báo cáo
+      </button>
+      <button onclick="switchTab('kitchen')" id="tabBtn-kitchen" class="nav-tab px-3 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-800 text-emerald-200 text-xs font-bold flex-shrink-0 flex items-center gap-1.5 transition whitespace-nowrap">
+        <i class="fa-solid fa-tv"></i> Bếp KDS
+      </button>
+      <button onclick="switchTab('qrcodes')" id="tabBtn-qrcodes" class="nav-tab px-3 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-800 text-emerald-200 text-xs font-bold flex-shrink-0 flex items-center gap-1.5 transition whitespace-nowrap">
+        <i class="fa-solid fa-qrcode"></i> Mã QR
+      </button>
+
+      <div class="h-4 w-px bg-emerald-800 mx-1 flex-shrink-0"></div>
+
+      <a href="/kitchen" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-white text-xs font-bold flex-shrink-0 flex items-center gap-1 transition whitespace-nowrap" title="Bếp Hub">
+        <i class="fa-solid fa-fire-burner text-amber-400"></i> Bếp
+      </a>
+      <a href="/admin" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold flex-shrink-0 flex items-center gap-1 transition whitespace-nowrap" title="Admin">
+        <i class="fa-solid fa-gear"></i> Admin
+      </a>
     </div>
   </header>
 

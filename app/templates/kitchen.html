@@ -13,40 +13,40 @@
 </head>
 <body class="bg-stone-100 text-stone-800 min-h-screen flex flex-col">
 
-  <!-- Header Kitchen Hub (Nền Sáng Thanh Lịch) -->
-  <header class="bg-amber-800 text-white px-6 py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
-    <div class="flex items-center space-x-3">
-      <img src="/static/logo.png" alt="PiPo Garden Logo" class="w-11 h-11 rounded-full object-cover shadow-md border-2 border-amber-300/60 bg-white">
-      <div>
-        <h1 class="text-base font-bold text-white flex items-center gap-2">
-          PiPo Garden - Không Gian Nhà Bếp
-          <span class="text-[10px] bg-amber-950/80 text-amber-200 border border-amber-600 px-2 py-0.5 rounded-full font-semibold">Chef Hub</span>
+  <!-- Header Kitchen Hub (Nền Sáng Thanh Lịch, Linh Hoạt Màn Hình Nhỏ) -->
+  <header class="bg-amber-800 text-white px-3 sm:px-6 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2 shadow-md sticky top-0 z-40">
+    <div class="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
+      <img src="/static/logo.png" alt="PiPo Garden Logo" class="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover shadow-md border-2 border-amber-300/60 bg-white flex-shrink-0">
+      <div class="min-w-0">
+        <h1 class="text-sm sm:text-base font-bold text-white flex items-center gap-1.5 truncate">
+          <span>PiPo Garden</span>
+          <span class="text-[9px] sm:text-[10px] bg-amber-950/80 text-amber-200 border border-amber-600 px-1.5 py-0.5 rounded-full font-semibold">Chef Hub</span>
         </h1>
-        <p class="text-xs text-amber-100">Điều phối chế biến • Quản lý món • Định lượng BOM trừ kho</p>
+        <p class="text-[11px] sm:text-xs text-amber-100 truncate hidden sm:block">Điều phối chế biến • Quản lý món • Định lượng BOM trừ kho</p>
       </div>
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="flex items-center gap-3">
-      <div class="flex bg-amber-950/40 p-1 rounded-xl border border-amber-700/60 text-xs font-semibold">
-        <button onclick="switchKitchenTab('kds')" id="tabBtn-kds" class="kitchen-tab px-3.5 py-1.5 rounded-lg bg-amber-600 text-white shadow-xs">
-          <i class="fa-solid fa-tv mr-1"></i> Màn hình KDS
+    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+      <div class="flex bg-amber-950/40 p-1 rounded-xl border border-amber-700/60 text-xs font-semibold overflow-x-auto no-scrollbar">
+        <button onclick="switchKitchenTab('kds')" id="tabBtn-kds" class="kitchen-tab px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-amber-600 text-white shadow-xs whitespace-nowrap text-xs">
+          <i class="fa-solid fa-tv mr-1"></i> KDS
         </button>
-        <button onclick="switchKitchenTab('menu')" id="tabBtn-menu" class="kitchen-tab px-3.5 py-1.5 rounded-lg text-amber-200 hover:text-white">
-          <i class="fa-solid fa-utensils mr-1"></i> Quản lý Món
+        <button onclick="switchKitchenTab('menu')" id="tabBtn-menu" class="kitchen-tab px-2.5 sm:px-3.5 py-1.5 rounded-lg text-amber-200 hover:text-white whitespace-nowrap text-xs">
+          <i class="fa-solid fa-utensils mr-1"></i> Món Ăn
         </button>
-        <button onclick="switchKitchenTab('bom')" id="tabBtn-bom" class="kitchen-tab px-3.5 py-1.5 rounded-lg text-amber-200 hover:text-white">
-          <i class="fa-solid fa-cubes-stacked mr-1"></i> Định Lượng BOM
+        <button onclick="switchKitchenTab('bom')" id="tabBtn-bom" class="kitchen-tab px-2.5 sm:px-3.5 py-1.5 rounded-lg text-amber-200 hover:text-white whitespace-nowrap text-xs">
+          <i class="fa-solid fa-cubes-stacked mr-1"></i> BOM Kho
         </button>
       </div>
 
-      <a href="/inventory" target="_blank" class="px-3 py-1.5 rounded-xl bg-amber-950/60 hover:bg-amber-900 text-amber-100 text-xs font-bold flex items-center gap-1.5 border border-amber-700">
-        <i class="fa-solid fa-warehouse text-emerald-300"></i> Kho NVL
+      <a href="/inventory" target="_blank" class="hidden sm:flex px-3 py-1.5 rounded-xl bg-amber-950/60 hover:bg-amber-900 text-amber-100 text-xs font-bold items-center gap-1.5 border border-amber-700">
+        <i class="fa-solid fa-warehouse text-emerald-300"></i> Kho
       </a>
 
       <!-- User / Logout -->
-      <div class="flex items-center gap-2 pl-2 border-l border-amber-700 text-xs">
-        <span class="text-amber-100 font-bold" id="chefName">Bếp Trưởng</span>
+      <div class="flex items-center gap-1.5 pl-2 border-l border-amber-700 text-xs">
+        <span class="text-amber-100 font-bold hidden sm:inline" id="chefName">Bếp Trưởng</span>
         <button onclick="logoutKitchen()" class="text-amber-200 hover:text-white text-xs p-1" title="Đăng xuất">
           <i class="fa-solid fa-right-from-bracket"></i>
         </button>
@@ -59,30 +59,30 @@
   <!-- ======================================================== -->
   <div id="kitchenContent-kds" class="tab-pane flex-1 flex flex-col">
     <!-- Sub-header KDS filter -->
-    <div class="bg-white px-6 py-2.5 border-b border-stone-200 flex items-center justify-between text-xs shadow-xs">
-      <div class="flex items-center gap-2">
-        <span class="text-stone-500 font-bold"><i class="fa-solid fa-filter text-amber-700"></i> Lọc trạm:</span>
-        <button onclick="setStationFilter('ALL')" id="filter-ALL" class="station-tab px-3 py-1.5 rounded-xl bg-emerald-700 text-white font-bold shadow-xs">Tất cả</button>
-        <button onclick="setStationFilter('HOT_KITCHEN')" id="filter-HOT_KITCHEN" class="station-tab px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold">🔥 Bếp Nóng</button>
-        <button onclick="setStationFilter('COLD_KITCHEN')" id="filter-COLD_KITCHEN" class="station-tab px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold">🥗 Bếp Lạnh</button>
-        <button onclick="setStationFilter('BAR')" id="filter-BAR" class="station-tab px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold">🍹 Quầy Bar</button>
+    <div class="bg-white px-3 sm:px-6 py-2 sm:py-2.5 border-b border-stone-200 flex flex-wrap items-center justify-between gap-2 text-xs shadow-xs">
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+        <span class="text-stone-500 font-bold hidden sm:inline"><i class="fa-solid fa-filter text-amber-700"></i> Lọc:</span>
+        <button onclick="setStationFilter('ALL')" id="filter-ALL" class="station-tab px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-emerald-700 text-white font-bold shadow-xs whitespace-nowrap text-xs">Tất cả</button>
+        <button onclick="setStationFilter('HOT_KITCHEN')" id="filter-HOT_KITCHEN" class="station-tab px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold whitespace-nowrap text-xs">🔥 Bếp Nóng</button>
+        <button onclick="setStationFilter('COLD_KITCHEN')" id="filter-COLD_KITCHEN" class="station-tab px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold whitespace-nowrap text-xs">🥗 Bếp Lạnh</button>
+        <button onclick="setStationFilter('BAR')" id="filter-BAR" class="station-tab px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold whitespace-nowrap text-xs">🍹 Bar</button>
       </div>
 
-      <div class="flex items-center gap-3">
-        <button onclick="openQuickOutOfIngredientsModal()" class="px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold flex items-center gap-1.5 transition shadow-xs text-xs">
+      <div class="flex items-center gap-2">
+        <button onclick="openQuickOutOfIngredientsModal()" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold flex items-center gap-1.5 transition shadow-xs text-xs whitespace-nowrap">
           <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
-          <span>⚡ Báo Hết NVL Nhanh</span>
+          <span>⚡ Báo Hết NVL</span>
         </button>
-        <button id="btnAudioToggle" onclick="toggleAudio()" class="px-3 py-1.5 rounded-xl border border-stone-200 bg-stone-50 text-stone-700 font-semibold flex items-center gap-1.5 hover:bg-stone-100 transition shadow-xs">
+        <button id="btnAudioToggle" onclick="toggleAudio()" class="px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-stone-200 bg-stone-50 text-stone-700 font-semibold flex items-center gap-1 hover:bg-stone-100 transition shadow-xs text-xs whitespace-nowrap">
           <i class="fa-solid fa-bell text-amber-600" id="audioIcon"></i>
-          <span id="audioText">Chuông: BẬT</span>
+          <span id="audioText" class="hidden sm:inline">Chuông: BẬT</span>
         </button>
-        <div id="liveClock" class="font-mono text-emerald-800 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">00:00:00</div>
+        <div id="liveClock" class="font-mono text-emerald-800 font-bold bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 text-xs hidden sm:block">00:00:00</div>
       </div>
     </div>
 
     <!-- Tickets Grid -->
-    <main class="flex-1 p-6 overflow-x-auto">
+    <main class="flex-1 p-3 sm:p-6 overflow-x-auto">
       <div id="ticketsGrid" class="flex gap-4 items-start min-h-[calc(100vh-160px)]"></div>
     </main>
   </div>
@@ -297,6 +297,52 @@
               <input type="checkbox" id="chkOutOfIngredients" class="w-4 h-4 text-amber-600 rounded">
               <span>⚠️ Đang tạm hết nguyên vật liệu (Báo hết NVL cho khách và phục vụ)</span>
             </label>
+          </div>
+
+          <!-- Section: Cấu Hình Định Lượng BOM Trực Tiếp Khi Tạo / Sửa Món -->
+          <div class="sm:col-span-2 bg-stone-50 border border-stone-200 rounded-2xl p-4 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-stone-200">
+              <div>
+                <div class="font-bold text-stone-900 text-xs flex items-center gap-1.5">
+                  <span>⚖️ Định Lượng Nguyên Vật Liệu (Recipe BOM)</span>
+                  <span class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full font-bold">Tự Trừ Kho</span>
+                </div>
+                <p class="text-[11px] text-stone-500 mt-0.5">Cấu hình NVL tiêu hao khi nấu món này. Hệ thống tự trừ kho và tính calo.</p>
+              </div>
+              <button type="button" onclick="addKitchenDishBomRow()" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition flex items-center gap-1">
+                <i class="fa-solid fa-plus text-[10px]"></i> Thêm NVL
+              </button>
+            </div>
+
+            <!-- Bảng NVL -->
+            <div class="overflow-x-auto border border-stone-200 rounded-xl bg-white">
+              <table class="w-full text-xs text-left min-w-[380px]">
+                <thead class="bg-stone-50 text-stone-600 font-semibold border-b border-stone-200">
+                  <tr>
+                    <th class="py-2 px-3">Nguyên vật liệu</th>
+                    <th class="py-2 px-3 w-28">SL tiêu hao</th>
+                    <th class="py-2 px-2 w-16">ĐVT</th>
+                    <th class="py-2 px-2 text-right">Giá vốn</th>
+                    <th class="py-2 px-2 text-center w-8"></th>
+                  </tr>
+                </thead>
+                <tbody id="kitchenDishBomTableBody" class="divide-y divide-stone-100"></tbody>
+              </table>
+            </div>
+
+            <!-- Summary -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
+              <div class="flex items-center gap-3">
+                <span class="text-stone-500">Quy đổi: <strong class="text-amber-800 font-mono" id="kitchenDishBomTotalGrams">0 g</strong></span>
+                <span class="text-stone-300">•</span>
+                <span class="text-stone-500">Giá vốn: <strong class="text-emerald-800" id="kitchenDishBomCost">0 đ</strong></span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-stone-800">🔥 Calo:</span>
+                <input type="number" id="dishCalories" min="0" placeholder="0" class="w-16 bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs font-bold text-amber-900 text-right focus:outline-none">
+                <span class="text-[11px] font-bold text-stone-600">kcal</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -979,8 +1025,118 @@
       }
     }
 
-    function openDishModal(dishId) {
+    let kitchenDishBomRows = [];
+
+    function renderKitchenDishBomTable() {
+      const tbody = document.getElementById("kitchenDishBomTableBody");
+      const totalGramsEl = document.getElementById("kitchenDishBomTotalGrams");
+      const costEl = document.getElementById("kitchenDishBomCost");
+      const calInput = document.getElementById("dishCalories");
+
+      if (!tbody) return;
+
+      if (kitchenDishBomRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-3 text-center text-stone-400 text-xs">Chưa cài đặt NVL tiêu hao. Bấm "+ Thêm NVL" để thêm.</td></tr>`;
+        if (totalGramsEl) totalGramsEl.innerText = "0 g";
+        if (costEl) costEl.innerText = "0 đ";
+        return;
+      }
+
+      let totalCost = 0;
+      let totalGrams = 0;
+
+      tbody.innerHTML = kitchenDishBomRows.map((row, idx) => {
+        const ing = allIngredients.find(x => x.id === row.ingredient_id) || {};
+        const unit = ing.unit || row.unit || 'kg';
+        const costPrice = ing.cost_price || row.cost_price || 0;
+        const qty = parseFloat(row.quantity) || 0;
+        const lineCost = qty * costPrice;
+        totalCost += lineCost;
+
+        const conv = getGramConversionInfo(unit);
+        totalGrams += qty * conv.factor;
+
+        return `
+          <tr class="hover:bg-amber-50/40 transition">
+            <td class="py-1.5 px-3">
+              <select onchange="updateKitchenDishBomIngredient(${idx}, this.value)" class="w-full bg-white border border-stone-300 rounded-lg p-1.5 text-xs font-semibold focus:outline-none focus:border-amber-600">
+                ${allIngredients.map(item => `
+                  <option value="${item.id}" ${item.id === row.ingredient_id ? 'selected' : ''}>
+                    ${item.name} (${item.unit} - ${formatVND(item.cost_price)})
+                  </option>
+                `).join('')}
+              </select>
+            </td>
+            <td class="py-1.5 px-3">
+              <input type="number" step="0.01" min="0.001" value="${row.quantity}" oninput="updateKitchenDishBomQuantity(${idx}, this.value)" class="w-full bg-white border border-stone-300 rounded-lg p-1.5 text-xs font-bold text-stone-800 text-right focus:outline-none focus:border-amber-600">
+            </td>
+            <td class="py-1.5 px-2">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-stone-100 text-stone-700 border border-stone-200">${unit}</span>
+            </td>
+            <td class="py-1.5 px-2 text-right font-mono font-bold text-emerald-700">
+              ${formatVND(lineCost)}
+            </td>
+            <td class="py-1.5 px-2 text-center">
+              <button type="button" onclick="removeKitchenDishBomRow(${idx})" class="w-6 h-6 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition" title="Xóa NVL">
+                <i class="fa-solid fa-trash text-xs"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      totalGrams = Math.round(totalGrams * 10) / 10;
+      if (totalGramsEl) totalGramsEl.innerText = `${totalGrams} g`;
+      if (costEl) costEl.innerText = formatVND(totalCost);
+
+      if (calInput && (!calInput.value || parseInt(calInput.value) === 0) && totalGrams > 0) {
+        calInput.value = Math.round(totalGrams * 1.25);
+      }
+    }
+
+    function addKitchenDishBomRow() {
+      if (allIngredients.length === 0) {
+        alert("Chưa có danh mục Nguyên vật liệu trong kho. Vui lòng thêm NVL trong mục Kho trước!");
+        return;
+      }
+      const first = allIngredients[0];
+      kitchenDishBomRows.push({
+        ingredient_id: first.id,
+        quantity: 0.1,
+        unit: first.unit,
+        cost_price: first.cost_price
+      });
+      renderKitchenDishBomTable();
+    }
+
+    function removeKitchenDishBomRow(idx) {
+      kitchenDishBomRows.splice(idx, 1);
+      renderKitchenDishBomTable();
+    }
+
+    function updateKitchenDishBomIngredient(idx, ingredientId) {
+      const ingId = parseInt(ingredientId);
+      const ing = allIngredients.find(x => x.id === ingId);
+      if (ing && kitchenDishBomRows[idx]) {
+        kitchenDishBomRows[idx].ingredient_id = ing.id;
+        kitchenDishBomRows[idx].unit = ing.unit;
+        kitchenDishBomRows[idx].cost_price = ing.cost_price;
+      }
+      renderKitchenDishBomTable();
+    }
+
+    function updateKitchenDishBomQuantity(idx, val) {
+      const qty = parseFloat(val) || 0;
+      if (kitchenDishBomRows[idx]) {
+        kitchenDishBomRows[idx].quantity = qty;
+      }
+      renderKitchenDishBomTable();
+    }
+
+    async function openDishModal(dishId) {
       loadCategories();
+      if (allIngredients.length === 0) loadIngredients();
+
       const modal = document.getElementById("dishModal");
       const delBtn = document.getElementById("btnDeleteDish");
 
@@ -995,14 +1151,18 @@
 
         // Default 3 Main Menus & Out of Ingredients
         document.getElementById("chkMenuRestaurant").checked = true;
-        document.getElementById("chkMenuLunch").checked = true;
+        document.getElementById("chkMenuLunch").checked = false;
         document.getElementById("chkMenuCafe").checked = false;
         document.getElementById("chkOutOfIngredients").checked = false;
+        document.getElementById("dishCalories").value = "0";
 
         ['en', 'zh', 'ko', 'ru'].forEach(l => {
           document.getElementById(`transName-${l}`).value = "";
           document.getElementById(`transDesc-${l}`).value = "";
         });
+
+        kitchenDishBomRows = [];
+        renderKitchenDishBomTable();
 
         delBtn.classList.add("hidden");
         clearKitchenDishImage();
@@ -1018,9 +1178,10 @@
         document.getElementById("dishStation").value = dish.station || "HOT_KITCHEN";
         document.getElementById("dishImageUrl").value = dish.image_url || "";
         document.getElementById("dishDescVi").value = dish.description || "";
+        document.getElementById("dishCalories").value = dish.calories || 0;
 
         // Main Menus Checkboxes
-        const mainTypes = (dish.main_menu_type || 'RESTAURANT,LUNCH,CAFE').split(',').map(s => s.trim());
+        const mainTypes = (dish.main_menu_type || 'RESTAURANT').split(',').map(s => s.trim());
         document.getElementById("chkMenuRestaurant").checked = mainTypes.includes('RESTAURANT');
         document.getElementById("chkMenuLunch").checked = mainTypes.includes('LUNCH');
         document.getElementById("chkMenuCafe").checked = mainTypes.includes('CAFE');
@@ -1044,6 +1205,23 @@
           document.getElementById(`transName-${l}`).value = (trans[l] && trans[l].name) ? trans[l].name : "";
           document.getElementById(`transDesc-${l}`).value = (trans[l] && trans[l].description) ? trans[l].description : "";
         });
+
+        // Tải Recipe BOM của món
+        kitchenDishBomRows = [];
+        try {
+          const res = await fetch(`/api/inventory/recipes/${dish.id}`);
+          if (res.ok) {
+            const data = await res.json();
+            kitchenDishBomRows = (data.ingredients || []).map(i => ({
+              ingredient_id: i.ingredient_id,
+              quantity: i.quantity,
+              unit: i.unit,
+              cost_price: i.cost_price,
+              name: i.ingredient_name
+            }));
+          }
+        } catch (e) {}
+        renderKitchenDishBomTable();
 
         delBtn.classList.remove("hidden");
       }
@@ -1176,6 +1354,7 @@
 
       // Out of ingredients
       const outOfIngredients = document.getElementById("chkOutOfIngredients").checked ? 1 : 0;
+      const calories = parseInt(document.getElementById("dishCalories").value) || 0;
 
       const transObj = {};
       ['en', 'zh', 'ko', 'ru'].forEach(l => {
@@ -1196,6 +1375,7 @@
         station: station,
         main_menu_type: mainMenuType,
         out_of_ingredients: outOfIngredients,
+        calories: calories,
         options_json: "[]",
         translations_json: hasAnyTrans ? JSON.stringify(transObj) : null
       };
@@ -1222,6 +1402,20 @@
 
         const data = await res.json();
         if (res.ok) {
+          const savedId = dishId || (data.item && data.item.id);
+          if (savedId && kitchenDishBomRows.length > 0) {
+            await fetch(`/api/inventory/recipes/${savedId}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                items: kitchenDishBomRows.map(r => ({
+                  ingredient_id: r.ingredient_id,
+                  quantity: parseFloat(r.quantity) || 0
+                }))
+              })
+            });
+          }
+
           alert("✅ " + data.message);
           closeDishModal();
           loadKitchenMenu();

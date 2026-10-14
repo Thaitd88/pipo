@@ -86,7 +86,7 @@
 
   <!-- Header Nhà Hàng & Bàn -->
   <header class="sticky top-0 z-40 bg-emerald-800 text-white shadow-md">
-    <div class="max-w-md mx-auto px-4 py-2.5 flex items-center justify-between">
+    <div class="max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto px-4 py-2.5 flex items-center justify-between">
       <div class="flex items-center space-x-2.5">
         <img src="/static/logo.png" alt="PiPo Garden" class="w-10 h-10 rounded-full object-contain bg-white/95 p-0.5 shadow-sm">
         <div>
@@ -113,14 +113,14 @@
 
     <!-- 3 Nhóm Thực Đơn Lớn Chính (3 Ô Lớn Ngay Dưới Logo) -->
     <div class="bg-emerald-900/95 px-3 py-2 border-t border-emerald-700/60 shadow-xs">
-      <div class="max-w-md mx-auto grid grid-cols-3 gap-2" id="mainMenuSelector">
+      <div class="max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto grid grid-cols-3 gap-2 sm:gap-3" id="mainMenuSelector">
         <!-- Ô 1: Menu Nhà Hàng -->
         <button type="button" onclick="selectMainMenu('RESTAURANT')" id="mainMenuBtn-RESTAURANT" class="main-menu-btn relative flex flex-col items-center justify-center p-2 rounded-2xl border-2 transition-all duration-200 shadow-sm active:scale-95 bg-white border-emerald-400 text-stone-900 ring-2 ring-emerald-300">
           <div class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-emerald-100 text-emerald-800 mb-0.5 icon-box">
             🍽️
           </div>
-          <span class="text-xs font-black tracking-tight leading-tight text-center title-text" id="mainMenuText-RESTAURANT">Menu Nhà Hàng</span>
-          <span class="text-[9px] text-stone-500 mt-0.5 leading-none text-center sub-text" id="mainMenuSubText-RESTAURANT">Đặc sản, tiệc</span>
+          <span class="text-xs sm:text-sm font-black tracking-tight leading-tight text-center title-text" id="mainMenuText-RESTAURANT">Menu Nhà Hàng</span>
+          <span class="text-[9px] sm:text-[10px] text-stone-500 mt-0.5 leading-none text-center sub-text" id="mainMenuSubText-RESTAURANT">Đặc sản, tiệc</span>
         </button>
 
         <!-- Ô 2: Menu Cơm Trưa -->
@@ -128,8 +128,8 @@
           <div class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-white/10 text-white mb-0.5 icon-box">
             🍚
           </div>
-          <span class="text-xs font-black tracking-tight leading-tight text-center title-text" id="mainMenuText-LUNCH">Menu Cơm Trưa</span>
-          <span class="text-[9px] text-emerald-300/80 mt-0.5 leading-none text-center sub-text" id="mainMenuSubText-LUNCH">Cơm phần, mì</span>
+          <span class="text-xs sm:text-sm font-black tracking-tight leading-tight text-center title-text" id="mainMenuText-LUNCH">Menu Cơm Trưa</span>
+          <span class="text-[9px] sm:text-[10px] text-emerald-300/80 mt-0.5 leading-none text-center sub-text" id="mainMenuSubText-LUNCH">Cơm phần, mì</span>
         </button>
 
         <!-- Ô 3: Menu Cafe / Ăn Sáng -->
@@ -137,8 +137,8 @@
           <div class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-white/10 text-white mb-0.5 icon-box">
             ☕
           </div>
-          <span class="text-xs font-black tracking-tight leading-tight text-center title-text" id="mainMenuText-CAFE">Menu Cafe/Sáng</span>
-          <span class="text-[9px] text-emerald-300/80 mt-0.5 leading-none text-center sub-text" id="mainMenuSubText-CAFE">Cà phê & sáng</span>
+          <span class="text-xs sm:text-sm font-black tracking-tight leading-tight text-center title-text" id="mainMenuText-CAFE">Menu Cafe/Sáng</span>
+          <span class="text-[9px] sm:text-[10px] text-emerald-300/80 mt-0.5 leading-none text-center sub-text" id="mainMenuSubText-CAFE">Cà phê & sáng</span>
         </button>
       </div>
     </div>
@@ -150,7 +150,7 @@
   </header>
 
   <!-- Banner Chào Mừng -->
-  <div class="max-w-md mx-auto p-4">
+  <div class="max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto p-4">
     <div class="bg-gradient-to-r from-emerald-700 to-teal-800 text-white rounded-2xl p-4 shadow-sm relative overflow-hidden">
       <div class="relative z-10">
         <div id="bannerBadge" class="inline-block bg-amber-400/20 text-amber-300 text-[11px] font-bold px-2 py-0.5 rounded-full mb-1">
@@ -164,7 +164,7 @@
   </div>
 
   <!-- Danh Sách Thực Đơn -->
-  <main class="max-w-md mx-auto px-4 space-y-6" id="menuContainer">
+  <main class="max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto px-4 space-y-6" id="menuContainer">
     <div class="text-center py-12 text-stone-400">
       <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-600 mb-2"></i>
       <p class="text-sm" id="loadingMenuText">Đang tải thực đơn PiPo Garden...</p>
@@ -172,7 +172,7 @@
   </main>
 
   <!-- Khung Đơn Đang Chế Biến (Live Tracking) -->
-  <section id="liveOrderTracker" class="max-w-md mx-auto px-4 mt-6 hidden">
+  <section id="liveOrderTracker" class="max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto px-4 mt-6 hidden">
     <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100">
       <div class="flex items-center justify-between pb-3 border-b border-stone-100">
         <div class="flex items-center gap-2">
@@ -1022,9 +1022,19 @@
       });
     }
 
-    // 3. Render 6 nhóm lớn + Tất cả (Lọc theo Menu Chính đang chọn)
+    // 3. Render 6 nhóm lớn + Tất cả (Chỉ hiển thị khi đang chọn Menu Nhà Hàng)
     function renderCategories() {
       const container = document.getElementById("categoryTabs");
+      if (!container) return;
+
+      // Yêu cầu: Chỉ Menu Nhà Hàng mới hiện các nhóm nhỏ bên dưới, Menu Cơm Trưa và Menu Cafe/Sáng thì ẩn đi
+      if (currentMainMenu !== 'RESTAURANT') {
+        container.classList.add("hidden");
+        return;
+      } else {
+        container.classList.remove("hidden");
+      }
+
       if (!menuData || menuData.length === 0) return;
       if (!activeCategoryId) {
         activeCategoryId = 'ALL';
@@ -1131,8 +1141,8 @@
             </div>
           </div>
 
-          <!-- Danh sách món ăn nằm trực tiếp trong nhóm này -->
-          <div class="grid grid-cols-1 gap-3">
+          <!-- Danh sách món ăn nằm trực tiếp trong nhóm này (1 cột trên phone, 2 cột trên tablet & laptop) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             ${items.map(item => {
               const itemName = getItemName(item);
               const itemDesc = getItemDesc(item);
@@ -1188,13 +1198,37 @@
       `}).join('');
 
       if (!hasAnyDish) {
-        container.innerHTML = `
-          <div class="text-center py-12 text-stone-400 text-xs bg-white rounded-2xl border border-stone-200 p-6">
-            <i class="fa-solid fa-utensils text-2xl text-stone-300 mb-2"></i>
-            <p class="font-semibold text-stone-600">Chưa có món ăn nào trong thực đơn này.</p>
-            <p class="text-[11px] text-stone-400 mt-1">Quý khách vui lòng chọn nhóm thực đơn khác ở trên nhé!</p>
-          </div>
-        `;
+        if (currentMainMenu === 'LUNCH') {
+          container.innerHTML = `
+            <div class="text-center py-12 text-stone-500 text-xs bg-white rounded-3xl border border-stone-200 p-8 shadow-xs space-y-3">
+              <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-800 mx-auto flex items-center justify-center text-3xl shadow-inner border border-amber-200">🍚</div>
+              <h4 class="font-black text-base text-stone-900">Menu Cơm Trưa Đang Cập Nhật</h4>
+              <p class="text-stone-500 max-w-xs mx-auto leading-relaxed">Thực đơn cơm trưa và cơm phần đang được Bếp trưởng PiPo Garden chuẩn bị món mới. Quý khách vui lòng chọn Menu Nhà Hàng để thưởng thức các món ngon nhé!</p>
+              <button type="button" onclick="selectMainMenu('RESTAURANT')" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold text-xs shadow-md transition inline-flex items-center gap-2">
+                <span>Khám Phá Menu Nhà Hàng</span> 🍽️
+              </button>
+            </div>
+          `;
+        } else if (currentMainMenu === 'CAFE') {
+          container.innerHTML = `
+            <div class="text-center py-12 text-stone-500 text-xs bg-white rounded-3xl border border-stone-200 p-8 shadow-xs space-y-3">
+              <div class="w-16 h-16 rounded-2xl bg-teal-100 text-teal-800 mx-auto flex items-center justify-center text-3xl shadow-inner border border-teal-200">☕</div>
+              <h4 class="font-black text-base text-stone-900">Menu Cafe & Ăn Sáng Đang Cập Nhật</h4>
+              <p class="text-stone-500 max-w-xs mx-auto leading-relaxed">Thực đơn đồ uống cafe và điểm tâm sáng đang được chuẩn bị. Quý khách vui lòng chọn Menu Nhà Hàng để xem danh sách món ăn & thức uống hiện tại nhé!</p>
+              <button type="button" onclick="selectMainMenu('RESTAURANT')" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold text-xs shadow-md transition inline-flex items-center gap-2">
+                <span>Khám Phá Menu Nhà Hàng</span> 🍽️
+              </button>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div class="text-center py-12 text-stone-400 text-xs bg-white rounded-2xl border border-stone-200 p-6">
+              <i class="fa-solid fa-utensils text-2xl text-stone-300 mb-2"></i>
+              <p class="font-semibold text-stone-600">Chưa có món ăn nào trong thực đơn này.</p>
+              <p class="text-[11px] text-stone-400 mt-1">Quý khách vui lòng chọn nhóm thực đơn khác ở trên nhé!</p>
+            </div>
+          `;
+        }
       } else {
         container.innerHTML = html;
       }

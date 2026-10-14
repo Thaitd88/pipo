@@ -460,86 +460,12 @@ def ensure_main_menu_classification(conn):
     except Exception:
         pass
 
-    # Bổ sung các món Cafe & Điểm tâm sáng tiêu biểu nếu chưa có
-    breakfast_cafe_dishes = [
-        ("Cà Phê Đen Pha Phin", "Cà phê Robusta Đắk Lắk nguyên chất, hương vị đậm đà truyền thống", 25000, "/static/logo.png", "BAR", 6, 15, "CAFE,RESTAURANT,LUNCH",
-         {"en": {"name": "Traditional Vietnamese Black Coffee", "description": "Authentic drip-brewed robusta coffee with rich aroma."},
-          "zh": {"name": "越南传统滴漏黑咖啡", "description": "精选罗布斯塔纯正咖啡豆，滴漏现冲浓郁醇香。"},
-          "ko": {"name": "베트남 정통 블랙 핀 커피", "description": "진하고 깊은 풍미를 자랑하는 베트남 전통 드립 커피."},
-          "ru": {"name": "Вьетнамский традиционный черный кофе", "description": "Настоящий черный кофе робуста капельного заваривания."}}),
-        ("Cà Phê Sữa Đá Sài Gòn", "Cà phê phin kết hợp sữa đặc ngọt béo thơm lừng, đá lạnh sảng khoái", 30000, "/static/logo.png", "BAR", 6, 165, "CAFE,RESTAURANT,LUNCH",
-         {"en": {"name": "Saigon Iced Milk Coffee", "description": "Vietnamese drip coffee layered with sweetened condensed milk and ice."},
-          "zh": {"name": "经典西贡冰奶咖啡", "description": "香浓滴漏咖啡与甜美炼乳的完美融合，冰爽怡人。"},
-          "ko": {"name": "사이공 연유 아이스 커피", "description": "달콤한 연유와 진한 커피가 어우러진 시원한 사이공 명물 커피."},
-          "ru": {"name": "Сайгонский кофе со сгущенным молоком и льдом", "description": "Знаменитый вьетнамский кофе с нежным сгущенным молоком."}}),
-        ("Bạc Xỉu Kem Béo PiPo", "Nhiều sữa đặc béo ngậy điểm xuyết cà phê phin sánh mịn", 35000, "/static/logo.png", "BAR", 6, 210, "CAFE,RESTAURANT,LUNCH",
-         {"en": {"name": "PiPo Creamy Bac Xiu Coffee", "description": "Rich sweet condensed milk lightly infused with aromatic espresso drippings."},
-          "zh": {"name": "PiPo 特色白咖啡 (百修)", "description": "香浓幼滑浓郁奶香，融入少许浓缩咖啡精华。"},
-          "ko": {"name": "피포 크리미 박씨우 라떼", "description": "부드럽고 달콤한 연유 우유에 향긋한 커피를 더한 인기 음료."},
-          "ru": {"name": "Сливочный кофе Бак Сиу PiPo", "description": "Нежное сливочное молоко с добавлением ароматного кофе."}}),
-        ("Bánh Mì Ốp La Xúc Xích Pate", "Điểm tâm sáng bánh mì giòn rụm kẹp 2 trứng ốp la, xúc xích, pate béo ngậy & dưa leo", 35000, "/static/logo.png", "HOT_KITCHEN", 1, 420, "CAFE,LUNCH",
-         {"en": {"name": "Crispy Banh Mi with Fried Eggs, Sausage & Pate", "description": "Vietnamese crispy baguette served with 2 sunny eggs, sausage, and rich pate."},
-          "zh": {"name": "香脆法包配双煎蛋与肉肠肝酱", "description": "外酥里嫩越南法棍，搭配两颗黄金太阳蛋、香肠与浓郁肝酱。"},
-          "ko": {"name": "바삭 반미 & 계란 프라이 소시지 파테", "description": "바삭한 바게트와 달걀 프라이 2개, 소시지, 고소한 파테가 어우러진 아침 식사."},
-          "ru": {"name": "Хрустящий бань ми с яичницей, колбасками и паштетом", "description": "Вьетнамский багет с двумя жареными яйцами, колбасками и паштетом."}}),
-        ("Bò Kho Bánh Mì Đặc Biệt", "Nạm bò Úc hầm tiêu gừng hoa hồi mềm thơm, nước dùng đậm đà chấm bánh mì nóng", 60000, "/static/logo.png", "HOT_KITCHEN", 3, 560, "CAFE,LUNCH,RESTAURANT",
-         {"en": {"name": "Special Beef Stew with Warm Bread", "description": "Tender braised beef chunks in fragrant lemongrass and star anise broth."},
-          "zh": {"name": "招牌特色红烧焖牛肉配热法包", "description": "精选牛腩加入香茅八角慢火焖炖，软烂入味，蘸热法棍绝佳。"},
-          "ko": {"name": "특선 베트남식 소고기 스튜 & 바게트 (보코)", "description": "향긋한 레몬글라스와 향신료로 푹 고아낸 부드러운 소고기 스튜와 따뜻한 빵."},
-          "ru": {"name": "Особое рагу из говядины Бо Кхо с горячим багетом", "description": "Нежная тушеная говядина в пряном ароматном соусе с хрустящим хлебом."}})
-    ]
-
-    for name, desc, price, img, station, cat_id, cal, menu_types, trans in breakfast_cafe_dishes:
-        cursor.execute("SELECT id FROM menu_items WHERE name = ?", (name,))
-        row = cursor.fetchone()
-        if not row:
-            cursor.execute("""
-                INSERT INTO menu_items (category_id, name, description, price, image_url, station, is_available, calories, out_of_ingredients, main_menu_type, translations_json)
-                VALUES (?, ?, ?, ?, ?, ?, 1, ?, 0, ?, ?)
-            """, (cat_id, name, desc, price, img, station, cal, menu_types, json.dumps(trans, ensure_ascii=False)))
-
-    # Phân loại toàn bộ các món hiện có vào 3 nhóm lớn
-    cursor.execute("SELECT id, name, category_id, description, main_menu_type FROM menu_items")
-    items = cursor.fetchall()
-
-    for it in items:
-        iid = it["id"]
-        cid = it["category_id"]
-        name_l = it["name"].lower()
-        desc_l = (it["description"] or "").lower()
-        curr_types = it["main_menu_type"] or ""
-
-        # Nếu đã có cấu hình rõ ràng khác mặc định thì bỏ qua
-        types = set()
-
-        # Đồ uống (cat 6): có mặt ở cả 3 Menu (Cafe, Nhà hàng, Cơm trưa)
-        if cid == 6 or any(k in name_l for k in ["trà", "cà phê", "cafe", "nước ép", "nước suối", "bia", "pepsi", "coca", "aquarius", "revive", "bạc xỉu"]):
-            types.add("CAFE")
-            types.add("RESTAURANT")
-            types.add("LUNCH")
-        # Điểm tâm sáng & món ăn sáng:
-        elif any(k in name_l for k in ["bánh mì", "bò kho", "ốp la", "hủ tiếu", "phở", "điểm tâm", "sáng"]):
-            types.add("CAFE")
-            types.add("LUNCH")
-            types.add("RESTAURANT")
-        # Cơm - Mì (cat 5):
-        elif cid == 5 or any(k in name_l for k in ["cơm chiên", "mì xào", "cơm dĩa", "cơm phần"]):
-            types.add("LUNCH")
-            types.add("RESTAURANT")
-        # Các món xào, khoai tây chiên, đậu hũ, rau xào, cánh gà (rất hợp ăn cơm trưa & nhà hàng):
-        elif any(k in name_l for k in ["khoai tây", "đậu hũ", "rau muống", "cải thìa", "bò xuyên tiêu", "cánh gà", "gỏi khoai môn", "gỏi xoài"]):
-            types.add("LUNCH")
-            types.add("RESTAURANT")
-        # Các món lẩu, gà nguyên con, hải sản tươi, nướng tiệc (chuyên Menu Nhà Hàng):
-        else:
-            types.add("RESTAURANT")
-            # Nếu món thịt nướng/xào thì cũng hợp ăn trưa
-            if any(k in name_l for k in ["xào cay", "nướng giềng", "hấp sả", "cháy tỏi"]):
-                types.add("LUNCH")
-
-        final_types_str = ",".join(sorted(list(types)))
-        cursor.execute("UPDATE menu_items SET main_menu_type = ? WHERE id = ?", (final_types_str, iid))
-
+    # Mặc định tất cả các món thuộc Menu Nhà Hàng (tạm thời để trống Menu Cơm Trưa và Menu Cafe/Sáng theo yêu cầu)
+    cursor.execute("""
+        UPDATE menu_items 
+        SET main_menu_type = 'RESTAURANT'
+        WHERE main_menu_type IS NULL OR main_menu_type = '' OR main_menu_type LIKE '%LUNCH%' OR main_menu_type LIKE '%CAFE%'
+    """)
     conn.commit()
 
 def seed_default_users(conn):

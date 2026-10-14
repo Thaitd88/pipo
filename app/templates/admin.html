@@ -24,20 +24,20 @@
   <!-- ======================================================== -->
   <!-- HEADER TRUNG TÂM QUẢN TRỊ ADMIN (NỀN SÁNG CAO CẤP) -->
   <!-- ======================================================== -->
-  <header class="bg-emerald-900 text-white px-6 py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
-    <div class="flex items-center space-x-3">
-      <img src="/static/logo.png" alt="PiPo Garden Logo" class="w-11 h-11 rounded-full object-cover shadow-md border-2 border-emerald-400/50 bg-white">
-      <div>
-        <h1 class="text-base font-black text-white flex items-center gap-2">
-          PiPo Garden - Dashboard Quản Trị
-          <span class="text-[10px] bg-emerald-800 text-emerald-200 border border-emerald-700 px-2 py-0.5 rounded-full font-bold">Admin Central</span>
+  <header class="bg-emerald-900 text-white px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
+    <div class="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
+      <img src="/static/logo.png" alt="PiPo Garden Logo" class="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover shadow-md border-2 border-emerald-400/50 bg-white flex-shrink-0">
+      <div class="min-w-0">
+        <h1 class="text-sm sm:text-base font-black text-white flex items-center gap-1.5 truncate">
+          <span>PiPo Garden</span>
+          <span class="text-[9px] sm:text-[10px] bg-emerald-800 text-emerald-200 border border-emerald-700 px-1.5 py-0.5 rounded-full font-bold">Admin</span>
         </h1>
-        <p class="text-xs text-emerald-200">Báo cáo doanh thu • Quản trị món & Đa ngôn ngữ • Quản lý bàn & Khu vực • Bếp & Nhân viên</p>
+        <p class="text-[11px] sm:text-xs text-emerald-200 truncate hidden sm:block">Báo cáo doanh thu • Quản trị món & Đa ngôn ngữ • Quản lý bàn • Bếp & Nhân viên</p>
       </div>
     </div>
 
     <!-- Quick Navigation to Workspaces -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
       <div class="hidden lg:flex items-center gap-2 text-xs">
         <a href="/pos" target="_blank" class="px-3 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-800 text-emerald-100 border border-emerald-700/60 font-semibold flex items-center gap-1.5 transition">
           <i class="fa-solid fa-cash-register text-blue-300"></i> Thu Ngân POS
@@ -53,42 +53,49 @@
         </a>
       </div>
 
+      <!-- Quick workspace link on mobile -->
+      <div class="flex lg:hidden items-center gap-1">
+        <a href="/pos" target="_blank" class="px-2 py-1 rounded-lg bg-emerald-950 text-emerald-200 text-[11px] font-bold border border-emerald-700/50" title="Thu Ngân POS">POS</a>
+        <a href="/kitchen" target="_blank" class="px-2 py-1 rounded-lg bg-emerald-950 text-emerald-200 text-[11px] font-bold border border-emerald-700/50" title="Bếp">Bếp</a>
+        <a href="/inventory" target="_blank" class="px-2 py-1 rounded-lg bg-emerald-950 text-emerald-200 text-[11px] font-bold border border-emerald-700/50" title="Kho">Kho</a>
+      </div>
+
       <!-- User Profile & Logout -->
-      <div class="flex items-center gap-2.5 pl-3 border-l border-emerald-800 text-xs">
-        <div class="text-right">
-          <div class="text-white font-bold" id="adminUserName">{{ user.full_name }}</div>
-          <div class="text-[10px] text-amber-300 font-semibold">Quản Trị Viên</div>
+      <div class="flex items-center gap-2 pl-2 sm:pl-3 border-l border-emerald-800 text-xs">
+        <div class="text-right hidden sm:block">
+          <div class="text-white font-bold text-xs" id="adminUserName">{{ user.full_name }}</div>
+          <div class="text-[9px] text-amber-300 font-semibold">Quản Trị Viên</div>
         </div>
         <button onclick="logoutAdmin()" class="w-8 h-8 rounded-lg bg-emerald-950/80 hover:bg-rose-900 text-emerald-200 hover:text-white flex items-center justify-center transition" title="Đăng xuất">
-          <i class="fa-solid fa-right-from-bracket"></i>
+          <i class="fa-solid fa-right-from-bracket text-xs"></i>
         </button>
       </div>
     </div>
   </header>
 
   <!-- ======================================================== -->
-  <!-- THANH ĐIỀU HƯỚNG CÁC TAB CHỨC NĂNG -->
+  <!-- THANH ĐIỀU HƯỚNG CÁC TAB CHỨC NĂNG (LINH HOẠT TRÊN MOBILE & DESKTOP) -->
   <!-- ======================================================== -->
-  <nav class="bg-white px-6 py-2.5 border-b border-stone-200 flex items-center justify-between text-xs sticky top-[57px] z-30 shadow-xs">
-    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
-      <button onclick="switchTab('reports')" id="tabBtn-reports" class="admin-tab px-4 py-2 rounded-xl bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-xs">
-        <i class="fa-solid fa-chart-line"></i> Báo Cáo Doanh Thu
+  <nav class="bg-white px-3 sm:px-6 py-2 border-b border-stone-200 flex items-center justify-between text-xs sticky top-[49px] sm:top-[57px] z-30 shadow-xs">
+    <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto">
+      <button onclick="switchTab('reports')" id="tabBtn-reports" class="admin-tab flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-xs whitespace-nowrap text-xs">
+        <i class="fa-solid fa-chart-line"></i> Báo Cáo
       </button>
-      <button onclick="switchTab('tables')" id="tabBtn-tables" class="admin-tab px-4 py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition">
+      <button onclick="switchTab('tables')" id="tabBtn-tables" class="admin-tab flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition whitespace-nowrap text-xs">
         <i class="fa-solid fa-chair"></i> Bàn & Khu Vực
       </button>
-      <button onclick="switchTab('menu')" id="tabBtn-menu" class="admin-tab px-4 py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition">
-        <i class="fa-solid fa-utensils"></i> Quản Trị Món & Dịch
+      <button onclick="switchTab('menu')" id="tabBtn-menu" class="admin-tab flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition whitespace-nowrap text-xs">
+        <i class="fa-solid fa-utensils"></i> Quản Trị Món
       </button>
-      <button onclick="switchTab('kitchen')" id="tabBtn-kitchen" class="admin-tab px-4 py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition">
+      <button onclick="switchTab('kitchen')" id="tabBtn-kitchen" class="admin-tab flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition whitespace-nowrap text-xs">
         <i class="fa-solid fa-tv"></i> Giám Sát Bếp
       </button>
-      <button onclick="switchTab('staff')" id="tabBtn-staff" class="admin-tab px-4 py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition">
-        <i class="fa-solid fa-users-gear"></i> Nhân Viên & Tài Khoản
+      <button onclick="switchTab('staff')" id="tabBtn-staff" class="admin-tab flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition whitespace-nowrap text-xs">
+        <i class="fa-solid fa-users-gear"></i> Nhân Viên
       </button>
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="hidden md:flex items-center gap-3">
       <div id="liveClock" class="font-mono text-emerald-700 font-bold text-xs bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">00:00:00</div>
     </div>
   </nav>
@@ -96,7 +103,7 @@
   <!-- ======================================================== -->
   <!-- NỘI DUNG CHÍNH (TAB PANES) -->
   <!-- ======================================================== -->
-  <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
+  <main class="flex-1 p-3 sm:p-6 max-w-7xl mx-auto w-full">
 
     <!-- ======================================================== -->
     <!-- TAB 1: BÁO CÁO DOANH THU & KPI KINH DOANH -->
@@ -716,6 +723,81 @@
           </div>
         </div>
 
+        <!-- Thuộc các nhóm Menu lớn -->
+        <div class="bg-stone-50 p-3.5 rounded-2xl border border-stone-200">
+          <label class="block text-stone-700 font-bold mb-2">Thuộc các nhóm Menu lớn:</label>
+          <div class="flex flex-wrap gap-2.5 text-xs font-bold text-stone-800">
+            <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-stone-300 hover:border-emerald-500 transition shadow-2xs">
+              <input type="checkbox" id="itemFormMenuRestaurant" class="w-4 h-4 text-emerald-600 rounded" checked>
+              <span>🍽️ Menu Nhà Hàng</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-stone-300 hover:border-amber-500 transition shadow-2xs">
+              <input type="checkbox" id="itemFormMenuLunch" class="w-4 h-4 text-amber-600 rounded">
+              <span>🍚 Menu Cơm Trưa</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-stone-300 hover:border-teal-500 transition shadow-2xs">
+              <input type="checkbox" id="itemFormMenuCafe" class="w-4 h-4 text-teal-600 rounded">
+              <span>☕ Menu Cafe / Ăn Sáng</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Section: Định Lượng Nguyên Vật Liệu (Recipe BOM & Calo) -->
+        <div class="bg-amber-50/60 border border-amber-200 rounded-2xl p-4 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-amber-200">
+            <div>
+              <div class="font-bold text-amber-950 text-xs flex items-center gap-1.5">
+                <span>⚖️ Định Lượng Nguyên Vật Liệu (Recipe BOM)</span>
+                <span class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">Tự Trừ Kho & Calo</span>
+              </div>
+              <p class="text-[11px] text-stone-500 mt-0.5">Cấu hình NVL tiêu hao khi bếp nấu món này. Hệ thống tự động tính giá vốn và calo.</p>
+            </div>
+            <button type="button" onclick="addAdminBomRow()" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5">
+              <i class="fa-solid fa-plus text-[10px]"></i> Thêm Nguyên Liệu
+            </button>
+          </div>
+
+          <!-- Bảng nguyên liệu BOM -->
+          <div class="overflow-x-auto border border-amber-200 rounded-xl bg-white">
+            <table class="w-full text-xs text-left min-w-[420px]">
+              <thead class="bg-stone-50 text-stone-600 font-semibold border-b border-stone-200">
+                <tr>
+                  <th class="py-2 px-3">Nguyên vật liệu</th>
+                  <th class="py-2 px-3 w-28">SL tiêu hao</th>
+                  <th class="py-2 px-2 w-16">ĐVT</th>
+                  <th class="py-2 px-2 text-right">Giá vốn</th>
+                  <th class="py-2 px-2 text-center w-8"></th>
+                </tr>
+              </thead>
+              <tbody id="adminBomTableBody" class="divide-y divide-stone-100">
+                <!-- Render dòng NVL -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Footer thanh tóm tắt BOM -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
+            <div class="flex items-center gap-4">
+              <div>
+                <span class="text-stone-500">Quy đổi:</span>
+                <span class="font-bold text-amber-900 ml-1 font-mono" id="adminBomTotalGrams">0 g</span>
+              </div>
+              <div class="h-4 w-px bg-amber-200"></div>
+              <div>
+                <span class="text-stone-500">Ước tính giá vốn:</span>
+                <span class="font-bold text-emerald-800 ml-1" id="adminBomCost">0 đ</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-amber-950">🔥 Năng lượng:</span>
+              <div class="flex items-center gap-1 bg-white border border-amber-300 px-2 py-1 rounded-xl shadow-2xs">
+                <input type="number" id="itemFormCalories" min="0" placeholder="0" class="w-16 bg-transparent font-bold text-amber-900 text-right focus:outline-none text-xs">
+                <span class="text-[11px] font-bold text-amber-900">kcal</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="flex items-center gap-2 pt-1">
           <input type="checkbox" id="itemFormAvailable" class="rounded text-emerald-600" checked>
           <label for="itemFormAvailable" class="font-bold text-stone-700">Món đang còn hàng (Hiển thị cho khách gọi)</label>
@@ -723,7 +805,7 @@
 
         <div class="pt-3 flex justify-end gap-2 border-t border-stone-100">
           <button type="button" onclick="closeMenuItemModal()" class="px-4 py-2 rounded-xl border border-stone-300 text-stone-600 font-semibold">Hủy</button>
-          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-xs">Lưu Món Ăn</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-xs">Lưu Món Ăn & Định Lượng</button>
         </div>
       </form>
     </div>
@@ -1666,9 +1748,164 @@
       }
     }
 
-    function openMenuItemModal(item = null) {
+    let adminBomRows = [];
+    let adminInventoryItems = [];
+
+    async function loadAdminInventory() {
+      if (adminInventoryItems.length > 0) return;
+      try {
+        const res = await fetch("/api/inventory/items");
+        if (res.ok) {
+          adminInventoryItems = await res.json();
+        }
+      } catch (e) {
+        console.error("Lỗi tải kho NVL:", e);
+      }
+    }
+
+    function getAdminGramConversion(unit) {
+      const u = (unit || '').trim().toLowerCase();
+      if (u === 'kg') return 1000;
+      if (u === 'lít' || u === 'lit' || u === 'l') return 1000;
+      if (u === 'g' || u === 'gram' || u === 'gr' || u === 'ml') return 1;
+      if (u === 'bìa') return 100;
+      if (u === 'vắt') return 80;
+      if (u === 'con') return 80;
+      if (u === 'quả') return 55;
+      if (u === 'gói') return 50;
+      return 1000;
+    }
+
+    function renderAdminBomTable() {
+      const tbody = document.getElementById("adminBomTableBody");
+      const totalGramsEl = document.getElementById("adminBomTotalGrams");
+      const costEl = document.getElementById("adminBomCost");
+      const calInput = document.getElementById("itemFormCalories");
+
+      if (!tbody) return;
+
+      if (adminBomRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-stone-400 text-xs">Chưa cài đặt định lượng nguyên vật liệu. Bấm "+ Thêm Nguyên Liệu" ở trên để cấu hình.</td></tr>`;
+        if (totalGramsEl) totalGramsEl.innerText = "0 g";
+        if (costEl) costEl.innerText = "0 đ";
+        return;
+      }
+
+      let totalCost = 0;
+      let totalGrams = 0;
+
+      tbody.innerHTML = adminBomRows.map((row, idx) => {
+        const ing = adminInventoryItems.find(x => x.id === row.ingredient_id) || {};
+        const unit = ing.unit || row.unit || 'kg';
+        const costPrice = ing.cost_price || row.cost_price || 0;
+        const qty = parseFloat(row.quantity) || 0;
+        const lineCost = qty * costPrice;
+        totalCost += lineCost;
+
+        const factor = getAdminGramConversion(unit);
+        totalGrams += qty * factor;
+
+        return `
+          <tr class="hover:bg-amber-50/40 transition">
+            <td class="py-1.5 px-3">
+              <select onchange="updateAdminBomIngredient(${idx}, this.value)" class="w-full bg-white border border-stone-300 rounded-lg p-1.5 text-xs font-semibold focus:outline-none focus:border-amber-600">
+                ${adminInventoryItems.map(item => `
+                  <option value="${item.id}" ${item.id === row.ingredient_id ? 'selected' : ''}>
+                    ${item.name} (${item.unit} - ${formatVND(item.cost_price)})
+                  </option>
+                `).join('')}
+              </select>
+            </td>
+            <td class="py-1.5 px-3">
+              <input type="number" step="0.01" min="0.001" value="${row.quantity}" oninput="updateAdminBomQuantity(${idx}, this.value)" class="w-full bg-white border border-stone-300 rounded-lg p-1.5 text-xs font-bold text-stone-800 text-right focus:outline-none focus:border-amber-600">
+            </td>
+            <td class="py-1.5 px-2">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-stone-100 text-stone-700 border border-stone-200">${unit}</span>
+            </td>
+            <td class="py-1.5 px-2 text-right font-mono font-bold text-emerald-700">
+              ${formatVND(lineCost)}
+            </td>
+            <td class="py-1.5 px-2 text-center">
+              <button type="button" onclick="removeAdminBomRow(${idx})" class="w-6 h-6 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition" title="Xóa NVL">
+                <i class="fa-solid fa-trash text-xs"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      totalGrams = Math.round(totalGrams * 10) / 10;
+      if (totalGramsEl) totalGramsEl.innerText = `${totalGrams} g`;
+      if (costEl) costEl.innerText = formatVND(totalCost);
+
+      if (calInput && (!calInput.value || parseInt(calInput.value) === 0) && totalGrams > 0) {
+        calInput.value = Math.round(totalGrams * 1.25);
+      }
+    }
+
+    function addAdminBomRow() {
+      if (adminInventoryItems.length === 0) {
+        alert("Chưa có danh mục Nguyên vật liệu trong kho. Vui lòng thêm NVL trong mục Kho trước!");
+        return;
+      }
+      const first = adminInventoryItems[0];
+      adminBomRows.push({
+        ingredient_id: first.id,
+        quantity: 0.1,
+        unit: first.unit,
+        cost_price: first.cost_price
+      });
+      renderAdminBomTable();
+    }
+
+    function removeAdminBomRow(idx) {
+      adminBomRows.splice(idx, 1);
+      renderAdminBomTable();
+    }
+
+    function updateAdminBomIngredient(idx, ingredientId) {
+      const ingId = parseInt(ingredientId);
+      const ing = adminInventoryItems.find(x => x.id === ingId);
+      if (ing && adminBomRows[idx]) {
+        adminBomRows[idx].ingredient_id = ing.id;
+        adminBomRows[idx].unit = ing.unit;
+        adminBomRows[idx].cost_price = ing.cost_price;
+      }
+      renderAdminBomTable();
+    }
+
+    function updateAdminBomQuantity(idx, val) {
+      const qty = parseFloat(val) || 0;
+      if (adminBomRows[idx]) {
+        adminBomRows[idx].quantity = qty;
+      }
+      renderAdminBomTable();
+    }
+
+    async function saveAdminBomForDish(dishId) {
+      if (!dishId) return;
+      try {
+        const payload = {
+          items: adminBomRows.map(r => ({
+            ingredient_id: r.ingredient_id,
+            quantity: parseFloat(r.quantity) || 0
+          }))
+        };
+        await fetch(`/api/inventory/recipes/${dishId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.error("Lỗi lưu định lượng BOM:", err);
+      }
+    }
+
+    async function openMenuItemModal(item = null) {
       const selCat = document.getElementById("itemFormCategory");
       selCat.innerHTML = allCategories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+
+      await loadAdminInventory();
 
       if (!item) {
         document.getElementById("itemModalTitle").innerText = "Thêm Món Ăn Mới";
@@ -1685,6 +1922,15 @@
         document.getElementById("itemTransZhName").value = "";
         document.getElementById("itemTransKoName").value = "";
         document.getElementById("itemTransRuName").value = "";
+
+        // Checkboxes 3 Menu lớn
+        document.getElementById("itemFormMenuRestaurant").checked = true;
+        document.getElementById("itemFormMenuLunch").checked = false;
+        document.getElementById("itemFormMenuCafe").checked = false;
+        document.getElementById("itemFormCalories").value = "0";
+
+        adminBomRows = [];
+        renderAdminBomTable();
       } else {
         document.getElementById("itemModalTitle").innerText = `Chỉnh Sửa Món: ${item.name}`;
         document.getElementById("itemFormId").value = item.id;
@@ -1695,6 +1941,13 @@
         document.getElementById("itemFormDesc").value = item.description || "";
         document.getElementById("itemFormImage").value = item.image_url || "";
         document.getElementById("itemFormAvailable").checked = Boolean(item.is_available);
+
+        // Checkboxes 3 Menu lớn & Calo
+        const mainTypes = (item.main_menu_type || 'RESTAURANT').split(',').map(s => s.trim());
+        document.getElementById("itemFormMenuRestaurant").checked = mainTypes.includes('RESTAURANT');
+        document.getElementById("itemFormMenuLunch").checked = mainTypes.includes('LUNCH');
+        document.getElementById("itemFormMenuCafe").checked = mainTypes.includes('CAFE');
+        document.getElementById("itemFormCalories").value = item.calories || 0;
 
         if (item.image_url) {
           const previewBox = document.getElementById("itemImagePreviewBox");
@@ -1712,6 +1965,23 @@
         document.getElementById("itemTransZhName").value = (trans.zh && trans.zh.name) || "";
         document.getElementById("itemTransKoName").value = (trans.ko && trans.ko.name) || "";
         document.getElementById("itemTransRuName").value = (trans.ru && trans.ru.name) || "";
+
+        // Tải danh sách BOM định lượng sẵn có của món
+        adminBomRows = [];
+        try {
+          const res = await fetch(`/api/inventory/recipes/${item.id}`);
+          if (res.ok) {
+            const data = await res.json();
+            adminBomRows = (data.ingredients || []).map(i => ({
+              ingredient_id: i.ingredient_id,
+              quantity: i.quantity,
+              unit: i.unit,
+              cost_price: i.cost_price,
+              name: i.ingredient_name
+            }));
+          }
+        } catch (e) {}
+        renderAdminBomTable();
       }
 
       document.getElementById("menuItemModal").classList.remove("hidden");
@@ -1809,6 +2079,16 @@
       const image = document.getElementById("itemFormImage").value.trim();
       const isAvailable = document.getElementById("itemFormAvailable").checked ? 1 : 0;
 
+      // 3 Main Menus
+      const menus = [];
+      if (document.getElementById("itemFormMenuRestaurant").checked) menus.push("RESTAURANT");
+      if (document.getElementById("itemFormMenuLunch").checked) menus.push("LUNCH");
+      if (document.getElementById("itemFormMenuCafe").checked) menus.push("CAFE");
+      if (menus.length === 0) menus.push("RESTAURANT");
+      const mainMenuType = menus.join(",");
+
+      const calories = parseInt(document.getElementById("itemFormCalories").value) || 0;
+
       const translations = {
         en: { name: document.getElementById("itemTransEnName").value.trim() || name, description: desc },
         zh: { name: document.getElementById("itemTransZhName").value.trim() || name, description: desc },
@@ -1824,6 +2104,8 @@
         description: desc,
         image_url: image,
         is_available: isAvailable,
+        main_menu_type: mainMenuType,
+        calories: calories,
         translations: translations
       };
 
@@ -1844,6 +2126,11 @@
         }
 
         if (res.ok) {
+          const respData = await res.json();
+          const savedDishId = id || (respData.item && respData.item.id);
+          if (savedDishId) {
+            await saveAdminBomForDish(savedDishId);
+          }
           closeMenuItemModal();
           loadAdminMenu();
         } else {
