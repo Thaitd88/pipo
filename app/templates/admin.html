@@ -2039,10 +2039,12 @@
         return `
           <div class="bg-white border border-stone-200 rounded-2xl p-4 flex flex-col justify-between hover:shadow-md transition space-y-3">
             <div class="flex items-start gap-3">
-              <img src="${item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=160'}" class="w-16 h-16 rounded-xl object-cover bg-stone-100 border border-stone-200 flex-shrink-0">
+              <img src="${item.image_url || '/static/logo.png'}" onerror="this.onerror=null; this.src='/static/logo.png';" class="w-16 h-16 rounded-xl object-cover bg-stone-100 border border-stone-200 flex-shrink-0">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 truncate max-w-[140px]">${item.category_name || ''}</span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 font-mono truncate max-w-[160px] flex items-center gap-1 shadow-2xs">
+                    <i class="fa-solid fa-scale-balanced text-amber-700"></i> ${item.portion_tag || 'Định lượng chuẩn'}
+                  </span>
                   <span class="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-mono font-bold">${item.station}</span>
                 </div>
                 <h4 class="font-bold text-sm text-stone-900 truncate mt-1">${item.name}</h4>
@@ -2050,6 +2052,17 @@
                 <div class="flex items-center justify-between mt-1">
                   <div class="text-xs font-bold text-emerald-700">${formatVND(item.price)}</div>
                   <div class="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">🔥 ${item.calories || 0} kcal</div>
+                </div>
+
+                <!-- Khối Định Lượng NVL Trực Quan Cho Bếp & Admin -->
+                <div class="mt-2 p-2 rounded-xl bg-amber-50/80 border border-amber-200/90 text-xs shadow-2xs">
+                  <div class="font-bold text-[11px] text-amber-950 flex items-center justify-between">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-scale-balanced text-amber-700"></i> Định lượng NVL:</span>
+                    ${item.total_weight_str ? `<span class="font-mono text-[10px] bg-white px-1.5 py-0.2 rounded border border-amber-200 text-amber-900 font-bold">${item.total_weight_str}</span>` : ''}
+                  </div>
+                  <div class="text-[11px] text-stone-800 font-medium mt-1 leading-snug">
+                    ${item.recipe_summary ? item.recipe_summary : '<span class="text-stone-400 italic">Chuẩn bị theo suất (1 lon / 1 chai / 1 phần)</span>'}
+                  </div>
                 </div>
               </div>
             </div>

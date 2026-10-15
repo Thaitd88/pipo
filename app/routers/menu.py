@@ -62,9 +62,23 @@ class BulkMenuImportRequest(BaseModel):
     default_station: Optional[str] = "HOT_KITCHEN"
     items: Optional[List[Dict[str, Any]]] = None
 
+def format_bom_qty(qty: float, unit: str) -> str:
+    """Định dạng số lượng NVL trực quan (ví dụ: 0.3 kg -> 300g, 0.05 lít -> 50ml)."""
+    u = (unit or "").strip().lower()
+    if u == "kg":
+        if qty < 1:
+            return f"{round(qty * 1000)}g"
+        return f"{qty:g}kg"
+    elif u in ("lít", "lit", "l"):
+        if qty < 1:
+            return f"{round(qty * 1000)}ml"
+        return f"{qty:g}L"
+    else:
+        return f"{qty:g} {unit}"
+
 @router.get("")
 def get_full_menu():
-    """Lấy danh mục và toàn bộ món ăn kèm dữ liệu đa ngôn ngữ."""
+    """Lấy danh mục và toàn bộ món ăn kèm dữ liệu đa ngôn ngữ và định lượng NVL (BOM)."""
     conn = get_db()
     cursor = conn.cursor()
     
@@ -80,6 +94,24 @@ def get_full_menu():
         ORDER BY c.display_order, m.id
     """)
     items = [dict(it) for it in cursor.fetchall()]
+
+    # 3. Lấy định lượng NVL (BOM) cho từng món
+    cursor.execute("""
+        SELECT r.menu_item_id, r.quantity, i.name as ingredient_name, i.unit
+        FROM recipe_bom r
+        JOIN inventory_items i ON r.ingredient_id = i.id
+        ORDER BY r.quantity DESC
+    """)
+    bom_by_item = {}
+    for r in cursor.fetchall():
+        mid = r["menu_item_id"]
+        if mid not in bom_by_item:
+            bom_by_item[mid] = []
+        bom_by_item[mid].append({
+            "name": r["ingredient_name"],
+            "quantity": r["quantity"],
+            "unit": r["unit"]
+        })
     conn.close()
     
     # Tổ chức theo cấu trúc danh mục
@@ -167,6 +199,40 @@ def get_full_menu():
 
         if fixed_url:
             item["image_url"] = fixed_url
+
+        # Gán định lượng NVL (BOM) trực tiếp cho bếp và quản trị
+        item_bom = bom_by_item.get(item["id"], [])
+        if item_bom:
+            summary_parts = []
+            total_grams = 0
+            for ing in item_bom:
+                short_name = ing["name"].split("/")[0].split("(")[0].strip()
+                qty_str = format_bom_qty(ing["quantity"], ing["unit"])
+                summary_parts.append(f"{short_name}: {qty_str}")
+                
+                u = (ing["unit"] or "").lower()
+                if u == "kg":
+                    total_grams += ing["quantity"] * 1000
+                elif u in ("lít", "lit", "l"):
+                    total_grams += ing["quantity"] * 1000
+                elif u in ("g", "gram", "ml"):
+                    total_grams += ing["quantity"]
+
+            item["recipe_summary"] = " • ".join(summary_parts)
+            item["bom_count"] = len(item_bom)
+            item["bom_items"] = item_bom
+            if total_grams >= 10:
+                item["portion_tag"] = f"Định lượng: ~{round(total_grams)}g"
+                item["total_weight_str"] = f"Tổng: ~{round(total_grams)}g"
+            else:
+                item["portion_tag"] = f"Định lượng: {len(item_bom)} NVL"
+                item["total_weight_str"] = f"{len(item_bom)} thành phần"
+        else:
+            item["recipe_summary"] = ""
+            item["bom_count"] = 0
+            item["bom_items"] = []
+            item["portion_tag"] = "Định lượng: Chuẩn suất"
+            item["total_weight_str"] = ""
 
         # Parse options JSON
         if item.get("options_json"):
