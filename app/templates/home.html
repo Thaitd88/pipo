@@ -743,9 +743,9 @@
         </div>
 
         <div class="pt-4 flex flex-wrap gap-4 items-center">
-          <a href="#booking" class="gold-gradient text-brand-emerald-dark font-extrabold text-sm px-7 py-3.5 rounded-full transition-transform hover:scale-105 shadow-xl flex items-center gap-2">
+          <a href="/pickleball" class="gold-gradient text-brand-emerald-dark font-extrabold text-sm px-7 py-3.5 rounded-full transition-transform hover:scale-105 shadow-xl flex items-center gap-2">
             <i class="fa-solid fa-calendar-plus"></i>
-            <span data-i18n="sport_cta_book">Đặt Sân Pickleball Ngay</span>
+            <span data-i18n="sport_cta_book">Đặt Sân Pickleball Trực Tuyến</span>
           </a>
           <a href="tel:{{ cms.phone | default('0838993316') }}" class="text-xs text-white/90 font-bold hover:text-brand-gold flex items-center gap-2 px-5 py-3.5 rounded-full border border-white/20 bg-white/5">
             <i class="fa-solid fa-phone"></i>
@@ -777,6 +777,27 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- Interactive Pickleball Booking Call-out Banner -->
+    <div class="max-w-7xl mx-auto mt-10 bg-white/10 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-white/20 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
+      <div class="flex items-center gap-4 sm:gap-5">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-brand-gold text-brand-emerald-dark flex items-center justify-center text-2xl sm:text-3xl flex-shrink-0 shadow-lg">
+          <i class="fa-solid fa-table-tennis-paddle-ball"></i>
+        </div>
+        <div>
+          <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase tracking-wider mb-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            Hệ thống đặt sân thông minh 4 sân
+          </div>
+          <h4 class="font-serif font-black text-lg sm:text-2xl text-white leading-tight">Xem Lịch Trống & Đặt Sân Pickleball Có Mái Che</h4>
+          <p class="text-xs sm:text-sm text-white/80 mt-1 leading-relaxed">Chọn khung giờ từ 06:00 - 22:00 • Bảng giá giờ thường 150k/h - giờ vàng 250k/h • Thuê vợt, combo nước dừa tắm hồ bơi & chuyển cọc VietQR tiện lợi.</p>
+        </div>
+      </div>
+      <a href="/pickleball" class="w-full md:w-auto px-8 py-4 rounded-2xl gold-gradient text-brand-emerald-dark font-black text-xs sm:text-sm transition-all transform hover:scale-105 shadow-xl text-center whitespace-nowrap flex items-center justify-center gap-2 flex-shrink-0">
+        <span>Vào Bảng Đặt Sân Tương Tác</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </a>
     </div>
   </section>
 

@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Đặt Sân Pickleball Có Mái Che | PiPo Garden Phú Quốc</title>
+  <meta name="description" content="Hệ thống đặt sân Pickleball có mái che tiêu chuẩn quốc tế tại PiPo Garden Phú Quốc. Đặt sân theo giờ, xem lịch trống 4 sân trực tiếp, thuê vợt cao cấp, combo tắm hồ bơi & ẩm thực sân vườn.">
+  <link rel="icon" type="image/png" href="/static/logo.png">
+
+  <!-- Google Fonts: Playfair Display + Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sport: {
+              emerald: '#1B4332',
+              'emerald-dark': '#0D281E',
+              blue: '#1E3A8A',
+              'blue-light': '#3B82F6',
+              gold: '#D4AF37',
+              'gold-light': '#F5D77F',
+              sand: '#F3F4F6',
+              court: '#1E40AF',
+              kitchen: '#047857'
+            }
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8FAFC; color: #1E293B; }
+    .gold-gradient { background: linear-gradient(135deg, #D4AF37 0%, #F5D77F 50%, #B38F22 100%); }
+    .emerald-gradient { background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 100%); }
+    .court-gradient { background: linear-gradient(180deg, #1E3A8A 0%, #172554 100%); }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Pickleball Court Graphic Blueprint */
+    .pb-court-blueprint {
+      background: #1E40AF;
+      border: 3px solid #FFFFFF;
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .pb-net-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #FFFFFF;
+      transform: translateY(-50%);
+      box-shadow: 0 0 4px rgba(0,0,0,0.4);
+    }
+    .pb-kitchen-zone {
+      position: absolute;
+      top: 30%;
+      bottom: 30%;
+      left: 0;
+      right: 0;
+      background: rgba(4, 120, 87, 0.45);
+      border-top: 2px solid rgba(255,255,255,0.8);
+      border-bottom: 2px solid rgba(255,255,255,0.8);
+    }
+    .pb-center-line-top {
+      position: absolute;
+      top: 0;
+      bottom: 70%;
+      left: 50%;
+      width: 2px;
+      background: #FFFFFF;
+      transform: translateX(-50%);
+    }
+    .pb-center-line-bottom {
+      position: absolute;
+      top: 70%;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      background: #FFFFFF;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body class="selection:bg-sport-gold selection:text-sport-emerald-dark">
+
+  <!-- ======================================================== -->
+  <!-- HEADER / BRAND NAVIGATION -->
+  <!-- ======================================================== -->
+  <header class="sticky top-0 z-40 bg-sport-emerald-dark/95 backdrop-blur-md text-white border-b border-white/10 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-2.5 group">
+          <img src="/static/logo.png" alt="PiPo Garden" class="w-10 h-10 rounded-full object-contain bg-white p-0.5 shadow-md border border-sport-gold/60 group-hover:scale-105 transition">
+          <div>
+            <div class="font-serif font-black text-base sm:text-lg leading-tight flex items-center gap-1.5">
+              <span>PiPo Garden</span>
+              <span class="text-[10px] font-sans font-extrabold px-2 py-0.5 rounded-full bg-sport-gold text-sport-emerald-dark uppercase tracking-wider">Pickleball</span>
+            </div>
+            <p class="text-[10px] text-white/70">Khu Tiện Ích SV02, Sonasea, Bãi Trường, Phú Quốc</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Quick Actions & View Mode Switcher -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- DEMO TOGGLE: User Booking vs Admin Calendar -->
+        <div class="bg-black/40 p-1 rounded-full border border-white/20 flex items-center">
+          <button onclick="setViewMode('user')" id="btnViewUser" class="px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-sport-gold text-sport-emerald-dark shadow-sm">
+            <i class="fa-solid fa-user"></i>
+            <span class="hidden sm:inline">Khách Đặt Sân</span>
+          </button>
+          <button onclick="setViewMode('admin')" id="btnViewAdmin" class="px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 text-white/80 hover:text-white">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span class="hidden sm:inline">Lịch 4 Sân (Admin)</span>
+          </button>
+        </div>
+
+        <a href="tel:0838993316" class="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold transition text-sport-gold-light">
+          <i class="fa-solid fa-phone-volume"></i>
+          <span>0838.993.316</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================== -->
+  <!-- HERO BANNER (RESORT SPORT AMBIANCE) -->
+  <!-- ======================================================== -->
+  <section class="relative bg-gradient-to-r from-sport-emerald-dark via-sport-emerald to-sport-blue text-white py-8 sm:py-12 px-4 sm:px-6 shadow-md overflow-hidden">
+    <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:16px_16px]"></div>
+    
+    <div class="max-w-7xl mx-auto relative z-10">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="space-y-2 max-w-2xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-xs font-bold text-sport-gold-light">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span>CỤM 4 SÂN PICKLEBALL CÓ MÁI CHE • ĐÈN LED TIÊU CHUẨN ĐÊM</span>
+          </div>
+          <h1 class="text-2xl sm:text-4xl font-serif font-black tracking-tight leading-tight">
+            Hệ Thống Đặt Sân Pickleball Trực Tuyến
+          </h1>
+          <p class="text-xs sm:text-sm text-white/85 leading-relaxed">
+            Mặt sân acrylic giảm chấn chuyên nghiệp, thoáng mát không lo mưa nắng tại <strong>Sonasea Bãi Trường</strong>. Tận hưởng trọn gói tiện ích: cho thuê vợt xịn, tắm hồ bơi & ẩm thực sân vườn thư giãn.
+          </p>
+        </div>
+
+        <!-- Quick Pricing Badges -->
+        <div class="flex flex-wrap sm:flex-nowrap gap-3 bg-black/30 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-xs">
+          <div class="flex-1 min-w-[130px] border-r border-white/10 pr-3">
+            <div class="text-white/70 font-semibold text-[11px]">☀️ Giờ Thường (Off-Peak)</div>
+            <div class="text-base sm:text-lg font-black text-emerald-400 mt-0.5">150.000 đ<span class="text-[10px] text-white/60 font-normal">/h</span></div>
+            <div class="text-[10px] text-white/50">06:00 - 16:00 hàng ngày</div>
+          </div>
+          <div class="flex-1 min-w-[130px]">
+            <div class="text-sport-gold-light font-semibold text-[11px]">🌙 Giờ Vàng (Peak)</div>
+            <div class="text-base sm:text-lg font-black text-sport-gold mt-0.5">250.000 đ<span class="text-[10px] text-white/60 font-normal">/h</span></div>
+            <div class="text-[10px] text-white/50">16:00 - 22:00 (Bật đèn LED)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- MAIN CONTENT CONTAINER -->
+  <!-- ======================================================== -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+    <!-- ====================================================== -->
+    <!-- VIEW MODE 1: USER BOOKING FLOW (5 BƯỚC THÔNG MINH) -->
+    <!-- ====================================================== -->
+    <div id="userBookingView" class="space-y-8">
+      
+      <!-- Stepper Indicator -->
+      <div class="grid grid-cols-4 gap-2 sm:gap-4 max-w-4xl mx-auto text-center text-xs">
+        <div id="stepTab-1" class="p-2 sm:p-3 rounded-2xl bg-white border-2 border-sport-emerald text-sport-emerald font-bold shadow-xs flex items-center justify-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-sport-emerald text-white flex items-center justify-center text-[10px]">1</span>
+          <span class="truncate">Ngày & Sân</span>
+        </div>
+        <div id="stepTab-2" class="p-2 sm:p-3 rounded-2xl bg-white border border-stone-200 text-stone-500 font-semibold flex items-center justify-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-[10px]">2</span>
+          <span class="truncate">Khung Giờ</span>
+        </div>
+        <div id="stepTab-3" class="p-2 sm:p-3 rounded-2xl bg-white border border-stone-200 text-stone-500 font-semibold flex items-center justify-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-[10px]">3</span>
+          <span class="truncate">Dịch Vụ</span>
+        </div>
+        <div id="stepTab-4" class="p-2 sm:p-3 rounded-2xl bg-white border border-stone-200 text-stone-500 font-semibold flex items-center justify-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-[10px]">4</span>
+          <span class="truncate">Thanh Toán</span>
+        </div>
+      </div>
+
+      <!-- Main Two-Column Layout (Interactive Steps + Sticky Summary) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- LEFT COLUMN: Steps 1, 2, 3, 4 (8 Cols) -->
+        <div class="lg:col-span-8 space-y-8">
+
+          <!-- ---------------------------------------------------- -->
+          <!-- STEP 1: CHỌN NGÀY & CHỌN SÂN (4 SÂN CÓ MÁI CHE) -->
+          <!-- ---------------------------------------------------- -->
+          <div class="bg-white rounded-3xl p-5 sm:p-7 border border-stone-200/90 shadow-sm space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
+              <div>
+                <h2 class="text-lg font-bold text-sport-emerald-dark flex items-center gap-2">
+                  <span class="w-7 h-7 rounded-xl bg-sport-emerald text-white flex items-center justify-center text-xs">1</span>
+                  <span>Chọn Ngày & Sân Thi Đấu</span>
+                </h2>
+                <p class="text-xs text-stone-500 mt-1">Chọn ngày bạn muốn đến chơi và sân ưa thích.</p>
+              </div>
+
+              <!-- Date Picker Input & Quick Chips -->
+              <div class="flex items-center gap-2">
+                <input type="date" id="bookingDateInput" onchange="handleDateChange(this.value)" class="bg-stone-50 border border-stone-300 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-sport-emerald">
+              </div>
+            </div>
+
+            <!-- Quick Date Chips -->
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1" id="quickDateChips">
+              <!-- Rendered by JS -->
+            </div>
+
+            <!-- 4 Courts Visual Grid -->
+            <div>
+              <div class="flex items-center justify-between mb-3 text-xs">
+                <span class="font-bold text-stone-700">Chọn 1 trong 4 Sân có mái che:</span>
+                <span class="text-stone-400 text-[11px]"><i class="fa-solid fa-umbrella text-sport-emerald"></i> 100% sân có mái che kiên cố</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="courtsSelectorGrid">
+                <!-- Sân 1 -->
+                <div onclick="selectCourt(1)" id="courtCard-1" class="court-card cursor-pointer rounded-2xl p-4 border-2 border-stone-200 hover:border-sport-emerald bg-white transition-all shadow-xs relative group">
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-2.5">
+                      <span class="text-2xl">🏆</span>
+                      <div>
+                        <div class="font-bold text-sm text-stone-900 group-hover:text-sport-emerald transition">Sân 1 (Center Court)</div>
+                        <span class="text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">Sân Trung Tâm VIP</span>
+                      </div>
+                    </div>
+                    <div class="court-radio w-5 h-5 rounded-full border-2 border-stone-300 flex items-center justify-center text-xs"></div>
+                  </div>
+
+                  <!-- Mini Court Blueprint Graphic -->
+                  <div class="pb-court-blueprint h-16 w-full mb-2">
+                    <div class="pb-kitchen-zone"></div>
+                    <div class="pb-net-line"></div>
+                    <div class="pb-center-line-top"></div>
+                    <div class="pb-center-line-bottom"></div>
+                    <span class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-white/90 drop-shadow">CENTER COURT #1</span>
+                  </div>
+                  <p class="text-[11px] text-stone-500 leading-tight">Khán đài bao quanh, hệ thống đèn LED 800 Lux tiêu chuẩn giải đấu quốc tế.</p>
+                </div>
+
+                <!-- Sân 2 -->
+                <div onclick="selectCourt(2)" id="courtCard-2" class="court-card cursor-pointer rounded-2xl p-4 border-2 border-stone-200 hover:border-sport-emerald bg-white transition-all shadow-xs relative group">
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-2.5">
+                      <span class="text-2xl">⚡</span>
+                      <div>
+                        <div class="font-bold text-sm text-stone-900 group-hover:text-sport-emerald transition">Sân 2 (Covered Court)</div>
+                        <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">Mái Che Thoáng Mát</span>
+                      </div>
+                    </div>
+                    <div class="court-radio w-5 h-5 rounded-full border-2 border-stone-300 flex items-center justify-center text-xs"></div>
+                  </div>
+
+                  <div class="pb-court-blueprint h-16 w-full mb-2 bg-blue-800">
+                    <div class="pb-kitchen-zone"></div>
+                    <div class="pb-net-line"></div>
+                    <div class="pb-center-line-top"></div>
+                    <div class="pb-center-line-bottom"></div>
+                    <span class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-white/90 drop-shadow">COURT #2</span>
+                  </div>
+                  <p class="text-[11px] text-stone-500 leading-tight">Mặt sân sơn cao su acrylic 5 lớp giảm chấn, bảo vệ khớp gối tối đa.</p>
+                </div>
+
+                <!-- Sân 3 -->
+                <div onclick="selectCourt(3)" id="courtCard-3" class="court-card cursor-pointer rounded-2xl p-4 border-2 border-stone-200 hover:border-sport-emerald bg-white transition-all shadow-xs relative group">
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-2.5">
+                      <span class="text-2xl">🎾</span>
+                      <div>
+                        <div class="font-bold text-sm text-stone-900 group-hover:text-sport-emerald transition">Sân 3 (Covered Court)</div>
+                        <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">Mái Che Thoáng Mát</span>
+                      </div>
+                    </div>
+                    <div class="court-radio w-5 h-5 rounded-full border-2 border-stone-300 flex items-center justify-center text-xs"></div>
+                  </div>
+
+                  <div class="pb-court-blueprint h-16 w-full mb-2 bg-blue-800">
+                    <div class="pb-kitchen-zone"></div>
+                    <div class="pb-net-line"></div>
+                    <div class="pb-center-line-top"></div>
+                    <div class="pb-center-line-bottom"></div>
+                    <span class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-white/90 drop-shadow">COURT #3</span>
+                  </div>
+                  <p class="text-[11px] text-stone-500 leading-tight">Liền kề hàng cây nhiệt đới, hướng gió tự nhiên đối lưu cực mát mẻ.</p>
+                </div>
+
+                <!-- Sân 4 -->
+                <div onclick="selectCourt(4)" id="courtCard-4" class="court-card cursor-pointer rounded-2xl p-4 border-2 border-stone-200 hover:border-sport-emerald bg-white transition-all shadow-xs relative group">
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-2.5">
+                      <span class="text-2xl">🏊</span>
+                      <div>
+                        <div class="font-bold text-sm text-stone-900 group-hover:text-sport-emerald transition">Sân 4 (Poolside View)</div>
+                        <span class="text-[10px] font-extrabold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">Gần Hồ Bơi & Bar</span>
+                      </div>
+                    </div>
+                    <div class="court-radio w-5 h-5 rounded-full border-2 border-stone-300 flex items-center justify-center text-xs"></div>
+                  </div>
+
+                  <div class="pb-court-blueprint h-16 w-full mb-2 bg-sky-900">
+                    <div class="pb-kitchen-zone"></div>
+                    <div class="pb-net-line"></div>
+                    <div class="pb-center-line-top"></div>
+                    <div class="pb-center-line-bottom"></div>
+                    <span class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-white/90 drop-shadow">COURT #4 (POOLSIDE)</span>
+                  </div>
+                  <p class="text-[11px] text-stone-500 leading-tight">Gần hồ bơi trung tâm và quầy Pool Bar, view thoáng đãng tuyệt đẹp.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ---------------------------------------------------- -->
+          <!-- STEP 2: MA TRẬN KHUNG GIỜ (06:00 - 22:00) -->
+          <!-- ---------------------------------------------------- -->
+          <div class="bg-white rounded-3xl p-5 sm:p-7 border border-stone-200/90 shadow-sm space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-stone-100">
+              <div>
+                <h2 class="text-lg font-bold text-sport-emerald-dark flex items-center gap-2">
+                  <span class="w-7 h-7 rounded-xl bg-sport-emerald text-white flex items-center justify-center text-xs">2</span>
+                  <span>Chọn Khung Giờ Thi Đấu</span>
+                </h2>
+                <p class="text-xs text-stone-500 mt-1">Bấm chọn 1 hoặc nhiều khung giờ liên tiếp (60 phút / ca).</p>
+              </div>
+
+              <!-- Status Legend -->
+              <div class="flex items-center gap-3 text-[11px]">
+                <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-emerald-500"></span> <span>Còn trống</span></div>
+                <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-amber-400"></span> <span>Đang chọn</span></div>
+                <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-stone-300"></span> <span>Đã đặt</span></div>
+              </div>
+            </div>
+
+            <!-- Slots Grid (16 Khung Giờ) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3" id="timeSlotsGrid">
+              <!-- Rendered by JS -->
+            </div>
+
+            <!-- Selected Slots Alert Banner -->
+            <div id="selectedSlotsAlert" class="hidden p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs flex items-center justify-between">
+              <div class="flex items-center gap-2 text-emerald-900 font-bold">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                <span id="selectedSlotsCountText">Đã chọn 0 khung giờ</span>
+              </div>
+              <span id="selectedSlotsCourtFeeText" class="font-extrabold text-emerald-700">0 đ</span>
+            </div>
+          </div>
+
+          <!-- ---------------------------------------------------- -->
+          <!-- STEP 3: DỊCH VỤ BỔ SUNG (ADD-ONS) -->
+          <!-- ---------------------------------------------------- -->
+          <div class="bg-white rounded-3xl p-5 sm:p-7 border border-stone-200/90 shadow-sm space-y-6">
+            <div class="pb-4 border-b border-stone-100">
+              <h2 class="text-lg font-bold text-sport-emerald-dark flex items-center gap-2">
+                <span class="w-7 h-7 rounded-xl bg-sport-emerald text-white flex items-center justify-center text-xs">3</span>
+                <span>Dịch Vụ & Tiện Ích Bổ Sung (Add-ons)</span>
+              </h2>
+              <p class="text-xs text-stone-500 mt-1">Trang bị sẵn dụng cụ cao cấp và tiện ích thư giãn tại resort.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Addon 1: Thuê vợt -->
+              <div class="p-4 rounded-2xl border border-stone-200 hover:border-sport-emerald/50 bg-stone-50/50 flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3">
+                  <span class="text-2xl mt-0.5">🎾</span>
+                  <div>
+                    <div class="font-bold text-xs text-stone-900">Thuê Vợt Pickleball Cao Cấp</div>
+                    <div class="text-[11px] text-sport-emerald font-extrabold mt-0.5">+50.000 đ <span class="text-stone-400 font-normal">/cây</span></div>
+                    <div class="text-[10px] text-stone-500 mt-1">Vợt carbon T700 mặt nhám chuẩn USAPA.</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 bg-white rounded-xl border border-stone-200 p-1">
+                  <button type="button" onclick="changeAddonQty('racket', -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs">-</button>
+                  <span id="addonQty-racket" class="w-5 text-center font-bold text-xs">0</span>
+                  <button type="button" onclick="changeAddonQty('racket', 1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs">+</button>
+                </div>
+              </div>
+
+              <!-- Addon 2: Mua bóng thi đấu -->
+              <div class="p-4 rounded-2xl border border-stone-200 hover:border-sport-emerald/50 bg-stone-50/50 flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3">
+                  <span class="text-2xl mt-0.5">🥎</span>
+                  <div>
+                    <div class="font-bold text-xs text-stone-900">Mua Bóng Thi Đấu 40 Lỗ</div>
+                    <div class="text-[11px] text-sport-emerald font-extrabold mt-0.5">+30.000 đ <span class="text-stone-400 font-normal">/quả</span></div>
+                    <div class="text-[10px] text-stone-500 mt-1">Bóng vàng chanh ngoài trời nảy chuẩn.</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 bg-white rounded-xl border border-stone-200 p-1">
+                  <button type="button" onclick="changeAddonQty('ball', -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs">-</button>
+                  <span id="addonQty-ball" class="w-5 text-center font-bold text-xs">0</span>
+                  <button type="button" onclick="changeAddonQty('ball', 1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs">+</button>
+                </div>
+              </div>
+
+              <!-- Addon 3: Combo Nước dừa & tắm hồ bơi -->
+              <div class="p-4 rounded-2xl border border-stone-200 hover:border-sport-emerald/50 bg-stone-50/50 flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3">
+                  <span class="text-2xl mt-0.5">🥥</span>
+                  <div>
+                    <div class="font-bold text-xs text-stone-900">Combo Nước Dừa & Tắm Hồ Bơi</div>
+                    <div class="text-[11px] text-sport-emerald font-extrabold mt-0.5">+60.000 đ <span class="text-stone-400 font-normal">/người</span></div>
+                    <div class="text-[10px] text-stone-500 mt-1">01 quả dừa xiêm ướp lạnh + vé bơi & khăn tắm.</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 bg-white rounded-xl border border-stone-200 p-1">
+                  <button type="button" onclick="changeAddonQty('pool_combo', -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs">-</button>
+                  <span id="addonQty-pool_combo" class="w-5 text-center font-bold text-xs">0</span>
+                  <button type="button" onclick="changeAddonQty('pool_combo', 1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs">+</button>
+                </div>
+              </div>
+
+              <!-- Addon 4: Đặt bàn ăn sau trận (Free) -->
+              <div class="p-4 rounded-2xl border border-stone-200 hover:border-sport-emerald/50 bg-stone-50/50 flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3">
+                  <span class="text-2xl mt-0.5">🍽️</span>
+                  <div>
+                    <div class="font-bold text-xs text-stone-900">Đặt Bàn Ăn Sau Trận Tại PiPo Garden</div>
+                    <div class="text-[11px] text-emerald-700 font-extrabold mt-0.5">Miễn phí giữ chỗ (0 đ)</div>
+                    <div class="text-[10px] text-stone-500 mt-1">Bàn sân vườn bờ hồ, bếp chuẩn bị sẵn món.</div>
+                  </div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer mt-1">
+                  <input type="checkbox" id="addonDiningCheckbox" onchange="toggleDiningReservation(this.checked)" class="sr-only peer">
+                  <div class="w-11 h-6 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sport-emerald"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- ---------------------------------------------------- -->
+          <!-- STEP 4: THÔNG TIN KHÁCH HÀNG & GHI CHÚ -->
+          <!-- ---------------------------------------------------- -->
+          <div class="bg-white rounded-3xl p-5 sm:p-7 border border-stone-200/90 shadow-sm space-y-6">
+            <div class="pb-4 border-b border-stone-100">
+              <h2 class="text-lg font-bold text-sport-emerald-dark flex items-center gap-2">
+                <span class="w-7 h-7 rounded-xl bg-sport-emerald text-white flex items-center justify-center text-xs">4</span>
+                <span>Thông Tin Người Đặt Sân</span>
+              </h2>
+              <p class="text-xs text-stone-500 mt-1">Thông tin dùng để gửi vé QR và xác nhận lịch đặt sân.</p>
+            </div>
+
+            <form id="pickleballBookingForm" onsubmit="handleBookingSubmit(event)" class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-stone-700 mb-1.5">Họ và Tên Quý Khách *</label>
+                  <input type="text" id="custName" required placeholder="Ví dụ: Nguyễn Văn Tuấn" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-xs text-stone-900 font-medium focus:outline-none focus:ring-2 focus:ring-sport-emerald focus:bg-white">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-stone-700 mb-1.5">Số Điện Thoại (Zalo) *</label>
+                  <input type="tel" id="custPhone" required placeholder="Ví dụ: 0912 345 678" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-xs text-stone-900 font-medium focus:outline-none focus:ring-2 focus:ring-sport-emerald focus:bg-white">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-stone-700 mb-1.5">Địa chỉ Email (Nhận vé điện tử)</label>
+                  <input type="email" id="custEmail" placeholder="tuan.nguyen@example.com" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-xs text-stone-900 font-medium focus:outline-none focus:ring-2 focus:ring-sport-emerald focus:bg-white">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-stone-700 mb-1.5">Ghi Chú Đặc Biệt (Tùy chọn)</label>
+                  <input type="text" id="custNotes" placeholder="Cần chuẩn bị sân giao lưu, mượn bóng tập..." class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-xs text-stone-900 font-medium focus:outline-none focus:ring-2 focus:ring-sport-emerald focus:bg-white">
+                </div>
+              </div>
+            </form>
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: STICKY BOOKING SUMMARY & VIETQR PANEL (4 Cols) -->
+        <div class="lg:col-span-4 sticky top-24 space-y-4">
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border-2 border-sport-emerald/30 shadow-xl space-y-5">
+            <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+              <h3 class="font-serif font-black text-base text-sport-emerald-dark flex items-center gap-2">
+                <i class="fa-solid fa-receipt text-sport-gold"></i>
+                <span>Tóm Tắt Đặt Sân</span>
+              </h3>
+              <span id="summaryDateBadge" class="text-[11px] font-mono font-bold bg-stone-100 px-2 py-0.5 rounded-md text-stone-600">Hôm nay</span>
+            </div>
+
+            <!-- Summary Details -->
+            <div class="space-y-3 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-stone-500">Sân Đã Chọn:</span>
+                <span id="summaryCourtName" class="font-bold text-stone-900">Sân 1 (Center Court)</span>
+              </div>
+
+              <div class="flex items-start justify-between">
+                <span class="text-stone-500">Khung Giờ:</span>
+                <div id="summarySlotsList" class="text-right font-medium text-stone-800">Chưa chọn giờ</div>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-stone-500">Tiền Thuê Sân:</span>
+                <span id="summaryCourtFee" class="font-bold text-stone-900">0 đ</span>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-stone-500">Dịch Vụ Bổ Sung:</span>
+                <span id="summaryAddonsFee" class="font-bold text-stone-900">0 đ</span>
+              </div>
+
+              <div class="pt-3 border-t border-stone-200 flex items-center justify-between text-sm">
+                <span class="font-bold text-stone-800">Tổng Chi Phí:</span>
+                <span id="summaryTotalFee" class="font-black text-base text-sport-emerald">0 đ</span>
+              </div>
+            </div>
+
+            <!-- Deposit Percentage Selector (50% or 100%) -->
+            <div class="pt-3 border-t border-stone-100 space-y-2">
+              <label class="block text-xs font-bold text-stone-700">Hình Thức Đặt Cọc Giữ Sân:</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="setDepositPct(50)" id="btnDeposit50" class="p-2 rounded-xl border-2 border-sport-emerald bg-sport-emerald/5 text-sport-emerald font-bold text-xs transition">
+                  <div>Đặt Cọc 50%</div>
+                  <div class="text-[10px] text-stone-500 font-normal">Thanh toán nốt tại sân</div>
+                </button>
+                <button type="button" onclick="setDepositPct(100)" id="btnDeposit100" class="p-2 rounded-xl border-2 border-stone-200 text-stone-600 font-bold text-xs transition hover:border-sport-emerald">
+                  <div>Trả Đủ 100%</div>
+                  <div class="text-[10px] text-stone-500 font-normal">Check-in vào sân ngay</div>
+                </button>
+              </div>
+
+              <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center justify-between text-xs mt-3">
+                <span class="font-bold text-amber-900">Số Tiền Cần Chuyển:</span>
+                <span id="summaryDepositFee" class="text-base font-black text-amber-700">0 đ</span>
+              </div>
+            </div>
+
+            <!-- CTA SUBMIT BUTTON -->
+            <button type="button" onclick="document.getElementById('pickleballBookingForm').requestSubmit()" id="btnSubmitBooking" class="w-full gold-gradient text-sport-emerald-dark font-black text-sm py-3.5 px-4 rounded-2xl transition shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-qrcode text-base"></i>
+              <span>Xác Nhận & Xuất Vé VietQR</span>
+            </button>
+
+            <div class="text-center text-[10px] text-stone-400">
+              <i class="fa-solid fa-shield-halved text-emerald-600"></i> Cam kết hoàn cọc 100% nếu hủy trước 4 tiếng.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ====================================================== -->
+    <!-- VIEW MODE 2: ADMIN / CASHIER CALENDAR MATRIX VIEW -->
+    <!-- ====================================================== -->
+    <div id="adminCalendarView" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border border-stone-200 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold mb-1">
+              <i class="fa-solid fa-lock text-xs"></i>
+              <span>QUẢN TRỊ VIÊN & THU NGÂN POS</span>
+            </div>
+            <h2 class="text-xl font-black text-stone-900">Lịch Hoạt Động & Khách Đặt 4 Sân Pickleball</h2>
+            <p class="text-xs text-stone-500">Xem toàn cảnh ma trận 16 khung giờ và tình trạng thanh toán của từng sân.</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <input type="date" id="adminDateInput" onchange="loadAdminMatrix(this.value)" class="bg-stone-50 border border-stone-300 rounded-xl px-3 py-2 text-xs font-bold text-stone-800">
+            <button onclick="loadAdminMatrix()" class="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-arrows-rotate"></i>
+              <span>Làm Mới</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Full Matrix Table -->
+        <div class="overflow-x-auto no-scrollbar">
+          <table class="w-full text-xs text-left border-collapse min-w-[700px]">
+            <thead>
+              <tr class="bg-stone-100 text-stone-700 uppercase text-[10px] font-black border-b border-stone-200">
+                <th class="p-3">Khung Giờ</th>
+                <th class="p-3 text-center">Sân 1 (Center Court)</th>
+                <th class="p-3 text-center">Sân 2 (Covered)</th>
+                <th class="p-3 text-center">Sân 3 (Covered)</th>
+                <th class="p-3 text-center">Sân 4 (Poolside)</th>
+              </tr>
+            </thead>
+            <tbody id="adminMatrixBody" class="divide-y divide-stone-100">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: DIGITAL QR TICKET & VIETQR PAYMENT VOUCHER -->
+  <!-- ======================================================== -->
+  <div id="bookingVoucherModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-6 relative animate-in zoom-in-95 duration-200">
+      
+      <button onclick="closeVoucherModal()" class="absolute top-4 right-4 text-stone-400 hover:text-stone-700 p-2 text-lg"><i class="fa-solid fa-xmark"></i></button>
+
+      <!-- Voucher Header -->
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl mx-auto mb-2">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h3 class="font-serif font-black text-xl text-stone-900">Đặt Sân Thành Công!</h3>
+        <p class="text-xs text-stone-500">Vui lòng quét mã VietQR để hoàn tất đặt cọc và xuất trình vé khi đến sân.</p>
+      </div>
+
+      <!-- Ticket Card -->
+      <div class="bg-stone-50 border-2 border-dashed border-stone-300 rounded-3xl p-5 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-stone-200">
+          <div>
+            <div class="text-[10px] text-stone-400 font-bold uppercase">Mã Vé Đặt Sân</div>
+            <div id="ticketCode" class="font-mono font-black text-base text-sport-emerald">PB-261015-8942</div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]" id="ticketPaymentBadge">Chờ chuyển cọc 50%</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <div class="text-stone-400 text-[10px]">Sân Thi Đấu</div>
+            <div id="ticketCourt" class="font-bold text-stone-900">Sân 1 (Center Court)</div>
+          </div>
+          <div>
+            <div class="text-stone-400 text-[10px]">Ngày Thi Đấu</div>
+            <div id="ticketDate" class="font-bold text-stone-900">15/10/2026</div>
+          </div>
+          <div class="col-span-2">
+            <div class="text-stone-400 text-[10px]">Khung Giờ</div>
+            <div id="ticketSlots" class="font-bold text-sport-blue">17:00 - 18:00 (1 giờ)</div>
+          </div>
+        </div>
+
+        <!-- VietQR & Check-in QR Tabs -->
+        <div class="pt-3 border-t border-stone-200 text-center space-y-3">
+          <div class="text-xs font-bold text-stone-700">Mã VietQR Chuyển Khoản Đặt Cọc:</div>
+          
+          <div class="bg-white p-3 rounded-2xl shadow-sm border border-stone-200 inline-block">
+            <img id="ticketVietQrImg" src="" alt="Mã VietQR" class="w-48 h-48 mx-auto object-contain">
+          </div>
+
+          <!-- Bank Transfer Text Details -->
+          <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 text-xs text-left space-y-1">
+            <div class="flex justify-between">
+              <span class="text-stone-500">Ngân hàng:</span>
+              <span class="font-bold text-stone-900">MB Bank (Quân Đội)</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-stone-500">Số tài khoản:</span>
+              <span class="font-mono font-bold text-stone-900 flex items-center gap-1">0838993316 <button onclick="navigator.clipboard.writeText('0838993316'); alert('Đã sao chép STK!');" class="text-sport-emerald hover:underline text-[10px]"><i class="fa-regular fa-copy"></i></button></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-stone-500">Chủ tài khoản:</span>
+              <span class="font-bold text-stone-900">PIPO GARDEN RESORT</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-stone-500">Số tiền cọc:</span>
+              <span id="ticketDepositAmount" class="font-black text-amber-700">125.000 đ</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-stone-500">Nội dung CK:</span>
+              <span id="ticketMemo" class="font-mono font-bold text-sport-emerald">PIPO 0838993316</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid grid-cols-2 gap-3">
+        <a id="btnZaloReminder" href="https://zalo.me/0838993316" target="_blank" class="p-3 rounded-2xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
+          <i class="fa-solid fa-comment-dots"></i>
+          <span>Báo Quản Lý Zalo</span>
+        </a>
+        <a href="https://maps.google.com/?q=Sonasea+Villas+%26+Resort,+Phú+Quốc" target="_blank" class="p-3 rounded-2xl bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
+          <i class="fa-solid fa-location-arrow"></i>
+          <span>Chỉ Đường Maps</span>
+        </a>
+      </div>
+
+      <button onclick="closeVoucherModal()" class="w-full py-2.5 rounded-xl border border-stone-200 text-xs font-bold text-stone-600 hover:bg-stone-50 transition">
+        Đóng Cửa Sổ
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- JAVASCRIPT STATE & INTERACTIVITY -->
+  <!-- ======================================================== -->
+  <script>
+    // State
+    let currentDate = new Date().toISOString().split("T")[0];
+    let selectedCourtId = 1;
+    let selectedSlots = [];
+    let addonsState = {
+      racket: 0,
+      ball: 0,
+      pool_combo: 0,
+      dining: false
+    };
+    let depositPercentage = 50;
+    let cachedSlotsData = null;
+    let currentViewMode = 'user'; // 'user' or 'admin'
+
+    const ADDON_PRICES = {
+      racket: 50000,
+      ball: 30000,
+      pool_combo: 60000,
+      dining: 0
+    };
+
+    const COURT_NAMES = {
+      1: "Sân 1 (Center Court)",
+      2: "Sân 2 (Covered Court)",
+      3: "Sân 3 (Covered Court)",
+      4: "Sân 4 (Poolside View)"
+    };
+
+    // 1. Khởi tạo khi tải trang
+    document.addEventListener("DOMContentLoaded", () => {
+      initDatePickers();
+      loadSlotsForDate(currentDate);
+    });
+
+    function initDatePickers() {
+      const dateInput = document.getElementById("bookingDateInput");
+      const adminDate = document.getElementById("adminDateInput");
+      if (dateInput) {
+        dateInput.value = currentDate;
+        dateInput.min = currentDate;
+      }
+      if (adminDate) {
+        adminDate.value = currentDate;
+      }
+      renderQuickDateChips();
+    }
+
+    function renderQuickDateChips() {
+      const container = document.getElementById("quickDateChips");
+      if (!container) return;
+
+      const chips = [];
+      const today = new Date();
+      for (let i = 0; i < 5; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
+        const iso = d.toISOString().split("T")[0];
+        const label = i === 0 ? "Hôm nay" : (i === 1 ? "Ngày mai" : `Th ${d.getDay() + 1 || 7} (${d.getDate()}/${d.getMonth() + 1})`);
+        chips.push({ iso, label });
+      }
+
+      container.innerHTML = chips.map(c => `
+        <button type="button" onclick="handleDateChange('${c.iso}')" class="date-chip px-3 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap ${c.iso === currentDate ? 'bg-sport-emerald text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}">
+          ${c.label}
+        </button>
+      `).join('');
+    }
+
+    function handleDateChange(newDate) {
+      currentDate = newDate;
+      const dateInput = document.getElementById("bookingDateInput");
+      const adminDate = document.getElementById("adminDateInput");
+      if (dateInput) dateInput.value = currentDate;
+      if (adminDate) adminDate.value = currentDate;
+
+      const summaryDate = document.getElementById("summaryDateBadge");
+      if (summaryDate) summaryDate.innerText = currentDate;
+
+      selectedSlots = [];
+      renderQuickDateChips();
+      loadSlotsForDate(currentDate);
+      if (currentViewMode === 'admin') {
+        loadAdminMatrix(currentDate);
+      }
+    }
+
+    // 2. Chuyển đổi qua lại giữa Sân 1, 2, 3, 4
+    function selectCourt(courtId) {
+      selectedCourtId = courtId;
+      selectedSlots = [];
+
+      for (let i = 1; i <= 4; i++) {
+        const card = document.getElementById(`courtCard-${i}`);
+        if (!card) continue;
+        const radio = card.querySelector(".court-radio");
+        if (i === courtId) {
+          card.className = "court-card cursor-pointer rounded-2xl p-4 border-2 border-sport-emerald bg-sport-emerald/5 ring-2 ring-sport-emerald/20 transition-all shadow-md relative";
+          if (radio) {
+            radio.className = "court-radio w-5 h-5 rounded-full border-2 border-sport-emerald bg-sport-emerald text-white flex items-center justify-center text-xs";
+            radio.innerHTML = `<i class="fa-solid fa-check text-[10px]"></i>`;
+          }
+        } else {
+          card.className = "court-card cursor-pointer rounded-2xl p-4 border-2 border-stone-200 hover:border-sport-emerald bg-white transition-all shadow-xs relative group";
+          if (radio) {
+            radio.className = "court-radio w-5 h-5 rounded-full border-2 border-stone-300 flex items-center justify-center text-xs";
+            radio.innerHTML = "";
+          }
+        }
+      }
+
+      document.getElementById("summaryCourtName").innerText = COURT_NAMES[courtId] || `Sân ${courtId}`;
+      renderTimeSlotsGrid();
+      updateSummaryPanel();
+    }
+
+    // 3. Tải danh sách Slot trống từ Backend
+    async function loadSlotsForDate(date) {
+      try {
+        const res = await fetch(`/api/pickleball/slots?date=${date}`);
+        const data = await res.json();
+        if (res.ok) {
+          cachedSlotsData = data;
+          renderTimeSlotsGrid();
+        }
+      } catch (e) {
+        console.error("Lỗi tải slots", e);
+      }
+    }
+
+    // 4. Render Ma trận 16 Khung Giờ
+    function renderTimeSlotsGrid() {
+      const container = document.getElementById("timeSlotsGrid");
+      if (!container || !cachedSlotsData) return;
+
+      const currentCourtData = cachedSlotsData.courts.find(c => c.court_id === selectedCourtId);
+      if (!currentCourtData) return;
+
+      container.innerHTML = currentCourtData.slots.map(s => {
+        const isSelected = selectedSlots.includes(s.slot);
+        const isBooked = s.status === 'BOOKED';
+
+        let btnClass = "p-3 rounded-2xl border-2 text-left transition flex flex-col justify-between h-20 ";
+        let badgeHtml = "";
+        let priceText = s.price.toLocaleString("vi-VN") + " đ";
+
+        if (isBooked) {
+          btnClass += "bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed opacity-60";
+          badgeHtml = `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-stone-200 text-stone-500">Đã Đặt</span>`;
+        } else if (isSelected) {
+          btnClass += "bg-amber-500 border-amber-600 text-stone-900 shadow-md ring-2 ring-amber-300 transform scale-[1.02]";
+          badgeHtml = `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-black/80 text-amber-300">Đang Chọn</span>`;
+        } else {
+          btnClass += "bg-emerald-50/50 border-emerald-300/70 hover:border-emerald-600 hover:bg-emerald-100/50 text-stone-800 cursor-pointer shadow-2xs";
+          badgeHtml = s.is_peak 
+            ? `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Giờ Vàng</span>`
+            : `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Off-Peak</span>`;
+        }
+
+        const clickHandler = isBooked ? "" : `onclick="toggleTimeSlot('${s.slot}')"`;
+
+        return `
+          <button type="button" ${clickHandler} class="${btnClass}">
+            <div class="flex items-center justify-between w-full">
+              <span class="font-mono font-bold text-xs leading-none">${s.slot}</span>
+              ${badgeHtml}
+            </div>
+            <div class="flex items-baseline justify-between w-full">
+              <span class="text-[10px] text-stone-500">${s.period}</span>
+              <span class="text-xs font-black ${isSelected ? 'text-black' : (s.is_peak ? 'text-amber-800' : 'text-emerald-700')}">${priceText}</span>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    // 5. Chọn / Bỏ chọn Khung Giờ
+    function toggleTimeSlot(slotName) {
+      if (selectedSlots.includes(slotName)) {
+        selectedSlots = selectedSlots.filter(s => s !== slotName);
+      } else {
+        selectedSlots.push(slotName);
+      }
+      renderTimeSlotsGrid();
+      updateSummaryPanel();
+    }
+
+    // 6. Tăng / Giảm dịch vụ bổ sung
+    function changeAddonQty(addonKey, delta) {
+      addonsState[addonKey] = Math.max(0, (addonsState[addonKey] || 0) + delta);
+      const qtyEl = document.getElementById(`addonQty-${addonKey}`);
+      if (qtyEl) qtyEl.innerText = addonsState[addonKey];
+      updateSummaryPanel();
+    }
+
+    function toggleDiningReservation(checked) {
+      addonsState.dining = checked;
+      updateSummaryPanel();
+    }
+
+    function setDepositPct(pct) {
+      depositPercentage = pct;
+      const b50 = document.getElementById("btnDeposit50");
+      const b100 = document.getElementById("btnDeposit100");
+      if (pct === 50) {
+        b50.className = "p-2 rounded-xl border-2 border-sport-emerald bg-sport-emerald/5 text-sport-emerald font-bold text-xs transition";
+        b100.className = "p-2 rounded-xl border-2 border-stone-200 text-stone-600 font-bold text-xs transition hover:border-sport-emerald";
+      } else {
+        b100.className = "p-2 rounded-xl border-2 border-sport-emerald bg-sport-emerald/5 text-sport-emerald font-bold text-xs transition";
+        b50.className = "p-2 rounded-xl border-2 border-stone-200 text-stone-600 font-bold text-xs transition hover:border-sport-emerald";
+      }
+      updateSummaryPanel();
+    }
+
+    // 7. Cập nhật Panel Tóm Tắt Chi Phí & Cọc
+    function updateSummaryPanel() {
+      let courtFee = 0;
+      if (cachedSlotsData) {
+        const cData = cachedSlotsData.courts.find(c => c.court_id === selectedCourtId);
+        if (cData) {
+          cData.slots.forEach(s => {
+            if (selectedSlots.includes(s.slot)) {
+              courtFee += s.price;
+            }
+          });
+        }
+      }
+
+      let addonsFee = 0;
+      addonsFee += (addonsState.racket || 0) * ADDON_PRICES.racket;
+      addonsFee += (addonsState.ball || 0) * ADDON_PRICES.ball;
+      addonsFee += (addonsState.pool_combo || 0) * ADDON_PRICES.pool_combo;
+
+      const totalFee = courtFee + addonsFee;
+      const depositFee = Math.round(totalFee * (depositPercentage / 100));
+
+      // Update UI elements
+      const slotsContainer = document.getElementById("summarySlotsList");
+      if (selectedSlots.length === 0) {
+        slotsContainer.innerHTML = `<span class="text-stone-400 italic">Chưa chọn giờ</span>`;
+      } else {
+        slotsContainer.innerHTML = selectedSlots.map(s => `<div class="font-bold text-sport-blue">${s}</div>`).join('');
+      }
+
+      document.getElementById("summaryCourtFee").innerText = courtFee.toLocaleString("vi-VN") + " đ";
+      document.getElementById("summaryAddonsFee").innerText = addonsFee.toLocaleString("vi-VN") + " đ";
+      document.getElementById("summaryTotalFee").innerText = totalFee.toLocaleString("vi-VN") + " đ";
+      document.getElementById("summaryDepositFee").innerText = depositFee.toLocaleString("vi-VN") + " đ";
+
+      // Alert bar
+      const alertBox = document.getElementById("selectedSlotsAlert");
+      if (selectedSlots.length > 0) {
+        alertBox.classList.remove("hidden");
+        document.getElementById("selectedSlotsCountText").innerText = `Đã chọn ${selectedSlots.length} khung giờ (${COURT_NAMES[selectedCourtId]})`;
+        document.getElementById("selectedSlotsCourtFeeText").innerText = courtFee.toLocaleString("vi-VN") + " đ";
+      } else {
+        alertBox.classList.add("hidden");
+      }
+    }
+
+    // 8. Gửi yêu cầu đặt sân & Hiển thị vé điện tử VietQR
+    async function handleBookingSubmit(e) {
+      e.preventDefault();
+      if (selectedSlots.length === 0) {
+        alert("⚠️ Vui lòng chọn ít nhất 01 khung giờ thi đấu!");
+        return;
+      }
+
+      const name = document.getElementById("custName").value.trim();
+      const phone = document.getElementById("custPhone").value.trim();
+      const email = document.getElementById("custEmail").value.trim();
+      const notes = document.getElementById("custNotes").value.trim();
+
+      const btn = document.getElementById("btnSubmitBooking");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang khởi tạo vé QR...`;
+
+      const addonsPayload = [];
+      if (addonsState.racket > 0) addonsPayload.push({ id: "racket", name: "Thuê vợt cao cấp", price: 50000, quantity: addonsState.racket });
+      if (addonsState.ball > 0) addonsPayload.push({ id: "ball", name: "Mua bóng thi đấu", price: 30000, quantity: addonsState.ball });
+      if (addonsState.pool_combo > 0) addonsPayload.push({ id: "pool_combo", name: "Combo Nước dừa & Tắm hồ bơi", price: 60000, quantity: addonsState.pool_combo });
+
+      const payload = {
+        customer_name: name,
+        phone: phone,
+        email: email,
+        booking_date: currentDate,
+        court_id: selectedCourtId,
+        time_slots: selectedSlots,
+        addons: addonsPayload,
+        deposit_percentage: depositPercentage,
+        dining_reservation: addonsState.dining,
+        notes: notes
+      };
+
+      try {
+        const res = await fetch("/api/pickleball/bookings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          showVoucherModal(data);
+          loadSlotsForDate(currentDate);
+        } else {
+          alert("❌ " + (data.detail || "Không thể đặt sân."));
+        }
+      } catch (err) {
+        alert("Lỗi kết nối máy chủ. Vui lòng thử lại!");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-qrcode text-base"></i> <span>Xác Nhận & Xuất Vé VietQR</span>`;
+      }
+    }
+
+    function showVoucherModal(resData) {
+      const b = resData.booking;
+      const p = resData.payment;
+      const t = resData.ticket;
+
+      document.getElementById("ticketCode").innerText = t.booking_code;
+      document.getElementById("ticketCourt").innerText = t.court_name;
+      document.getElementById("ticketDate").innerText = t.date;
+      document.getElementById("ticketSlots").innerText = t.time_slots.join(", ");
+      document.getElementById("ticketDepositAmount").innerText = p.deposit_amount.toLocaleString("vi-VN") + " đ";
+      document.getElementById("ticketMemo").innerText = p.memo_syntax;
+      document.getElementById("ticketVietQrImg").src = p.vietqr_url;
+
+      const badge = document.getElementById("ticketPaymentBadge");
+      badge.innerText = `Chờ cọc ${p.deposit_percentage}% (${p.deposit_amount.toLocaleString('vi-VN')} đ)`;
+
+      const zaloBtn = document.getElementById("btnZaloReminder");
+      if (zaloBtn) {
+        zaloBtn.href = `https://zalo.me/0838993316?text=${encodeURIComponent(`Chào PiPo Garden, tôi vừa đặt sân Pickleball mã ${t.booking_code} ngày ${t.date} khung giờ ${t.time_slots.join(', ')}.`)}`;
+      }
+
+      document.getElementById("bookingVoucherModal").classList.remove("hidden");
+    }
+
+    function closeVoucherModal() {
+      document.getElementById("bookingVoucherModal").classList.add("hidden");
+    }
+
+    // 9. CHUYỂN ĐỔI CHẾ ĐỘ VIEW (Khách Hàng vs Admin Calendar Matrix)
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      const uView = document.getElementById("userBookingView");
+      const aView = document.getElementById("adminCalendarView");
+      const btnU = document.getElementById("btnViewUser");
+      const btnA = document.getElementById("btnViewAdmin");
+
+      if (mode === 'user') {
+        uView.classList.remove("hidden");
+        aView.classList.add("hidden");
+        btnU.className = "px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-sport-gold text-sport-emerald-dark shadow-sm";
+        btnA.className = "px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 text-white/80 hover:text-white";
+      } else {
+        uView.classList.add("hidden");
+        aView.classList.remove("hidden");
+        btnA.className = "px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-sport-gold text-sport-emerald-dark shadow-sm";
+        btnU.className = "px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 text-white/80 hover:text-white";
+        loadAdminMatrix(currentDate);
+      }
+    }
+
+    // 10. Tải ma trận quản trị 4 sân x 16 khung giờ
+    async function loadAdminMatrix(date) {
+      const targetDate = date || currentDate;
+      try {
+        const res = await fetch(`/api/pickleball/slots?date=${targetDate}`);
+        const data = await res.json();
+        if (!res.ok) return;
+
+        const tbody = document.getElementById("adminMatrixBody");
+        if (!tbody) return;
+
+        const baseSlots = data.courts[0].slots;
+        tbody.innerHTML = baseSlots.map((base, idx) => {
+          return `
+            <tr class="hover:bg-stone-50 transition">
+              <td class="p-3 font-mono font-bold text-stone-800 bg-stone-50 border-r border-stone-200">
+                ${base.slot}
+                <div class="text-[10px] text-stone-400 font-sans font-normal">${base.is_peak ? '🌙 Giờ Vàng' : '☀️ Off-Peak'}</div>
+              </td>
+              ${[1, 2, 3, 4].map(cId => {
+                const cData = data.courts.find(c => c.court_id === cId);
+                const s = cData ? cData.slots[idx] : null;
+                if (!s) return `<td class="p-2 text-center">-</td>`;
+
+                if (s.status === 'BOOKED') {
+                  return `
+                    <td class="p-2 text-center bg-rose-50/70 border border-rose-200">
+                      <div class="font-bold text-rose-900">${s.booking_info ? s.booking_info.customer_name : 'Đã Đặt'}</div>
+                      <div class="text-[10px] font-mono text-rose-700">${s.booking_info ? s.booking_info.booking_code : ''}</div>
+                    </td>
+                  `;
+                } else {
+                  return `
+                    <td class="p-2 text-center bg-emerald-50/40 border border-emerald-100">
+                      <span class="inline-block px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">Trống (${(s.price/1000)}k)</span>
+                    </td>
+                  `;
+                }
+              }).join('')}
+            </tr>
+          `;
+        }).join('');
+
+      } catch (e) {
+        console.error("Lỗi tải admin matrix", e);
+      }
+    }
+  </script>
+
+</body>
+</html>

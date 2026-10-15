@@ -337,6 +337,31 @@ def init_db():
     )
     """)
 
+    # 16. Đặt Sân Pickleball Trực Tuyến (Pickleball Court Bookings)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS pickleball_bookings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        booking_code TEXT UNIQUE NOT NULL,
+        customer_name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        email TEXT,
+        booking_date TEXT NOT NULL,
+        court_id INTEGER NOT NULL,
+        court_name TEXT NOT NULL,
+        time_slots_json TEXT NOT NULL,
+        court_fee INTEGER NOT NULL DEFAULT 0,
+        addons_json TEXT NOT NULL DEFAULT '[]',
+        addons_fee INTEGER NOT NULL DEFAULT 0,
+        total_amount INTEGER NOT NULL DEFAULT 0,
+        deposit_percentage INTEGER NOT NULL DEFAULT 50,
+        deposit_amount INTEGER NOT NULL DEFAULT 0,
+        payment_status TEXT NOT NULL DEFAULT 'PENDING',
+        notes TEXT,
+        qr_token TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
     conn.commit()
 
     # Seed Homepage CMS default settings
