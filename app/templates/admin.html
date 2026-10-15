@@ -87,6 +87,12 @@
       <button onclick="switchTab('menu')" id="tabBtn-menu" class="admin-tab flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition whitespace-nowrap text-xs">
         <i class="fa-solid fa-utensils"></i> Quản Trị Món
       </button>
+      <button onclick="switchTab('reservations')" id="tabBtn-reservations" class="admin-tab flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition whitespace-nowrap text-xs">
+        <i class="fa-solid fa-calendar-check text-amber-500"></i> Đặt Bàn & Đơn Trước <span id="adminPendingResBadge" class="bg-rose-600 text-white text-[10px] px-1.5 py-0.2 rounded-full hidden">0</span>
+      </button>
+      <button onclick="switchTab('cms')" id="tabBtn-cms" class="admin-tab flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition whitespace-nowrap text-xs">
+        <i class="fa-solid fa-globe text-teal-600"></i> Quản Trị Trang Chủ (CMS)
+      </button>
       <button onclick="switchTab('kitchen')" id="tabBtn-kitchen" class="admin-tab flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition whitespace-nowrap text-xs">
         <i class="fa-solid fa-tv"></i> Giám Sát Bếp
       </button>
@@ -488,7 +494,340 @@
         </div>
       </div>
     </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 6: ĐẶT BÀN & ĐƠN GỌI TRƯỚC (RESERVATIONS & PRE-ORDERS) -->
+    <!-- ======================================================== -->
+    <div id="tabContent-reservations" class="tab-pane space-y-6 hidden">
+      <!-- KPI Thống Kê Nhanh -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white border border-stone-200 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+          <div>
+            <div class="text-xs text-stone-500 font-medium">Chờ phân bàn / Duyệt</div>
+            <div class="text-2xl font-black text-amber-600 mt-1" id="resKpiPending">0</div>
+            <div class="text-[11px] text-stone-400 mt-0.5">Khách đang đợi xác nhận</div>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+        </div>
+
+        <div class="bg-white border border-stone-200 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+          <div>
+            <div class="text-xs text-stone-500 font-medium">Đã phân bàn thành công</div>
+            <div class="text-2xl font-black text-emerald-700 mt-1" id="resKpiConfirmed">0</div>
+            <div class="text-[11px] text-stone-400 mt-0.5">Bàn sẵn sàng đón khách</div>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+        </div>
+
+        <div class="bg-white border border-stone-200 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+          <div>
+            <div class="text-xs text-stone-500 font-medium">Đơn có gọi món trước</div>
+            <div class="text-2xl font-black text-teal-700 mt-1" id="resKpiPreorderCount">0</div>
+            <div class="text-[11px] text-stone-400 mt-0.5">Bếp chuẩn bị nguyên liệu</div>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-utensils"></i>
+          </div>
+        </div>
+
+        <div class="bg-white border border-stone-200 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+          <div>
+            <div class="text-xs text-stone-500 font-medium">Doanh thu gọi trước tạm tính</div>
+            <div class="text-2xl font-black text-purple-700 mt-1" id="resKpiEstimatedRevenue">0 đ</div>
+            <div class="text-[11px] text-stone-400 mt-0.5">Tổng giá trị đơn đặt trước</div>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-coins"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action & Filter Bar -->
+      <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <button onclick="filterReservations('ALL')" class="res-filter-btn px-3.5 py-1.5 rounded-xl bg-emerald-700 text-white font-bold text-xs shadow-xs">Tất Cả</button>
+          <button onclick="filterReservations('PENDING')" class="res-filter-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs hover:bg-stone-50">⏳ Chờ Phân Bàn</button>
+          <button onclick="filterReservations('CONFIRMED')" class="res-filter-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs hover:bg-stone-50">✅ Đã Phân Bàn</button>
+          <button onclick="filterReservations('CANCELLED')" class="res-filter-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs hover:bg-stone-50">❌ Đã Hủy</button>
+        </div>
+
+        <button onclick="loadAdminReservations()" class="px-3.5 py-1.5 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-700 font-bold text-xs flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-rotate"></i> Làm Mới Dữ Liệu
+        </button>
+      </div>
+
+      <!-- Bảng Danh Sách Đặt Bàn -->
+      <div class="bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-stone-50 text-stone-500 font-semibold border-b border-stone-200">
+              <tr>
+                <th class="py-3 px-4">Mã Đơn / Khách Hàng</th>
+                <th class="py-3 px-4">Thời Gian Đến</th>
+                <th class="py-3 px-4">Vị Trí Bàn Yêu Cầu</th>
+                <th class="py-3 px-4">Món Gọi Trước & Tạm Tính</th>
+                <th class="py-3 px-4">Ghi Chú Của Khách</th>
+                <th class="py-3 px-4 text-center">Trạng Thái</th>
+                <th class="py-3 px-4 text-right">Phân Bàn / Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="reservationsTableBody" class="divide-y divide-stone-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 7: QUẢN TRỊ TRANG CHỦ (HOMEPAGE CMS) -->
+    <!-- ======================================================== -->
+    <div id="tabContent-cms" class="tab-pane space-y-6 hidden">
+      <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="font-bold text-base text-stone-900 flex items-center gap-2">
+            <i class="fa-solid fa-globe text-teal-700"></i> Quản Trị Nội Dung & Hình Ảnh Trang Chủ (CMS)
+          </h2>
+          <p class="text-xs text-stone-500">Chỉnh sửa trực tiếp tiêu đề, thông điệp banner, hình ảnh thực tế, hotline và địa chỉ nhà hàng.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <a href="/" target="_blank" class="px-3.5 py-2 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-700 font-bold text-xs flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-arrow-up-right-from-square text-emerald-600"></i> Xem Trang Chủ ↗
+          </a>
+          <button onclick="saveAdminCMS(event)" class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs flex items-center gap-2 shadow-xs transition">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Nội Dung Trang Chủ
+          </button>
+        </div>
+      </div>
+
+      <form id="cmsForm" onsubmit="saveAdminCMS(event)" class="space-y-6">
+        
+        <!-- CARD 1: HERO BANNER & TIÊU ĐỀ CHÍNH -->
+        <div class="bg-white rounded-3xl p-5 sm:p-7 border border-stone-200 shadow-xs space-y-4">
+          <div class="border-b border-stone-100 pb-3 flex items-center justify-between">
+            <h3 class="font-bold text-sm text-stone-800 flex items-center gap-2">
+              <i class="fa-solid fa-image text-amber-500"></i> Hero Banner & Thông Điệp Đầu Trang
+            </h3>
+            <span class="text-[11px] text-stone-400 font-medium">Xuất hiện đầu tiên khi khách truy cập</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Huy hiệu nhỏ đầu trang (Badge):</label>
+              <input type="text" id="cms_hero_badge" class="w-full p-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-emerald-600 font-medium">
+            </div>
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Tiêu đề thương hiệu chính (Title 1):</label>
+              <input type="text" id="cms_hero_title_1" class="w-full p-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-emerald-600 font-bold">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Tiêu đề nghệ thuật chữ vàng (Title 2):</label>
+              <input type="text" id="cms_hero_title_2" class="w-full p-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-emerald-600 font-medium">
+            </div>
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Đường dẫn ảnh nền Hero Banner:</label>
+              <div class="flex gap-2">
+                <input type="text" id="cms_hero_image_url" class="flex-1 p-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-emerald-600 font-mono text-[11px]">
+                <label class="cursor-pointer px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl border border-stone-300 flex items-center gap-1.5 whitespace-nowrap">
+                  <i class="fa-solid fa-upload text-xs"></i> Tải ảnh lên
+                  <input type="file" accept="image/*" class="hidden" onchange="handleHeroImageUpload(event)">
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-xs">
+            <label class="block font-bold text-stone-700 mb-1">Đoạn phụ đề giới thiệu (Subtitle):</label>
+            <textarea id="cms_hero_subtitle" rows="2" class="w-full p-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-emerald-600 font-medium leading-relaxed"></textarea>
+          </div>
+
+          <!-- Preview Banner -->
+          <div class="pt-2">
+            <div class="text-[11px] font-bold text-stone-500 mb-1.5">Xem trước ảnh Banner hiện tại:</div>
+            <div class="h-36 sm:h-48 rounded-2xl overflow-hidden border border-stone-200 bg-stone-100 relative group">
+              <img id="heroImagePreview" src="/static/home/hero_twilight.jpg" alt="Hero Preview" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold">
+                Ảnh nền Hero trang chủ
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: THÔNG TIN LIÊN HỆ & THƯƠNG HIỆU -->
+        <div class="bg-white rounded-3xl p-5 sm:p-7 border border-stone-200 shadow-xs space-y-4">
+          <div class="border-b border-stone-100 pb-3 flex items-center justify-between">
+            <h3 class="font-bold text-sm text-stone-800 flex items-center gap-2">
+              <i class="fa-solid fa-address-card text-emerald-600"></i> Thông Tin Liên Hệ & Thương Hiệu
+            </h3>
+            <span class="text-[11px] text-stone-400 font-medium">Đồng bộ toàn bộ Website, Chân trang và Bản đồ</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-stone-700 mb-1">Địa chỉ chính thức nhà hàng: *</label>
+              <input type="text" id="cms_address" required class="w-full p-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-emerald-600 font-semibold text-emerald-950">
+            </div>
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Giờ mở cửa phục vụ: *</label>
+              <input type="text" id="cms_opening_hours" required class="w-full p-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-emerald-600 font-medium">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Số điện thoại Hotline gọi (tel:): *</label>
+              <input type="tel" id="cms_phone" required class="w-full p-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-emerald-600 font-bold font-mono">
+            </div>
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Số hotline hiển thị đẹp (có dấu chấm): *</label>
+              <input type="text" id="cms_phone_display" required class="w-full p-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-emerald-600 font-bold text-emerald-800">
+            </div>
+          </div>
+
+          <div class="text-xs">
+            <label class="block font-bold text-stone-700 mb-1">Link Nhúng Google Maps (Iframe Embed):</label>
+            <input type="text" id="cms_google_map_embed_url" class="w-full p-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-emerald-600 font-mono text-[11px]">
+          </div>
+        </div>
+
+        <!-- CARD 3: GIỚI THIỆU & 4 ĐIỂM NỔI BẬT -->
+        <div class="bg-white rounded-3xl p-5 sm:p-7 border border-stone-200 shadow-xs space-y-4">
+          <div class="border-b border-stone-100 pb-3 flex items-center justify-between">
+            <h3 class="font-bold text-sm text-stone-800 flex items-center gap-2">
+              <i class="fa-solid fa-shapes text-teal-600"></i> Giới Thiệu & 4 Điểm Nổi Bật Vượt Trội
+            </h3>
+            <span class="text-[11px] text-stone-400 font-medium">Câu chuyện thương hiệu và các dịch vụ cốt lõi</span>
+          </div>
+
+          <div class="text-xs">
+            <label class="block font-bold text-stone-700 mb-1">Đoạn văn giới thiệu thương hiệu (About Story):</label>
+            <textarea id="cms_about_story" rows="3" class="w-full p-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-emerald-600 font-medium leading-relaxed"></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2">
+            <!-- Điểm 1 -->
+            <div class="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 space-y-2">
+              <div class="font-bold text-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-utensils"></i> Điểm 1: Ẩm Thực Sân Vườn</div>
+              <input type="text" id="cms_feature_1_title" placeholder="Tiêu đề điểm 1" class="w-full p-2 rounded-lg border border-stone-300 bg-white font-bold">
+              <textarea id="cms_feature_1_desc" rows="2" placeholder="Mô tả điểm 1" class="w-full p-2 rounded-lg border border-stone-300 bg-white"></textarea>
+            </div>
+
+            <!-- Điểm 2 -->
+            <div class="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 space-y-2">
+              <div class="font-bold text-teal-800 flex items-center gap-1.5"><i class="fa-solid fa-water"></i> Điểm 2: Hồ Bơi & Pool Bar</div>
+              <input type="text" id="cms_feature_2_title" placeholder="Tiêu đề điểm 2" class="w-full p-2 rounded-lg border border-stone-300 bg-white font-bold">
+              <textarea id="cms_feature_2_desc" rows="2" placeholder="Mô tả điểm 2" class="w-full p-2 rounded-lg border border-stone-300 bg-white"></textarea>
+            </div>
+
+            <!-- Điểm 3 -->
+            <div class="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 space-y-2">
+              <div class="font-bold text-amber-800 flex items-center gap-1.5"><i class="fa-solid fa-volleyball"></i> Điểm 3: Cụm Sân Pickleball</div>
+              <input type="text" id="cms_feature_3_title" placeholder="Tiêu đề điểm 3" class="w-full p-2 rounded-lg border border-stone-300 bg-white font-bold">
+              <textarea id="cms_feature_3_desc" rows="2" placeholder="Mô tả điểm 3" class="w-full p-2 rounded-lg border border-stone-300 bg-white"></textarea>
+            </div>
+
+            <!-- Điểm 4 -->
+            <div class="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 space-y-2">
+              <div class="font-bold text-purple-800 flex items-center gap-1.5"><i class="fa-solid fa-cake-candles"></i> Điểm 4: Tiệc & Sự Kiện Bờ Hồ</div>
+              <input type="text" id="cms_feature_4_title" placeholder="Tiêu đề điểm 4" class="w-full p-2 rounded-lg border border-stone-300 bg-white font-bold">
+              <textarea id="cms_feature_4_desc" rows="2" placeholder="Mô tả điểm 4" class="w-full p-2 rounded-lg border border-stone-300 bg-white"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <a href="/" target="_blank" class="px-5 py-3 rounded-2xl border border-stone-300 text-stone-700 font-bold text-xs hover:bg-stone-100 transition">
+            Xem Thử Trang Chủ ↗
+          </a>
+          <button type="submit" class="px-8 py-3.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-sm shadow-md transition flex items-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Tất Cả Cài Đặt Trang Chủ
+          </button>
+        </div>
+
+      </form>
+    </div>
   </main>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: PHÂN BÀN CHÍNH THỨC CHO KHÁCH (ASSIGN TABLE MODAL) -->
+  <!-- ======================================================== -->
+  <div id="assignTableModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl text-stone-800 border border-stone-200 space-y-4">
+      <div class="flex justify-between items-center pb-3 border-b border-stone-100">
+        <div>
+          <h3 class="font-bold text-base text-stone-900 flex items-center gap-2">
+            <i class="fa-solid fa-chair text-emerald-700"></i> Phân Bàn & Kích Hoạt Đơn Đặt Trước
+          </h3>
+          <p class="text-xs text-stone-500">Gán bàn ăn chính thức và đẩy món ăn vào hàng đợi bếp (KDS)</p>
+        </div>
+        <button onclick="closeAssignTableModal()" class="text-stone-400 hover:text-stone-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 text-xs space-y-2">
+        <div class="flex justify-between">
+          <span class="text-stone-500 font-medium">Khách hàng:</span>
+          <span class="font-bold text-stone-900" id="assignModalGuest">...</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-stone-500 font-medium">Số điện thoại:</span>
+          <span class="font-bold text-stone-900 font-mono" id="assignModalPhone">...</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-stone-500 font-medium">Thời gian dự kiến:</span>
+          <span class="font-bold text-amber-700" id="assignModalTime">...</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-stone-500 font-medium">Bàn khách chọn trên mặt bằng:</span>
+          <span class="font-black text-emerald-800" id="assignModalPreferredTable">...</span>
+        </div>
+      </div>
+
+      <!-- Danh Sách Món Gọi Trước -->
+      <div id="assignModalPreorderContainer" class="text-xs space-y-1.5 hidden">
+        <div class="font-bold text-stone-700 flex items-center justify-between">
+          <span>Danh sách món gọi trước:</span>
+          <span id="assignModalPreorderTotal" class="text-emerald-700 font-black">0 đ</span>
+        </div>
+        <div id="assignModalPreorderList" class="max-h-36 overflow-y-auto space-y-1 p-2 rounded-xl bg-stone-50 border border-stone-200">
+          <!-- Render danh sách món -->
+        </div>
+      </div>
+
+      <!-- Chọn Bàn Để Phân -->
+      <div class="space-y-1.5 text-xs">
+        <label class="block font-bold text-stone-800">Chọn Bàn Ăn Chính Thức Cho Khách: *</label>
+        <select id="assignTargetTableSelect" class="w-full p-3 rounded-xl border border-stone-300 bg-white font-bold text-sm focus:outline-none focus:border-emerald-600">
+          <!-- Render danh sách bàn khả dụng -->
+        </select>
+      </div>
+
+      <!-- Checkbox Kích Hoạt Đơn -->
+      <div class="flex items-center gap-2 pt-1 text-xs">
+        <input type="checkbox" id="assignActivateOrderCheck" checked class="w-4 h-4 rounded text-emerald-600 focus:ring-0">
+        <label for="assignActivateOrderCheck" class="font-bold text-stone-700 cursor-pointer">
+          Mở phiên bàn ngay và gửi các món đã gọi trước vào Bếp (KDS)
+        </label>
+      </div>
+
+      <input type="hidden" id="assignActiveResId" value="">
+
+      <div class="pt-3 border-t border-stone-100 flex items-center justify-end gap-2 text-xs">
+        <button onclick="closeAssignTableModal()" class="px-4 py-2.5 rounded-xl border border-stone-300 text-stone-600 font-bold hover:bg-stone-100">
+          Hủy Bỏ
+        </button>
+        <button onclick="submitAssignTable()" id="btnSubmitAssign" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black shadow-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-check"></i> Xác Nhận Phân Bàn
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- ======================================================== -->
   <!-- MODAL: QUẢN LÝ KHU VỰC BÀN (THÊM / SỬA / XÓA KHU VỰC) -->
@@ -972,6 +1311,8 @@
       if (tab === 'reports') loadRevenueReports();
       if (tab === 'tables') loadAdminTables();
       if (tab === 'menu') loadAdminMenu();
+      if (tab === 'reservations') loadAdminReservations();
+      if (tab === 'cms') loadAdminCMS();
       if (tab === 'kitchen') loadKitchenMonitor();
       if (tab === 'staff') loadStaffList();
     }
@@ -2423,6 +2764,395 @@
         alert("Lỗi xóa nhân viên");
       }
     }
+
+    // ==========================================
+    // 6. QUẢN LÝ ĐẶT BÀN & ĐƠN GỌI TRƯỚC (ADMIN)
+    // ==========================================
+    let allAdminReservations = [];
+    let currentReservationFilter = 'ALL';
+
+    async function loadAdminReservations() {
+      try {
+        const res = await fetch("/api/reservations?limit=200");
+        if (!res.ok) return;
+        allAdminReservations = await res.json();
+        
+        let pendingCount = 0;
+        let confirmedCount = 0;
+        let preorderCount = 0;
+        let estimatedRev = 0;
+        
+        allAdminReservations.forEach(r => {
+          const st = (r.status || 'PENDING').toUpperCase();
+          if (st === 'PENDING') pendingCount++;
+          if (st === 'CONFIRMED' || st === 'SEATED') confirmedCount++;
+          let items = [];
+          try { items = JSON.parse(r.preorder_items_json || '[]'); } catch(e){}
+          if (items.length > 0) preorderCount++;
+          estimatedRev += (r.total_estimated || 0);
+        });
+        
+        const elPending = document.getElementById("resKpiPending");
+        const elConfirmed = document.getElementById("resKpiConfirmed");
+        const elPreorder = document.getElementById("resKpiPreorderCount");
+        const elRev = document.getElementById("resKpiEstimatedRevenue");
+        if (elPending) elPending.innerText = pendingCount;
+        if (elConfirmed) elConfirmed.innerText = confirmedCount;
+        if (elPreorder) elPreorder.innerText = preorderCount;
+        if (elRev) elRev.innerText = estimatedRev.toLocaleString('vi-VN') + " đ";
+        
+        const badge = document.getElementById("adminPendingResBadge");
+        if (badge) {
+          if (pendingCount > 0) {
+            badge.classList.remove("hidden");
+            badge.innerText = pendingCount;
+          } else {
+            badge.classList.add("hidden");
+          }
+        }
+        
+        renderReservationsTable();
+      } catch (err) {
+        console.error("Lỗi tải danh sách đặt bàn", err);
+      }
+    }
+
+    function filterReservations(status) {
+      currentReservationFilter = status;
+      document.querySelectorAll(".res-filter-btn").forEach(b => {
+        b.className = "res-filter-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs hover:bg-stone-50";
+      });
+      if (event && event.target) {
+        event.target.className = "res-filter-btn px-3.5 py-1.5 rounded-xl bg-emerald-700 text-white font-bold text-xs shadow-xs";
+      }
+      renderReservationsTable();
+    }
+
+    function renderReservationsTable() {
+      const tbody = document.getElementById("reservationsTableBody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      
+      const filtered = allAdminReservations.filter(r => {
+        if (currentReservationFilter === 'ALL') return true;
+        return (r.status || 'PENDING').toUpperCase() === currentReservationFilter;
+      });
+      
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-stone-400">Không có yêu cầu đặt bàn nào trong mục này.</td></tr>`;
+        return;
+      }
+      
+      filtered.forEach(r => {
+        const st = (r.status || 'PENDING').toUpperCase();
+        let stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">⏳ Chờ Phân Bàn</span>`;
+        if (st === 'CONFIRMED') stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">✅ Đã Phân Bàn</span>`;
+        if (st === 'CANCELLED') stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300">❌ Đã Hủy</span>`;
+        if (st === 'SEATED') stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-300">🎉 Đang Ngồi</span>`;
+        
+        let items = [];
+        try { items = JSON.parse(r.preorder_items_json || '[]'); } catch(e){}
+        let preorderHtml = `<span class="text-stone-400 italic">Không gọi trước</span>`;
+        if (items.length > 0) {
+          preorderHtml = `
+            <div class="space-y-0.5">
+              <div class="font-bold text-emerald-800">${items.length} món • ${(r.total_estimated || 0).toLocaleString('vi-VN')} đ</div>
+              <div class="text-[10px] text-stone-500 max-w-[200px] truncate" title="${items.map(i => `${i.name} x${i.quantity}`).join(', ')}">
+                ${items.map(i => `${i.name} (x${i.quantity})`).join(', ')}
+              </div>
+            </div>
+          `;
+        }
+        
+        const assignedTableText = r.table_code ? `<span class="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Bàn ${r.table_code}</span> <span class="text-[10px] text-stone-500">(${r.area || 'Resort'})</span>` : `<span class="text-stone-400 italic">Chưa gán</span>`;
+        
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-stone-50/80 transition";
+        tr.innerHTML = `
+          <td class="py-3.5 px-4">
+            <div class="font-bold text-stone-900">${r.guest_name}</div>
+            <a href="tel:${r.phone}" class="text-[11px] font-mono text-emerald-700 hover:underline flex items-center gap-1"><i class="fa-solid fa-phone text-[10px]"></i> ${r.phone}</a>
+          </td>
+          <td class="py-3.5 px-4">
+            <div class="font-bold text-stone-800">${r.booking_date}</div>
+            <div class="text-[11px] text-stone-500 font-mono">${r.booking_time} • ${r.guest_count || 2} khách</div>
+          </td>
+          <td class="py-3.5 px-4">${assignedTableText}</td>
+          <td class="py-3.5 px-4">${preorderHtml}</td>
+          <td class="py-3.5 px-4">
+            <div class="max-w-[180px] text-[11px] text-stone-600 truncate" title="${r.note || ''}">${r.note || '-'}</div>
+          </td>
+          <td class="py-3.5 px-4 text-center">${stBadge}</td>
+          <td class="py-3.5 px-4 text-right">
+            <div class="flex items-center justify-end gap-1.5">
+              ${st === 'PENDING' ? `
+                <button onclick="openAssignTableModal(${r.id})" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs flex items-center gap-1">
+                  <i class="fa-solid fa-chair"></i> Phân Bàn
+                </button>
+                <button onclick="updateReservationStatus(${r.id}, 'CANCELLED')" class="px-2.5 py-1.5 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 font-bold text-xs" title="Hủy đơn">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              ` : `
+                <button onclick="openAssignTableModal(${r.id})" class="px-2.5 py-1.5 rounded-xl border border-stone-300 text-stone-700 hover:bg-stone-100 font-bold text-xs flex items-center gap-1" title="Đổi bàn khác">
+                  <i class="fa-solid fa-arrows-rotate"></i> Đổi Bàn
+                </button>
+              `}
+              <button onclick="deleteReservation(${r.id})" class="px-2 py-1.5 rounded-xl text-stone-400 hover:text-rose-600 hover:bg-rose-50 text-xs" title="Xóa bỏ">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    let activeAssignReservation = null;
+
+    async function openAssignTableModal(resId) {
+      activeAssignReservation = allAdminReservations.find(r => r.id === resId);
+      if (!activeAssignReservation) return;
+      
+      document.getElementById("assignActiveResId").value = resId;
+      document.getElementById("assignModalGuest").innerText = activeAssignReservation.guest_name;
+      document.getElementById("assignModalPhone").innerText = activeAssignReservation.phone;
+      document.getElementById("assignModalTime").innerText = `${activeAssignReservation.booking_date} lúc ${activeAssignReservation.booking_time} (${activeAssignReservation.guest_count || 2} khách)`;
+      document.getElementById("assignModalPreferredTable").innerText = activeAssignReservation.table_code ? `Bàn ${activeAssignReservation.table_code} (${activeAssignReservation.area || 'Resort'})` : 'Khách không chỉ định cụ thể';
+      
+      let items = [];
+      try { items = JSON.parse(activeAssignReservation.preorder_items_json || '[]'); } catch(e){}
+      const preContainer = document.getElementById("assignModalPreorderContainer");
+      const preList = document.getElementById("assignModalPreorderList");
+      const preTotal = document.getElementById("assignModalPreorderTotal");
+      if (items.length > 0) {
+        preContainer.classList.remove("hidden");
+        preTotal.innerText = (activeAssignReservation.total_estimated || 0).toLocaleString('vi-VN') + " đ";
+        preList.innerHTML = items.map(it => `
+          <div class="flex items-center justify-between py-1 border-b border-stone-100 last:border-0">
+            <span class="font-bold text-stone-800">${it.name} <span class="text-stone-500 font-normal">x${it.quantity}</span></span>
+            <span class="font-mono text-emerald-800">${(it.price * it.quantity).toLocaleString('vi-VN')} đ</span>
+          </div>
+        `).join("");
+      } else {
+        preContainer.classList.add("hidden");
+      }
+      
+      const select = document.getElementById("assignTargetTableSelect");
+      select.innerHTML = `<option value="">-- Đang tải danh sách bàn... --</option>`;
+      
+      try {
+        const res = await fetch("/api/tables");
+        const tables = await res.json();
+        select.innerHTML = "";
+        
+        tables.forEach(t => {
+          const isPref = activeAssignReservation.table_code && t.table_code.toUpperCase() === activeAssignReservation.table_code.toUpperCase();
+          const opt = document.createElement("option");
+          opt.value = t.table_code;
+          opt.selected = isPref;
+          opt.innerText = `Bàn ${t.table_code} - ${t.name} (${t.area}) [${t.status === 'AVAILABLE' ? 'Trống' : 'Đang ngồi'}]`;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        console.error("Lỗi tải bàn", err);
+      }
+      
+      document.getElementById("assignTableModal").classList.remove("hidden");
+    }
+
+    function closeAssignTableModal() {
+      document.getElementById("assignTableModal").classList.add("hidden");
+    }
+
+    async function submitAssignTable() {
+      const resId = document.getElementById("assignActiveResId").value;
+      const tableCode = document.getElementById("assignTargetTableSelect").value;
+      const activateOrder = document.getElementById("assignActivateOrderCheck").checked;
+      const btn = document.getElementById("btnSubmitAssign");
+      
+      if (!tableCode) {
+        alert("Vui lòng chọn bàn muốn phân cho khách.");
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
+      
+      try {
+        const res = await fetch(`/api/reservations/${resId}/assign-table`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            table_code: tableCode,
+            activate_order: activateOrder,
+            assigned_by: "Quản trị viên"
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert("🎉 " + (data.message || "Đã phân bàn thành công!"));
+          closeAssignTableModal();
+          loadAdminReservations();
+        } else {
+          alert("❌ " + (data.detail || "Không thể phân bàn"));
+        }
+      } catch (e) {
+        alert("Lỗi kết nối khi phân bàn");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Xác Nhận Phân Bàn`;
+      }
+    }
+
+    async function updateReservationStatus(resId, status) {
+      if (status === 'CANCELLED' && !confirm("Bạn có chắc chắn muốn hủy yêu cầu đặt bàn này?")) return;
+      try {
+        const res = await fetch(`/api/reservations/${resId}/status`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status })
+        });
+        if (res.ok) {
+          loadAdminReservations();
+        }
+      } catch (e) {
+        alert("Lỗi cập nhật trạng thái");
+      }
+    }
+
+    async function deleteReservation(resId) {
+      if (!confirm("Xóa vĩnh viễn yêu cầu đặt bàn này khỏi hệ thống?")) return;
+      try {
+        const res = await fetch(`/api/reservations/${resId}`, { method: "DELETE" });
+        if (res.ok) loadAdminReservations();
+      } catch (e) {
+        alert("Lỗi xóa yêu cầu");
+      }
+    }
+
+    // ==========================================
+    // 7. QUẢN TRỊ TRANG CHỦ (CMS FUNCTIONS)
+    // ==========================================
+    async function loadAdminCMS() {
+      try {
+        const res = await fetch("/api/homepage/cms");
+        if (!res.ok) return;
+        const data = await res.json();
+        const s = data.settings || {};
+        
+        const setVal = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.value = val || "";
+        };
+        
+        setVal("cms_hero_badge", s.hero_badge || "✨ TỔ HỢP ẨM THỰC SÂN VƯỜN, BỂ BƠI & PICKLEBALL TẠI PHÚ QUỐC");
+        setVal("cms_hero_title_1", s.hero_title_1 || "Pipo Garden Phú Quốc");
+        setVal("cms_hero_title_2", s.hero_title_2 || "Tinh Hoa Ẩm Thực & Thư Giãn Giữa Lòng Đảo Ngọc");
+        setVal("cms_hero_subtitle", s.hero_subtitle || "");
+        setVal("cms_hero_image_url", s.hero_image_url || "/static/home/hero_twilight.jpg");
+        
+        setVal("cms_address", s.address || "Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc");
+        setVal("cms_opening_hours", s.opening_hours || "06:30 - 23:00 hàng ngày");
+        setVal("cms_phone", s.phone || "0838993316");
+        setVal("cms_phone_display", s.phone_display || "0838.993.316");
+        setVal("cms_google_map_embed_url", s.google_map_embed_url || "");
+        
+        setVal("cms_about_story", s.about_story || "");
+        setVal("cms_feature_1_title", s.feature_1_title || "Ẩm Thực Sân Vườn & Hải Sản");
+        setVal("cms_feature_1_desc", s.feature_1_desc || "");
+        setVal("cms_feature_2_title", s.feature_2_title || "Hồ Bơi Uốn Lượn & Pool Bar");
+        setVal("cms_feature_2_desc", s.feature_2_desc || "");
+        setVal("cms_feature_3_title", s.feature_3_title || "Cụm Sân Pickleball Có Mái Che");
+        setVal("cms_feature_3_desc", s.feature_3_desc || "");
+        setVal("cms_feature_4_title", s.feature_4_title || "Tiệc Sinh Nhật & Sự Kiện Bờ Hồ");
+        setVal("cms_feature_4_desc", s.feature_4_desc || "");
+        
+        const preview = document.getElementById("heroImagePreview");
+        if (preview && s.hero_image_url) {
+          preview.src = s.hero_image_url;
+        }
+      } catch (err) {
+        console.error("Lỗi tải cài đặt CMS", err);
+      }
+    }
+
+    async function handleHeroImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      try {
+        const res = await fetch("/api/homepage/cms/upload", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById("cms_hero_image_url").value = data.url;
+          document.getElementById("heroImagePreview").src = data.url;
+          alert("🎉 Tải ảnh banner lên thành công!");
+        } else {
+          alert("❌ Lỗi tải ảnh: " + (data.detail || "Không thể tải lên"));
+        }
+      } catch (err) {
+        alert("Lỗi kết nối khi tải ảnh");
+      }
+    }
+
+    async function saveAdminCMS(e) {
+      if (e) e.preventDefault();
+      const getVal = (id) => {
+        const el = document.getElementById(id);
+        return el ? el.value.trim() : "";
+      };
+      
+      const payload = {
+        settings: {
+          hero_badge: getVal("cms_hero_badge"),
+          hero_title_1: getVal("cms_hero_title_1"),
+          hero_title_2: getVal("cms_hero_title_2"),
+          hero_subtitle: getVal("cms_hero_subtitle"),
+          hero_image_url: getVal("cms_hero_image_url"),
+          address: getVal("cms_address"),
+          opening_hours: getVal("cms_opening_hours"),
+          phone: getVal("cms_phone"),
+          phone_display: getVal("cms_phone_display"),
+          google_map_embed_url: getVal("cms_google_map_embed_url"),
+          about_story: getVal("cms_about_story"),
+          feature_1_title: getVal("cms_feature_1_title"),
+          feature_1_desc: getVal("cms_feature_1_desc"),
+          feature_2_title: getVal("cms_feature_2_title"),
+          feature_2_desc: getVal("cms_feature_2_desc"),
+          feature_3_title: getVal("cms_feature_3_title"),
+          feature_3_desc: getVal("cms_feature_3_desc"),
+          feature_4_title: getVal("cms_feature_4_title"),
+          feature_4_desc: getVal("cms_feature_4_desc"),
+        }
+      };
+      
+      try {
+        const res = await fetch("/api/homepage/cms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert("✅ " + (data.message || "Đã lưu cài đặt trang chủ thành công!"));
+          loadAdminCMS();
+        } else {
+          alert("❌ " + (data.detail || "Lỗi lưu cài đặt CMS"));
+        }
+      } catch (err) {
+        alert("Lỗi mạng khi lưu cài đặt trang chủ");
+      }
+    }
+
+    // Tự động kiểm tra đơn đặt bàn khi tải trang admin
+    document.addEventListener("DOMContentLoaded", () => {
+      loadAdminReservations();
+    });
   </script>
 </body>
 </html>

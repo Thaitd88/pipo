@@ -16,7 +16,7 @@ import json
 from typing import Dict, List, Set
 
 from .database import init_db, get_db
-from .routers import tables, menu, orders, pos, auth, reports, inventory, sync, reservations
+from .routers import tables, menu, orders, pos, auth, reports, inventory, sync, reservations, homepage_cms
 from .routers.auth import check_page_access, get_current_user_from_request
 
 # Connection Broadcaster
@@ -142,6 +142,7 @@ app.include_router(reports.router)
 app.include_router(inventory.router)
 app.include_router(sync.router)
 app.include_router(reservations.router)
+app.include_router(homepage_cms.router)
 
 # ==========================================
 # WEBSOCKET ENDPOINTS
@@ -214,6 +215,9 @@ def home_page(request: Request):
     if not cf_row:
         cursor.execute("SELECT * FROM tables ORDER BY id DESC LIMIT 1")
         cf_row = cursor.fetchone()
+
+    cursor.execute("SELECT key, value FROM homepage_cms")
+    cms_settings = {r["key"]: r["value"] for r in cursor.fetchall()}
     conn.close()
 
     user = get_current_user_from_request(request)
@@ -224,7 +228,8 @@ def home_page(request: Request):
         context={
             "user": user,
             "nh_table": dict(nh_row) if nh_row else None,
-            "cf_table": dict(cf_row) if cf_row else None
+            "cf_table": dict(cf_row) if cf_row else None,
+            "cms": cms_settings
         }
     )
 

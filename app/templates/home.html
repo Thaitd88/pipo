@@ -235,7 +235,7 @@
           </div>
           <div>
             <div class="font-bold text-[11px] text-brand-gold-light uppercase tracking-wider" data-i18n="info_address_title">Địa chỉ</div>
-            <div class="text-white/90 text-xs font-medium truncate" data-i18n="info_address_val">Suối Mây, Dương Tơ, Phú Quốc</div>
+            <div class="text-white/90 text-xs font-medium truncate" id="cmsHeroAddress" data-i18n="info_address_val">{{ cms.address | default('Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc') }}</div>
           </div>
         </div>
 
@@ -245,7 +245,7 @@
           </div>
           <div>
             <div class="font-bold text-[11px] text-brand-gold-light uppercase tracking-wider" data-i18n="info_hours_title">Giờ mở cửa</div>
-            <div class="text-white/90 text-xs font-medium" data-i18n="info_hours_val">07:00 - 23:00 hàng ngày</div>
+            <div class="text-white/90 text-xs font-medium" id="cmsHeroHours" data-i18n="info_hours_val">{{ cms.opening_hours | default('06:30 - 23:00 hàng ngày') }}</div>
           </div>
         </div>
 
@@ -255,7 +255,7 @@
           </div>
           <div>
             <div class="font-bold text-[11px] text-brand-gold-light uppercase tracking-wider" data-i18n="info_hotline_title">Hotline Đặt Bàn</div>
-            <a href="tel:0901234567" class="text-brand-gold font-bold text-xs hover:underline">0901.234.567</a>
+            <a href="tel:{{ cms.phone | default('0838993316') }}" id="cmsHeroPhone" class="text-brand-gold font-bold text-xs hover:underline">{{ cms.phone_display | default('0838.993.316') }}</a>
           </div>
         </div>
 
@@ -527,7 +527,7 @@
           <div class="space-y-2">
             <div class="flex items-start justify-between gap-2">
               <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Lẩu Thái Hải Sản Tomyum Sân Vườn</h4>
-              <span class="text-sm font-black text-rose-700 whitespace-nowrap">320.000 đ</span>
+              <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Đặc sản nổi bật</span>
             </div>
             <p class="text-xs text-stone-500 leading-relaxed">
               Nước dùng chua cay đậm đà cốt dừa béo ngậy, tôm càng, mực, nghêu và nấm tươi ăn kèm rau rừng tươi mát.
@@ -535,7 +535,7 @@
           </div>
           <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
             <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-leaf text-xs"></i> Nguyên liệu tươi sống</span>
-            <a href="/menu" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Gọi Món <i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+            <button onclick="quickPreorderDish('Lẩu Thái Hải Sản Tomyum Sân Vườn', 320000)" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Đặt Món Này <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
           </div>
         </div>
 
@@ -553,7 +553,7 @@
           <div class="space-y-2">
             <div class="flex items-start justify-between gap-2">
               <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Bò Fuji Nướng Đá Núi Lửa</h4>
-              <span class="text-sm font-black text-rose-700 whitespace-nowrap">195.000 đ</span>
+              <span class="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">Bò mềm thượng hạng</span>
             </div>
             <p class="text-xs text-stone-500 leading-relaxed">
               Thịt bò Fuji thơm mềm nướng xèo xèo trên đá nham thạch tự nhiên, giữ trọn vị ngọt mọng nước kèm sốt tiêu đen.
@@ -561,7 +561,7 @@
           </div>
           <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
             <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-fire text-xs"></i> Nướng tại bàn</span>
-            <a href="/menu" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Gọi Món <i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+            <button onclick="quickPreorderDish('Bò Fuji Nướng Đá Núi Lửa', 195000)" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Đặt Món Này <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
           </div>
         </div>
 
@@ -579,7 +579,7 @@
           <div class="space-y-2">
             <div class="flex items-start justify-between gap-2">
               <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Gà Hấp Mắm Nhĩ + Lòng Mề Xào</h4>
-              <span class="text-sm font-black text-rose-700 whitespace-nowrap">220.000 đ</span>
+              <span class="text-[11px] font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">Gà đồi Phú Quốc</span>
             </div>
             <p class="text-xs text-stone-500 leading-relaxed">
               Gà ta thả đồi Phú Quốc da giòn thịt ngọt, hấp mắm nhĩ Phú Quốc truyền thống thơm lừng ăn kèm lòng mề xào mướp.
@@ -587,7 +587,7 @@
           </div>
           <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
             <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-crown text-xs"></i> Khuyên dùng</span>
-            <a href="/menu" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Gọi Món <i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+            <button onclick="quickPreorderDish('Gà Hấp Mắm Nhĩ + Lòng Mề Xào', 220000)" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Đặt Món Này <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
           </div>
         </div>
 
@@ -605,7 +605,7 @@
           <div class="space-y-2">
             <div class="flex items-start justify-between gap-2">
               <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Hàu Sữa Nướng Phô Mai Tan Chảy</h4>
-              <span class="text-sm font-black text-rose-700 whitespace-nowrap">85.000 đ</span>
+              <span class="text-[11px] font-bold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">Hàu sữa tươi béo</span>
             </div>
             <p class="text-xs text-stone-500 leading-relaxed">
               Hàu sữa béo ngậy được nướng đẫm lớp sốt phô mai Mozzarella kéo sợi vàng ươm, thơm lừng kích thích vị giác.
@@ -613,7 +613,7 @@
           </div>
           <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
             <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-water text-xs"></i> Tươi sống</span>
-            <a href="/menu" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Gọi Món <i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+            <button onclick="quickPreorderDish('Hàu Sữa Nướng Phô Mai Tan Chảy', 85000)" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Đặt Món Này <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
           </div>
         </div>
 
@@ -631,7 +631,7 @@
           <div class="space-y-2">
             <div class="flex items-start justify-between gap-2">
               <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Ốc Hương Sốt Trứng Muối + Bánh Mì</h4>
-              <span class="text-sm font-black text-rose-700 whitespace-nowrap">165.000 đ</span>
+              <span class="text-[11px] font-bold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">Sốt trứng muối béo bùi</span>
             </div>
             <p class="text-xs text-stone-500 leading-relaxed">
               Ốc hương giòn sần sật quyện nước sốt trứng muối béo bùi, vàng sánh, chấm kèm bánh mì giòn rụm không thể chối từ.
@@ -639,7 +639,7 @@
           </div>
           <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
             <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-bread-slice text-xs"></i> Kèm bánh mì</span>
-            <a href="/menu" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Gọi Món <i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+            <button onclick="quickPreorderDish('Ốc Hương Sốt Trứng Muối + Bánh Mì', 165000)" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Đặt Món Này <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
           </div>
         </div>
 
@@ -657,7 +657,7 @@
           <div class="space-y-2">
             <div class="flex items-start justify-between gap-2">
               <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Cocktail & Nước Ép Nhiệt Đới PiPo</h4>
-              <span class="text-sm font-black text-rose-700 whitespace-nowrap">45.000 đ</span>
+              <span class="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">Thanh nhiệt đảo ngọc</span>
             </div>
             <p class="text-xs text-stone-500 leading-relaxed">
               Trà trái cây ủ lạnh, nước dừa tươi nguyên trái, nước ép dưa hấu bạc hà và các dòng bia ướp lạnh sẵn sàng cho bữa tiệc.
@@ -665,7 +665,7 @@
           </div>
           <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
             <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-cocktail text-xs"></i> Tươi mát</span>
-            <a href="/menu" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Gọi Món <i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+            <button onclick="quickPreorderDish('Cocktail & Nước Ép Nhiệt Đới PiPo', 45000)" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Đặt Món Này <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
           </div>
         </div>
 
@@ -747,9 +747,9 @@
             <i class="fa-solid fa-calendar-plus"></i>
             <span data-i18n="sport_cta_book">Đặt Sân Pickleball Ngay</span>
           </a>
-          <a href="tel:0901234567" class="text-xs text-white/90 font-bold hover:text-brand-gold flex items-center gap-2 px-5 py-3.5 rounded-full border border-white/20 bg-white/5">
+          <a href="tel:{{ cms.phone | default('0838993316') }}" class="text-xs text-white/90 font-bold hover:text-brand-gold flex items-center gap-2 px-5 py-3.5 rounded-full border border-white/20 bg-white/5">
             <i class="fa-solid fa-phone"></i>
-            <span>Hotline tư vấn: 0901.234.567</span>
+            <span>Hotline tư vấn: {{ cms.phone_display | default('0838.993.316') }}</span>
           </a>
         </div>
       </div>
@@ -799,19 +799,193 @@
         </p>
       </div>
 
+      <!-- ======================================================== -->
+      <!-- SƠ ĐỒ MẶT BẰNG RESORT & CHỌN BÀN TRỰC QUAN (FLOOR PLAN) -->
+      <!-- ======================================================== -->
+      <div class="mb-10 bg-white rounded-3xl p-5 sm:p-8 border border-stone-200 shadow-xl">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-stone-100 pb-5 mb-5">
+          <div>
+            <div class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-emerald-dark bg-emerald-100 px-3 py-1 rounded-full mb-1">
+              <i class="fa-solid fa-map-location-dot text-brand-gold"></i> Sơ Đồ Mặt Bằng Thông Minh
+            </div>
+            <h3 class="font-serif font-black text-xl sm:text-2xl text-brand-emerald-dark">
+              Chọn Vị Trí Bàn Trực Tiếp Trên Mặt Bằng Resort
+            </h3>
+            <p class="text-xs text-stone-500 mt-1">
+              Bấm trực tiếp vào các phân khu hoặc danh sách bàn bên dưới để chọn vị trí ưng ý nhất chào đón bạn và gia đình.
+            </p>
+          </div>
+
+          <!-- Switcher: 3D Perspective vs CAD Masterplan -->
+          <div class="flex items-center gap-2 bg-stone-100 p-1.5 rounded-2xl text-xs font-bold">
+            <button type="button" onclick="switchFloorMapView('3d')" id="btnView3D" class="px-3.5 py-1.5 rounded-xl bg-white shadow-xs text-brand-emerald-dark transition">
+              ✨ Phối Cảnh 3D Resort
+            </button>
+            <button type="button" onclick="switchFloorMapView('cad')" id="btnViewCAD" class="px-3.5 py-1.5 rounded-xl text-stone-600 hover:text-stone-900 transition">
+              📐 Mặt Bằng CAD Kỹ Thuật
+            </button>
+          </div>
+        </div>
+
+        <!-- Visual Floor Plan Image Container with Overlays -->
+        <div class="relative w-full rounded-2xl overflow-hidden border-2 border-stone-200 bg-stone-900 shadow-inner group">
+          <img id="floorMapImg" src="/static/home/resort_layout_3d.jpg" alt="Mặt bằng resort PiPo Garden" class="w-full h-64 sm:h-96 md:h-[450px] object-cover sm:object-contain transition-all duration-500">
+          
+          <!-- Gradient overlay for legibility on small screens -->
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none"></div>
+
+          <!-- Interactive Hotspot Pins on Visual Layout -->
+          <div class="absolute inset-0 pointer-events-none">
+            <!-- Hotspot 1: Hồ Bơi Trung Tâm -->
+            <button type="button" onclick="selectTable('P01', 'Ven Bể Bơi (Poolside)', '4 khách • Sát mép hồ bơi')" class="pointer-events-auto absolute top-[48%] left-[45%] -translate-x-1/2 -translate-y-1/2 group/pin cursor-pointer">
+              <span class="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-teal-500 text-white font-black text-[11px] sm:text-xs shadow-lg ring-4 ring-white/50 animate-bounce">
+                🏊
+              </span>
+              <span class="hidden group-hover/pin:block absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] font-bold px-2 py-1 rounded-md whitespace-nowrap z-20">
+                Bàn P01 - Ven Hồ Bơi
+              </span>
+            </button>
+
+            <!-- Hotspot 2: Nhà Chòi Gỗ Khu 1 -->
+            <button type="button" onclick="selectTable('K1-01', 'Nhà Chòi Gỗ Khu 1', '6 khách • Mái lá mộc mạc')" class="pointer-events-auto absolute top-[30%] left-[32%] -translate-x-1/2 -translate-y-1/2 group/pin cursor-pointer">
+              <span class="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-amber-500 text-stone-900 font-black text-[11px] sm:text-xs shadow-lg ring-4 ring-white/50">
+                🎋
+              </span>
+              <span class="hidden group-hover/pin:block absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] font-bold px-2 py-1 rounded-md whitespace-nowrap z-20">
+                K1-01 - Chòi Gỗ 1
+              </span>
+            </button>
+
+            <!-- Hotspot 3: Nhà Chòi Gỗ Khu 2 -->
+            <button type="button" onclick="selectTable('K2-01', 'Nhà Chòi Gỗ Khu 2', '6 khách • Gần Sân Pickleball')" class="pointer-events-auto absolute top-[35%] left-[62%] -translate-x-1/2 -translate-y-1/2 group/pin cursor-pointer">
+              <span class="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-emerald-600 text-white font-black text-[11px] sm:text-xs shadow-lg ring-4 ring-white/50">
+                🌴
+              </span>
+              <span class="hidden group-hover/pin:block absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] font-bold px-2 py-1 rounded-md whitespace-nowrap z-20">
+                K2-01 - Chòi Gỗ 2
+              </span>
+            </button>
+
+            <!-- Hotspot 4: Sân Pickleball -->
+            <button type="button" onclick="selectTable('PB01', 'Cụm Sân Pickleball', 'Sân thể thao Pickleball tiêu chuẩn')" class="pointer-events-auto absolute top-[38%] left-[82%] -translate-x-1/2 -translate-y-1/2 group/pin cursor-pointer">
+              <span class="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-cyan-600 text-white font-black text-[11px] sm:text-xs shadow-lg ring-4 ring-white/50">
+                🎾
+              </span>
+              <span class="hidden group-hover/pin:block absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] font-bold px-2 py-1 rounded-md whitespace-nowrap z-20">
+                Sân Pickleball PB-1
+              </span>
+            </button>
+          </div>
+
+          <!-- Selected Table Floating Banner -->
+          <div class="absolute bottom-4 left-4 right-4 sm:left-6 sm:right-auto bg-brand-emerald-dark/95 backdrop-blur-md border border-brand-gold/50 text-white p-3 sm:px-5 sm:py-3.5 rounded-2xl shadow-2xl flex items-center justify-between sm:justify-start gap-4 z-10">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl gold-gradient text-brand-emerald-dark flex items-center justify-center font-black text-base shadow">
+                <i class="fa-solid fa-chair"></i>
+              </div>
+              <div>
+                <div class="text-[10px] text-brand-gold-light uppercase tracking-wider font-bold">Vị Trí Đang Chọn</div>
+                <div id="selectedTableDisplay" class="font-bold text-xs sm:text-sm text-white">Chưa chọn bàn (Bấm chọn theo danh sách bên dưới)</div>
+              </div>
+            </div>
+            <button type="button" onclick="scrollToBookingForm()" class="gold-gradient text-brand-emerald-dark font-black text-xs px-3.5 py-2 rounded-xl shadow hover:brightness-110 whitespace-nowrap">
+              Nhập Đơn ↓
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Area & Table Selector Chips -->
+        <div class="mt-6 space-y-3">
+          <div class="text-xs font-bold uppercase tracking-wider text-stone-500">Danh Sách Bàn Phân Theo Từng Khu Vực Resort:</div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            
+            <!-- Zone 1: Bàn Ven Bể Bơi -->
+            <div class="p-3.5 rounded-2xl bg-teal-50/70 border border-teal-200/90 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-black text-teal-900 flex items-center gap-1.5"><i class="fa-solid fa-water text-teal-600"></i> Ven Bể Bơi (Poolside)</span>
+                <span class="text-[10px] text-teal-700 font-bold bg-teal-100/80 px-2 py-0.5 rounded-md">View cực chill</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="selectTable('P01', 'Ven Bể Bơi (Poolside)', '4 khách • Sát mép hồ bơi')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="P01">P01 (4k)</button>
+                <button type="button" onclick="selectTable('P02', 'Ven Bể Bơi (Poolside)', '4 khách • View mặt hồ thoáng mát')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="P02">P02 (4k)</button>
+                <button type="button" onclick="selectTable('P03', 'Ven Bể Bơi (Poolside)', '6 khách • Trung tâm hồ bơi')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="P03">P03 (6k)</button>
+                <button type="button" onclick="selectTable('P04', 'Ven Bể Bơi (Poolside)', '4 khách • Cạnh ô che nhiệt đới')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="P04">P04 (4k)</button>
+                <button type="button" onclick="selectTable('P05', 'Ven Bể Bơi (Poolside)', '6 khách • Gần Pool Bar')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="P05">P05 (6k)</button>
+                <button type="button" onclick="selectTable('P06', 'Ven Bể Bơi (Poolside)', '8 khách • Bàn tiệc cạnh hồ')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="P06">P06 (8k)</button>
+              </div>
+            </div>
+
+            <!-- Zone 2: Nhà Chòi Khu 1 -->
+            <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/90 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-black text-amber-900 flex items-center gap-1.5"><i class="fa-solid fa-umbrella-beach text-amber-700"></i> Nhà Chòi Gỗ Khu 1</span>
+                <span class="text-[10px] text-amber-700 font-bold bg-amber-100/80 px-2 py-0.5 rounded-md">Gần Bar & Bếp</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="selectTable('K1-01', 'Nhà Chòi Gỗ Khu 1', '6 khách • Mái lá mộc mạc')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K1-01">K1-01 (6k)</button>
+                <button type="button" onclick="selectTable('K1-02', 'Nhà Chòi Gỗ Khu 1', '6 khách • Gần quầy bar')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K1-02">K1-02 (6k)</button>
+                <button type="button" onclick="selectTable('K1-03', 'Nhà Chòi Gỗ Khu 1', '8 khách • Thoáng gió hồ')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K1-03">K1-03 (8k)</button>
+                <button type="button" onclick="selectTable('K1-04', 'Nhà Chòi Gỗ Khu 1', '10 khách • Tiệc gia đình')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K1-04">K1-04 (10k)</button>
+              </div>
+            </div>
+
+            <!-- Zone 3: Nhà Chòi Khu 2 -->
+            <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/90 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-black text-emerald-900 flex items-center gap-1.5"><i class="fa-solid fa-tree text-emerald-700"></i> Nhà Chòi Gỗ Khu 2</span>
+                <span class="text-[10px] text-emerald-700 font-bold bg-emerald-100/80 px-2 py-0.5 rounded-md">Gần Pickleball</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="selectTable('K2-01', 'Nhà Chòi Gỗ Khu 2', '6 khách • Không gian ấm cúng')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K2-01">K2-01 (6k)</button>
+                <button type="button" onclick="selectTable('K2-02', 'Nhà Chòi Gỗ Khu 2', '6 khách • Hướng sân Pickleball')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K2-02">K2-02 (6k)</button>
+                <button type="button" onclick="selectTable('K2-03', 'Nhà Chòi Gỗ Khu 2', '8 khách • Bàn rộng rãi')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K2-03">K2-03 (8k)</button>
+                <button type="button" onclick="selectTable('K2-04', 'Nhà Chòi Gỗ Khu 2', '10 khách • Tiệc liên hoan')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K2-04">K2-04 (10k)</button>
+              </div>
+            </div>
+
+            <!-- Zone 4: VIP & Pickleball -->
+            <div class="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-200/90 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-black text-purple-900 flex items-center gap-1.5"><i class="fa-solid fa-crown text-purple-700"></i> Phòng VIP & Sân Thể Thao</span>
+                <span class="text-[10px] text-purple-700 font-bold bg-purple-100/80 px-2 py-0.5 rounded-md">Riêng tư / Thể thao</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="selectTable('VIP01', 'Khu VIP Sân Vườn', '12 khách • Phòng VIP bờ hồ')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-purple-900 hover:border-purple-500 hover:bg-purple-100" data-code="VIP01">VIP 01 (12k)</button>
+                <button type="button" onclick="selectTable('VIP02', 'Khu VIP Sân Vườn', '16 khách • Phòng VIP lớn')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-purple-900 hover:border-purple-500 hover:bg-purple-100" data-code="VIP02">VIP 02 (16k)</button>
+                <button type="button" onclick="selectTable('PB01', 'Cụm Sân Pickleball', 'Sân Pickleball số 1 có mái che')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-teal-800 hover:border-teal-500 hover:bg-teal-100" data-code="PB01">Sân PB-1</button>
+                <button type="button" onclick="selectTable('PB02', 'Cụm Sân Pickleball', 'Sân Pickleball số 2 có mái che')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-teal-800 hover:border-teal-500 hover:bg-teal-100" data-code="PB02">Sân PB-2</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         <!-- Booking Form Card (7 Cols) -->
-        <div class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-10 border border-stone-200 shadow-xl">
+        <div id="bookingFormContainer" class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-10 border border-stone-200 shadow-xl">
           <form onsubmit="handleOnlineBooking(event)" class="space-y-5">
             
-            <div class="border-b border-stone-100 pb-4 mb-2">
-              <h3 class="font-serif font-bold text-xl text-brand-emerald-dark flex items-center gap-2">
-                <i class="fa-regular fa-calendar-check text-brand-gold"></i>
-                <span data-i18n="form_title">Thông Tin Đặt Chỗ</span>
-              </h3>
-              <p class="text-xs text-stone-500 mt-1" data-i18n="form_subtitle">Nhân viên PiPo Garden sẽ gọi điện xác nhận trong vòng 10 phút.</p>
+            <div class="border-b border-stone-100 pb-4 mb-2 flex items-center justify-between">
+              <div>
+                <h3 class="font-serif font-bold text-xl text-brand-emerald-dark flex items-center gap-2">
+                  <i class="fa-regular fa-calendar-check text-brand-gold"></i>
+                  <span data-i18n="form_title">Thông Tin Đặt Bàn & Đơn Gọi Trước</span>
+                </h3>
+                <p class="text-xs text-stone-500 mt-1" data-i18n="form_subtitle">Thu ngân / Quản lý PiPo Garden sẽ kiểm tra bàn và liên hệ xác nhận trong vòng 10 phút.</p>
+              </div>
+              <div id="formTableBadge" class="hidden text-xs font-bold text-brand-emerald-dark bg-brand-gold/20 border border-brand-gold/60 px-3 py-1.5 rounded-xl">
+                <!-- Bàn đã chọn -->
+              </div>
             </div>
+
+            <!-- Hidden Inputs for Floor Plan & Pre-order -->
+            <input type="hidden" id="resTableCode" value="">
+            <input type="hidden" id="resArea" value="">
+            <input type="hidden" id="resPreorderJson" value="[]">
+            <input type="hidden" id="resTotalEstimated" value="0">
 
             <!-- Service Type Selector -->
             <div>
@@ -861,7 +1035,7 @@
                 <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_phone_label">Số Điện Thoại Liên Hệ *</label>
                 <div class="relative">
                   <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-400 text-xs"><i class="fa-solid fa-phone"></i></span>
-                  <input type="tel" id="resPhone" required placeholder="09xx xxx xxx" class="w-full pl-9 pr-3.5 py-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald font-medium bg-stone-50/50">
+                  <input type="tel" id="resPhone" required placeholder="0838 xxx xxx" class="w-full pl-9 pr-3.5 py-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald font-medium bg-stone-50/50">
                 </div>
               </div>
             </div>
@@ -882,17 +1056,120 @@
               </div>
             </div>
 
+            <!-- Pre-order Signature Dishes Section -->
+            <div class="border border-stone-200 rounded-2xl p-4 bg-stone-50/70 space-y-3">
+              <div class="flex items-center justify-between cursor-pointer" onclick="togglePreorderBox()">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-8 h-8 rounded-xl gold-gradient text-brand-emerald-dark flex items-center justify-center font-bold text-sm shadow">🍽️</span>
+                  <div>
+                    <div class="font-bold text-xs text-brand-emerald-dark flex items-center gap-2">
+                      <span>Gọi Món Ăn Trước Khi Đến (Tùy chọn)</span>
+                      <span id="preorderCountBadge" class="bg-emerald-800 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0 món</span>
+                    </div>
+                    <div class="text-[11px] text-stone-500">Bếp sẽ chuẩn bị sẵn nguyên liệu tươi ngon nhất đón chào quý khách</div>
+                  </div>
+                </div>
+                <button type="button" class="text-xs font-bold text-brand-emerald flex items-center gap-1">
+                  <span id="preorderToggleText">Mở chọn món</span> <i id="preorderToggleIcon" class="fa-solid fa-chevron-down text-xs"></i>
+                </button>
+              </div>
+
+              <!-- Collapsible Dishes Grid -->
+              <div id="preorderDishesList" class="hidden pt-3 border-t border-stone-200 space-y-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  
+                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
+                    <div>
+                      <div class="font-bold text-stone-800">Lẩu Thái Hải Sản Tomyum</div>
+                      <div class="text-[10px] text-stone-500 font-mono">650 kcal</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button type="button" onclick="adjustPreorderItem('Lẩu Thái Hải Sản Tomyum', 320000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
+                      <span id="qty-Lẩu Thái Hải Sản Tomyum" class="font-bold w-4 text-center">0</span>
+                      <button type="button" onclick="adjustPreorderItem('Lẩu Thái Hải Sản Tomyum', 320000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
+                    <div>
+                      <div class="font-bold text-stone-800">Bò Fuji Nướng Đá Núi Lửa</div>
+                      <div class="text-[10px] text-stone-500 font-mono">720 kcal</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button type="button" onclick="adjustPreorderItem('Bò Fuji Nướng Đá Núi Lửa', 195000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
+                      <span id="qty-Bò Fuji Nướng Đá Núi Lửa" class="font-bold w-4 text-center">0</span>
+                      <button type="button" onclick="adjustPreorderItem('Bò Fuji Nướng Đá Núi Lửa', 195000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
+                    <div>
+                      <div class="font-bold text-stone-800">Gà Hấp Mắm Nhĩ + Lòng Mề</div>
+                      <div class="text-[10px] text-stone-500 font-mono">580 kcal</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button type="button" onclick="adjustPreorderItem('Gà Hấp Mắm Nhĩ + Lòng Mề', 220000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
+                      <span id="qty-Gà Hấp Mắm Nhĩ + Lòng Mề" class="font-bold w-4 text-center">0</span>
+                      <button type="button" onclick="adjustPreorderItem('Gà Hấp Mắm Nhĩ + Lòng Mề', 220000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
+                    <div>
+                      <div class="font-bold text-stone-800">Hàu Sữa Nướng Phô Mai</div>
+                      <div class="text-[10px] text-stone-500 font-mono">380 kcal</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button type="button" onclick="adjustPreorderItem('Hàu Sữa Nướng Phô Mai', 85000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
+                      <span id="qty-Hàu Sữa Nướng Phô Mai" class="font-bold w-4 text-center">0</span>
+                      <button type="button" onclick="adjustPreorderItem('Hàu Sữa Nướng Phô Mai', 85000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
+                    <div>
+                      <div class="font-bold text-stone-800">Ốc Hương Sốt Trứng Muối</div>
+                      <div class="text-[10px] text-stone-500 font-mono">420 kcal</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button type="button" onclick="adjustPreorderItem('Ốc Hương Sốt Trứng Muối', 165000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
+                      <span id="qty-Ốc Hương Sốt Trứng Muối" class="font-bold w-4 text-center">0</span>
+                      <button type="button" onclick="adjustPreorderItem('Ốc Hương Sốt Trứng Muối', 165000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
+                    <div>
+                      <div class="font-bold text-stone-800">Cocktail & Nước Ép PiPo</div>
+                      <div class="text-[10px] text-stone-500 font-mono">120 kcal</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button type="button" onclick="adjustPreorderItem('Cocktail & Nước Ép PiPo', 45000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
+                      <span id="qty-Cocktail & Nước Ép PiPo" class="font-bold w-4 text-center">0</span>
+                      <button type="button" onclick="adjustPreorderItem('Cocktail & Nước Ép PiPo', 45000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="flex items-center justify-between pt-2 text-xs">
+                  <span class="text-stone-500 font-medium">Tạm tính đơn gọi trước:</span>
+                  <span id="preorderTotalDisplay" class="font-black text-sm text-emerald-800">0 đ</span>
+                </div>
+              </div>
+            </div>
+
             <!-- Notes -->
             <div>
               <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_note_label">Yêu Cầu Đặc Biệt (Tùy chọn)</label>
-              <textarea id="resNote" rows="2" placeholder="Ví dụ: Bàn sát cạnh hồ bơi, phòng máy lạnh riêng, setup hoa sinh nhật, thuê vợt pickleball..." class="w-full p-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald bg-stone-50/50"></textarea>
+              <textarea id="resNote" rows="2" placeholder="Ví dụ: Bàn sát hồ bơi, setup hoa sinh nhật, nướng sẵn khi đến nơi, thuê vợt pickleball..." class="w-full p-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald bg-stone-50/50"></textarea>
             </div>
 
             <div id="bookingAlert" class="hidden p-3.5 rounded-2xl text-xs font-bold"></div>
 
             <button type="submit" id="btnSubmitBooking" class="w-full gold-gradient hover:brightness-110 text-brand-emerald-dark font-black text-sm py-4 rounded-2xl transition shadow-lg flex items-center justify-center gap-2">
               <i class="fa-solid fa-paper-plane"></i>
-              <span data-i18n="form_submit_btn">Xác Nhận Gửi Yêu Cầu Đặt Chỗ</span>
+              <span data-i18n="form_submit_btn">Xác Nhận Đặt Bàn & Gửi Yêu Cầu</span>
             </button>
 
           </form>
@@ -912,7 +1189,7 @@
                 <span class="w-7 h-7 rounded-lg bg-brand-gold/20 text-brand-gold flex items-center justify-center flex-shrink-0 text-xs"><i class="fa-solid fa-location-dot"></i></span>
                 <div>
                   <div class="font-bold text-white/95" data-i18n="contact_addr_t">Địa chỉ nhà hàng:</div>
-                  <div class="text-white/75" data-i18n="contact_addr_v">Tổ 1, Ấp Suối Mây, Xã Dương Tơ, TP. Phú Quốc, Kiên Giang</div>
+                  <div class="text-white/75" id="cmsContactAddress" data-i18n="contact_addr_v">{{ cms.address | default('Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc') }}</div>
                 </div>
               </div>
 
@@ -920,7 +1197,7 @@
                 <span class="w-7 h-7 rounded-lg bg-brand-gold/20 text-brand-gold flex items-center justify-center flex-shrink-0 text-xs"><i class="fa-solid fa-phone-volume"></i></span>
                 <div>
                   <div class="font-bold text-white/95" data-i18n="contact_tel_t">Hotline & Zalo đặt bàn:</div>
-                  <a href="tel:0901234567" class="text-brand-gold font-bold hover:underline">0901.234.567</a>
+                  <a href="tel:{{ cms.phone | default('0838993316') }}" id="cmsContactPhone" class="text-brand-gold font-bold hover:underline">{{ cms.phone_display | default('0838.993.316') }}</a>
                 </div>
               </div>
 
@@ -928,20 +1205,20 @@
                 <span class="w-7 h-7 rounded-lg bg-brand-gold/20 text-brand-gold flex items-center justify-center flex-shrink-0 text-xs"><i class="fa-regular fa-clock"></i></span>
                 <div>
                   <div class="font-bold text-white/95" data-i18n="contact_hours_t">Thời gian phục vụ:</div>
-                  <div class="text-white/75" data-i18n="contact_hours_v">Mở cửa từ 07:00 sáng đến 23:00 đêm các ngày trong tuần</div>
+                  <div class="text-white/75" id="cmsContactHours" data-i18n="contact_hours_v">{{ cms.opening_hours | default('06:30 - 23:00 hàng ngày') }}</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Google Maps Widget -->
+          <!-- Google Maps Widget pointing to Sonasea Bãi Trường -->
           <div class="bg-white rounded-3xl overflow-hidden border border-stone-200 shadow-md">
             <div class="p-3.5 bg-stone-100 flex items-center justify-between text-xs font-bold text-stone-700">
-              <span class="flex items-center gap-1.5"><i class="fa-solid fa-map-location-dot text-brand-wood"></i> Bản Đồ Đường Đi (Suối Mây, Phú Quốc)</span>
-              <a href="https://maps.google.com/?q=Suối+Mây,+Dương+Tơ,+Phú+Quốc" target="_blank" class="text-brand-wood hover:underline text-[11px]">Mở Maps ↗</a>
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-map-location-dot text-brand-wood"></i> Bản Đồ Đường Đi (Sonasea, Bãi Trường)</span>
+              <a href="https://maps.google.com/?q=Sonasea+Villas+%26+Resort,+B%C3%A3i+Tr%C6%B0%E1%BB%9Dng,+Ph%C3%BA+Qu%E1%BB%91c" target="_blank" class="text-brand-wood hover:underline text-[11px]">Mở Maps ↗</a>
             </div>
             <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31358.583973943477!2d103.98774786445582!3d10.169123847844093!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31a78dc1e0a811c7%3A0xe5a363720743b342!2zU3Xhu5FpIE3DonksIETGsMahbmcgVMahLCBQaMO6IFF14buRYywgS2nDqm4gR2lhbmcsIFZpZXRuYW0!5e0!3m2!1sen!2s!4v1700000000000!5m2!1sen!2s" 
+              src="{{ cms.google_map_embed_url | default('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3926.8523318281144!2d103.97828557451066!3d10.192770289922572!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31a78dc1e0a811c7%3A0xe5a363720743b342!2sSonasea%20Villas%20%26%20Resort!5e0!3m2!1sen!2s!4v1710000000000!5m2!1sen!2s') }}" 
               class="w-full h-64 border-0" 
               allowfullscreen="" 
               loading="lazy" 
@@ -972,12 +1249,12 @@
           </div>
         </div>
         <p class="text-xs text-white/75 leading-relaxed pr-6" data-i18n="footer_about">
-          Tổ hợp ẩm thực sân vườn sinh thái, hồ bơi ngoài trời thư giãn và cụm sân Pickleball có mái che hiện đại tại Suối Mây, Dương Tơ, Phú Quốc. Tận hưởng hương vị biển tươi ngon và không gian nghỉ dưỡng nhiệt đới đích thực.
+          Tổ hợp ẩm thực sân vườn sinh thái, hồ bơi ngoài trời thư giãn và cụm sân Pickleball có mái che hiện đại tại Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc. Tận hưởng hương vị biển tươi ngon và không gian nghỉ dưỡng nhiệt đới đích thực.
         </p>
         <div class="flex items-center gap-3 pt-2 text-white/80">
           <a href="#" class="w-8 h-8 rounded-full bg-white/10 hover:bg-brand-gold hover:text-brand-emerald-dark flex items-center justify-center transition"><i class="fa-brands fa-facebook-f text-xs"></i></a>
           <a href="#" class="w-8 h-8 rounded-full bg-white/10 hover:bg-brand-gold hover:text-brand-emerald-dark flex items-center justify-center transition"><i class="fa-brands fa-tiktok text-xs"></i></a>
-          <a href="tel:0901234567" class="w-8 h-8 rounded-full bg-white/10 hover:bg-brand-gold hover:text-brand-emerald-dark flex items-center justify-center transition"><i class="fa-solid fa-phone text-xs"></i></a>
+          <a href="tel:{{ cms.phone | default('0838993316') }}" class="w-8 h-8 rounded-full bg-white/10 hover:bg-brand-gold hover:text-brand-emerald-dark flex items-center justify-center transition"><i class="fa-solid fa-phone text-xs"></i></a>
         </div>
       </div>
 
@@ -1248,7 +1525,137 @@
       });
     }
 
-    // 7. Online Reservation Form Submission
+    // ==========================================
+    // 7. SƠ ĐỒ MẶT BẰNG & CHỌN BÀN THÔNG MINH
+    // ==========================================
+    function switchFloorMapView(mode) {
+      const img = document.getElementById("floorMapImg");
+      const btn3D = document.getElementById("btnView3D");
+      const btnCAD = document.getElementById("btnViewCAD");
+      if (mode === '3d') {
+        img.src = "/static/home/resort_layout_3d.jpg";
+        btn3D.className = "px-3.5 py-1.5 rounded-xl bg-white shadow-xs text-brand-emerald-dark font-bold transition";
+        btnCAD.className = "px-3.5 py-1.5 rounded-xl text-stone-600 hover:text-stone-900 font-bold transition";
+      } else {
+        img.src = "/static/home/resort_masterplan.jpg";
+        btnCAD.className = "px-3.5 py-1.5 rounded-xl bg-white shadow-xs text-brand-emerald-dark font-bold transition";
+        btn3D.className = "px-3.5 py-1.5 rounded-xl text-stone-600 hover:text-stone-900 font-bold transition";
+      }
+    }
+
+    let currentSelectedTable = null;
+    function selectTable(code, area, info) {
+      currentSelectedTable = { code, area, info };
+      const tableCodeInput = document.getElementById("resTableCode");
+      const areaInput = document.getElementById("resArea");
+      if (tableCodeInput) tableCodeInput.value = code;
+      if (areaInput) areaInput.value = area;
+      
+      const displayEl = document.getElementById("selectedTableDisplay");
+      if (displayEl) {
+        displayEl.innerHTML = `<span class="gold-text-gradient font-black">Bàn ${code}</span> • ${area} <span class="text-xs text-white/75 font-normal">(${info})</span>`;
+      }
+      
+      const formBadge = document.getElementById("formTableBadge");
+      if (formBadge) {
+        formBadge.classList.remove("hidden");
+        formBadge.innerHTML = `✨ Đang chọn: <strong>${code}</strong> (${area})`;
+      }
+      
+      // Highlight active chip
+      document.querySelectorAll(".table-chip").forEach(chip => {
+        if (chip.getAttribute("data-code") === code) {
+          chip.className = "table-chip px-2.5 py-1 rounded-lg gold-gradient font-black text-brand-emerald-dark shadow-xs ring-2 ring-brand-gold";
+        } else {
+          chip.className = "table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50";
+        }
+      });
+    }
+
+    function scrollToBookingForm() {
+      const el = document.getElementById("bookingFormContainer");
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ==========================================
+    // 8. GỌI MÓN TRƯỚC CHO BÀN (PRE-ORDER)
+    // ==========================================
+    let preorderCart = {};
+
+    function togglePreorderBox() {
+      const box = document.getElementById("preorderDishesList");
+      const icon = document.getElementById("preorderToggleIcon");
+      const txt = document.getElementById("preorderToggleText");
+      if (!box) return;
+      const isHidden = box.classList.toggle("hidden");
+      if (isHidden) {
+        if (icon) icon.className = "fa-solid fa-chevron-down text-xs";
+        if (txt) txt.innerText = "Mở chọn món";
+      } else {
+        if (icon) icon.className = "fa-solid fa-chevron-up text-xs";
+        if (txt) txt.innerText = "Thu gọn";
+      }
+    }
+
+    function adjustPreorderItem(name, price, delta) {
+      if (!preorderCart[name]) {
+        preorderCart[name] = { name, price, quantity: 0 };
+      }
+      preorderCart[name].quantity = Math.max(0, preorderCart[name].quantity + delta);
+      if (preorderCart[name].quantity === 0) {
+        delete preorderCart[name];
+      }
+      
+      const qtyEl = document.getElementById("qty-" + name);
+      if (qtyEl) {
+        qtyEl.innerText = preorderCart[name] ? preorderCart[name].quantity : 0;
+      }
+      
+      updatePreorderSummary();
+    }
+
+    function quickPreorderDish(name, price) {
+      const box = document.getElementById("preorderDishesList");
+      if (box && box.classList.contains("hidden")) {
+        togglePreorderBox();
+      }
+      adjustPreorderItem(name, price, 1);
+      scrollToBookingForm();
+    }
+
+    function updatePreorderSummary() {
+      const items = Object.values(preorderCart);
+      let totalQty = 0;
+      let totalEst = 0;
+      items.forEach(it => {
+        totalQty += it.quantity;
+        totalEst += it.quantity * it.price;
+      });
+      
+      const badge = document.getElementById("preorderCountBadge");
+      if (badge) {
+        if (totalQty > 0) {
+          badge.classList.remove("hidden");
+          badge.innerText = `${totalQty} món`;
+        } else {
+          badge.classList.add("hidden");
+        }
+      }
+      
+      const totalDisplay = document.getElementById("preorderTotalDisplay");
+      if (totalDisplay) {
+        totalDisplay.innerText = totalEst.toLocaleString("vi-VN") + " đ";
+      }
+      
+      const jsonInput = document.getElementById("resPreorderJson");
+      const estInput = document.getElementById("resTotalEstimated");
+      if (jsonInput) jsonInput.value = JSON.stringify(items);
+      if (estInput) estInput.value = totalEst;
+    }
+
+    // ==========================================
+    // 9. GỬI YÊU CẦU ĐẶT BÀN & GỌI TRƯỚC
+    // ==========================================
     async function handleOnlineBooking(e) {
       e.preventDefault();
       const btn = document.getElementById("btnSubmitBooking");
@@ -1264,6 +1671,11 @@
       const srvRadio = document.querySelector('input[name="service_type"]:checked');
       const serviceType = srvRadio ? srvRadio.value : "DINING";
 
+      const tableCode = document.getElementById("resTableCode") ? document.getElementById("resTableCode").value : "";
+      const area = document.getElementById("resArea") ? document.getElementById("resArea").value : "";
+      const preorderItemsJson = document.getElementById("resPreorderJson") ? document.getElementById("resPreorderJson").value : "[]";
+      const totalEstimated = parseInt(document.getElementById("resTotalEstimated") ? document.getElementById("resTotalEstimated").value : 0) || 0;
+
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi yêu cầu...`;
 
@@ -1278,6 +1690,10 @@
             booking_time: bookingTime,
             guest_count: guestCount,
             service_type: serviceType,
+            table_code: tableCode,
+            area: area,
+            preorder_items_json: preorderItemsJson,
+            total_estimated: totalEstimated,
             note: note
           })
         });
@@ -1285,22 +1701,54 @@
         const data = await res.json();
         if (res.ok) {
           alertBox.className = "p-4 rounded-2xl text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 block";
-          alertBox.innerHTML = `🎉 <strong>Đặt chỗ thành công!</strong> Cảm ơn quý khách <strong>${guestName}</strong>. PiPo Garden sẽ gọi điện xác nhận theo số <strong>${phone}</strong> trong ít phút!`;
+          const tableText = tableCode ? ` cho <strong>Bàn ${tableCode} (${area})</strong>` : "";
+          const preorderItems = JSON.parse(preorderItemsJson || "[]");
+          const preorderText = preorderItems.length > 0 ? ` kèm đơn gọi trước <strong>${preorderItems.length} món (${totalEstimated.toLocaleString('vi-VN')} đ)</strong>` : "";
+          alertBox.innerHTML = `🎉 <strong>Đặt bàn thành công!</strong> Cảm ơn quý khách <strong>${guestName}</strong>. Yêu cầu đặt bàn${tableText}${preorderText} đã được gửi tới Thu ngân & Quản lý. PiPo Garden sẽ gọi điện xác nhận theo số <strong>${phone}</strong> trong ít phút!`;
           e.target.reset();
+          preorderCart = {};
+          updatePreorderSummary();
         } else {
           alertBox.className = "p-4 rounded-2xl text-xs font-bold bg-rose-100 text-rose-900 border border-rose-300 block";
-          alertBox.innerText = "❌ " + (data.detail || "Không thể gửi yêu cầu đặt chỗ. Vui lòng gọi trực tiếp hotline 0901.234.567.");
+          alertBox.innerText = "❌ " + (data.detail || "Không thể gửi yêu cầu đặt chỗ. Vui lòng gọi trực tiếp hotline 0838.993.316.");
         }
       } catch (err) {
         alertBox.className = "p-4 rounded-2xl text-xs font-bold bg-rose-100 text-rose-900 border border-rose-300 block";
-        alertBox.innerText = "❌ Lỗi kết nối mạng. Vui lòng liên hệ trực tiếp hotline 0901.234.567 để đặt bàn nhanh.";
+        alertBox.innerText = "❌ Lỗi kết nối mạng. Vui lòng liên hệ trực tiếp hotline 0838.993.316 để đặt bàn nhanh.";
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> <span>Xác Nhận Gửi Yêu Cầu Đặt Chỗ</span>`;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> <span>Xác Nhận Đặt Bàn & Gửi Yêu Cầu</span>`;
       }
     }
 
-    // Set today's date as default in booking form
+    // ==========================================
+    // 10. ĐỒNG BỘ DỮ LIỆU TỪ CMS NỘI BỘ
+    // ==========================================
+    async function loadHomepageCMS() {
+      try {
+        const res = await fetch("/api/homepage/cms");
+        if (!res.ok) return;
+        const data = await res.json();
+        const s = data.settings || {};
+        
+        if (s.address) {
+          if (document.getElementById("cmsHeroAddress")) document.getElementById("cmsHeroAddress").innerText = s.address;
+          if (document.getElementById("cmsContactAddress")) document.getElementById("cmsContactAddress").innerText = s.address;
+        }
+        if (s.phone_display) {
+          if (document.getElementById("cmsHeroPhone")) document.getElementById("cmsHeroPhone").innerText = s.phone_display;
+          if (document.getElementById("cmsContactPhone")) document.getElementById("cmsContactPhone").innerText = s.phone_display;
+        }
+        if (s.opening_hours) {
+          if (document.getElementById("cmsHeroHours")) document.getElementById("cmsHeroHours").innerText = s.opening_hours;
+          if (document.getElementById("cmsContactHours")) document.getElementById("cmsContactHours").innerText = s.opening_hours;
+        }
+      } catch (e) {
+        console.warn("CMS dynamic sync skipped", e);
+      }
+    }
+
+    // Khởi tạo mặc định khi tải trang
     document.addEventListener("DOMContentLoaded", () => {
       const today = new Date().toISOString().split("T")[0];
       const dateEl = document.getElementById("resDate");
@@ -1308,6 +1756,7 @@
         dateEl.value = today;
         dateEl.min = today;
       }
+      loadHomepageCMS();
     });
   </script>
 

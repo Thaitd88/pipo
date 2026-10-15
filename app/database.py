@@ -299,13 +299,48 @@ def init_db():
         booking_time TEXT NOT NULL,
         guest_count INTEGER DEFAULT 2,
         service_type TEXT DEFAULT 'DINING', -- DINING, BIRTHDAY_EVENT, PICKLEBALL, POOL_PARTY
+        table_id INTEGER,
+        table_code TEXT,
+        area TEXT,
+        preorder_items_json TEXT DEFAULT '[]',
+        total_estimated INTEGER DEFAULT 0,
+        assigned_at DATETIME,
+        assigned_by TEXT,
         note TEXT,
         status TEXT DEFAULT 'PENDING', -- PENDING, CONFIRMED, CANCELLED
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
     """)
 
+    # Migrate thêm các cột cho bảng reservations nếu đã tồn tại từ trước
+    res_cols = [
+        ("table_id", "INTEGER"),
+        ("table_code", "TEXT"),
+        ("area", "TEXT"),
+        ("preorder_items_json", "TEXT DEFAULT '[]'"),
+        ("total_estimated", "INTEGER DEFAULT 0"),
+        ("assigned_at", "DATETIME"),
+        ("assigned_by", "TEXT"),
+    ]
+    for col_name, col_type in res_cols:
+        try:
+            cursor.execute(f"ALTER TABLE reservations ADD COLUMN {col_name} {col_type}")
+        except Exception:
+            pass
+
+    # 15. Quản Trị Nội Dung Trang Chủ (Homepage CMS)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS homepage_cms (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
     conn.commit()
+
+    # Seed Homepage CMS default settings
+    seed_homepage_cms(conn)
 
     # Seed initial areas if empty
     cursor.execute("SELECT COUNT(*) as count FROM restaurant_areas")
@@ -350,6 +385,9 @@ def init_db():
 
     # Tự động tính toán và đồng bộ chỉ số Calo theo định lượng NVL (BOM)
     sync_dish_calories(conn)
+
+    # Tự động bổ sung các bàn theo mặt bằng resort thực tế
+    ensure_resort_tables(conn)
 
     # Đảm bảo toàn bộ danh mục và món ăn đều có dữ liệu đa ngôn ngữ
     seed_translations_if_missing(conn)
@@ -877,3 +915,73 @@ def restore_inventory_for_order_item(conn, order_item_id: int, reason: str = "H�
     # Đánh dấu đã hoàn kho
     cursor.execute("UPDATE order_items SET inventory_deducted = 0 WHERE id = ?", (order_item_id,))
     conn.commit()
+
+def seed_homepage_cms(conn):
+    """Khởi tạo và cập nhật các thông số quản trị nội dung trang chủ (CMS)."""
+    cursor = conn.cursor()
+    default_cms = {
+        "hero_badge": "TROPICAL RESORT & POOL BAR",
+        "hero_title_1": "Pipo Garden Phú Quốc",
+        "hero_title_2": "Tinh Hoa Ẩm Thực & Thư Giãn Giữa Lòng Đảo Ngọc",
+        "hero_subtitle": "Trải nghiệm không gian sân vườn nhiệt đới, hải sản biển tươi ngon, hồ bơi uốn lượn trung tâm và khu phức hợp giải trí đẳng cấp tại Bãi Trường, Phú Quốc.",
+        "hero_image_url": "/static/home/hero_twilight.jpg",
+        "address": "Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc",
+        "phone": "0838993316",
+        "phone_display": "0838.993.316",
+        "opening_hours": "06:30 - 23:00 hàng ngày",
+        "about_story": "Tọa lạc tại khu nghỉ dưỡng Sonasea Bãi Trường rực rỡ, PiPo Garden sở hữu không gian Tropical Resort & Garden ấn tượng với hồ bơi uốn lượn trung tâm, các nhà chòi mái lá mộc mạc lung linh đèn lồng, kết hợp khu ẩm thực - cà phê và cụm sân thể thao Pickleball hiện đại.",
+        "feature_1_title": "Ẩm Thực Sân Vườn & Hải Sản",
+        "feature_1_desc": "Hải sản Phú Quốc tươi sống bắt tại bể, hải sản nướng than hoa đậm vị cùng thực đơn đa dạng từ cơm trưa đến tiệc tối.",
+        "feature_2_title": "Hồ Bơi Uốn Lượn & Pool Bar",
+        "feature_2_desc": "Không gian thư giãn cực chill bên hồ bơi uốn lượn, khu vực check-in sống ảo sang trọng cùng cocktail nhiệt đới.",
+        "feature_3_title": "Cụm Sân Pickleball Có Mái Che",
+        "feature_3_desc": "Tổ hợp 4 sân Pickleball hiện đại theo tiêu chuẩn thi đấu, mặt sân cao cấp phục vụ ngày lẫn đêm.",
+        "feature_4_title": "Tiệc Sinh Nhật & Sự Kiện Bờ Hồ",
+        "feature_4_desc": "Nhận đặt tiệc sinh nhật, Gala dinner, tiệc công ty ngoài trời bên hồ bơi với âm thanh ánh sáng lung linh.",
+        "google_map_embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3926.8523318281144!2d103.97828557451066!3d10.192770289922572!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31a78dc1e0a811c7%3A0xe5a363720743b342!2sSonasea%20Villas%20%26%20Resort!5e0!3m2!1sen!2s!4v1710000000000!5m2!1sen!2s"
+    }
+    for key, val in default_cms.items():
+        cursor.execute("INSERT OR IGNORE INTO homepage_cms (key, value) VALUES (?, ?)", (key, val))
+    
+    # Cập nhật địa chỉ và số điện thoại mới nếu đang là giá trị mẫu cũ
+    cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'address' AND (value LIKE '%Suối Mây%' OR value LIKE '%Tổ 1%')", 
+                   ("Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc",))
+    cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'phone' AND value LIKE '09%'", ("0838993316",))
+    cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'phone_display' AND value LIKE '09%'", ("0838.993.316",))
+    conn.commit()
+
+def ensure_resort_tables(conn):
+    """Bổ sung các bàn theo bản vẽ thiết kế mặt bằng Resort PiPo Garden (Ven Hồ Bơi, Nhà Chòi 1 & 2, VIP)."""
+    cursor = conn.cursor()
+    resort_tables = [
+        # Bàn ven hồ bơi (Poolside)
+        ("P01", "Bàn Hồ Bơi 01", "Ven Bể Bơi (Poolside)", 4),
+        ("P02", "Bàn Hồ Bơi 02", "Ven Bể Bơi (Poolside)", 4),
+        ("P03", "Bàn Hồ Bơi 03", "Ven Bể Bơi (Poolside)", 6),
+        ("P04", "Bàn Hồ Bơi 04", "Ven Bể Bơi (Poolside)", 4),
+        ("P05", "Bàn Hồ Bơi 05", "Ven Bể Bơi (Poolside)", 6),
+        ("P06", "Bàn Hồ Bơi 06", "Ven Bể Bơi (Poolside)", 8),
+        # Nhà chòi Khu 1 (gần bar & bếp)
+        ("K1-01", "Chòi Khu 1 - Bàn 01", "Nhà Chòi Gỗ Khu 1", 6),
+        ("K1-02", "Chòi Khu 1 - Bàn 02", "Nhà Chòi Gỗ Khu 1", 6),
+        ("K1-03", "Chòi Khu 1 - Bàn 03", "Nhà Chòi Gỗ Khu 1", 8),
+        ("K1-04", "Chòi Khu 1 - Bàn 04", "Nhà Chòi Gỗ Khu 1", 10),
+        # Nhà chòi Khu 2 (gần Pickleball)
+        ("K2-01", "Chòi Khu 2 - Bàn 01", "Nhà Chòi Gỗ Khu 2", 6),
+        ("K2-02", "Chòi Khu 2 - Bàn 02", "Nhà Chòi Gỗ Khu 2", 6),
+        ("K2-03", "Chòi Khu 2 - Bàn 03", "Nhà Chòi Gỗ Khu 2", 8),
+        ("K2-04", "Chòi Khu 2 - Bàn 04", "Nhà Chòi Gỗ Khu 2", 10),
+        # Khu VIP Bờ Hồ Sân Vườn
+        ("VIP01", "Phòng VIP Bờ Hồ 01", "Khu VIP Sân Vườn", 12),
+        ("VIP02", "Phòng VIP Bờ Hồ 02", "Khu VIP Sân Vườn", 16),
+    ]
+    for code, name, area, cap in resort_tables:
+        cursor.execute("SELECT id FROM tables WHERE UPPER(table_code) = UPPER(?)", (code,))
+        if not cursor.fetchone():
+            token = generate_qr_token(code)
+            cursor.execute(
+                "INSERT INTO tables (table_code, name, area, capacity, qr_token, status) VALUES (?, ?, ?, ?, ?, 'AVAILABLE')",
+                (code, name, area, cap, token)
+            )
+    conn.commit()
+

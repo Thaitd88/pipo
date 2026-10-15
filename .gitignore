@@ -23,3 +23,5 @@ env/
 Thumbs.db
 Desktop.ini
 .DS_Store
+design/extracted/
+design/rendered_pages/
