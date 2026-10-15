@@ -115,6 +115,23 @@ pos.set_broadcaster(broadcaster)
 async def lifespan(app: FastAPI):
     # Khởi tạo DB khi bật server
     init_db()
+    # Tự động đồng bộ các ảnh upload bền vững từ persistent storage vào static/dishes
+    try:
+        from .database import DATA_DIR
+        persistent_uploads = os.path.join(DATA_DIR, "uploads")
+        dishes_dir = os.path.join(STATIC_DIR, "dishes")
+        if os.path.exists(persistent_uploads) and os.path.exists(dishes_dir):
+            import shutil
+            for fname in os.listdir(persistent_uploads):
+                src = os.path.join(persistent_uploads, fname)
+                dst = os.path.join(dishes_dir, fname)
+                if os.path.isfile(src) and not os.path.exists(dst):
+                    try:
+                        shutil.copy2(src, dst)
+                    except Exception:
+                        pass
+    except Exception:
+        pass
     print("[PiPo Garden] Co so du lieu va du lieu mau da san sang!")
     yield
     print("[PiPo Garden] Server dang tat.")

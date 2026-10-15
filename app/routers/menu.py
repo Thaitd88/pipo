@@ -8,6 +8,7 @@ import io
 import re
 import uuid
 import urllib.parse
+import shutil
 from PIL import Image, ImageOps
 from ..database import get_db, DATA_DIR
 from ..services.translator import translate_dish, translate_category_name
@@ -95,26 +96,77 @@ def get_full_menu():
 
     for item in items:
         img_url = (item.get("image_url") or "").strip()
-        if img_url:
-            # Nếu món đã có ảnh (link ngoài hoặc ảnh người dùng gán) -> TUYỆT ĐỐI GIỮ NGUYÊN!
-            # Nếu là file nội bộ trong static/dishes, gắn thêm timestamp ?v= để chống cache trình duyệt
-            if img_url.startswith("/static/dishes/"):
+        fixed_url = None
+
+        if img_url and img_url.startswith("/static/dishes/"):
+            try:
+                clean_path = img_url.split("?")[0]
+                base_name = urllib.parse.unquote(os.path.basename(clean_path))
+                local_path = os.path.join(DISHES_DIR, base_name)
+
+                # 1. File đã có sẵn trong static/dishes
+                if os.path.exists(local_path):
+                    mtime = int(os.path.getmtime(local_path))
+                    fixed_url = f"{clean_path}?v={mtime}"
+                else:
+                    # 2. Kiểm tra trong PERSISTENT_UPLOADS để khôi phục lại
+                    persistent_path = os.path.join(PERSISTENT_UPLOADS, base_name)
+                    if os.path.exists(persistent_path):
+                        try:
+                            shutil.copy2(persistent_path, local_path)
+                            mtime = int(os.path.getmtime(local_path))
+                            fixed_url = f"{clean_path}?v={mtime}"
+                        except Exception:
+                            pass
+
+                    # 3. Nếu file webp có UUID hash (vd: bia_bivina_49db3b1b.webp) bị mất khi restart container
+                    if not fixed_url:
+                        clean_slug = re.sub(r'_[a-f0-9]{8}\.', '.', base_name)
+                        for ext in [".jpg", ".png", ".webp", ".jpeg"]:
+                            cand_name = os.path.splitext(clean_slug)[0] + ext
+                            cand_path = os.path.join(DISHES_DIR, cand_name)
+                            if os.path.exists(cand_path):
+                                fixed_url = f"/static/dishes/{cand_name}"
+                                # Tự động cập nhật DB vĩnh viễn
+                                try:
+                                    conn_up = get_db()
+                                    conn_up.cursor().execute("UPDATE menu_items SET image_url = ? WHERE id = ?", (fixed_url, item["id"]))
+                                    conn_up.commit()
+                                    conn_up.close()
+                                except Exception:
+                                    pass
+                                break
+
+                    # 4. Nếu vẫn chưa có, dùng fuzzy matching theo tên món để tự phục hồi
+                    if not fixed_url:
+                        match = find_matching_image(item["name"], None)
+                        if match:
+                            fixed_url = match["url"]
+                            try:
+                                conn_up = get_db()
+                                conn_up.cursor().execute("UPDATE menu_items SET image_url = ? WHERE id = ?", (fixed_url, item["id"]))
+                                conn_up.commit()
+                                conn_up.close()
+                            except Exception:
+                                pass
+            except Exception:
+                pass
+        elif not img_url:
+            match = find_matching_image(item["name"], None)
+            if match:
+                fixed_url = match["url"]
                 try:
-                    clean_path = img_url.split("?")[0]
-                    base_name = urllib.parse.unquote(os.path.basename(clean_path))
-                    local_path = os.path.join(DISHES_DIR, base_name)
-                    if os.path.exists(local_path):
-                        mtime = int(os.path.getmtime(local_path))
-                        item["image_url"] = f"{clean_path}?v={mtime}"
-                    else:
-                        item["image_url"] = clean_path
+                    conn_up = get_db()
+                    conn_up.cursor().execute("UPDATE menu_items SET image_url = ? WHERE id = ?", (fixed_url, item["id"]))
+                    conn_up.commit()
+                    conn_up.close()
                 except Exception:
                     pass
         else:
-            # Chỉ khi món HOÀN TOÀN CHƯA CÓ ẢNH -> Mới tự động tìm ảnh theo tên món trong thư mục dishes
-            match = find_matching_image(item["name"], None)
-            if match:
-                item["image_url"] = match["url"]
+            fixed_url = img_url
+
+        if fixed_url:
+            item["image_url"] = fixed_url
 
         # Parse options JSON
         if item.get("options_json"):

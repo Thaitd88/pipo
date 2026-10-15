@@ -24,11 +24,11 @@ GOOGLE_LANG_MAP = {
 
 # Từ điển ẩm thực dự phòng chuyên sâu cho PiPo Garden (Offline Fallback Dictionary)
 OFFLINE_FOOD_DICT = {
-    "Bò Fuji Nướng Đá Núi Lửa": {
-        "en": "Fuji Beef Grilled on Volcanic Rock",
-        "zh": "火山石烤富士牛肉",
-        "ko": "화산석 후지 소고기 구이",
-        "ru": "Говядина Фудзи на вулканическом камне"
+    "Bò Xuyên Tiêu": {
+        "en": "Phu Quoc Stir-fried Beef with Green Peppercorns",
+        "zh": "富国岛青花椒炒牛肉",
+        "ko": "푸꾸옥 통후추 소고기 볶음",
+        "ru": "Говядина вок с зеленым перцем Фукуок"
     },
     "Sườn Cây Nướng Sốt BBQ PiPo": {
         "en": "Grilled Pork Ribs with PiPo BBQ Sauce",

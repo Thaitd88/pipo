@@ -417,7 +417,34 @@ def init_db():
     # Đảm bảo toàn bộ danh mục và món ăn đều có dữ liệu đa ngôn ngữ
     seed_translations_if_missing(conn)
 
+    # Đảm bảo ảnh của các món đồ uống, bia và đặc sản luôn chuẩn và không bị mất
+    ensure_fixed_dish_images(conn)
+
     conn.close()
+
+def ensure_fixed_dish_images(conn):
+    """Đảm bảo các món đồ uống, bia và món đặc sản luôn có đường dẫn ảnh chuẩn và không bị mất sau redeploy."""
+    cursor = conn.cursor()
+    FIXED_ITEMS = {
+        "Bia Bivina": "/static/dishes/bia_bivina.jpg",
+        "Bia Sài Gòn": "/static/dishes/bia_sai_gon.jpg",
+        "Bia Heineken": "/static/dishes/bia_heineken.jpg",
+        "Revive": "/static/dishes/revive.jpg",
+        "Aquarius": "/static/dishes/aquarius.jpg",
+        "Coca Cola": "/static/dishes/coca_cola.jpg",
+        "Pepsi": "/static/dishes/pepsi.jpg",
+        "Nước suối": "/static/dishes/nuoc_suoi.jpg",
+        "Sườn heo nướng muối ớt": "/static/dishes/suon_heo_nuong_muoi_ot.jpg",
+        "Bò Xuyên Tiêu": "/static/dishes/bo_xuyen_tieu.jpg",
+        "Gà nướng tây bắc + Lòng mề xào": "/static/dishes/ga_nuong_tay_bac_long_me_xao.jpg",
+        "Gà hấp mắm nhĩ + Lòng mề xào": "/static/dishes/ga_hap_mam_nhi_long_me_xao.jpg",
+        "Hàu nướng phô mai": "/static/dishes/hau_nuong_pho_mai.jpg",
+        "Ốc hương sốt trứng muối - bánh mì": "/static/dishes/oc_huong_sot_trung_muoi_banh_mi.jpg"
+    }
+    for name, path in FIXED_ITEMS.items():
+        cursor.execute("UPDATE menu_items SET image_url = ? WHERE name LIKE ? AND (image_url LIKE '%.webp' OR image_url IS NULL OR image_url = '')", (path, f"%{name}%"))
+        cursor.execute("UPDATE menu_items SET image_url = ? WHERE name = ?", (path, name))
+    conn.commit()
 
 def sync_dish_calories(conn):
     """Tính toán và đồng bộ chỉ số Calo cho toàn bộ món ăn dựa theo định lượng NVL (BOM)."""

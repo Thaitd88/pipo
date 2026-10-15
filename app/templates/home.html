@@ -301,7 +301,7 @@
             <div>
               <h3 class="font-serif font-bold text-lg text-brand-emerald-dark" data-i18n="card_dining_title">Ẩm Thực Sân Vườn</h3>
               <p class="text-xs text-stone-600 mt-2 leading-relaxed" data-i18n="card_dining_desc">
-                Hải sản Phú Quốc tươi sống cập bến hàng ngày, các món gà đồi nướng mắm nhĩ, bò nướng đá núi lửa và menu thức uống cocktail nhiệt đới thanh mát.
+                Hải sản Phú Quốc tươi sống cập bến hàng ngày, gà đồi nướng mắm nhĩ, bò xuyên tiêu đậm đà và menu thức uống cocktail nhiệt đới thanh mát.
               </p>
             </div>
             <a href="/menu" class="text-xs font-bold text-brand-wood hover:text-brand-emerald-dark flex items-center gap-1.5 pt-2 border-t border-stone-100">
@@ -506,62 +506,62 @@
         <button onclick="filterMenuShowcase('ALL', this)" class="menu-tab-btn px-4 py-2 rounded-xl gold-gradient text-brand-emerald-dark shadow-sm">✨ Tất Cả Món Ngon</button>
         <button onclick="filterMenuShowcase('SEAFOOD', this)" class="menu-tab-btn px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 hover:bg-stone-50">🦐 Hải Sản Phú Quốc</button>
         <button onclick="filterMenuShowcase('GRILL', this)" class="menu-tab-btn px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 hover:bg-stone-50">🍗 Gà & Món Nướng</button>
-        <button onclick="filterMenuShowcase('HOTPOT', this)" class="menu-tab-btn px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 hover:bg-stone-50">🍲 Lẩu & Bò Fuji</button>
+        <button onclick="filterMenuShowcase('MEAT', this)" class="menu-tab-btn px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 hover:bg-stone-50">🥩 Đặc Sản Bò & Heo</button>
         <button onclick="filterMenuShowcase('DRINK', this)" class="menu-tab-btn px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 hover:bg-stone-50">🍹 Cocktail & Đồ Uống</button>
       </div>
 
       <!-- Dishes Grid -->
       <div id="dishesShowcaseGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
         
-        <!-- Dish 1 -->
-        <div class="dish-card HOTPOT bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+        <!-- Dish 1: Gà Nướng Tây Bắc -->
+        <div class="dish-card GRILL bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
           <div class="relative h-56 rounded-2xl overflow-hidden bg-stone-100 mb-4">
-            <img src="/static/dishes/lau_ga_la_giang.jpg" alt="Lẩu Thái Hải Sản Tomyum" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <img src="/static/dishes/ga_nuong_tay_bac_long_me_xao.jpg" alt="Gà nướng Tây Bắc" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
             <span class="absolute top-3 left-3 bg-rose-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
               Best Seller 🔥
             </span>
             <span class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-xs text-white text-[11px] font-mono px-2 py-0.5 rounded-md">
-              ⚡ 650 kcal
+              ⚡ 620 kcal
             </span>
           </div>
           <div class="space-y-2">
             <div class="flex items-start justify-between gap-2">
-              <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Lẩu Thái Hải Sản Tomyum Sân Vườn</h4>
-              <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Đặc sản nổi bật</span>
+              <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Gà Nướng Tây Bắc + Lòng Mề Xào</h4>
+              <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Gà đồi thả vườn</span>
             </div>
             <p class="text-xs text-stone-500 leading-relaxed">
-              Nước dùng chua cay đậm đà cốt dừa béo ngậy, tôm càng, mực, nghêu và nấm tươi ăn kèm rau rừng tươi mát.
+              Gà đồi ướp hạt mắc khén và thảo mộc Tây Bắc nướng than hoa vàng rộm, thịt ngọt săn chắc kèm đĩa lòng mề xào mướp thơm nức.
             </p>
           </div>
           <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
-            <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-leaf text-xs"></i> Nguyên liệu tươi sống</span>
-            <button onclick="quickPreorderDish('Lẩu Thái Hải Sản Tomyum Sân Vườn', 320000)" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Đặt Món Này <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+            <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-fire text-xs"></i> Nướng than hoa</span>
+            <button onclick="quickPreorderDish('Gà nướng tây bắc + Lòng mề xào', 350000)" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Đặt Món Này <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
           </div>
         </div>
 
-        <!-- Dish 2 -->
-        <div class="dish-card HOTPOT bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+        <!-- Dish 2: Bò Xuyên Tiêu -->
+        <div class="dish-card MEAT bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
           <div class="relative h-56 rounded-2xl overflow-hidden bg-stone-100 mb-4">
-            <img src="/static/dishes/bo_xuyen_tieu.jpg" alt="Bò Fuji Nướng Đá Núi Lửa" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <img src="/static/dishes/bo_xuyen_tieu.jpg" alt="Bò Xuyên Tiêu" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
             <span class="absolute top-3 left-3 gold-gradient text-brand-emerald-dark text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
               Đặc Sản 🥩
             </span>
             <span class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-xs text-white text-[11px] font-mono px-2 py-0.5 rounded-md">
-              ⚡ 720 kcal
+              ⚡ 520 kcal
             </span>
           </div>
           <div class="space-y-2">
             <div class="flex items-start justify-between gap-2">
-              <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Bò Fuji Nướng Đá Núi Lửa</h4>
-              <span class="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">Bò mềm thượng hạng</span>
+              <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Bò Xuyên Tiêu</h4>
+              <span class="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">Bò tơ Phú Quốc</span>
             </div>
             <p class="text-xs text-stone-500 leading-relaxed">
-              Thịt bò Fuji thơm mềm nướng xèo xèo trên đá nham thạch tự nhiên, giữ trọn vị ngọt mọng nước kèm sốt tiêu đen.
+              Thịt bò tơ mềm ngọt ướp tiêu chín cay nồng, xào cùng ớt chuông và tiêu xanh Phú Quốc thơm lừng, đậm đà khó cưỡng.
             </p>
           </div>
           <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
-            <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-fire text-xs"></i> Nướng tại bàn</span>
-            <button onclick="quickPreorderDish('Bò Fuji Nướng Đá Núi Lửa', 195000)" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Đặt Món Này <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+            <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-pepper-hot text-xs"></i> Tiêu xanh Phú Quốc</span>
+            <button onclick="quickPreorderDish('Bò xuyên tiêu', 279000)" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Đặt Món Này <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
           </div>
         </div>
 
@@ -646,26 +646,26 @@
         <!-- Dish 6 -->
         <div class="dish-card DRINK bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
           <div class="relative h-56 rounded-2xl overflow-hidden bg-stone-100 mb-4">
-            <img src="/static/dishes/coca_cola.jpg" alt="Đồ uống & Cocktail PiPo" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <img src="/static/dishes/bia_bivina.jpg" alt="Bia Bivina & Đồ uống" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
             <span class="absolute top-3 left-3 bg-teal-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
-              Giải Nhiệt 🍹
+              Giải Nhiệt 🍺
             </span>
             <span class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-xs text-white text-[11px] font-mono px-2 py-0.5 rounded-md">
-              ⚡ 120 kcal
+              ⚡ 140 kcal
             </span>
           </div>
           <div class="space-y-2">
             <div class="flex items-start justify-between gap-2">
-              <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Cocktail & Nước Ép Nhiệt Đới PiPo</h4>
-              <span class="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">Thanh nhiệt đảo ngọc</span>
+              <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Bia Bivina & Đồ Uống Ướp Lạnh</h4>
+              <span class="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">Đặc sản biển đảo</span>
             </div>
             <p class="text-xs text-stone-500 leading-relaxed">
-              Trà trái cây ủ lạnh, nước dừa tươi nguyên trái, nước ép dưa hấu bạc hà và các dòng bia ướp lạnh sẵn sàng cho bữa tiệc.
+              Bia Bivina ướp đá lạnh sảng khoái kết hợp hoàn hảo cùng hải sản tươi sống và các món gà nướng sân vườn.
             </p>
           </div>
           <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
-            <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-cocktail text-xs"></i> Tươi mát</span>
-            <button onclick="quickPreorderDish('Cocktail & Nước Ép Nhiệt Đới PiPo', 45000)" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Đặt Món Này <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+            <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-beer-mug-empty text-xs"></i> Ướp lạnh sẵn sàng</span>
+            <button onclick="quickPreorderDish('Bia Bivina', 16000)" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Đặt Món Này <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
           </div>
         </div>
 
@@ -1101,25 +1101,25 @@
                   
                   <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
                     <div>
-                      <div class="font-bold text-stone-800">Lẩu Thái Hải Sản Tomyum</div>
-                      <div class="text-[10px] text-stone-500 font-mono">650 kcal</div>
+                      <div class="font-bold text-stone-800">Gà Nướng Tây Bắc + Lòng Mề Xào</div>
+                      <div class="text-[10px] text-stone-500 font-mono">620 kcal</div>
                     </div>
                     <div class="flex items-center gap-2">
-                      <button type="button" onclick="adjustPreorderItem('Lẩu Thái Hải Sản Tomyum', 320000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
-                      <span id="qty-Lẩu Thái Hải Sản Tomyum" class="font-bold w-4 text-center">0</span>
-                      <button type="button" onclick="adjustPreorderItem('Lẩu Thái Hải Sản Tomyum', 320000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
+                      <button type="button" onclick="adjustPreorderItem('Gà Nướng Tây Bắc + Lòng Mề Xào', 350000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
+                      <span id="qty-Gà Nướng Tây Bắc + Lòng Mề Xào" class="font-bold w-4 text-center">0</span>
+                      <button type="button" onclick="adjustPreorderItem('Gà Nướng Tây Bắc + Lòng Mề Xào', 350000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
                     </div>
                   </div>
 
                   <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
                     <div>
-                      <div class="font-bold text-stone-800">Bò Fuji Nướng Đá Núi Lửa</div>
-                      <div class="text-[10px] text-stone-500 font-mono">720 kcal</div>
+                      <div class="font-bold text-stone-800">Bò Xuyên Tiêu</div>
+                      <div class="text-[10px] text-stone-500 font-mono">520 kcal</div>
                     </div>
                     <div class="flex items-center gap-2">
-                      <button type="button" onclick="adjustPreorderItem('Bò Fuji Nướng Đá Núi Lửa', 195000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
-                      <span id="qty-Bò Fuji Nướng Đá Núi Lửa" class="font-bold w-4 text-center">0</span>
-                      <button type="button" onclick="adjustPreorderItem('Bò Fuji Nướng Đá Núi Lửa', 195000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
+                      <button type="button" onclick="adjustPreorderItem('Bò Xuyên Tiêu', 279000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
+                      <span id="qty-Bò Xuyên Tiêu" class="font-bold w-4 text-center">0</span>
+                      <button type="button" onclick="adjustPreorderItem('Bò Xuyên Tiêu', 279000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
                     </div>
                   </div>
 
@@ -1129,21 +1129,21 @@
                       <div class="text-[10px] text-stone-500 font-mono">580 kcal</div>
                     </div>
                     <div class="flex items-center gap-2">
-                      <button type="button" onclick="adjustPreorderItem('Gà Hấp Mắm Nhĩ + Lòng Mề', 220000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
+                      <button type="button" onclick="adjustPreorderItem('Gà Hấp Mắm Nhĩ + Lòng Mề', 350000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
                       <span id="qty-Gà Hấp Mắm Nhĩ + Lòng Mề" class="font-bold w-4 text-center">0</span>
-                      <button type="button" onclick="adjustPreorderItem('Gà Hấp Mắm Nhĩ + Lòng Mề', 220000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
+                      <button type="button" onclick="adjustPreorderItem('Gà Hấp Mắm Nhĩ + Lòng Mề', 350000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
                     </div>
                   </div>
 
                   <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
                     <div>
                       <div class="font-bold text-stone-800">Hàu Sữa Nướng Phô Mai</div>
-                      <div class="text-[10px] text-stone-500 font-mono">380 kcal</div>
+                      <div class="text-[10px] text-stone-500 font-mono">120 kcal</div>
                     </div>
                     <div class="flex items-center gap-2">
-                      <button type="button" onclick="adjustPreorderItem('Hàu Sữa Nướng Phô Mai', 85000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
+                      <button type="button" onclick="adjustPreorderItem('Hàu Sữa Nướng Phô Mai', 25000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
                       <span id="qty-Hàu Sữa Nướng Phô Mai" class="font-bold w-4 text-center">0</span>
-                      <button type="button" onclick="adjustPreorderItem('Hàu Sữa Nướng Phô Mai', 85000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
+                      <button type="button" onclick="adjustPreorderItem('Hàu Sữa Nướng Phô Mai', 25000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
                     </div>
                   </div>
 
@@ -1153,21 +1153,21 @@
                       <div class="text-[10px] text-stone-500 font-mono">420 kcal</div>
                     </div>
                     <div class="flex items-center gap-2">
-                      <button type="button" onclick="adjustPreorderItem('Ốc Hương Sốt Trứng Muối', 165000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
+                      <button type="button" onclick="adjustPreorderItem('Ốc Hương Sốt Trứng Muối', 150000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
                       <span id="qty-Ốc Hương Sốt Trứng Muối" class="font-bold w-4 text-center">0</span>
-                      <button type="button" onclick="adjustPreorderItem('Ốc Hương Sốt Trứng Muối', 165000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
+                      <button type="button" onclick="adjustPreorderItem('Ốc Hương Sốt Trứng Muối', 150000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
                     </div>
                   </div>
 
                   <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
                     <div>
-                      <div class="font-bold text-stone-800">Cocktail & Nước Ép PiPo</div>
-                      <div class="text-[10px] text-stone-500 font-mono">120 kcal</div>
+                      <div class="font-bold text-stone-800">Bia Bivina Ướp Lạnh</div>
+                      <div class="text-[10px] text-stone-500 font-mono">140 kcal</div>
                     </div>
                     <div class="flex items-center gap-2">
-                      <button type="button" onclick="adjustPreorderItem('Cocktail & Nước Ép PiPo', 45000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
-                      <span id="qty-Cocktail & Nước Ép PiPo" class="font-bold w-4 text-center">0</span>
-                      <button type="button" onclick="adjustPreorderItem('Cocktail & Nước Ép PiPo', 45000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
+                      <button type="button" onclick="adjustPreorderItem('Bia Bivina Ướp Lạnh', 16000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
+                      <span id="qty-Bia Bivina Ướp Lạnh" class="font-bold w-4 text-center">0</span>
+                      <button type="button" onclick="adjustPreorderItem('Bia Bivina Ướp Lạnh', 16000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
                     </div>
                   </div>
 
