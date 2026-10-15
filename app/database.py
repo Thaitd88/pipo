@@ -289,10 +289,21 @@ def init_db():
     )
     """)
 
-    try:
-        cursor.execute("ALTER TABLE order_items ADD COLUMN inventory_deducted INTEGER DEFAULT 0")
-    except Exception:
-        pass
+    # 14. Đặt Bàn & Đặt Sân Trực Tuyến (Online Reservations)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS reservations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        guest_name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        booking_date TEXT NOT NULL,
+        booking_time TEXT NOT NULL,
+        guest_count INTEGER DEFAULT 2,
+        service_type TEXT DEFAULT 'DINING', -- DINING, BIRTHDAY_EVENT, PICKLEBALL, POOL_PARTY
+        note TEXT,
+        status TEXT DEFAULT 'PENDING', -- PENDING, CONFIRMED, CANCELLED
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
 
     conn.commit()
 

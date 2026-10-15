@@ -8,6 +8,7 @@ data/
 backup/
 *.zip
 *.tar.gz
+*.mp4
 
 # Scratch scripts
 scratch/

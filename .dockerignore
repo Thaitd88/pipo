@@ -9,3 +9,7 @@ venv/
 .git/
 .gitignore
 *.log
+backup/
+scratch/
+design/
+Pipo.zip

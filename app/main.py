@@ -16,7 +16,7 @@ import json
 from typing import Dict, List, Set
 
 from .database import init_db, get_db
-from .routers import tables, menu, orders, pos, auth, reports, inventory, sync
+from .routers import tables, menu, orders, pos, auth, reports, inventory, sync, reservations
 from .routers.auth import check_page_access, get_current_user_from_request
 
 # Connection Broadcaster
@@ -141,6 +141,7 @@ app.include_router(auth.router)
 app.include_router(reports.router)
 app.include_router(inventory.router)
 app.include_router(sync.router)
+app.include_router(reservations.router)
 
 # ==========================================
 # WEBSOCKET ENDPOINTS
@@ -198,8 +199,39 @@ async def ws_customer_endpoint(websocket: WebSocket, table_id: int):
 # ==========================================
 
 @app.get("/", response_class=HTMLResponse)
-def home_portal_page(request: Request):
-    """Trang chủ PiPo Garden với Cổng Đăng Nhập & Phân Quyền Vai Trò."""
+def home_page(request: Request):
+    """Trang chủ quảng bá thương hiệu đẳng cấp PiPo Garden Phú Quốc."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM tables WHERE table_code LIKE 'NH%' OR area LIKE '%Nhà Hàng%' ORDER BY id ASC LIMIT 1")
+    nh_row = cursor.fetchone()
+    if not nh_row:
+        cursor.execute("SELECT * FROM tables ORDER BY id ASC LIMIT 1")
+        nh_row = cursor.fetchone()
+
+    cursor.execute("SELECT * FROM tables WHERE table_code LIKE 'CF%' OR area LIKE '%Cafe%' ORDER BY id ASC LIMIT 1")
+    cf_row = cursor.fetchone()
+    if not cf_row:
+        cursor.execute("SELECT * FROM tables ORDER BY id DESC LIMIT 1")
+        cf_row = cursor.fetchone()
+    conn.close()
+
+    user = get_current_user_from_request(request)
+
+    return templates.TemplateResponse(
+        request=request, 
+        name="home.html", 
+        context={
+            "user": user,
+            "nh_table": dict(nh_row) if nh_row else None,
+            "cf_table": dict(cf_row) if cf_row else None
+        }
+    )
+
+@app.get("/portal", response_class=HTMLResponse)
+@app.get("/login", response_class=HTMLResponse)
+def staff_portal_page(request: Request):
+    """Cổng Đăng Nhập & Phân Quyền Vai Trò Nhân Viên PiPo Garden."""
     user = get_current_user_from_request(request)
     error = request.query_params.get("error")
     redirect_target = request.query_params.get("redirect")
@@ -221,7 +253,7 @@ def home_portal_page(request: Request):
 
     return templates.TemplateResponse(
         request=request, 
-        name="index.html", 
+        name="portal.html", 
         context={
             "user": user,
             "error": error,

@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PiPo Garden Phú Quốc | Tổ Hợp Ẩm Thực Sân Vườn, Hồ Bơi & Pickleball</title>
+  <meta name="description" content="Khám phá PiPo Garden tại Suối Mây, Phú Quốc - Không gian Tropical Resort đẳng cấp với hồ bơi uốn lượn trung tâm, nhà chòi mái lá mộc mạc, ẩm thực hải sản tươi ngon và cụm sân Pickleball có mái che hiện đại.">
+  <link rel="icon" type="image/png" href="/static/logo.png">
+
+  <!-- Google Fonts: Playfair Display + Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;0,900;1,500;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              emerald: '#0F382C',
+              'emerald-dark': '#09241C',
+              gold: '#D4AF37',
+              'gold-light': '#F5D77F',
+              'gold-dark': '#9A7B1C',
+              cream: '#FDFBF7',
+              wood: '#8B5A2B',
+              sunset: '#E07A5F'
+            }
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FDFBF7; color: #2B2B2B; }
+    h1, h2, h3, h4, .font-luxury { font-family: 'Playfair Display', Georgia, serif; }
+    
+    .gold-gradient {
+      background: linear-gradient(135deg, #D4AF37 0%, #F5D77F 50%, #B38F22 100%);
+    }
+    .gold-text-gradient {
+      background: linear-gradient(135deg, #F5D77F 0%, #D4AF37 50%, #ECC356 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-mask {
+      background: linear-gradient(180deg, rgba(15, 56, 44, 0.85) 0%, rgba(15, 56, 44, 0.65) 50%, rgba(9, 36, 28, 0.95) 100%);
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .glass-dark {
+      background: rgba(15, 56, 44, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #F1EFEA; border-radius: 999px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 999px; }
+  </style>
+</head>
+<body class="selection:bg-brand-gold selection:text-brand-emerald-dark overflow-x-hidden">
+
+  <!-- ======================================================== -->
+  <!-- 1. HEADER / NAVIGATION BAR -->
+  <!-- ======================================================== -->
+  <header id="mainHeader" class="fixed top-0 inset-x-0 z-50 transition-all duration-300 py-3.5 px-4 sm:px-8">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#hero" class="flex items-center gap-3 group">
+        <div class="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-white/95 p-0.5 shadow-lg border-2 border-brand-gold/60 group-hover:scale-105 transition-transform flex items-center justify-center">
+          <img src="/static/logo.png" alt="PiPo Garden Logo" class="w-full h-full object-contain rounded-full">
+        </div>
+        <div class="text-white">
+          <div class="font-serif text-lg sm:text-xl font-bold tracking-wide flex items-center gap-1.5 leading-none">
+            <span>PiPo Garden</span>
+            <span class="text-xs gold-text-gradient font-sans font-bold uppercase tracking-wider">Phú Quốc</span>
+          </div>
+          <div class="text-[10px] sm:text-[11px] text-white/80 font-medium tracking-wider uppercase mt-1">
+            Resort • Dining • Pool • Pickleball
+          </div>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="hidden lg:flex items-center gap-6 xl:gap-8 text-xs font-semibold text-white/90">
+        <a href="#hero" class="hover:text-brand-gold transition py-1" data-i18n="nav_home">Trang Chủ</a>
+        <a href="#about" class="hover:text-brand-gold transition py-1" data-i18n="nav_about">Giới Thiệu</a>
+        <a href="#gallery" class="hover:text-brand-gold transition py-1" data-i18n="nav_ambiance">Không Gian</a>
+        <a href="#menu-showcase" class="hover:text-brand-gold transition py-1" data-i18n="nav_menu">Thực Đơn</a>
+        <a href="#pickleball" class="hover:text-brand-gold transition py-1" data-i18n="nav_sports">Sân Pickleball</a>
+        <a href="#booking" class="hover:text-brand-gold transition py-1" data-i18n="nav_reservations">Đặt Bàn / Đặt Sân</a>
+      </nav>
+
+      <!-- Right Actions: Language Switcher, Call CTA, Book CTA -->
+      <div class="hidden sm:flex items-center gap-3">
+        <!-- Language Switcher Toggle -->
+        <button onclick="toggleLanguage()" class="px-3 py-1.5 rounded-full border border-white/30 text-white/90 text-xs font-bold hover:bg-white/10 transition flex items-center gap-1.5 backdrop-blur-xs">
+          <i class="fa-solid fa-globe text-brand-gold text-xs"></i>
+          <span id="langLabel">VI / EN</span>
+        </button>
+
+        <!-- View Menu Quick Button -->
+        <a href="/menu" class="hidden md:inline-flex items-center gap-1.5 text-xs font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 px-4 py-2 rounded-full transition backdrop-blur-xs shadow-xs">
+          <i class="fa-solid fa-utensils text-brand-gold-light"></i>
+          <span data-i18n="cta_menu_online">Menu Gọi Món</span>
+        </a>
+
+        <!-- Book a Table CTA -->
+        <a href="#booking" class="gold-gradient text-brand-emerald-dark hover:brightness-110 font-bold text-xs px-5 py-2.5 rounded-full transition shadow-lg hover:shadow-brand-gold/30 flex items-center gap-2">
+          <i class="fa-regular fa-calendar-check text-sm"></i>
+          <span data-i18n="cta_book_now">Đặt Bàn Ngay</span>
+        </a>
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <div class="flex items-center gap-2 lg:hidden">
+        <button onclick="toggleLanguage()" class="px-2.5 py-1 rounded-full border border-white/30 text-white text-[11px] font-bold">
+          <span id="langLabelMob">VI</span>
+        </button>
+        <button onclick="toggleMobileNav()" class="w-10 h-10 rounded-xl bg-white/15 text-white flex items-center justify-center border border-white/20 text-base">
+          <i id="mobNavIcon" class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobile Drawer Menu -->
+    <div id="mobileDrawer" class="hidden lg:hidden mt-3 max-w-7xl mx-auto bg-brand-emerald-dark/95 backdrop-blur-xl border border-white/10 rounded-3xl p-5 text-white shadow-2xl space-y-4">
+      <nav class="flex flex-col space-y-3 text-sm font-semibold border-b border-white/10 pb-4">
+        <a href="#hero" onclick="toggleMobileNav()" class="flex items-center justify-between py-1 text-white hover:text-brand-gold">
+          <span data-i18n="nav_home">Trang Chủ</span> <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+        </a>
+        <a href="#about" onclick="toggleMobileNav()" class="flex items-center justify-between py-1 text-white hover:text-brand-gold">
+          <span data-i18n="nav_about">Giới Thiệu & Điểm Nổi Bật</span> <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+        </a>
+        <a href="#gallery" onclick="toggleMobileNav()" class="flex items-center justify-between py-1 text-white hover:text-brand-gold">
+          <span data-i18n="nav_ambiance">Khám Phá Không Gian</span> <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+        </a>
+        <a href="#menu-showcase" onclick="toggleMobileNav()" class="flex items-center justify-between py-1 text-white hover:text-brand-gold">
+          <span data-i18n="nav_menu">Thực Đơn Món Ngon</span> <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+        </a>
+        <a href="#pickleball" onclick="toggleMobileNav()" class="flex items-center justify-between py-1 text-white hover:text-brand-gold">
+          <span data-i18n="nav_sports">Cụm Sân Pickleball</span> <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+        </a>
+        <a href="#booking" onclick="toggleMobileNav()" class="flex items-center justify-between py-1 text-white hover:text-brand-gold">
+          <span data-i18n="nav_reservations">Đặt Bàn / Đặt Sân Trực Tuyến</span> <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+        </a>
+      </nav>
+
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <a href="/menu" class="w-full text-center py-2.5 px-3 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20">
+          🍽️ Xem Menu QR
+        </a>
+        <a href="#booking" onclick="toggleMobileNav()" class="w-full text-center py-2.5 px-3 rounded-xl gold-gradient text-brand-emerald-dark text-xs font-bold shadow-md">
+          📅 Đặt Bàn Ngay
+        </a>
+      </div>
+
+      <!-- Link cổng nhân viên -->
+      <div class="pt-2 text-center border-t border-white/10">
+        <a href="/login" class="text-[11px] text-white/60 hover:text-brand-gold font-medium">
+          <i class="fa-solid fa-lock mr-1"></i> Cổng đăng nhập Nhân Viên & Quản Lý
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================== -->
+  <!-- 2. HERO SECTION -->
+  <!-- ======================================================== -->
+  <section id="hero" class="relative min-h-screen flex items-center justify-center pt-24 pb-16 px-4 sm:px-6 overflow-hidden">
+    <!-- Hero Background Image with Twilight Pool View -->
+    <div class="absolute inset-0 z-0">
+      <img src="/static/home/hero_twilight.jpg" alt="Pipo Garden Pool Twilight" class="w-full h-full object-cover object-center transform scale-105 transition-transform duration-1000 ease-out">
+      <div class="absolute inset-0 hero-mask"></div>
+    </div>
+
+    <!-- Floating Sparkles & Ambient Glow -->
+    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-brand-gold/15 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 max-w-5xl mx-auto text-center text-white mt-6 sm:mt-10">
+      
+      <!-- Top Luxury Badge -->
+      <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/15 border border-brand-gold/40 text-brand-gold-light text-xs font-bold tracking-wider uppercase backdrop-blur-md mb-6 shadow-md animate-fade-in">
+        <span class="w-2 h-2 rounded-full bg-brand-gold animate-ping"></span>
+        <span data-i18n="hero_badge">✨ TỔ HỢP ẨM THỰC SÂN VƯỜN, BỂ BƠI & PICKLEBALL TẠI PHÚ QUỐC</span>
+      </div>
+
+      <!-- Main Headline -->
+      <h1 class="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-black tracking-tight leading-[1.15] mb-6 drop-shadow-2xl">
+        <span class="block text-white" data-i18n="hero_title_1">Pipo Garden Phú Quốc</span>
+        <span class="gold-text-gradient italic font-normal text-2xl sm:text-4xl md:text-5xl block mt-2" data-i18n="hero_title_2">Tinh Hoa Ẩm Thực & Thư Giãn Giữa Lòng Đảo Ngọc</span>
+      </h1>
+
+      <!-- Sub-headline -->
+      <p class="max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-white/90 font-normal leading-relaxed mb-10 drop-shadow" data-i18n="hero_subtitle">
+        Trải nghiệm không gian sân vườn nhiệt đới thoáng mát, ẩm thực hải sản biển tươi ngon, hồ bơi ngoài trời thư giãn và cụm sân thể thao Pickleball có mái che hiện đại tại Suối Mây, Dương Tơ, Phú Quốc.
+      </p>
+
+      <!-- Dual Call To Actions -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+        <!-- Button 1: Menu Explorer -->
+        <a href="/menu" class="w-full sm:w-auto gold-gradient text-brand-emerald-dark font-extrabold text-sm sm:text-base px-8 py-4 rounded-full transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand-gold/30 flex items-center justify-center gap-3">
+          <i class="fa-solid fa-utensils text-base"></i>
+          <span data-i18n="hero_btn_menu">Khám Phá Menu Gọi Món</span>
+        </a>
+
+        <!-- Button 2: Online Reservation -->
+        <a href="#booking" class="w-full sm:w-auto bg-white/15 hover:bg-white/25 border-2 border-brand-gold/60 text-white font-bold text-sm sm:text-base px-8 py-3.5 rounded-full transition-all duration-300 backdrop-blur-md hover:border-brand-gold flex items-center justify-center gap-3">
+          <i class="fa-regular fa-calendar-check text-brand-gold-light text-base"></i>
+          <span data-i18n="hero_btn_book">Đặt Bàn / Đặt Sân Ngay</span>
+        </a>
+      </div>
+
+      <!-- Quick Info Bar at the base of Hero -->
+      <div class="glass-dark border border-white/20 rounded-2xl sm:rounded-full p-4 sm:px-8 max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 text-xs text-left shadow-2xl text-white/95">
+        
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold flex-shrink-0 text-sm">
+            <i class="fa-solid fa-location-dot"></i>
+          </div>
+          <div>
+            <div class="font-bold text-[11px] text-brand-gold-light uppercase tracking-wider" data-i18n="info_address_title">Địa chỉ</div>
+            <div class="text-white/90 text-xs font-medium truncate" data-i18n="info_address_val">Suối Mây, Dương Tơ, Phú Quốc</div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 sm:border-x sm:border-white/15 sm:px-4">
+          <div class="w-9 h-9 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold flex-shrink-0 text-sm">
+            <i class="fa-regular fa-clock"></i>
+          </div>
+          <div>
+            <div class="font-bold text-[11px] text-brand-gold-light uppercase tracking-wider" data-i18n="info_hours_title">Giờ mở cửa</div>
+            <div class="text-white/90 text-xs font-medium" data-i18n="info_hours_val">07:00 - 23:00 hàng ngày</div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold flex-shrink-0 text-sm">
+            <i class="fa-solid fa-phone-volume"></i>
+          </div>
+          <div>
+            <div class="font-bold text-[11px] text-brand-gold-light uppercase tracking-wider" data-i18n="info_hotline_title">Hotline Đặt Bàn</div>
+            <a href="tel:0901234567" class="text-brand-gold font-bold text-xs hover:underline">0901.234.567</a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- 3. ABOUT US & UNIQUE HIGHLIGHTS -->
+  <!-- ======================================================== -->
+  <section id="about" class="py-20 sm:py-28 px-4 sm:px-8 bg-brand-cream relative">
+    <div class="max-w-7xl mx-auto">
+      
+      <!-- Section Header -->
+      <div class="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
+        <span class="text-brand-wood text-xs font-bold uppercase tracking-widest bg-brand-wood/10 px-3.5 py-1 rounded-full inline-block mb-3" data-i18n="about_tag">
+          VỀ CHÚNG TÔI • PIPO GARDEN
+        </span>
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-serif font-black text-brand-emerald-dark tracking-tight leading-tight" data-i18n="about_heading">
+          Không Gian Nghỉ Dưỡng & Ẩm Thực Tropical Độc Đáo
+        </h2>
+        <div class="w-20 h-1 gold-gradient mx-auto my-4 rounded-full"></div>
+        <p class="text-stone-600 text-sm sm:text-base leading-relaxed" data-i18n="about_desc">
+          Tọa lạc tại vùng sinh thái Suối Mây, xã Dương Tơ, TP. Phú Quốc, PiPo Garden được thiết kế hài hòa giữa kiến trúc nhà chòi tre gỗ mộc mạc, mái lá thoáng đãng, bao quanh hồ bơi xanh mát và cụm sân thể thao Pickleball hiện đại. Nơi bạn cùng gia đình và bạn bè tận hưởng trọn vẹn từng khoảnh khắc sum vầy.
+        </p>
+      </div>
+
+      <!-- 4 Core Highlight Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+        
+        <!-- Card 1: Ẩm thực sân vườn -->
+        <div class="bg-white rounded-3xl overflow-hidden border border-stone-200/80 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col group">
+          <div class="relative h-52 overflow-hidden">
+            <img src="/static/home/dining_night_lanterns.jpg" alt="Ẩm thực sân vườn PiPo Garden" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+            <span class="absolute bottom-3 left-4 text-2xl">🍽️</span>
+            <span class="absolute top-3 right-3 text-[10px] font-bold bg-brand-gold text-brand-emerald-dark px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+              Đặc Sắc
+            </span>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <h3 class="font-serif font-bold text-lg text-brand-emerald-dark" data-i18n="card_dining_title">Ẩm Thực Sân Vườn</h3>
+              <p class="text-xs text-stone-600 mt-2 leading-relaxed" data-i18n="card_dining_desc">
+                Hải sản Phú Quốc tươi sống cập bến hàng ngày, các món gà đồi nướng mắm nhĩ, bò nướng đá núi lửa và menu thức uống cocktail nhiệt đới thanh mát.
+              </p>
+            </div>
+            <a href="/menu" class="text-xs font-bold text-brand-wood hover:text-brand-emerald-dark flex items-center gap-1.5 pt-2 border-t border-stone-100">
+              <span data-i18n="card_view_menu">Xem Thực Đơn</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Card 2: Hồ bơi & Pool Bar -->
+        <div class="bg-white rounded-3xl overflow-hidden border border-stone-200/80 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col group">
+          <div class="relative h-52 overflow-hidden">
+            <img src="/static/home/hero_twilight.jpg" alt="Hồ bơi ngoài trời PiPo Garden" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+            <span class="absolute bottom-3 left-4 text-2xl">🏊</span>
+            <span class="absolute top-3 right-3 text-[10px] font-bold bg-teal-600 text-white px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+              Check-in Chill
+            </span>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <h3 class="font-serif font-bold text-lg text-brand-emerald-dark" data-i18n="card_pool_title">Hồ Bơi & Pool Bar</h3>
+              <p class="text-xs text-stone-600 mt-2 leading-relaxed" data-i18n="card_pool_desc">
+                Hồ bơi uốn lượn trung tâm với làn nước trong vắt, ghế tắm nắng và quầy bar phục vụ nước ép nguyên chất, cà phê sáng và cocktail hoàng hôn.
+              </p>
+            </div>
+            <a href="#gallery" class="text-xs font-bold text-brand-wood hover:text-brand-emerald-dark flex items-center gap-1.5 pt-2 border-t border-stone-100">
+              <span data-i18n="card_view_gallery">Xem Hình Ảnh</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Card 3: Cụm Sân Pickleball -->
+        <div class="bg-white rounded-3xl overflow-hidden border border-stone-200/80 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col group">
+          <div class="relative h-52 overflow-hidden">
+            <img src="/static/home/event_tournament.jpg" alt="Sân Pickleball Phú Quốc PiPo Garden" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+            <span class="absolute bottom-3 left-4 text-2xl">🎾</span>
+            <span class="absolute top-3 right-3 text-[10px] font-bold bg-emerald-700 text-white px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+              Có Mái Che
+            </span>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <h3 class="font-serif font-bold text-lg text-brand-emerald-dark" data-i18n="card_sport_title">Cụm Sân Pickleball</h3>
+              <p class="text-xs text-stone-600 mt-2 leading-relaxed" data-i18n="card_sport_desc">
+                Khu liên hợp thể thao Pickleball có mái che kiên cố, mặt sân tiêu chuẩn thi đấu, đèn chiếu sáng ban đêm và đầy đủ phụ kiện cho người chơi.
+              </p>
+            </div>
+            <a href="#pickleball" class="text-xs font-bold text-brand-wood hover:text-brand-emerald-dark flex items-center gap-1.5 pt-2 border-t border-stone-100">
+              <span data-i18n="card_view_sport">Chi Tiết Sân Chơi</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Card 4: Tổ chức tiệc & Sự kiện -->
+        <div class="bg-white rounded-3xl overflow-hidden border border-stone-200/80 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col group">
+          <div class="relative h-52 overflow-hidden">
+            <img src="/static/home/event_birthday_table.jpg" alt="Tiệc sinh nhật sự kiện bờ hồ PiPo Garden" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+            <span class="absolute bottom-3 left-4 text-2xl">🎂</span>
+            <span class="absolute top-3 right-3 text-[10px] font-bold bg-rose-600 text-white px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+              Sự Kiện
+            </span>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <h3 class="font-serif font-bold text-lg text-brand-emerald-dark" data-i18n="card_event_title">Tiệc Bờ Hồ & Sự Kiện</h3>
+              <p class="text-xs text-stone-600 mt-2 leading-relaxed" data-i18n="card_event_desc">
+                Nhận đặt tiệc sinh nhật, họp mặt gia đình, Gala dinner và liên hoan công ty ngoài trời bên bờ hồ lung linh ánh đèn với dịch vụ setup hoa trọn gói.
+              </p>
+            </div>
+            <a href="#booking" class="text-xs font-bold text-brand-wood hover:text-brand-emerald-dark flex items-center gap-1.5 pt-2 border-t border-stone-100">
+              <span data-i18n="card_book_event">Liên Hệ Đặt Tiệc</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- 4. SPATIAL EXPERIENCE & REAL GALLERY -->
+  <!-- ======================================================== -->
+  <section id="gallery" class="py-20 sm:py-28 px-4 sm:px-8 bg-brand-emerald-dark text-white relative overflow-hidden">
+    <!-- Ambient light -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-brand-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+      
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 sm:mb-16 gap-6">
+        <div>
+          <span class="text-brand-gold-light text-xs font-bold uppercase tracking-widest bg-white/10 px-3.5 py-1 rounded-full inline-block mb-3" data-i18n="gallery_tag">
+            HÌNH ẢNH THỰC TẾ • KHÔNG GIAN SÂN VƯỜN
+          </span>
+          <h2 class="text-3xl sm:text-4xl md:text-5xl font-serif font-bold tracking-tight leading-tight text-white" data-i18n="gallery_heading">
+            Khám Phá Góc Nhìn PiPo Garden
+          </h2>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+          <button onclick="filterGallery('ALL', this)" class="gallery-btn px-4 py-2 rounded-full gold-gradient text-brand-emerald-dark font-bold shadow-sm transition">Tất Cả</button>
+          <button onclick="filterGallery('POOL', this)" class="gallery-btn px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white/90 transition">Hồ Bơi & Hoàng Hôn</button>
+          <button onclick="filterGallery('DINING', this)" class="gallery-btn px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white/90 transition">Chòi Gỗ & Đèn Lồng</button>
+          <button onclick="filterGallery('EVENT', this)" class="gallery-btn px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white/90 transition">Tiệc Bờ Hồ</button>
+          <button onclick="filterGallery('SPORT', this)" class="gallery-btn px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white/90 transition">Sân Pickleball</button>
+        </div>
+      </div>
+
+      <!-- Gallery Grid -->
+      <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        
+        <!-- Image 1 -->
+        <div class="gallery-item POOL relative h-72 rounded-3xl overflow-hidden group cursor-pointer border border-white/10 shadow-lg" onclick="openLightbox('/static/home/hero_twilight.jpg', 'Hồ Bơi Uốn Lượn Giờ Hoàng Hôn')">
+          <img src="/static/home/hero_twilight.jpg" alt="Hồ bơi hoàng hôn" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-6 flex flex-col justify-end">
+            <span class="text-brand-gold text-xs font-bold uppercase">Hồ Bơi & Hoàng Hôn</span>
+            <h4 class="font-serif font-bold text-base text-white">Làn nước trong xanh lung linh đèn lồng lúc chạng vạng</h4>
+          </div>
+          <span class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-expand"></i></span>
+        </div>
+
+        <!-- Image 2 -->
+        <div class="gallery-item DINING relative h-72 rounded-3xl overflow-hidden group cursor-pointer border border-white/10 shadow-lg" onclick="openLightbox('/static/home/dining_night_lanterns.jpg', 'Khu Bàn Ăn Chòi Gỗ Lung Linh Đèn Lồng')">
+          <img src="/static/home/dining_night_lanterns.jpg" alt="Chòi gỗ đèn lồng" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-6 flex flex-col justify-end">
+            <span class="text-brand-gold text-xs font-bold uppercase">Nhà Hàng & Chòi Gỗ</span>
+            <h4 class="font-serif font-bold text-base text-white">Bàn ăn gỗ tre mộc mạc ấm cúng dưới ánh đèn lồng</h4>
+          </div>
+          <span class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-expand"></i></span>
+        </div>
+
+        <!-- Image 3 -->
+        <div class="gallery-item EVENT relative h-72 rounded-3xl overflow-hidden group cursor-pointer border border-white/10 shadow-lg" onclick="openLightbox('/static/home/event_birthday_table.jpg', 'Bàn Tiệc Sinh Nhật Ngoài Trời Bên Hồ Bơi')">
+          <img src="/static/home/event_birthday_table.jpg" alt="Tiệc sinh nhật ven hồ" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-6 flex flex-col justify-end">
+            <span class="text-brand-gold text-xs font-bold uppercase">Tiệc Bờ Hồ & Sự Kiện</span>
+            <h4 class="font-serif font-bold text-base text-white">Setup bàn tiệc sinh nhật hoa tươi sang trọng ven hồ bơi</h4>
+          </div>
+          <span class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-expand"></i></span>
+        </div>
+
+        <!-- Image 4 -->
+        <div class="gallery-item POOL relative h-72 rounded-3xl overflow-hidden group cursor-pointer border border-white/10 shadow-lg" onclick="openLightbox('/static/home/pool_view_table.jpg', 'Góc Ngồi Ăn Uống Ngắm Hồ Bơi Nắng Ban Mai')">
+          <img src="/static/home/pool_view_table.jpg" alt="Hồ bơi ban ngày" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-6 flex flex-col justify-end">
+            <span class="text-brand-gold text-xs font-bold uppercase">Hồ Bơi & Resort</span>
+            <h4 class="font-serif font-bold text-base text-white">Thưởng thức cà phê & điểm tâm sáng bên hồ bơi</h4>
+          </div>
+          <span class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-expand"></i></span>
+        </div>
+
+        <!-- Image 5 -->
+        <div class="gallery-item DINING relative h-72 rounded-3xl overflow-hidden group cursor-pointer border border-white/10 shadow-lg" onclick="openLightbox('/static/home/dining_patio_night.jpg', 'Khu Bàn Tiệc Ven Hồ Bơi Đêm')">
+          <img src="/static/home/dining_patio_night.jpg" alt="Tiệc đêm ven hồ" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-6 flex flex-col justify-end">
+            <span class="text-brand-gold text-xs font-bold uppercase">Không Gian Đêm</span>
+            <h4 class="font-serif font-bold text-base text-white">Hòa mình vào thiên nhiên thoáng đãng về đêm</h4>
+          </div>
+          <span class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-expand"></i></span>
+        </div>
+
+        <!-- Image 6 -->
+        <div class="gallery-item SPORT relative h-72 rounded-3xl overflow-hidden group cursor-pointer border border-white/10 shadow-lg" onclick="openLightbox('/static/home/event_tournament.jpg', 'Giải Đấu Pickleball Giao Lưu Tại PiPo Garden')">
+          <img src="/static/home/event_tournament.jpg" alt="Sân khấu giải đấu Pickleball" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-6 flex flex-col justify-end">
+            <span class="text-brand-gold text-xs font-bold uppercase">Sân Pickleball & Sự Kiện</span>
+            <h4 class="font-serif font-bold text-base text-white">Nơi kết nối niềm đam mê thể thao & giải đấu sôi động</h4>
+          </div>
+          <span class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-expand"></i></span>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- 5. INTERACTIVE MENU SHOWCASE (THỰC ĐƠN ĐẶC SẮC) -->
+  <!-- ======================================================== -->
+  <section id="menu-showcase" class="py-20 sm:py-28 px-4 sm:px-8 bg-brand-cream relative">
+    <div class="max-w-7xl mx-auto">
+      
+      <!-- Section Title -->
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-brand-wood text-xs font-bold uppercase tracking-widest bg-brand-wood/10 px-3.5 py-1 rounded-full inline-block mb-3" data-i18n="menu_tag">
+          TINH HOA ẨM THỰC • MENU PIPO GARDEN
+        </span>
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-serif font-black text-brand-emerald-dark tracking-tight leading-tight" data-i18n="menu_heading">
+          Món Ngon Đặc Sản Đảo Ngọc & Sân Vườn
+        </h2>
+        <div class="w-20 h-1 gold-gradient mx-auto my-4 rounded-full"></div>
+        <p class="text-stone-600 text-sm leading-relaxed" data-i18n="menu_desc">
+          Tuyển chọn những món ăn được thực khách yêu thích nhất tại PiPo Garden, từ hải sản biển Phú Quốc tươi rói đến các món nướng than hoa thảo mộc đậm đà.
+        </p>
+      </div>
+
+      <!-- Menu Category Showcase Tabs -->
+      <div class="flex items-center justify-center gap-2 sm:gap-3 flex-wrap mb-10 text-xs font-bold">
+        <button onclick="filterMenuShowcase('ALL', this)" class="menu-tab-btn px-4 py-2 rounded-xl gold-gradient text-brand-emerald-dark shadow-sm">✨ Tất Cả Món Ngon</button>
+        <button onclick="filterMenuShowcase('SEAFOOD', this)" class="menu-tab-btn px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 hover:bg-stone-50">🦐 Hải Sản Phú Quốc</button>
+        <button onclick="filterMenuShowcase('GRILL', this)" class="menu-tab-btn px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 hover:bg-stone-50">🍗 Gà & Món Nướng</button>
+        <button onclick="filterMenuShowcase('HOTPOT', this)" class="menu-tab-btn px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 hover:bg-stone-50">🍲 Lẩu & Bò Fuji</button>
+        <button onclick="filterMenuShowcase('DRINK', this)" class="menu-tab-btn px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 hover:bg-stone-50">🍹 Cocktail & Đồ Uống</button>
+      </div>
+
+      <!-- Dishes Grid -->
+      <div id="dishesShowcaseGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        
+        <!-- Dish 1 -->
+        <div class="dish-card HOTPOT bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+          <div class="relative h-56 rounded-2xl overflow-hidden bg-stone-100 mb-4">
+            <img src="/static/dishes/lau_ga_la_giang.jpg" alt="Lẩu Thái Hải Sản Tomyum" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <span class="absolute top-3 left-3 bg-rose-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
+              Best Seller 🔥
+            </span>
+            <span class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-xs text-white text-[11px] font-mono px-2 py-0.5 rounded-md">
+              ⚡ 650 kcal
+            </span>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Lẩu Thái Hải Sản Tomyum Sân Vườn</h4>
+              <span class="text-sm font-black text-rose-700 whitespace-nowrap">320.000 đ</span>
+            </div>
+            <p class="text-xs text-stone-500 leading-relaxed">
+              Nước dùng chua cay đậm đà cốt dừa béo ngậy, tôm càng, mực, nghêu và nấm tươi ăn kèm rau rừng tươi mát.
+            </p>
+          </div>
+          <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-leaf text-xs"></i> Nguyên liệu tươi sống</span>
+            <a href="/menu" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Gọi Món <i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+          </div>
+        </div>
+
+        <!-- Dish 2 -->
+        <div class="dish-card HOTPOT bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+          <div class="relative h-56 rounded-2xl overflow-hidden bg-stone-100 mb-4">
+            <img src="/static/dishes/bo_xuyen_tieu.jpg" alt="Bò Fuji Nướng Đá Núi Lửa" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <span class="absolute top-3 left-3 gold-gradient text-brand-emerald-dark text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
+              Đặc Sản 🥩
+            </span>
+            <span class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-xs text-white text-[11px] font-mono px-2 py-0.5 rounded-md">
+              ⚡ 720 kcal
+            </span>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Bò Fuji Nướng Đá Núi Lửa</h4>
+              <span class="text-sm font-black text-rose-700 whitespace-nowrap">195.000 đ</span>
+            </div>
+            <p class="text-xs text-stone-500 leading-relaxed">
+              Thịt bò Fuji thơm mềm nướng xèo xèo trên đá nham thạch tự nhiên, giữ trọn vị ngọt mọng nước kèm sốt tiêu đen.
+            </p>
+          </div>
+          <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-fire text-xs"></i> Nướng tại bàn</span>
+            <a href="/menu" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Gọi Món <i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+          </div>
+        </div>
+
+        <!-- Dish 3 -->
+        <div class="dish-card GRILL bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+          <div class="relative h-56 rounded-2xl overflow-hidden bg-stone-100 mb-4">
+            <img src="/static/dishes/ga_hap_mam_nhi_long_me_xao.jpg" alt="Gà hấp mắm nhĩ" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <span class="absolute top-3 left-3 bg-amber-500 text-stone-900 text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
+              Món Độc Bản 🍗
+            </span>
+            <span class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-xs text-white text-[11px] font-mono px-2 py-0.5 rounded-md">
+              ⚡ 580 kcal
+            </span>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Gà Hấp Mắm Nhĩ + Lòng Mề Xào</h4>
+              <span class="text-sm font-black text-rose-700 whitespace-nowrap">220.000 đ</span>
+            </div>
+            <p class="text-xs text-stone-500 leading-relaxed">
+              Gà ta thả đồi Phú Quốc da giòn thịt ngọt, hấp mắm nhĩ Phú Quốc truyền thống thơm lừng ăn kèm lòng mề xào mướp.
+            </p>
+          </div>
+          <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-crown text-xs"></i> Khuyên dùng</span>
+            <a href="/menu" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Gọi Món <i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+          </div>
+        </div>
+
+        <!-- Dish 4 -->
+        <div class="dish-card SEAFOOD bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+          <div class="relative h-56 rounded-2xl overflow-hidden bg-stone-100 mb-4">
+            <img src="/static/dishes/hau_nuong_pho_mai.jpg" alt="Hàu nướng phô mai" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <span class="absolute top-3 left-3 bg-sky-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
+              Hải Sản Sống 🦪
+            </span>
+            <span class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-xs text-white text-[11px] font-mono px-2 py-0.5 rounded-md">
+              ⚡ 380 kcal
+            </span>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Hàu Sữa Nướng Phô Mai Tan Chảy</h4>
+              <span class="text-sm font-black text-rose-700 whitespace-nowrap">85.000 đ</span>
+            </div>
+            <p class="text-xs text-stone-500 leading-relaxed">
+              Hàu sữa béo ngậy được nướng đẫm lớp sốt phô mai Mozzarella kéo sợi vàng ươm, thơm lừng kích thích vị giác.
+            </p>
+          </div>
+          <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-water text-xs"></i> Tươi sống</span>
+            <a href="/menu" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Gọi Món <i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+          </div>
+        </div>
+
+        <!-- Dish 5 -->
+        <div class="dish-card SEAFOOD bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+          <div class="relative h-56 rounded-2xl overflow-hidden bg-stone-100 mb-4">
+            <img src="/static/dishes/oc_huong_sot_trung_muoi_banh_mi.jpg" alt="Ốc hương sốt trứng muối" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <span class="absolute top-3 left-3 bg-amber-500 text-stone-900 text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
+              Siêu Cuốn 🐚
+            </span>
+            <span class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-xs text-white text-[11px] font-mono px-2 py-0.5 rounded-md">
+              ⚡ 420 kcal
+            </span>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Ốc Hương Sốt Trứng Muối + Bánh Mì</h4>
+              <span class="text-sm font-black text-rose-700 whitespace-nowrap">165.000 đ</span>
+            </div>
+            <p class="text-xs text-stone-500 leading-relaxed">
+              Ốc hương giòn sần sật quyện nước sốt trứng muối béo bùi, vàng sánh, chấm kèm bánh mì giòn rụm không thể chối từ.
+            </p>
+          </div>
+          <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-bread-slice text-xs"></i> Kèm bánh mì</span>
+            <a href="/menu" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Gọi Món <i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+          </div>
+        </div>
+
+        <!-- Dish 6 -->
+        <div class="dish-card DRINK bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+          <div class="relative h-56 rounded-2xl overflow-hidden bg-stone-100 mb-4">
+            <img src="/static/dishes/coca_cola.jpg" alt="Đồ uống & Cocktail PiPo" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <span class="absolute top-3 left-3 bg-teal-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
+              Giải Nhiệt 🍹
+            </span>
+            <span class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-xs text-white text-[11px] font-mono px-2 py-0.5 rounded-md">
+              ⚡ 120 kcal
+            </span>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <h4 class="font-serif font-bold text-base text-brand-emerald-dark">Cocktail & Nước Ép Nhiệt Đới PiPo</h4>
+              <span class="text-sm font-black text-rose-700 whitespace-nowrap">45.000 đ</span>
+            </div>
+            <p class="text-xs text-stone-500 leading-relaxed">
+              Trà trái cây ủ lạnh, nước dừa tươi nguyên trái, nước ép dưa hấu bạc hà và các dòng bia ướp lạnh sẵn sàng cho bữa tiệc.
+            </p>
+          </div>
+          <div class="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-cocktail text-xs"></i> Tươi mát</span>
+            <a href="/menu" class="text-xs font-bold text-brand-emerald hover:text-brand-gold flex items-center gap-1">Gọi Món <i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Button to View Full Online Menu -->
+      <div class="text-center mt-12 sm:mt-16">
+        <a href="/menu" class="inline-flex items-center gap-3 bg-brand-emerald-dark hover:bg-emerald-950 text-white font-bold text-sm sm:text-base px-8 py-4 rounded-full shadow-lg transition-transform hover:-translate-y-0.5">
+          <i class="fa-solid fa-book-open text-brand-gold"></i>
+          <span data-i18n="menu_view_all">Xem Toàn Bộ 60+ Món Ăn Trên Thực Đơn Trực Tuyến</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- 6. PICKLEBALL & RECREATION SECTION -->
+  <!-- ======================================================== -->
+  <section id="pickleball" class="py-20 sm:py-28 px-4 sm:px-8 bg-gradient-to-br from-emerald-950 via-brand-emerald-dark to-teal-950 text-white relative overflow-hidden">
+    <!-- Court lines decorative background -->
+    <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#D4AF37 1px, transparent 1px); background-size: 30px 30px;"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      
+      <!-- Left Column: Story & Features -->
+      <div class="lg:col-span-6 space-y-6">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-gold/15 border border-brand-gold/40 text-brand-gold-light text-xs font-bold uppercase tracking-wider">
+          <i class="fa-solid fa-table-tennis-paddle-ball text-brand-gold"></i>
+          <span data-i18n="sport_tag">KHU THỂ THAO CAO CẤP • PICKLEBALL PHÚ QUỐC</span>
+        </div>
+
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-serif font-black tracking-tight leading-tight" data-i18n="sport_heading">
+          Cụm Sân Pickleball Có Mái Che Hiện Đại
+        </h2>
+
+        <p class="text-white/85 text-sm sm:text-base leading-relaxed" data-i18n="sport_desc">
+          PiPo Garden tự hào mang đến cộng đồng thể thao và du khách tại Phú Quốc cụm sân Pickleball tiêu chuẩn, được trang bị mái che thoáng đãng bảo đảm mọi trận cầu luôn trọn vẹn bất kể nắng mưa.
+        </p>
+
+        <!-- Feature List -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-white/10 border border-white/15">
+            <span class="w-8 h-8 rounded-xl bg-brand-gold/20 text-brand-gold flex items-center justify-center text-sm flex-shrink-0"><i class="fa-solid fa-umbrella"></i></span>
+            <div>
+              <div class="font-bold text-white text-sm" data-i18n="sport_f1_t">Mái Che Kiên Cố</div>
+              <div class="text-white/70 mt-0.5" data-i18n="sport_f1_d">Chơi thể thao thoải mái cả ngày lẫn đêm không ngại thời tiết.</div>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-white/10 border border-white/15">
+            <span class="w-8 h-8 rounded-xl bg-brand-gold/20 text-brand-gold flex items-center justify-center text-sm flex-shrink-0"><i class="fa-solid fa-lightbulb"></i></span>
+            <div>
+              <div class="font-bold text-white text-sm" data-i18n="sport_f2_t">Đèn LED Chống Chói</div>
+              <div class="text-white/70 mt-0.5" data-i18n="sport_f2_d">Hệ thống đèn tiêu chuẩn thi đấu, ánh sáng chan hòa rõ nét.</div>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-white/10 border border-white/15">
+            <span class="w-8 h-8 rounded-xl bg-brand-gold/20 text-brand-gold flex items-center justify-center text-sm flex-shrink-0"><i class="fa-solid fa-layer-group"></i></span>
+            <div>
+              <div class="font-bold text-white text-sm" data-i18n="sport_f3_t">Mặt Sân Chuẩn Thi Đấu</div>
+              <div class="text-white/70 mt-0.5" data-i18n="sport_f3_d">Sơn acrylic nhiều lớp giảm chấn, độ nảy bóng cực chuẩn.</div>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-white/10 border border-white/15">
+            <span class="w-8 h-8 rounded-xl bg-brand-gold/20 text-brand-gold flex items-center justify-center text-sm flex-shrink-0"><i class="fa-solid fa-medal"></i></span>
+            <div>
+              <div class="font-bold text-white text-sm" data-i18n="sport_f4_t">Dụng Cụ & Đồ Uống</div>
+              <div class="text-white/70 mt-0.5" data-i18n="sport_f4_d">Cho thuê vợt cao cấp, bóng thi đấu & quầy nước bù điện giải.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 flex flex-wrap gap-4 items-center">
+          <a href="#booking" class="gold-gradient text-brand-emerald-dark font-extrabold text-sm px-7 py-3.5 rounded-full transition-transform hover:scale-105 shadow-xl flex items-center gap-2">
+            <i class="fa-solid fa-calendar-plus"></i>
+            <span data-i18n="sport_cta_book">Đặt Sân Pickleball Ngay</span>
+          </a>
+          <a href="tel:0901234567" class="text-xs text-white/90 font-bold hover:text-brand-gold flex items-center gap-2 px-5 py-3.5 rounded-full border border-white/20 bg-white/5">
+            <i class="fa-solid fa-phone"></i>
+            <span>Hotline tư vấn: 0901.234.567</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Right Column: Visual Showcase -->
+      <div class="lg:col-span-6 space-y-4">
+        <div class="relative rounded-3xl overflow-hidden border-2 border-brand-gold/30 shadow-2xl group">
+          <img src="/static/home/event_tournament.jpg" alt="Giải thi đấu Pickleball tại PiPo Garden" class="w-full h-80 sm:h-96 object-cover group-hover:scale-105 transition-transform duration-500">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-6 sm:p-8">
+            <div>
+              <span class="text-xs font-bold text-brand-gold uppercase tracking-wider">Tournament & Community</span>
+              <h3 class="font-serif font-bold text-xl sm:text-2xl text-white mt-1">Nơi Giao Lưu & Thi Đấu Pickleball Số 1 Phú Quốc</h3>
+              <p class="text-xs text-white/80 mt-1">Tổ chức các giải đấu phong trào, khóa học cơ bản cho người mới bắt đầu.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="rounded-2xl overflow-hidden h-36 border border-white/20">
+            <img src="/static/home/garden_resort_entrance.jpg" alt="Khuôn viên PiPo Garden" class="w-full h-full object-cover hover:scale-105 transition">
+          </div>
+          <div class="rounded-2xl overflow-hidden h-36 border border-white/20">
+            <img src="/static/home/pool_sunny_relax.jpg" alt="Hồ bơi sau trận đấu" class="w-full h-full object-cover hover:scale-105 transition">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- 7. ONLINE RESERVATION & CONTACT FORM -->
+  <!-- ======================================================== -->
+  <section id="booking" class="py-20 sm:py-28 px-4 sm:px-8 bg-brand-cream relative">
+    <div class="max-w-7xl mx-auto">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-brand-wood text-xs font-bold uppercase tracking-widest bg-brand-wood/10 px-3.5 py-1 rounded-full inline-block mb-3" data-i18n="book_tag">
+          ĐẶT CHỖ TRỰC TUYẾN • DỊCH VỤ CHU ĐÁO
+        </span>
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-serif font-black text-brand-emerald-dark tracking-tight leading-tight" data-i18n="book_heading">
+          Đặt Bàn Ăn, Tiệc Bờ Hồ & Sân Pickleball
+        </h2>
+        <div class="w-20 h-1 gold-gradient mx-auto my-4 rounded-full"></div>
+        <p class="text-stone-600 text-sm leading-relaxed" data-i18n="book_desc">
+          Vui lòng gửi thông tin đặt bàn hoặc đặt sân trước để chúng tôi chuẩn bị không gian chu đáo nhất chào đón bạn và gia đình.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Booking Form Card (7 Cols) -->
+        <div class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-10 border border-stone-200 shadow-xl">
+          <form onsubmit="handleOnlineBooking(event)" class="space-y-5">
+            
+            <div class="border-b border-stone-100 pb-4 mb-2">
+              <h3 class="font-serif font-bold text-xl text-brand-emerald-dark flex items-center gap-2">
+                <i class="fa-regular fa-calendar-check text-brand-gold"></i>
+                <span data-i18n="form_title">Thông Tin Đặt Chỗ</span>
+              </h3>
+              <p class="text-xs text-stone-500 mt-1" data-i18n="form_subtitle">Nhân viên PiPo Garden sẽ gọi điện xác nhận trong vòng 10 phút.</p>
+            </div>
+
+            <!-- Service Type Selector -->
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-2 uppercase tracking-wider" data-i18n="form_service_label">Dịch Vụ Muốn Đặt *</label>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold">
+                <label class="cursor-pointer">
+                  <input type="radio" name="service_type" value="DINING" checked class="peer hidden">
+                  <div class="p-3 rounded-2xl border-2 border-stone-200 text-stone-600 peer-checked:border-brand-emerald-dark peer-checked:bg-brand-emerald-dark peer-checked:text-white transition text-center">
+                    <div class="text-lg mb-1">🍽️</div>
+                    <span data-i18n="form_srv_dining">Bàn Ăn Uống</span>
+                  </div>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="service_type" value="BIRTHDAY_EVENT" class="peer hidden">
+                  <div class="p-3 rounded-2xl border-2 border-stone-200 text-stone-600 peer-checked:border-brand-emerald-dark peer-checked:bg-brand-emerald-dark peer-checked:text-white transition text-center">
+                    <div class="text-lg mb-1">🎂</div>
+                    <span data-i18n="form_srv_party">Tiệc Sinh Nhật</span>
+                  </div>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="service_type" value="PICKLEBALL" class="peer hidden">
+                  <div class="p-3 rounded-2xl border-2 border-stone-200 text-stone-600 peer-checked:border-brand-emerald-dark peer-checked:bg-brand-emerald-dark peer-checked:text-white transition text-center">
+                    <div class="text-lg mb-1">🎾</div>
+                    <span data-i18n="form_srv_pickleball">Sân Pickleball</span>
+                  </div>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="service_type" value="POOL_PARTY" class="peer hidden">
+                  <div class="p-3 rounded-2xl border-2 border-stone-200 text-stone-600 peer-checked:border-brand-emerald-dark peer-checked:bg-brand-emerald-dark peer-checked:text-white transition text-center">
+                    <div class="text-lg mb-1">🏊</div>
+                    <span data-i18n="form_srv_pool">Pool Party</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Customer Name & Phone -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_name_label">Họ và Tên Quý Khách *</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-400 text-xs"><i class="fa-solid fa-user"></i></span>
+                  <input type="text" id="resGuestName" required placeholder="Nguyễn Văn A" class="w-full pl-9 pr-3.5 py-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald font-medium bg-stone-50/50">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_phone_label">Số Điện Thoại Liên Hệ *</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-400 text-xs"><i class="fa-solid fa-phone"></i></span>
+                  <input type="tel" id="resPhone" required placeholder="09xx xxx xxx" class="w-full pl-9 pr-3.5 py-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald font-medium bg-stone-50/50">
+                </div>
+              </div>
+            </div>
+
+            <!-- Date, Time, Guest Count -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_date_label">Ngày Đến *</label>
+                <input type="date" id="resDate" required class="w-full p-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald font-medium bg-stone-50/50">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_time_label">Giờ Đến *</label>
+                <input type="time" id="resTime" value="18:30" required class="w-full p-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald font-medium bg-stone-50/50">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_count_label">Số Lượng Khách</label>
+                <input type="number" id="resGuestCount" value="4" min="1" max="100" class="w-full p-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald font-bold bg-stone-50/50">
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_note_label">Yêu Cầu Đặc Biệt (Tùy chọn)</label>
+              <textarea id="resNote" rows="2" placeholder="Ví dụ: Bàn sát cạnh hồ bơi, phòng máy lạnh riêng, setup hoa sinh nhật, thuê vợt pickleball..." class="w-full p-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald bg-stone-50/50"></textarea>
+            </div>
+
+            <div id="bookingAlert" class="hidden p-3.5 rounded-2xl text-xs font-bold"></div>
+
+            <button type="submit" id="btnSubmitBooking" class="w-full gold-gradient hover:brightness-110 text-brand-emerald-dark font-black text-sm py-4 rounded-2xl transition shadow-lg flex items-center justify-center gap-2">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span data-i18n="form_submit_btn">Xác Nhận Gửi Yêu Cầu Đặt Chỗ</span>
+            </button>
+
+          </form>
+        </div>
+
+        <!-- Contact Info & Google Map (5 Cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <div class="bg-brand-emerald-dark rounded-3xl p-6 sm:p-8 text-white border border-white/10 shadow-xl space-y-4">
+            <h3 class="font-serif font-bold text-xl text-brand-gold-light" data-i18n="contact_title">Thông Tin Liên Hệ Trực Tiếp</h3>
+            <p class="text-xs text-white/80 leading-relaxed" data-i18n="contact_desc">
+              Bạn cần đặt tiệc đoàn số lượng lớn, đặt sân cố định theo tuần hoặc cần hỗ trợ gấp? Hãy liên hệ ngay với ban quản lý:
+            </p>
+
+            <div class="space-y-3 text-xs pt-2">
+              <div class="flex items-start gap-3">
+                <span class="w-7 h-7 rounded-lg bg-brand-gold/20 text-brand-gold flex items-center justify-center flex-shrink-0 text-xs"><i class="fa-solid fa-location-dot"></i></span>
+                <div>
+                  <div class="font-bold text-white/95" data-i18n="contact_addr_t">Địa chỉ nhà hàng:</div>
+                  <div class="text-white/75" data-i18n="contact_addr_v">Tổ 1, Ấp Suối Mây, Xã Dương Tơ, TP. Phú Quốc, Kiên Giang</div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <span class="w-7 h-7 rounded-lg bg-brand-gold/20 text-brand-gold flex items-center justify-center flex-shrink-0 text-xs"><i class="fa-solid fa-phone-volume"></i></span>
+                <div>
+                  <div class="font-bold text-white/95" data-i18n="contact_tel_t">Hotline & Zalo đặt bàn:</div>
+                  <a href="tel:0901234567" class="text-brand-gold font-bold hover:underline">0901.234.567</a>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <span class="w-7 h-7 rounded-lg bg-brand-gold/20 text-brand-gold flex items-center justify-center flex-shrink-0 text-xs"><i class="fa-regular fa-clock"></i></span>
+                <div>
+                  <div class="font-bold text-white/95" data-i18n="contact_hours_t">Thời gian phục vụ:</div>
+                  <div class="text-white/75" data-i18n="contact_hours_v">Mở cửa từ 07:00 sáng đến 23:00 đêm các ngày trong tuần</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Google Maps Widget -->
+          <div class="bg-white rounded-3xl overflow-hidden border border-stone-200 shadow-md">
+            <div class="p-3.5 bg-stone-100 flex items-center justify-between text-xs font-bold text-stone-700">
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-map-location-dot text-brand-wood"></i> Bản Đồ Đường Đi (Suối Mây, Phú Quốc)</span>
+              <a href="https://maps.google.com/?q=Suối+Mây,+Dương+Tơ,+Phú+Quốc" target="_blank" class="text-brand-wood hover:underline text-[11px]">Mở Maps ↗</a>
+            </div>
+            <iframe 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31358.583973943477!2d103.98774786445582!3d10.169123847844093!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31a78dc1e0a811c7%3A0xe5a363720743b342!2zU3Xhu5FpIE3DonksIETGsMahbmcgVMahLCBQaMO6IFF14buRYywgS2nDqm4gR2lhbmcsIFZpZXRuYW0!5e0!3m2!1sen!2s!4v1700000000000!5m2!1sen!2s" 
+              class="w-full h-64 border-0" 
+              allowfullscreen="" 
+              loading="lazy" 
+              referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- 8. FOOTER -->
+  <!-- ======================================================== -->
+  <footer class="bg-brand-emerald-dark text-white pt-16 pb-12 px-4 sm:px-8 border-t border-white/10">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-white/10">
+      
+      <!-- Brand Summary (5 cols) -->
+      <div class="md:col-span-5 space-y-4">
+        <div class="flex items-center gap-3">
+          <img src="/static/logo.png" alt="PiPo Garden" class="w-12 h-12 rounded-full bg-white/95 p-0.5 border-2 border-brand-gold">
+          <div>
+            <div class="font-serif text-xl font-bold tracking-wide">PiPo Garden</div>
+            <div class="text-[10px] text-brand-gold uppercase tracking-wider font-semibold">Tropical Resort & Dining • Phú Quốc</div>
+          </div>
+        </div>
+        <p class="text-xs text-white/75 leading-relaxed pr-6" data-i18n="footer_about">
+          Tổ hợp ẩm thực sân vườn sinh thái, hồ bơi ngoài trời thư giãn và cụm sân Pickleball có mái che hiện đại tại Suối Mây, Dương Tơ, Phú Quốc. Tận hưởng hương vị biển tươi ngon và không gian nghỉ dưỡng nhiệt đới đích thực.
+        </p>
+        <div class="flex items-center gap-3 pt-2 text-white/80">
+          <a href="#" class="w-8 h-8 rounded-full bg-white/10 hover:bg-brand-gold hover:text-brand-emerald-dark flex items-center justify-center transition"><i class="fa-brands fa-facebook-f text-xs"></i></a>
+          <a href="#" class="w-8 h-8 rounded-full bg-white/10 hover:bg-brand-gold hover:text-brand-emerald-dark flex items-center justify-center transition"><i class="fa-brands fa-tiktok text-xs"></i></a>
+          <a href="tel:0901234567" class="w-8 h-8 rounded-full bg-white/10 hover:bg-brand-gold hover:text-brand-emerald-dark flex items-center justify-center transition"><i class="fa-solid fa-phone text-xs"></i></a>
+        </div>
+      </div>
+
+      <!-- Quick Nav (3 cols) -->
+      <div class="md:col-span-3 space-y-3 text-xs">
+        <h4 class="font-serif font-bold text-sm text-brand-gold-light uppercase tracking-wider mb-2" data-i18n="footer_quick_links">Liên Kết Nhanh</h4>
+        <div class="flex flex-col space-y-2 text-white/75 font-medium">
+          <a href="#hero" class="hover:text-brand-gold transition" data-i18n="nav_home">Trang Chủ</a>
+          <a href="#about" class="hover:text-brand-gold transition" data-i18n="nav_about">Giới Thiệu</a>
+          <a href="#gallery" class="hover:text-brand-gold transition" data-i18n="nav_ambiance">Không Gian Thực Tế</a>
+          <a href="#menu-showcase" class="hover:text-brand-gold transition" data-i18n="nav_menu">Thực Đơn Món Ăn</a>
+          <a href="#pickleball" class="hover:text-brand-gold transition" data-i18n="nav_sports">Sân Pickleball</a>
+          <a href="#booking" class="hover:text-brand-gold transition" data-i18n="nav_reservations">Đặt Bàn / Đặt Sân</a>
+        </div>
+      </div>
+
+      <!-- Direct Access & Operations (4 cols) -->
+      <div class="md:col-span-4 space-y-3 text-xs">
+        <h4 class="font-serif font-bold text-sm text-brand-gold-light uppercase tracking-wider mb-2" data-i18n="footer_direct_access">Trải Nghiệm Trực Tuyến</h4>
+        
+        <div class="space-y-2.5">
+          <a href="/menu" class="flex items-center justify-between p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 transition text-white">
+            <span class="flex items-center gap-2 font-bold"><i class="fa-solid fa-qrcode text-brand-gold"></i> Menu Gọi Món Tại Bàn (QR)</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-70"></i>
+          </a>
+
+          <a href="/login" class="flex items-center justify-between p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition text-white/70 hover:text-white">
+            <span class="flex items-center gap-2 font-medium"><i class="fa-solid fa-shield-halved text-brand-gold"></i> Cổng Vận Hành Nội Bộ (Admin / POS / Bếp)</span>
+            <i class="fa-solid fa-arrow-right text-[10px] opacity-70"></i>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Copyright -->
+    <div class="max-w-7xl mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/60">
+      <div>
+        © 2026 PiPo Garden Phú Quốc. All rights reserved.
+      </div>
+      <div class="flex items-center gap-4">
+        <span>Tổ hợp Sân Vườn • Hồ Bơi • Pickleball</span>
+        <span>•</span>
+        <a href="/login" class="hover:text-brand-gold">Đăng nhập nhân viên</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ======================================================== -->
+  <!-- LIGHTBOX MODAL CHO HÌNH ẢNH KHÔNG GIAN -->
+  <!-- ======================================================== -->
+  <div id="lightboxModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 hidden" onclick="closeLightbox()">
+    <div class="relative max-w-4xl w-full" onclick="event.stopPropagation()">
+      <button onclick="closeLightbox()" class="absolute -top-12 right-0 text-white/80 hover:text-white text-2xl p-2"><i class="fa-solid fa-xmark"></i></button>
+      <img id="lightboxImg" src="" alt="Không gian PiPo Garden" class="w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl">
+      <div id="lightboxCaption" class="text-center text-white/90 text-sm font-serif font-bold mt-3"></div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- JAVASCRIPT LOGIC (Language, Scroll, Gallery, Booking) -->
+  <!-- ======================================================== -->
+  <script>
+    // 1. Language Dictionary (VI / EN)
+    let currentLang = 'vi';
+    const i18nData = {
+      vi: {
+        nav_home: "Trang Chủ",
+        nav_about: "Giới Thiệu",
+        nav_ambiance: "Không Gian",
+        nav_menu: "Thực Đơn",
+        nav_sports: "Sân Pickleball",
+        nav_reservations: "Đặt Bàn / Đặt Sân",
+        cta_menu_online: "Menu Gọi Món",
+        cta_book_now: "Đặt Bàn Ngay",
+        hero_badge: "✨ TỔ HỢP ẨM THỰC SÂN VƯỜN, BỂ BƠI & PICKLEBALL TẠI PHÚ QUỐC",
+        hero_title_1: "PiPo Garden Phú Quốc",
+        hero_title_2: "Tinh Hoa Ẩm Thực & Thư Giãn Giữa Lòng Đảo Ngọc",
+        hero_subtitle: "Trải nghiệm không gian sân vườn nhiệt đới thoáng mát, ẩm thực hải sản biển tươi ngon, hồ bơi ngoài trời thư giãn và cụm sân thể thao Pickleball có mái che hiện đại tại Suối Mây, Dương Tơ, Phú Quốc.",
+        hero_btn_menu: "Khám Phá Menu Gọi Món",
+        hero_btn_book: "Đặt Bàn / Đặt Sân Ngay",
+        info_address_title: "Địa chỉ",
+        info_address_val: "Suối Mây, Dương Tơ, Phú Quốc",
+        info_hours_title: "Giờ mở cửa",
+        info_hours_val: "07:00 - 23:00 hàng ngày",
+        info_hotline_title: "Hotline Đặt Bàn",
+        about_tag: "VỀ CHÚNG TÔI • PIPO GARDEN",
+        about_heading: "Không Gian Nghỉ Dưỡng & Ẩm Thực Tropical Độc Đáo",
+        about_desc: "Tọa lạc tại vùng sinh thái Suối Mây, xã Dương Tơ, TP. Phú Quốc, PiPo Garden được thiết kế hài hòa giữa kiến trúc nhà chòi tre gỗ mộc mạc, mái lá thoáng đãng, bao quanh hồ bơi xanh mát và cụm sân thể thao Pickleball hiện đại.",
+        card_dining_title: "Ẩm Thực Sân Vườn",
+        card_dining_desc: "Hải sản Phú Quốc tươi sống cập bến hàng ngày, các món gà đồi nướng mắm nhĩ, bò nướng đá núi lửa và menu cocktail nhiệt đới.",
+        card_pool_title: "Hồ Bơi & Pool Bar",
+        card_pool_desc: "Hồ bơi uốn lượn trung tâm với làn nước trong vắt, ghế tắm nắng và quầy bar phục vụ nước ép nguyên chất, cà phê sáng và cocktail hoàng hôn.",
+        card_sport_title: "Cụm Sân Pickleball",
+        card_sport_desc: "Khu liên hợp thể thao Pickleball có mái che kiên cố, mặt sân tiêu chuẩn thi đấu, đèn chiếu sáng ban đêm và đầy đủ phụ kiện cho người chơi.",
+        card_event_title: "Tiệc Bờ Hồ & Sự Kiện",
+        card_event_desc: "Nhận đặt tiệc sinh nhật, họp mặt gia đình, Gala dinner và liên hoan công ty ngoài trời bên bờ hồ lung linh ánh đèn với dịch vụ setup hoa trọn gói.",
+        gallery_tag: "HÌNH ẢNH THỰC TẾ • KHÔNG GIAN SÂN VƯỜN",
+        gallery_heading: "Khám Phá Góc Nhìn PiPo Garden",
+        menu_tag: "TINH HOA ẨM THỰC • MENU PIPO GARDEN",
+        menu_heading: "Món Ngon Đặc Sản Đảo Ngọc & Sân Vườn",
+        menu_desc: "Tuyển chọn những món ăn được thực khách yêu thích nhất tại PiPo Garden, từ hải sản biển Phú Quốc tươi rói đến các món nướng than hoa thảo mộc.",
+        menu_view_all: "Xem Toàn Bộ 60+ Món Ăn Trên Thực Đơn Trực Tuyến",
+        sport_tag: "KHU THỂ THAO CAO CẤP • PICKLEBALL PHÚ QUỐC",
+        sport_heading: "Cụm Sân Pickleball Có Mái Che Hiện Đại",
+        sport_desc: "PiPo Garden tự hào mang đến cộng đồng thể thao và du khách tại Phú Quốc cụm sân Pickleball tiêu chuẩn, có mái che thoáng đãng bảo đảm mọi trận cầu luôn trọn vẹn bất kể nắng mưa.",
+        sport_cta_book: "Đặt Sân Pickleball Ngay",
+        book_tag: "ĐẶT CHỖ TRỰC TUYẾN • DỊCH VỤ CHU ĐÁO",
+        book_heading: "Đặt Bàn Ăn, Tiệc Bờ Hồ & Sân Pickleball",
+        book_desc: "Vui lòng gửi thông tin đặt bàn hoặc đặt sân trước để chúng tôi chuẩn bị không gian chu đáo nhất chào đón bạn và gia đình.",
+        form_title: "Thông Tin Đặt Chỗ",
+        form_subtitle: "Nhân viên PiPo Garden sẽ gọi điện xác nhận trong vòng 10 phút.",
+        form_service_label: "Dịch Vụ Muốn Đặt *",
+        form_srv_dining: "Bàn Ăn Uống",
+        form_srv_party: "Tiệc Sinh Nhật",
+        form_srv_pickleball: "Sân Pickleball",
+        form_srv_pool: "Pool Party",
+        form_name_label: "Họ và Tên Quý Khách *",
+        form_phone_label: "Số Điện Thoại Liên Hệ *",
+        form_date_label: "Ngày Đến *",
+        form_time_label: "Giờ Đến *",
+        form_count_label: "Số Lượng Khách",
+        form_note_label: "Yêu Cầu Đặc Biệt (Tùy chọn)",
+        form_submit_btn: "Xác Nhận Gửi Yêu Cầu Đặt Chỗ"
+      },
+      en: {
+        nav_home: "Home",
+        nav_about: "About Us",
+        nav_ambiance: "Ambiance",
+        nav_menu: "Menu",
+        nav_sports: "Pickleball",
+        nav_reservations: "Reservations",
+        cta_menu_online: "Online Menu",
+        cta_book_now: "Book a Table",
+        hero_badge: "✨ TROPICAL RESORT, DINING, POOL & PICKLEBALL IN PHÚ QUỐC",
+        hero_title_1: "Pipo Garden Phú Quốc",
+        hero_title_2: "Exquisite Dining & Tropical Relaxation on Pearl Island",
+        hero_subtitle: "Experience lush tropical gardens, freshly caught seafood, an outdoor pool bar, and a covered Pickleball sports cluster in Suối Mây, Dương Tơ, Phú Quốc.",
+        hero_btn_menu: "Explore Menu & Order",
+        hero_btn_book: "Book Table / Court Now",
+        info_address_title: "Address",
+        info_address_val: "Suối Mây, Dương Tơ, Phú Quốc",
+        info_hours_title: "Opening Hours",
+        info_hours_val: "07:00 AM - 11:00 PM Daily",
+        info_hotline_title: "Booking Hotline",
+        about_tag: "ABOUT US • PIPO GARDEN",
+        about_heading: "Unique Tropical Resort & Open-Air Dining",
+        about_desc: "Located in the tranquil Suối Mây eco-zone of Phú Quốc, PiPo Garden harmonizes rustic bamboo-wood pavilions, breezy thatched roofs, a central swimming pool, and modern covered Pickleball courts.",
+        card_dining_title: "Garden Dining",
+        card_dining_desc: "Fresh daily catch from Phú Quốc waters, island herb grilled chicken, lava stone beef, and refreshing tropical cocktails.",
+        card_pool_title: "Pool & Bar Chill",
+        card_pool_desc: "A meandering central swimming pool with sunbeds and an outdoor pool bar serving fresh juices, morning coffee, and sunset drinks.",
+        card_sport_title: "Pickleball Courts",
+        card_sport_desc: "A modern covered sports facility with professional acrylic surfaces, night LED lighting, and premium paddle rentals.",
+        card_event_title: "Poolside Events",
+        card_event_desc: "Hosting birthday parties, family reunions, Gala dinners, and corporate banquets around the lantern-lit swimming pool.",
+        gallery_tag: "REAL EXPERIENCE • RESORT AMBIANCE",
+        gallery_heading: "Discover the Views of PiPo Garden",
+        menu_tag: "CULINARY HIGHLIGHTS • PIPO MENU",
+        menu_heading: "Island Seafood & Garden Specialties",
+        menu_desc: "Curated guest-favorite specialties at PiPo Garden, from live seafood to aromatic charcoal BBQ dishes.",
+        menu_view_all: "View All 60+ Dishes on the Online Menu",
+        sport_tag: "PREMIUM SPORTS • PICKLEBALL PHÚ QUỐC",
+        sport_heading: "Modern Covered Pickleball Courts",
+        sport_desc: "PiPo Garden is proud to provide players and visitors with tournament-grade covered courts, ensuring matches proceed rain or shine.",
+        sport_cta_book: "Book a Pickleball Court",
+        book_tag: "ONLINE RESERVATION • WELCOMING HOSPITALITY",
+        book_heading: "Reserve a Table, Event or Court",
+        book_desc: "Please submit your booking details in advance so our staff can prepare the best space for you and your guests.",
+        form_title: "Reservation Details",
+        form_subtitle: "PiPo Garden staff will call you within 10 minutes to confirm.",
+        form_service_label: "Service Type *",
+        form_srv_dining: "Dining Table",
+        form_srv_party: "Birthday / Event",
+        form_srv_pickleball: "Pickleball Court",
+        form_srv_pool: "Pool Party",
+        form_name_label: "Your Full Name *",
+        form_phone_label: "Phone Number *",
+        form_date_label: "Arrival Date *",
+        form_time_label: "Arrival Time *",
+        form_count_label: "Guest Count",
+        form_note_label: "Special Requests (Optional)",
+        form_submit_btn: "Confirm Reservation Request"
+      }
+    };
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'vi' ? 'en' : 'vi';
+      document.getElementById("langLabel").innerText = currentLang === 'vi' ? 'VI / EN' : 'EN / VI';
+      document.getElementById("langLabelMob").innerText = currentLang.toUpperCase();
+      
+      const dict = i18nData[currentLang];
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (dict[key]) {
+          el.innerText = dict[key];
+        }
+      });
+    }
+
+    // 2. Sticky Header Scroll Effect
+    window.addEventListener("scroll", () => {
+      const header = document.getElementById("mainHeader");
+      if (window.scrollY > 50) {
+        header.classList.add("bg-brand-emerald-dark/95", "backdrop-blur-md", "shadow-xl", "py-2.5");
+        header.classList.remove("py-3.5");
+      } else {
+        header.classList.remove("bg-brand-emerald-dark/95", "backdrop-blur-md", "shadow-xl", "py-2.5");
+        header.classList.add("py-3.5");
+      }
+    });
+
+    // 3. Mobile Navigation Drawer
+    function toggleMobileNav() {
+      const drawer = document.getElementById("mobileDrawer");
+      const icon = document.getElementById("mobNavIcon");
+      drawer.classList.toggle("hidden");
+      if (drawer.classList.contains("hidden")) {
+        icon.className = "fa-solid fa-bars";
+      } else {
+        icon.className = "fa-solid fa-xmark";
+      }
+    }
+
+    // 4. Spatial Experience Gallery Filter
+    function filterGallery(category, btn) {
+      document.querySelectorAll(".gallery-btn").forEach(b => {
+        b.className = "gallery-btn px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white/90 transition";
+      });
+      btn.className = "gallery-btn px-4 py-2 rounded-full gold-gradient text-brand-emerald-dark font-bold shadow-sm transition";
+
+      const items = document.querySelectorAll(".gallery-item");
+      items.forEach(it => {
+        if (category === 'ALL' || it.classList.contains(category)) {
+          it.style.display = 'block';
+        } else {
+          it.style.display = 'none';
+        }
+      });
+    }
+
+    // 5. Lightbox Modal
+    function openLightbox(src, caption) {
+      const modal = document.getElementById("lightboxModal");
+      document.getElementById("lightboxImg").src = src;
+      document.getElementById("lightboxCaption").innerText = caption || "";
+      modal.classList.remove("hidden");
+    }
+
+    function closeLightbox() {
+      document.getElementById("lightboxModal").classList.add("hidden");
+    }
+
+    // 6. Menu Showcase Category Filter
+    function filterMenuShowcase(category, btn) {
+      document.querySelectorAll(".menu-tab-btn").forEach(b => {
+        b.className = "menu-tab-btn px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 hover:bg-stone-50";
+      });
+      btn.className = "menu-tab-btn px-4 py-2 rounded-xl gold-gradient text-brand-emerald-dark shadow-sm";
+
+      const cards = document.querySelectorAll(".dish-card");
+      cards.forEach(card => {
+        if (category === 'ALL' || card.classList.contains(category)) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // 7. Online Reservation Form Submission
+    async function handleOnlineBooking(e) {
+      e.preventDefault();
+      const btn = document.getElementById("btnSubmitBooking");
+      const alertBox = document.getElementById("bookingAlert");
+      
+      const guestName = document.getElementById("resGuestName").value.trim();
+      const phone = document.getElementById("resPhone").value.trim();
+      const bookingDate = document.getElementById("resDate").value;
+      const bookingTime = document.getElementById("resTime").value;
+      const guestCount = parseInt(document.getElementById("resGuestCount").value) || 2;
+      const note = document.getElementById("resNote").value.trim();
+      
+      const srvRadio = document.querySelector('input[name="service_type"]:checked');
+      const serviceType = srvRadio ? srvRadio.value : "DINING";
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi yêu cầu...`;
+
+      try {
+        const res = await fetch("/api/reservations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            guest_name: guestName,
+            phone: phone,
+            booking_date: bookingDate,
+            booking_time: bookingTime,
+            guest_count: guestCount,
+            service_type: serviceType,
+            note: note
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alertBox.className = "p-4 rounded-2xl text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 block";
+          alertBox.innerHTML = `🎉 <strong>Đặt chỗ thành công!</strong> Cảm ơn quý khách <strong>${guestName}</strong>. PiPo Garden sẽ gọi điện xác nhận theo số <strong>${phone}</strong> trong ít phút!`;
+          e.target.reset();
+        } else {
+          alertBox.className = "p-4 rounded-2xl text-xs font-bold bg-rose-100 text-rose-900 border border-rose-300 block";
+          alertBox.innerText = "❌ " + (data.detail || "Không thể gửi yêu cầu đặt chỗ. Vui lòng gọi trực tiếp hotline 0901.234.567.");
+        }
+      } catch (err) {
+        alertBox.className = "p-4 rounded-2xl text-xs font-bold bg-rose-100 text-rose-900 border border-rose-300 block";
+        alertBox.innerText = "❌ Lỗi kết nối mạng. Vui lòng liên hệ trực tiếp hotline 0901.234.567 để đặt bàn nhanh.";
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> <span>Xác Nhận Gửi Yêu Cầu Đặt Chỗ</span>`;
+      }
+    }
+
+    // Set today's date as default in booking form
+    document.addEventListener("DOMContentLoaded", () => {
+      const today = new Date().toISOString().split("T")[0];
+      const dateEl = document.getElementById("resDate");
+      if (dateEl) {
+        dateEl.value = today;
+        dateEl.min = today;
+      }
+    });
+  </script>
+
+</body>
+</html>

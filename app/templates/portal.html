@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PiPo Garden - Cổng Quản Trị & Vận Hành</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .bg-garden-pattern {
+      background-color: #064e3b;
+      background-image: radial-gradient(#047857 1px, transparent 1px), radial-gradient(#047857 1px, #064e3b 1px);
+      background-size: 40px 40px;
+      background-position: 0 0, 20px 20px;
+    }
+  </style>
+</head>
+<body class="bg-garden-pattern min-h-screen flex items-center justify-center p-4">
+
+  <div class="max-w-4xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-12 border border-emerald-800/30">
+    
+    <!-- Cột Trái: Giới thiệu & Nhận diện thương hiệu PiPo Garden -->
+    <div class="md:col-span-5 bg-gradient-to-br from-emerald-800 to-teal-950 p-8 text-white flex flex-col justify-between relative overflow-hidden">
+      <div class="relative z-10">
+        <div class="mb-4">
+          <img src="/static/logo.png" alt="PiPo Garden Logo" class="w-20 h-20 rounded-full object-contain drop-shadow-xl bg-white/95 p-0.5">
+        </div>
+        <h1 class="text-2xl font-black tracking-tight leading-tight">PiPo Garden</h1>
+        <p class="text-xs text-emerald-300 font-semibold tracking-wider uppercase mt-0.5">Nhà Hàng Ẩm Thực & Pickleball</p>
+        <p class="text-xs text-emerald-100/90 mt-4 leading-relaxed">
+          Hệ thống gọi món qua mã QR tại bàn, điều phối chế biến, tự động in phiếu bếp và quản trị tồn kho thời gian thực.
+        </p>
+
+        <!-- Thống kê tính năng -->
+        <div class="mt-8 space-y-3 text-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-[10px]"><i class="fa-solid fa-check"></i></span>
+            <span>Gọi món tự động không cần phục vụ</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-[10px]"><i class="fa-solid fa-check"></i></span>
+            <span>Tự in phiếu bếp & chuông báo còi hú</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-[10px]"><i class="fa-solid fa-check"></i></span>
+            <span>Định lượng BOM & tự động trừ kho</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-[10px]"><i class="fa-solid fa-check"></i></span>
+            <span>Phân quyền tài khoản theo nhóm</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick test QR order link -->
+      <div class="relative z-10 pt-5 border-t border-emerald-700/50 mt-6 space-y-2">
+        <div class="text-[11px] font-bold text-emerald-300 uppercase tracking-wider mb-1">
+          <i class="fa-solid fa-mobile-screen-button mr-1"></i> Trải nghiệm Menu QR tại bàn:
+        </div>
+        <a href="/table/{{ nh_table.qr_token if nh_table else 'NH01' }}" target="_blank" class="flex items-center justify-between text-xs text-white font-semibold bg-emerald-600/80 hover:bg-emerald-500 px-3.5 py-2.5 rounded-xl transition shadow-sm border border-emerald-400/30">
+          <span>🍽️ Menu Nhà Hàng ({{ nh_table.name if nh_table else 'Bàn Nhà Hàng 01' }})</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-80"></i>
+        </a>
+        <a href="/table/{{ cf_table.qr_token if cf_table else 'CF01' }}" target="_blank" class="flex items-center justify-between text-xs text-amber-100 hover:text-white font-semibold bg-amber-600/40 hover:bg-amber-600/70 px-3.5 py-2.5 rounded-xl transition border border-amber-400/30">
+          <span>☕ Menu Cafe / Ăn Sáng ({{ cf_table.name if cf_table else 'Bàn Cafe 01' }})</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-80"></i>
+        </a>
+      </div>
+
+      <div class="absolute -bottom-10 -right-10 text-9xl opacity-5 select-none pointer-events-none">🍲</div>
+    </div>
+
+    <!-- Cột Phải: Cổng Đăng Nhập & Điều Hướng Theo Nhóm Tài Khoản -->
+    <div class="md:col-span-7 p-8 md:p-10 flex flex-col justify-between">
+      <div>
+        <div class="mb-6">
+          <h2 class="text-xl font-bold text-stone-900">Đăng Nhập Hệ Thống</h2>
+          <p class="text-xs text-stone-500 mt-1">
+            Đăng nhập để vào không gian làm việc tương ứng với vị trí của bạn
+          </p>
+        </div>
+
+        <!-- Form Đăng Nhập -->
+        <form onsubmit="handlePortalLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-stone-700 mb-1">Tên đăng nhập:</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-stone-400 text-xs">
+                <i class="fa-solid fa-user"></i>
+              </span>
+              <input type="text" id="usernameInput" required placeholder="Nhập tên đăng nhập" class="w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border border-stone-300 focus:outline-none focus:border-emerald-600 bg-stone-50/50 font-medium">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-stone-700 mb-1">Mật khẩu:</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-stone-400 text-xs">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+              <input type="password" id="passwordInput" required placeholder="••••••••" class="w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border border-stone-300 focus:outline-none focus:border-emerald-600 bg-stone-50/50">
+            </div>
+          </div>
+
+          <div id="loginAlert" class="text-xs text-rose-600 font-semibold hidden"></div>
+
+          <button type="submit" id="btnLogin" class="w-full bg-emerald-700 hover:bg-emerald-800 active:scale-[0.99] text-white font-bold py-3 rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2">
+            <span>ĐĂNG NHẬP VÀO HỆ THỐNG</span>
+            <i class="fa-solid fa-arrow-right text-[11px]"></i>
+          </button>
+        </form>
+
+        <!-- Nút Đăng Nhập Nhanh Theo Nhóm (1-Click Quick Login Demo) -->
+        <div class="mt-8 pt-6 border-t border-stone-200">
+          <div class="text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-3">
+            Hoặc chọn nhóm để đăng nhập nhanh:
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button onclick="quickLogin('admin', 'admin123')" class="p-2.5 rounded-xl border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-left transition flex items-center gap-2">
+              <span class="text-base">👨‍💼</span>
+              <div>
+                <div class="font-bold text-rose-900 leading-tight">Quản Trị Viên</div>
+                <div class="text-[10px] text-rose-600">Vào Quản Trị & Báo Cáo</div>
+              </div>
+            </button>
+
+            <button onclick="quickLogin('thungan', '123456')" class="p-2.5 rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100 text-left transition flex items-center gap-2">
+              <span class="text-base">💵</span>
+              <div>
+                <div class="font-bold text-blue-900 leading-tight">Thu Ngân</div>
+                <div class="text-[10px] text-blue-600">Vào Sơ Đồ Bàn POS</div>
+              </div>
+            </button>
+
+            <button onclick="quickLogin('bep', '123456')" class="p-2.5 rounded-xl border border-amber-200 bg-amber-50/60 hover:bg-amber-100 text-left transition flex items-center gap-2">
+              <span class="text-base">👨‍🍳</span>
+              <div>
+                <div class="font-bold text-amber-900 leading-tight">Đầu Bếp</div>
+                <div class="text-[10px] text-amber-600">Vào Không Gian Bếp & BOM</div>
+              </div>
+            </button>
+
+            <button onclick="quickLogin('phucvu', '123456')" class="p-2.5 rounded-xl border border-purple-200 bg-purple-50/60 hover:bg-purple-100 text-left transition flex items-center gap-2">
+              <span class="text-base">🏃</span>
+              <div>
+                <div class="font-bold text-purple-900 leading-tight">Phục Vụ</div>
+                <div class="text-[10px] text-purple-600">Xem Bàn & Bưng Món</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-6 text-center text-[11px] text-stone-400">
+        © 2026 PiPo Garden System • Powered by Antigravity AI
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function handlePortalLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById("usernameInput").value.trim();
+      const password = document.getElementById("passwordInput").value;
+      await executeLogin(username, password);
+    }
+
+    async function quickLogin(username, password) {
+      document.getElementById("usernameInput").value = username;
+      document.getElementById("passwordInput").value = password;
+      await executeLogin(username, password);
+    }
+
+    async function executeLogin(username, password) {
+      const alertBox = document.getElementById("loginAlert");
+      const btn = document.getElementById("btnLogin");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đang xác thực...`;
+      alertBox.classList.add("hidden");
+
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          // Chuyển hướng thẳng tới không gian làm việc của vai trò đó
+          const redirectUrl = data.redirect_url || "/pos";
+          window.location.href = redirectUrl;
+        } else {
+          alertBox.innerText = data.detail || "Đăng nhập thất bại";
+          alertBox.classList.remove("hidden");
+        }
+      } catch (err) {
+        alertBox.innerText = "Lỗi kết nối máy chủ!";
+        alertBox.classList.remove("hidden");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>ĐĂNG NHẬP VÀO HỆ THỐNG</span> <i class="fa-solid fa-arrow-right text-[11px]"></i>`;
+      }
+    }
+  </script>
+</body>
+</html>
