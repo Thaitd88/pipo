@@ -1080,16 +1080,16 @@ def seed_homepage_cms(conn):
     """Khởi tạo và cập nhật các thông số quản trị nội dung trang chủ (CMS)."""
     cursor = conn.cursor()
     default_cms = {
-        "hero_badge": "TROPICAL RESORT & POOL BAR",
-        "hero_title_1": "Pipo Garden Phú Quốc",
-        "hero_title_2": "Tinh Hoa Ẩm Thực & Thư Giãn Giữa Lòng Đảo Ngọc",
-        "hero_subtitle": "Trải nghiệm không gian sân vườn nhiệt đới thoáng mát, ẩm thực hải sản biển tươi ngon, hồ bơi ngoài trời thư giãn và cụm sân thể thao Pickleball có mái che hiện đại tại Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc.",
+        "hero_badge": "RESTAURANT • CAFE • POOL BAR",
+        "hero_title_1": "PiPo Garden Phú Quốc",
+        "hero_title_2": "Restaurant • Cafe • Pool Bar",
+        "hero_subtitle": "Không gian sân vườn nhiệt đới thoáng mát, hải sản tươi ngon, hồ bơi ngoài trời và cụm sân Pickleball có mái che tại Sonasea, Bãi Trường.",
         "hero_image_url": "/static/home/hero_twilight.jpg",
         "address": "Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc",
         "phone": "0838993316",
         "phone_display": "0838.993.316",
         "opening_hours": "06:30 - 23:00 hàng ngày",
-        "about_story": "Tọa lạc tại Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, TP. Phú Quốc, PiPo Garden sở hữu không gian Tropical Resort & Garden ấn tượng với hồ bơi uốn lượn trung tâm, các nhà chòi mái lá mộc mạc lung linh đèn lồng, kết hợp khu ẩm thực - cà phê và cụm sân thể thao Pickleball hiện đại.",
+        "about_story": "Tọa lạc tại Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, TP. Phú Quốc, PiPo Garden sở hữu không gian sân vườn nhiệt đới thoáng mát với hồ bơi uốn lượn trung tâm, các nhà chòi mái lá mộc mạc lung linh đèn lồng, kết hợp khu ẩm thực - cà phê và cụm sân thể thao Pickleball hiện đại.",
         "feature_1_title": "Ẩm Thực Sân Vườn & Hải Sản",
         "feature_1_desc": "Hải sản Phú Quốc tươi sống bắt tại bể, hải sản nướng than hoa đậm vị cùng thực đơn đa dạng từ cơm trưa đến tiệc tối.",
         "feature_2_title": "Hồ Bơi Uốn Lượn & Pool Bar",
@@ -1103,13 +1103,14 @@ def seed_homepage_cms(conn):
     for key, val in default_cms.items():
         cursor.execute("INSERT OR IGNORE INTO homepage_cms (key, value) VALUES (?, ?)", (key, val))
     
-    # Cập nhật địa chỉ và số điện thoại mới nếu đang là giá trị mẫu cũ
+    # Cập nhật địa chỉ, tiêu đề và số điện thoại mới nhất
+    cursor.execute("UPDATE homepage_cms SET value = 'RESTAURANT • CAFE • POOL BAR' WHERE key = 'hero_badge'")
+    cursor.execute("UPDATE homepage_cms SET value = 'Restaurant • Cafe • Pool Bar' WHERE key = 'hero_title_2'")
+    cursor.execute("UPDATE homepage_cms SET value = 'Không gian sân vườn nhiệt đới thoáng mát, hải sản tươi ngon, hồ bơi ngoài trời và cụm sân Pickleball có mái che tại Sonasea, Bãi Trường.' WHERE key = 'hero_subtitle'")
     cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'address' AND (value LIKE '%Suối Mây%' OR value LIKE '%Tổ 1%')", 
                    ("Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc",))
-    cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'hero_subtitle' AND (value LIKE '%Suối Mây%' OR value LIKE '%Dương Tơ%')", 
-                   ("Trải nghiệm không gian sân vườn nhiệt đới thoáng mát, ẩm thực hải sản biển tươi ngon, hồ bơi ngoài trời thư giãn và cụm sân thể thao Pickleball có mái che hiện đại tại Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc.",))
-    cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'about_story' AND (value LIKE '%Suối Mây%' OR value LIKE '%Dương Tơ%')", 
-                   ("Tọa lạc tại Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, TP. Phú Quốc, PiPo Garden sở hữu không gian Tropical Resort & Garden ấn tượng với hồ bơi uốn lượn trung tâm, các nhà chòi mái lá mộc mạc lung linh đèn lồng, kết hợp khu ẩm thực - cà phê và cụm sân thể thao Pickleball hiện đại.",))
+    cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'about_story' AND (value LIKE '%Suối Mây%' OR value LIKE '%Resort%')", 
+                   ("Tọa lạc tại Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, TP. Phú Quốc, PiPo Garden sở hữu không gian sân vườn nhiệt đới thoáng mát với hồ bơi uốn lượn trung tâm, các nhà chòi mái lá mộc mạc lung linh đèn lồng, kết hợp khu ẩm thực - cà phê và cụm sân thể thao Pickleball hiện đại.",))
     cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'phone' AND value LIKE '09%'", ("0838993316",))
     cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'phone_display' AND value LIKE '09%'", ("0838.993.316",))
     conn.commit()

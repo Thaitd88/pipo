@@ -91,7 +91,7 @@
         <img src="/static/logo.png" alt="PiPo Garden" class="w-10 h-10 rounded-full object-contain bg-white/95 p-0.5 shadow-sm">
         <div>
           <h1 class="font-bold text-base leading-tight">PiPo Garden</h1>
-          <p class="text-[11px] text-emerald-200 font-medium" id="headerSubText">Nhà Hàng, Bể Bơi, Cafe, Pickleball</p>
+          <p class="text-[11px] text-emerald-200 font-medium" id="headerSubText">Restaurant, Cafe, Pool Bar</p>
         </div>
       </div>
       
@@ -330,9 +330,9 @@
       <!-- Footer: Số lượng & Nút Thêm vào giỏ -->
       <div class="p-4 bg-stone-50/90 border-t border-stone-200 flex items-center justify-between gap-3 flex-shrink-0">
         <div class="flex items-center border border-stone-300 rounded-xl overflow-hidden bg-white shadow-2xs">
-          <button type="button" onclick="changeModalQty(-1)" class="w-9 h-9 flex items-center justify-center text-stone-600 active:bg-stone-200 font-bold text-base select-none">-</button>
-          <span id="modalQtyDisplay" class="w-8 text-center text-stone-800 font-bold text-sm select-none">1</span>
-          <button type="button" onclick="changeModalQty(1)" class="w-9 h-9 flex items-center justify-center text-stone-600 active:bg-stone-200 font-bold text-base select-none">+</button>
+          <button type="button" onclick="changeModalQty(-1)" class="w-9 h-9 flex items-center justify-center text-stone-600 active:bg-stone-200 font-bold text-base select-none" title="Giảm số lượng">-</button>
+          <input type="number" id="modalQtyInput" min="1" max="999" value="1" oninput="onModalQtyInput(this)" onchange="onModalQtyInput(this)" class="w-14 h-9 text-center text-stone-900 font-black text-sm bg-stone-50 border-x border-stone-200 focus:outline-none focus:bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" title="Nhấp vào để gõ số lượng">
+          <button type="button" onclick="changeModalQty(1)" class="w-9 h-9 flex items-center justify-center text-stone-600 active:bg-stone-200 font-bold text-base select-none" title="Tăng số lượng">+</button>
         </div>
         <button type="button" onclick="confirmAddToCart()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-between text-sm" id="modalAddToCartBtn">
           <span id="modalAddToCartBtnText">Thêm vào giỏ</span>
@@ -1277,7 +1277,8 @@
       if (calBox && calVal) {
         calVal.innerText = `${item.calories !== undefined ? item.calories : 0} kcal`;
       }
-      document.getElementById("modalQtyDisplay").innerText = modalQty;
+      const qtyInp = document.getElementById("modalQtyInput");
+      if (qtyInp) qtyInp.value = modalQty;
       
       const priceBtnEl = document.getElementById("modalAddToCartBtnPrice");
       if (priceBtnEl) priceBtnEl.innerText = formatVND(item.price * modalQty);
@@ -1355,8 +1356,23 @@
     }
 
     function changeModalQty(delta) {
-      modalQty = Math.max(1, modalQty + delta);
-      document.getElementById("modalQtyDisplay").innerText = modalQty;
+      const input = document.getElementById("modalQtyInput");
+      let currentVal = parseInt(input ? input.value : modalQty) || 1;
+      modalQty = Math.max(1, Math.min(999, currentVal + delta));
+      if (input) input.value = modalQty;
+      if (currentModalItem) {
+        const priceBtnEl = document.getElementById("modalAddToCartBtnPrice");
+        if (priceBtnEl) priceBtnEl.innerText = formatVND(currentModalItem.price * modalQty);
+      }
+    }
+
+    function onModalQtyInput(el) {
+      let val = parseInt(el.value);
+      if (isNaN(val) || val < 1) {
+        modalQty = 1;
+      } else {
+        modalQty = Math.min(999, val);
+      }
       if (currentModalItem) {
         const priceBtnEl = document.getElementById("modalAddToCartBtnPrice");
         if (priceBtnEl) priceBtnEl.innerText = formatVND(currentModalItem.price * modalQty);
@@ -1444,21 +1460,19 @@
             <div class="flex-1 min-w-0 pr-2">
               <div class="font-bold text-xs text-stone-900 leading-tight">${itemName}</div>
               <div class="text-xs text-stone-600 mt-1 flex items-center gap-1.5 flex-wrap">
-                <span class="font-semibold text-stone-800">${itemName}</span>
-                <span class="text-stone-400 font-bold text-[10px]">×</span>
-                <span class="px-1.5 py-0.2 bg-stone-200/80 rounded text-stone-900 font-bold text-[11px]">${it.quantity}</span>
-                <span class="text-stone-400 font-bold text-[10px]">×</span>
-                <span class="text-stone-600 font-medium">${formatVND(it.price)}</span>
-                <span class="text-stone-400 font-bold text-[10px]">=</span>
+                <span class="font-bold text-stone-900">${it.quantity}</span>
+                <span class="text-stone-400 text-[10px]">×</span>
+                <span class="text-stone-600">${formatVND(it.price)}</span>
+                <span class="text-stone-400 text-[10px]">=</span>
                 <span class="font-black text-emerald-700 text-xs">${formatVND(it.price * it.quantity)}</span>
               </div>
               ${it.modifiers && it.modifiers.length > 0 ? `<div class="text-[10px] text-stone-500 mt-0.5">${it.modifiers.map(m => m.value).join(', ')}</div>` : ''}
               ${it.note ? `<div class="text-[10px] text-amber-700 font-medium italic mt-0.5">Ghi chú: ${it.note}</div>` : ''}
             </div>
             <div class="flex items-center gap-1.5 flex-shrink-0">
-              <button onclick="updateCartItemQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-700 flex items-center justify-center font-bold text-xs transition active:scale-95" title="Giảm">-</button>
-              <span class="font-bold text-xs text-stone-800 min-w-[16px] text-center">${it.quantity}</span>
-              <button onclick="updateCartItemQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center font-bold text-xs transition active:scale-95" title="Tăng">+</button>
+              <button onclick="updateCartItemQty(${idx}, -1)" class="w-7 h-7 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-700 flex items-center justify-center font-bold text-xs transition active:scale-95" title="Giảm">-</button>
+              <input type="number" min="1" max="999" value="${it.quantity}" onchange="setCartItemQty(${idx}, this.value)" class="w-12 h-7 text-center font-black text-xs bg-white rounded-md border border-stone-300 focus:outline-emerald-600 focus:border-emerald-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" title="Nhấp vào để gõ số lượng">
+              <button onclick="updateCartItemQty(${idx}, 1)" class="w-7 h-7 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center font-bold text-xs transition active:scale-95" title="Tăng">+</button>
               <button onclick="removeCartItem(${idx})" class="text-stone-400 hover:text-rose-500 p-1 text-xs ml-1" title="Xóa">
                 <i class="fa-regular fa-trash-can"></i>
               </button>
@@ -1477,6 +1491,19 @@
       cart[idx].quantity += delta;
       if (cart[idx].quantity <= 0) {
         cart.splice(idx, 1);
+      }
+      localStorage.setItem("pipo_cart_" + TABLE_INFO.id, JSON.stringify(cart));
+      updateCartUI();
+      openCartModal();
+    }
+
+    function setCartItemQty(idx, val) {
+      if (!cart[idx]) return;
+      let q = parseInt(val) || 1;
+      if (q <= 0) {
+        cart.splice(idx, 1);
+      } else {
+        cart[idx].quantity = Math.min(999, q);
       }
       localStorage.setItem("pipo_cart_" + TABLE_INFO.id, JSON.stringify(cart));
       updateCartUI();
@@ -1584,12 +1611,10 @@
                 <div class="pr-2">
                   <div class="font-bold text-stone-800 text-xs">${it.item_name}</div>
                   <div class="text-[11px] text-stone-500 mt-0.5 flex items-center gap-1 flex-wrap">
-                    <span class="font-semibold text-stone-700">${it.item_name}</span>
-                    <span class="text-stone-400 font-bold text-[10px]">×</span>
                     <span class="font-bold text-stone-800">${it.quantity}</span>
-                    <span class="text-stone-400 font-bold text-[10px]">×</span>
+                    <span class="text-stone-400 text-[10px]">×</span>
                     <span>${formatVND(uPrice)}</span>
-                    <span class="text-stone-400 font-bold text-[10px]">=</span>
+                    <span class="text-stone-400 text-[10px]">=</span>
                     <span class="font-bold text-emerald-700">${formatVND(it.total_price)}</span>
                   </div>
                 </div>
