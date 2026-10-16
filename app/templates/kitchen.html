@@ -223,7 +223,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="sm:col-span-2">
             <label class="block text-stone-700 font-semibold mb-1">Tên món ăn (Tiếng Việt) <span class="text-rose-500">*</span></label>
-            <input type="text" id="dishNameVi" placeholder="Ví dụ: Bò Fuji Nướng Đá Núi Lửa" class="w-full bg-white border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none focus:border-amber-600 font-semibold">
+            <input type="text" id="dishNameVi" placeholder="Ví dụ: Ốc Hương Cháy Tỏi, Đậu Phụ Tẩm Hành..." class="w-full bg-white border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none focus:border-amber-600 font-semibold">
           </div>
 
           <div>
@@ -235,7 +235,12 @@
 
           <div>
             <label class="block text-stone-700 font-semibold mb-1">Giá bán (VNĐ) <span class="text-rose-500">*</span></label>
-            <input type="number" id="dishPrice" placeholder="195000" class="w-full bg-white border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none focus:border-amber-600 font-bold">
+            <input type="number" id="dishPrice" placeholder="150000" class="w-full bg-white border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none focus:border-amber-600 font-bold">
+          </div>
+
+          <div>
+            <label class="block text-stone-700 font-semibold mb-1">⚖️ Định lượng món (cho bếp)</label>
+            <input type="text" id="dishPortion" placeholder="Ví dụ: Ốc hương 250g, Đậu phụ 3 bìa..." class="w-full bg-white border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none focus:border-amber-600 font-semibold">
           </div>
 
           <div>
@@ -855,8 +860,8 @@
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-1">
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 font-mono truncate max-w-[160px] flex items-center gap-1 shadow-2xs">
-                  <i class="fa-solid fa-scale-balanced text-amber-700"></i> ${item.portion_tag || 'Định lượng chuẩn'}
+                <span class="text-[11px] font-black px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-950 border border-amber-300 font-mono truncate max-w-[210px] flex items-center gap-1.5 shadow-2xs">
+                  <i class="fa-solid fa-scale-balanced text-amber-700"></i> ${item.portion || '1 phần'}
                 </span>
                 <span class="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-mono font-bold">${item.station}</span>
               </div>
@@ -866,17 +871,6 @@
               <div class="flex items-center justify-between mt-1">
                 <div class="text-xs text-emerald-700 font-bold">${formatVND(item.price)}</div>
                 <div class="text-[10px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">🔥 ${item.calories || 0} kcal</div>
-              </div>
-
-              <!-- Khối Định Lượng NVL Trực Quan Cho Bếp -->
-              <div class="mt-2 p-2 rounded-xl bg-amber-50/80 border border-amber-200/90 text-xs shadow-2xs">
-                <div class="font-bold text-[11px] text-amber-950 flex items-center justify-between">
-                  <span class="flex items-center gap-1.5"><i class="fa-solid fa-scale-balanced text-amber-700"></i> Định lượng NVL:</span>
-                  ${item.total_weight_str ? `<span class="font-mono text-[10px] bg-white px-1.5 py-0.2 rounded border border-amber-200 text-amber-900 font-bold">${item.total_weight_str}</span>` : ''}
-                </div>
-                <div class="text-[11px] text-stone-800 font-medium mt-1 leading-snug">
-                  ${item.recipe_summary ? item.recipe_summary : '<span class="text-stone-400 italic">Chuẩn bị theo suất (1 lon / 1 chai / 1 phần)</span>'}
-                </div>
               </div>
 
               <!-- Badges Thực đơn lớn -->
@@ -978,11 +972,10 @@
               <div class="min-w-0">
                 <div class="font-bold text-xs text-stone-900 truncate">${item.name}</div>
                 <div class="text-[10px] text-stone-500 flex items-center gap-2">
-                  <span class="font-mono text-amber-900 font-bold bg-amber-100 px-1.5 py-0.2 rounded border border-amber-300">⚖️ ${item.portion_tag || 'Định lượng chuẩn'}</span>
+                  <span class="font-mono text-amber-950 font-bold bg-amber-100 px-1.5 py-0.2 rounded border border-amber-300">⚖️ ${item.portion || '1 phần'}</span>
                   <span>•</span>
                   <span class="font-bold text-emerald-700">${formatVND(item.price)}</span>
                 </div>
-                ${item.recipe_summary ? `<div class="text-[10px] text-stone-600 truncate mt-0.5 font-medium">⚖️ ${item.recipe_summary}</div>` : ''}
               </div>
             </div>
 
@@ -1162,6 +1155,7 @@
         document.getElementById("dishStation").value = "HOT_KITCHEN";
         document.getElementById("dishImageUrl").value = "";
         document.getElementById("dishDescVi").value = "";
+        document.getElementById("dishPortion").value = "";
 
         // Default 3 Main Menus & Out of Ingredients
         document.getElementById("chkMenuRestaurant").checked = true;
@@ -1189,6 +1183,7 @@
         document.getElementById("dishNameVi").value = dish.name;
         document.getElementById("dishCategoryId").value = dish.category_id;
         document.getElementById("dishPrice").value = dish.price;
+        document.getElementById("dishPortion").value = dish.portion || "";
         document.getElementById("dishStation").value = dish.station || "HOT_KITCHEN";
         document.getElementById("dishImageUrl").value = dish.image_url || "";
         document.getElementById("dishDescVi").value = dish.description || "";
@@ -1369,6 +1364,7 @@
       // Out of ingredients
       const outOfIngredients = document.getElementById("chkOutOfIngredients").checked ? 1 : 0;
       const calories = parseInt(document.getElementById("dishCalories").value) || 0;
+      const portion = (document.getElementById("dishPortion").value || "").trim();
 
       const transObj = {};
       ['en', 'zh', 'ko', 'ru'].forEach(l => {
@@ -1387,6 +1383,7 @@
         price: price,
         image_url: img,
         station: station,
+        portion: portion,
         main_menu_type: mainMenuType,
         out_of_ingredients: outOfIngredients,
         calories: calories,

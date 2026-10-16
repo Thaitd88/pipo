@@ -40,6 +40,7 @@ class MenuItemCreate(BaseModel):
     calories: Optional[int] = 0
     out_of_ingredients: Optional[int] = 0
     main_menu_type: Optional[str] = "RESTAURANT,LUNCH,CAFE"
+    portion: Optional[str] = ""
 
 class MenuItemUpdate(BaseModel):
     category_id: Optional[int] = None
@@ -55,6 +56,7 @@ class MenuItemUpdate(BaseModel):
     calories: Optional[int] = None
     out_of_ingredients: Optional[int] = None
     main_menu_type: Optional[str] = None
+    portion: Optional[str] = None
 
 class BulkMenuImportRequest(BaseModel):
     raw_text: Optional[str] = ""
@@ -94,24 +96,6 @@ def get_full_menu():
         ORDER BY c.display_order, m.id
     """)
     items = [dict(it) for it in cursor.fetchall()]
-
-    # 3. Lấy định lượng NVL (BOM) cho từng món
-    cursor.execute("""
-        SELECT r.menu_item_id, r.quantity, i.name as ingredient_name, i.unit
-        FROM recipe_bom r
-        JOIN inventory_items i ON r.ingredient_id = i.id
-        ORDER BY r.quantity DESC
-    """)
-    bom_by_item = {}
-    for r in cursor.fetchall():
-        mid = r["menu_item_id"]
-        if mid not in bom_by_item:
-            bom_by_item[mid] = []
-        bom_by_item[mid].append({
-            "name": r["ingredient_name"],
-            "quantity": r["quantity"],
-            "unit": r["unit"]
-        })
     conn.close()
     
     # Tổ chức theo cấu trúc danh mục
@@ -200,39 +184,9 @@ def get_full_menu():
         if fixed_url:
             item["image_url"] = fixed_url
 
-        # Gán định lượng NVL (BOM) trực tiếp cho bếp và quản trị
-        item_bom = bom_by_item.get(item["id"], [])
-        if item_bom:
-            summary_parts = []
-            total_grams = 0
-            for ing in item_bom:
-                short_name = ing["name"].split("/")[0].split("(")[0].strip()
-                qty_str = format_bom_qty(ing["quantity"], ing["unit"])
-                summary_parts.append(f"{short_name}: {qty_str}")
-                
-                u = (ing["unit"] or "").lower()
-                if u == "kg":
-                    total_grams += ing["quantity"] * 1000
-                elif u in ("lít", "lit", "l"):
-                    total_grams += ing["quantity"] * 1000
-                elif u in ("g", "gram", "ml"):
-                    total_grams += ing["quantity"]
-
-            item["recipe_summary"] = " • ".join(summary_parts)
-            item["bom_count"] = len(item_bom)
-            item["bom_items"] = item_bom
-            if total_grams >= 10:
-                item["portion_tag"] = f"Định lượng: ~{round(total_grams)}g"
-                item["total_weight_str"] = f"Tổng: ~{round(total_grams)}g"
-            else:
-                item["portion_tag"] = f"Định lượng: {len(item_bom)} NVL"
-                item["total_weight_str"] = f"{len(item_bom)} thành phần"
-        else:
-            item["recipe_summary"] = ""
-            item["bom_count"] = 0
-            item["bom_items"] = []
-            item["portion_tag"] = "Định lượng: Chuẩn suất"
-            item["total_weight_str"] = ""
+        # Định lượng món ngắn gọn, trực quan cho bếp (ví dụ: Ốc hương 250g, Đậu phụ 3 bìa)
+        portion_val = (item.get("portion") or "").strip()
+        item["portion"] = portion_val if portion_val else "1 phần"
 
         # Parse options JSON
         if item.get("options_json"):
@@ -389,8 +343,8 @@ def create_menu_item(item: MenuItemCreate):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO menu_items (category_id, name, description, price, image_url, station, options_json, translations_json, is_available, calories, out_of_ingredients, main_menu_type)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO menu_items (category_id, name, description, price, image_url, station, options_json, translations_json, is_available, calories, out_of_ingredients, main_menu_type, portion)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         item.category_id,
         item.name.strip(),
@@ -403,7 +357,8 @@ def create_menu_item(item: MenuItemCreate):
         item.is_available if item.is_available is not None else 1,
         item.calories or 0,
         item.out_of_ingredients or 0,
-        item.main_menu_type or "RESTAURANT,LUNCH,CAFE"
+        item.main_menu_type or "RESTAURANT,LUNCH,CAFE",
+        (item.portion or "").strip()
     ))
     new_id = cursor.lastrowid
     conn.commit()
@@ -443,6 +398,7 @@ def update_menu_item(item_id: int, item: MenuItemUpdate):
     calories = item.calories if item.calories is not None else existing_dict.get("calories", 0)
     out_of_ingredients = item.out_of_ingredients if item.out_of_ingredients is not None else existing_dict.get("out_of_ingredients", 0)
     main_menu_type = item.main_menu_type if item.main_menu_type is not None else existing_dict.get("main_menu_type", "RESTAURANT,LUNCH,CAFE")
+    portion = item.portion.strip() if item.portion is not None else existing_dict.get("portion", "")
 
     translations_str = item.translations_json
     if item.translations is not None and not translations_str:
@@ -457,9 +413,9 @@ def update_menu_item(item_id: int, item: MenuItemUpdate):
 
     cursor.execute("""
         UPDATE menu_items
-        SET category_id = ?, name = ?, description = ?, price = ?, image_url = ?, station = ?, options_json = ?, translations_json = ?, is_available = ?, calories = ?, out_of_ingredients = ?, main_menu_type = ?
+        SET category_id = ?, name = ?, description = ?, price = ?, image_url = ?, station = ?, options_json = ?, translations_json = ?, is_available = ?, calories = ?, out_of_ingredients = ?, main_menu_type = ?, portion = ?
         WHERE id = ?
-    """, (category_id, name, description, price, image_url, station, options_json, translations_str, is_available, calories, out_of_ingredients, main_menu_type, item_id))
+    """, (category_id, name, description, price, image_url, station, options_json, translations_str, is_available, calories, out_of_ingredients, main_menu_type, portion, item_id))
     conn.commit()
 
     cursor.execute("SELECT * FROM menu_items WHERE id = ?", (item_id,))

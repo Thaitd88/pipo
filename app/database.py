@@ -420,10 +420,17 @@ def init_db():
     # Đảm bảo ảnh của các món đồ uống, bia và đặc sản luôn chuẩn và không bị mất
     ensure_fixed_dish_images(conn)
 
+    # Đảm bảo định lượng món đơn giản, chuẩn xác cho bếp nhìn trực quan
+    ensure_simple_dish_portions(conn)
+
     conn.close()
 
 def ensure_fixed_dish_images(conn):
-    """Đảm bảo các món đồ uống, bia và món đặc sản luôn có đường dẫn ảnh chuẩn và không bị mất sau redeploy."""
+    """Đảm bảo các món đồ uống, bia và món đặc sản luôn có đường dẫn ảnh chuẩn.
+    
+    CHỈ ghi đè khi ảnh đang trống, NULL, hoặc là URL ngoài (.webp) — 
+    KHÔNG bao giờ ghi đè ảnh admin đã upload vào /static/dishes/*.
+    """
     cursor = conn.cursor()
     FIXED_ITEMS = {
         "Bia Bivina": "/static/dishes/bia_bivina.jpg",
@@ -442,8 +449,109 @@ def ensure_fixed_dish_images(conn):
         "Ốc hương sốt trứng muối - bánh mì": "/static/dishes/oc_huong_sot_trung_muoi_banh_mi.jpg"
     }
     for name, path in FIXED_ITEMS.items():
-        cursor.execute("UPDATE menu_items SET image_url = ? WHERE name LIKE ? AND (image_url LIKE '%.webp' OR image_url IS NULL OR image_url = '')", (path, f"%{name}%"))
-        cursor.execute("UPDATE menu_items SET image_url = ? WHERE name = ?", (path, name))
+        # Chỉ ghi đè khi ảnh đang trống hoặc là URL ngoài không ổn định (webp/http)
+        cursor.execute("""
+            UPDATE menu_items 
+            SET image_url = ? 
+            WHERE name = ? 
+            AND (
+                image_url IS NULL 
+                OR image_url = '' 
+                OR image_url LIKE 'http%'
+                OR image_url LIKE '%.webp'
+                OR image_url LIKE '%unsplash%'
+                OR image_url LIKE '%cdn.%'
+                OR image_url LIKE '%khaisanfood%'
+                OR image_url LIKE '%heineken-vietnam%'
+                OR image_url LIKE '%hstatic%'
+            )
+        """, (path, name))
+    conn.commit()
+
+
+def ensure_simple_dish_portions(conn):
+    """Cập nhật định lượng NVL cốt lõi, ngắn gọn, chuẩn xác cho từng món ăn (ví dụ: Ốc hương 250g, Đậu phụ 3 bìa...)."""
+    cursor = conn.cursor()
+    try:
+        cursor.execute("ALTER TABLE menu_items ADD COLUMN portion TEXT DEFAULT ''")
+    except Exception:
+        pass
+
+    PORTIONS = {
+        # Khai Vị & Ăn Nhẹ
+        "Khoai tây chiên": "Khoai tây 300g",
+        "Đậu hũ tẩm hành": "Đậu phụ 3 bìa",
+        "Rau muống xào tỏi": "Rau muống 400g",
+        "Cải thìa sốt dầu hào": "Cải thìa 400g",
+        "Đậu hũ chiên giòn": "Đậu phụ 4 bìa",
+        "Khoai môn chiên nước mắm": "Khoai môn 350g",
+        "Bánh Mì Ốp La Xúc Xích Pate": "1 bánh mì + 2 trứng + xúc xích",
+        
+        # Gà - Vịt
+        "Gà đen nguyên con": "Gà H'Mông 1 con (1.3kg)",
+        "Gà hấp mắm nhĩ + Lòng mề xào": "Gà ta 1 con (1.3kg) + lòng mề",
+        "Gà nướng muối ớt + Lòng mề xào": "Gà ta 1 con (1.3kg) + lòng mề",
+        "Gà chiên mắm + Lòng mề xào": "Gà ta 1 con (1.3kg) + lòng mề",
+        "Gà hấp hành + Lòng mề xào": "Gà ta 1 con (1.3kg) + lòng mề",
+        "Lẩu gà lá giang": "Gà ta 1 con (1.3kg) + bún rau",
+        "Gà nướng tây bắc + Lòng mề xào": "Gà ta 1 con (1.3kg) + lòng mề",
+        "Cánh gà chiên mắm": "Cánh gà 3 cái",
+        "Cánh gà nướng muối ớt": "Cánh gà 3 cái",
+        "Cánh gà nướng tây bắc": "Cánh gà 3 cái",
+        "Vịt quay thảo mộc": "Vịt 1/2 con (900g)",
+        "Chân gà nướng": "Chân gà 5 cặp",
+        
+        # Heo - Bò
+        "Bò xuyên tiêu": "Thịt bò 250g",
+        "Heo nướng giềng mẻ": "Thịt ba chỉ 350g",
+        "Bò Kho Bánh Mì Đặc Biệt": "Bò nạm 250g + 1 bánh mì",
+        
+        # Hải Sản
+        "Gỏi khoai môn hải sản": "Khoai môn 300g, hải sản 120g",
+        "Gỏi xoài tôm khô": "Xoài 300g, tôm khô 40g",
+        "Lẩu gà thuốc bắc": "Gà ta 1 con (1.3kg) + thuốc bắc",
+        "Hàu nướng phô mai": "Hàu sữa 1 con",
+        "Hàu nướng mỡ hành": "Hàu sữa 1 con",
+        "Nghêu hấp sả": "Nghêu 500g",
+        "Nghêu hấp Thái": "Nghêu 500g",
+        "Tôm sốt bơ tỏi": "Tôm sú 250g",
+        "Tôm hấp": "Tôm sú 250g",
+        "Tôm nướng muối ớt": "Tôm sú 250g",
+        "Ốc hương sốt trứng muối - bánh mì": "Ốc hương 250g + 1 bánh mì",
+        "Ốc hương hấp sả": "Ốc hương 250g",
+        "Ốc hương cháy tỏi": "Ốc hương 250g",
+        "Ốc móng tay cháy tỏi": "Ốc móng tay 300g",
+        "Ốc móng tay nướng mỡ hành": "Ốc móng tay 300g",
+        "Ốc móng tay xào rau muống": "Ốc móng tay 200g, rau muống 200g",
+        "Bạch tuộc xào cay": "Bạch tuộc 300g",
+        "Bạch tuộc nướng muối ớt": "Bạch tuộc 300g",
+        "Bạch tuộc hấp hành gừng": "Bạch tuộc 300g",
+        
+        # Cơm - Mì
+        "Cơm chiên hải sản": "Cơm 250g, hải sản 100g",
+        "Cơm chiên bò": "Cơm 250g, thịt bò 100g",
+        "Cơm chiên ghẹ": "Cơm 250g, thịt ghẹ 80g",
+        "Mì xào hải sản": "Mì 2 vắt, hải sản 100g",
+        "Mì xào bò": "Mì 2 vắt, thịt bò 100g",
+        
+        # Đồ Uống
+        "Trà Đào Cam Sả PiPo Special": "1 ly (500ml)",
+        "Trà Mãng Cầu Xiêm Nhiệt Đới": "1 ly (500ml)",
+        "Nước Ép Dưa Hấu Bạc Hà": "1 ly (350ml)",
+        "Nước suối": "1 chai (500ml)",
+        "Coca Cola": "1 lon (320ml)",
+        "Pepsi": "1 lon (320ml)",
+        "Aquarius": "1 chai (390ml)",
+        "Revive": "1 chai (500ml)",
+        "Bia Bivina": "1 lon (330ml)",
+        "Bia Sài Gòn": "1 lon (330ml)",
+        "Bia Heineken": "1 lon (250ml)",
+        "Cà Phê Đen Pha Phin": "1 ly",
+        "Cà Phê Sữa Đá Sài Gòn": "1 ly",
+        "Bạc Xỉu Kem Béo PiPo": "1 ly",
+    }
+    for name, portion in PORTIONS.items():
+        cursor.execute("UPDATE menu_items SET portion = ? WHERE name = ? AND (portion IS NULL OR portion = '')", (portion, name))
     conn.commit()
 
 def sync_dish_calories(conn):
