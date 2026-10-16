@@ -69,6 +69,46 @@
     .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #F1EFEA; border-radius: 999px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 999px; }
+
+    /* Hero entrance animations */
+    @keyframes heroImageFadeIn {
+      0% { opacity: 0; transform: scale(1.12); }
+      100% { opacity: 1; transform: scale(1.05); }
+    }
+    @keyframes heroTextSlideUp {
+      0% { opacity: 0; transform: translateY(28px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .animate-hero-bg {
+      animation: heroImageFadeIn 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-hero-badge {
+      animation: heroTextSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+    }
+    .animate-hero-title {
+      animation: heroTextSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+    }
+    .animate-hero-subtitle {
+      animation: heroTextSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+    }
+    .animate-hero-cta {
+      animation: heroTextSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
+    }
+    .animate-hero-info {
+      animation: heroTextSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.7s both;
+    }
+
+    /* Scroll animations */
+    .animate-on-scroll {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    .animate-on-scroll.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body class="selection:bg-brand-gold selection:text-brand-emerald-dark overflow-x-hidden">
@@ -185,7 +225,7 @@
   <section id="hero" class="relative min-h-screen flex items-center justify-center pt-24 pb-16 px-4 sm:px-6 overflow-hidden">
     <!-- Hero Background Image with Twilight Pool View -->
     <div class="absolute inset-0 z-0">
-      <img src="/static/home/hero_twilight.jpg" alt="Pipo Garden Pool Twilight" class="w-full h-full object-cover object-center transform scale-105 transition-transform duration-1000 ease-out">
+      <img id="heroBgImage" src="/static/home/hero_twilight.jpg" alt="Pipo Garden Pool Twilight" class="animate-hero-bg w-full h-full object-cover object-center transform scale-105 transition-transform duration-700 ease-out will-change-transform">
       <div class="absolute inset-0 hero-mask"></div>
     </div>
 
@@ -195,24 +235,24 @@
     <div class="relative z-10 max-w-5xl mx-auto text-center text-white mt-6 sm:mt-10">
       
       <!-- Top Luxury Badge -->
-      <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/15 border border-brand-gold/40 text-brand-gold-light text-xs font-bold tracking-wider uppercase backdrop-blur-md mb-6 shadow-md animate-fade-in">
+      <div class="animate-hero-badge inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/15 border border-brand-gold/40 text-brand-gold-light text-xs font-bold tracking-wider uppercase backdrop-blur-md mb-6 shadow-md">
         <span class="w-2 h-2 rounded-full bg-brand-gold animate-ping"></span>
         <span data-i18n="hero_badge">✨ TỔ HỢP ẨM THỰC SÂN VƯỜN, BỂ BƠI & PICKLEBALL TẠI PHÚ QUỐC</span>
       </div>
 
       <!-- Main Headline -->
-      <h1 class="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-black tracking-tight leading-[1.15] mb-6 drop-shadow-2xl">
+      <h1 class="animate-hero-title text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-black tracking-tight leading-[1.15] mb-6 drop-shadow-2xl">
         <span class="block text-white" data-i18n="hero_title_1">Pipo Garden Phú Quốc</span>
         <span class="gold-text-gradient italic font-normal text-2xl sm:text-4xl md:text-5xl block mt-2" data-i18n="hero_title_2">Tinh Hoa Ẩm Thực & Thư Giãn Giữa Lòng Đảo Ngọc</span>
       </h1>
 
       <!-- Sub-headline -->
-      <p class="max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-white/90 font-normal leading-relaxed mb-10 drop-shadow" data-i18n="hero_subtitle">
+      <p class="animate-hero-subtitle max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-white/90 font-normal leading-relaxed mb-10 drop-shadow" data-i18n="hero_subtitle">
         Trải nghiệm không gian sân vườn nhiệt đới thoáng mát, ẩm thực hải sản biển tươi ngon, hồ bơi ngoài trời thư giãn và cụm sân thể thao Pickleball có mái che hiện đại tại Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc.
       </p>
 
       <!-- Dual Call To Actions -->
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+      <div class="animate-hero-cta flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
         <!-- Button 1: Menu Explorer -->
         <a href="/menu" class="w-full sm:w-auto gold-gradient text-brand-emerald-dark font-extrabold text-sm sm:text-base px-8 py-4 rounded-full transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand-gold/30 flex items-center justify-center gap-3">
           <i class="fa-solid fa-utensils text-base"></i>
@@ -227,7 +267,7 @@
       </div>
 
       <!-- Quick Info Bar at the base of Hero -->
-      <div class="glass-dark border border-white/20 rounded-2xl sm:rounded-full p-4 sm:px-8 max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 text-xs text-left shadow-2xl text-white/95">
+      <div class="animate-hero-info glass-dark border border-white/20 rounded-2xl sm:rounded-full p-4 sm:px-8 max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 text-xs text-left shadow-2xl text-white/95">
         
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold flex-shrink-0 text-sm">
@@ -267,7 +307,7 @@
   <!-- ======================================================== -->
   <!-- 3. ABOUT US & UNIQUE HIGHLIGHTS -->
   <!-- ======================================================== -->
-  <section id="about" class="py-20 sm:py-28 px-4 sm:px-8 bg-brand-cream relative">
+  <section id="about" class="animate-on-scroll py-20 sm:py-28 px-4 sm:px-8 bg-brand-cream relative">
     <div class="max-w-7xl mx-auto">
       
       <!-- Section Header -->
@@ -381,13 +421,67 @@
 
       </div>
 
+      <!-- ======================================================== -->
+      <!-- STATISTICS COUNTER BAR -->
+      <!-- ======================================================== -->
+      <div id="statsCounterBar" class="mt-12 sm:mt-16 rounded-3xl bg-gradient-to-br from-brand-emerald-dark via-[#0F382C] to-brand-emerald-dark p-6 sm:p-10 border border-brand-gold/40 shadow-2xl text-white relative overflow-hidden">
+        <!-- Subtle gold glow -->
+        <div class="absolute -top-24 -right-24 w-60 h-60 bg-brand-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 divide-y sm:divide-y-0 sm:divide-x divide-white/10">
+          
+          <!-- Stat 1: 4 Sân Pickleball -->
+          <div class="flex flex-col items-center text-center px-4 py-2 sm:py-0">
+            <span class="text-3xl sm:text-4xl mb-2 filter drop-shadow">🏝️</span>
+            <div class="font-serif font-black text-3xl sm:text-5xl gold-text-gradient flex items-center leading-none">
+              <span class="counter-number" data-target="4">0</span>
+            </div>
+            <div class="font-bold text-xs sm:text-sm text-white/95 mt-2">Sân Pickleball</div>
+            <div class="text-[11px] text-brand-gold-light/80 mt-0.5">Có mái che chuẩn thi đấu</div>
+          </div>
+
+          <!-- Stat 2: 60+ Món đặc sản -->
+          <div class="flex flex-col items-center text-center px-4 py-2 sm:py-0">
+            <span class="text-3xl sm:text-4xl mb-2 filter drop-shadow">🍽️</span>
+            <div class="font-serif font-black text-3xl sm:text-5xl gold-text-gradient flex items-center leading-none">
+              <span class="counter-number" data-target="60">0</span>
+              <span class="text-brand-gold-light text-2xl sm:text-3xl ml-0.5">+</span>
+            </div>
+            <div class="font-bold text-xs sm:text-sm text-white/95 mt-2">Món Đặc Sản</div>
+            <div class="text-[11px] text-brand-gold-light/80 mt-0.5">Hải sản tươi & nướng than hoa</div>
+          </div>
+
+          <!-- Stat 3: 500+ Lượt khách/tuần -->
+          <div class="flex flex-col items-center text-center px-4 py-2 sm:py-0">
+            <span class="text-3xl sm:text-4xl mb-2 filter drop-shadow">👥</span>
+            <div class="font-serif font-black text-3xl sm:text-5xl gold-text-gradient flex items-center leading-none">
+              <span class="counter-number" data-target="500">0</span>
+              <span class="text-brand-gold-light text-2xl sm:text-3xl ml-0.5">+</span>
+            </div>
+            <div class="font-bold text-xs sm:text-sm text-white/95 mt-2">Lượt Khách / Tuần</div>
+            <div class="text-[11px] text-brand-gold-light/80 mt-0.5">Thực khách & du khách thư giãn</div>
+          </div>
+
+          <!-- Stat 4: 4.8 Sao đánh giá -->
+          <div class="flex flex-col items-center text-center px-4 py-2 sm:py-0">
+            <span class="text-3xl sm:text-4xl mb-2 filter drop-shadow">⭐</span>
+            <div class="font-serif font-black text-3xl sm:text-5xl gold-text-gradient flex items-center leading-none">
+              <span class="counter-number" data-target="4.8" data-decimals="1">0.0</span>
+            </div>
+            <div class="font-bold text-xs sm:text-sm text-white/95 mt-2">Sao Đánh Giá</div>
+            <div class="text-[11px] text-brand-gold-light/80 mt-0.5">Hài lòng về món ăn & dịch vụ</div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   </section>
 
   <!-- ======================================================== -->
   <!-- 4. SPATIAL EXPERIENCE & REAL GALLERY -->
   <!-- ======================================================== -->
-  <section id="gallery" class="py-20 sm:py-28 px-4 sm:px-8 bg-brand-emerald-dark text-white relative overflow-hidden">
+  <section id="gallery" class="animate-on-scroll py-20 sm:py-28 px-4 sm:px-8 bg-brand-emerald-dark text-white relative overflow-hidden">
     <!-- Ambient light -->
     <div class="absolute -top-32 -left-32 w-96 h-96 bg-brand-gold/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -484,7 +578,7 @@
   <!-- ======================================================== -->
   <!-- 5. INTERACTIVE MENU SHOWCASE (THỰC ĐƠN ĐẶC SẮC) -->
   <!-- ======================================================== -->
-  <section id="menu-showcase" class="py-20 sm:py-28 px-4 sm:px-8 bg-brand-cream relative">
+  <section id="menu-showcase" class="animate-on-scroll py-20 sm:py-28 px-4 sm:px-8 bg-brand-cream relative">
     <div class="max-w-7xl mx-auto">
       
       <!-- Section Title -->
@@ -686,7 +780,7 @@
   <!-- ======================================================== -->
   <!-- 6. PICKLEBALL & RECREATION SECTION -->
   <!-- ======================================================== -->
-  <section id="pickleball" class="py-20 sm:py-28 px-4 sm:px-8 bg-gradient-to-br from-emerald-950 via-brand-emerald-dark to-teal-950 text-white relative overflow-hidden">
+  <section id="pickleball" class="animate-on-scroll py-20 sm:py-28 px-4 sm:px-8 bg-gradient-to-br from-emerald-950 via-brand-emerald-dark to-teal-950 text-white relative overflow-hidden">
     <!-- Court lines decorative background -->
     <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#D4AF37 1px, transparent 1px); background-size: 30px 30px;"></div>
 
@@ -804,7 +898,7 @@
   <!-- ======================================================== -->
   <!-- 7. ONLINE RESERVATION & CONTACT FORM -->
   <!-- ======================================================== -->
-  <section id="booking" class="py-20 sm:py-28 px-4 sm:px-8 bg-brand-cream relative">
+  <section id="booking" class="animate-on-scroll py-20 sm:py-28 px-4 sm:px-8 bg-brand-cream relative">
     <div class="max-w-7xl mx-auto">
       
       <div class="text-center max-w-3xl mx-auto mb-16">
@@ -985,215 +1079,475 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        <!-- Booking Form Card (7 Cols) -->
-        <div id="bookingFormContainer" class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-10 border border-stone-200 shadow-xl">
-          <form onsubmit="handleOnlineBooking(event)" class="space-y-5">
-            
-            <div class="border-b border-stone-100 pb-4 mb-2 flex items-center justify-between">
-              <div>
-                <h3 class="font-serif font-bold text-xl text-brand-emerald-dark flex items-center gap-2">
-                  <i class="fa-regular fa-calendar-check text-brand-gold"></i>
-                  <span data-i18n="form_title">Thông Tin Đặt Bàn & Đơn Gọi Trước</span>
-                </h3>
-                <p class="text-xs text-stone-500 mt-1" data-i18n="form_subtitle">Thu ngân / Quản lý PiPo Garden sẽ kiểm tra bàn và liên hệ xác nhận trong vòng 10 phút.</p>
+        <!-- 3-Step Smart Booking Wizard Card (7 Cols) -->
+        <div id="bookingFormContainer" class="lg:col-span-7 bg-brand-emerald-dark rounded-3xl p-6 sm:p-8 border border-brand-gold/30 shadow-2xl text-white relative overflow-hidden">
+          
+          <!-- Subtle gold ambient glow in top right -->
+          <div class="absolute -top-20 -right-20 w-52 h-52 bg-brand-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          <!-- Step Progress Bar -->
+          <div class="mb-8 relative z-10">
+            <div class="flex items-center justify-between relative max-w-md mx-auto">
+              <!-- Connecting Line -->
+              <div class="absolute left-7 right-7 top-5 -translate-y-1/2 h-1 bg-white/15 rounded-full z-0">
+                <div id="stepProgressFill" class="h-full gold-gradient rounded-full transition-all duration-500 ease-out" style="width: 0%;"></div>
               </div>
-              <div id="formTableBadge" class="hidden text-xs font-bold text-brand-emerald-dark bg-brand-gold/20 border border-brand-gold/60 px-3 py-1.5 rounded-xl">
-                <!-- Bàn đã chọn -->
-              </div>
+
+              <!-- Step 1 Indicator -->
+              <button type="button" onclick="goToStep(1)" class="relative z-10 flex flex-col items-center group cursor-pointer focus:outline-none">
+                <div id="stepCircle-1" class="w-10 h-10 rounded-full flex items-center justify-center font-black text-xs gold-gradient text-brand-emerald-dark shadow-lg ring-4 ring-brand-emerald-dark transition-all duration-300">
+                  <span id="stepIcon-1">1</span>
+                </div>
+                <span id="stepText-1" class="text-[11px] font-bold text-brand-gold-light mt-2 whitespace-nowrap">1. Chọn Dịch Vụ</span>
+              </button>
+
+              <!-- Step 2 Indicator -->
+              <button type="button" onclick="goToStep(2)" class="relative z-10 flex flex-col items-center group cursor-pointer focus:outline-none">
+                <div id="stepCircle-2" class="w-10 h-10 rounded-full flex items-center justify-center font-black text-xs bg-white/20 text-white/70 border border-white/20 shadow-lg ring-4 ring-brand-emerald-dark transition-all duration-300">
+                  <span id="stepIcon-2">2</span>
+                </div>
+                <span id="stepText-2" class="text-[11px] font-medium text-white/70 mt-2 whitespace-nowrap">2. Thông Tin & Món</span>
+              </button>
+
+              <!-- Step 3 Indicator -->
+              <button type="button" onclick="goToStep(3)" class="relative z-10 flex flex-col items-center group cursor-pointer focus:outline-none">
+                <div id="stepCircle-3" class="w-10 h-10 rounded-full flex items-center justify-center font-black text-xs bg-white/20 text-white/70 border border-white/20 shadow-lg ring-4 ring-brand-emerald-dark transition-all duration-300">
+                  <span id="stepIcon-3">3</span>
+                </div>
+                <span id="stepText-3" class="text-[11px] font-medium text-white/70 mt-2 whitespace-nowrap">3. Xác Nhận</span>
+              </button>
             </div>
+          </div>
 
-            <!-- Hidden Inputs for Floor Plan & Pre-order -->
-            <input type="hidden" id="resTableCode" value="">
-            <input type="hidden" id="resArea" value="">
-            <input type="hidden" id="resPreorderJson" value="[]">
-            <input type="hidden" id="resTotalEstimated" value="0">
+          <!-- Hidden storage fields -->
+          <input type="hidden" id="resTableCode" value="">
+          <input type="hidden" id="resArea" value="">
+          <input type="hidden" id="resPreorderJson" value="[]">
+          <input type="hidden" id="resTotalEstimated" value="0">
 
-            <!-- Service Type Selector -->
+          <!-- ============================================== -->
+          <!-- STEP 1: CHỌN DỊCH VỤ -->
+          <!-- ============================================== -->
+          <div id="wizardStep1" class="space-y-6 relative z-10">
             <div>
-              <label class="block text-xs font-bold text-stone-700 mb-2 uppercase tracking-wider" data-i18n="form_service_label">Dịch Vụ Muốn Đặt *</label>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold">
-                <label class="cursor-pointer">
-                  <input type="radio" name="service_type" value="DINING" checked class="peer hidden">
-                  <div class="p-3 rounded-2xl border-2 border-stone-200 text-stone-600 peer-checked:border-brand-emerald-dark peer-checked:bg-brand-emerald-dark peer-checked:text-white transition text-center">
-                    <div class="text-lg mb-1">🍽️</div>
-                    <span data-i18n="form_srv_dining">Bàn Ăn Uống</span>
-                  </div>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="service_type" value="BIRTHDAY_EVENT" class="peer hidden">
-                  <div class="p-3 rounded-2xl border-2 border-stone-200 text-stone-600 peer-checked:border-brand-emerald-dark peer-checked:bg-brand-emerald-dark peer-checked:text-white transition text-center">
-                    <div class="text-lg mb-1">🎂</div>
-                    <span data-i18n="form_srv_party">Tiệc Sinh Nhật</span>
-                  </div>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="service_type" value="PICKLEBALL" class="peer hidden">
-                  <div class="p-3 rounded-2xl border-2 border-stone-200 text-stone-600 peer-checked:border-brand-emerald-dark peer-checked:bg-brand-emerald-dark peer-checked:text-white transition text-center">
-                    <div class="text-lg mb-1">🎾</div>
-                    <span data-i18n="form_srv_pickleball">Sân Pickleball</span>
-                  </div>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="service_type" value="POOL_PARTY" class="peer hidden">
-                  <div class="p-3 rounded-2xl border-2 border-stone-200 text-stone-600 peer-checked:border-brand-emerald-dark peer-checked:bg-brand-emerald-dark peer-checked:text-white transition text-center">
-                    <div class="text-lg mb-1">🏊</div>
-                    <span data-i18n="form_srv_pool">Pool Party</span>
-                  </div>
-                </label>
+              <div class="inline-flex items-center gap-1.5 text-[11px] font-bold text-brand-gold-light uppercase tracking-wider bg-white/10 px-3 py-1 rounded-full mb-2">
+                <i class="fa-solid fa-list-check text-brand-gold"></i> Bước 1 / 3
               </div>
+              <h3 class="font-serif font-black text-xl sm:text-2xl text-white">
+                Chọn Dịch Vụ Quý Khách Muốn Trải Nghiệm
+              </h3>
+              <p class="text-xs text-white/75 mt-1">
+                Lựa chọn không gian và hình thức để PiPo Garden chuẩn bị chu đáo nhất chào đón quý khách.
+              </p>
             </div>
 
-            <!-- Customer Name & Phone -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_name_label">Họ và Tên Quý Khách *</label>
-                <div class="relative">
-                  <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-400 text-xs"><i class="fa-solid fa-user"></i></span>
-                  <input type="text" id="resGuestName" required placeholder="Nguyễn Văn A" class="w-full pl-9 pr-3.5 py-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald font-medium bg-stone-50/50">
+            <!-- 4 Tile Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              
+              <!-- Tile 1: 🍽️ Đặt bàn ăn uống -->
+              <div onclick="selectService('DINING')" id="tile-DINING" class="service-tile cursor-pointer p-4 rounded-2xl border-2 border-brand-gold bg-brand-gold/15 shadow-lg transition-all transform hover:-translate-y-0.5 relative group">
+                <div class="flex items-start justify-between">
+                  <span class="text-3xl">🍽️</span>
+                  <div class="tile-check w-6 h-6 rounded-full bg-brand-gold text-brand-emerald-dark flex items-center justify-center text-xs font-bold shadow">
+                    <i class="fa-solid fa-check"></i>
+                  </div>
+                </div>
+                <h4 class="font-serif font-bold text-base text-white mt-3">Đặt Bàn Ăn Uống</h4>
+                <p class="text-xs text-white/75 mt-1 leading-relaxed">
+                  Nhà chòi gỗ mái lá hoặc bàn ven hồ bơi thoáng mát, phục vụ hải sản tươi và đặc sản sân vườn.
+                </p>
+                <div class="mt-3 flex items-center gap-1.5 text-[11px] font-bold text-brand-gold-light">
+                  <span>Hỗ trợ gọi món trước</span> <i class="fa-solid fa-arrow-right text-[9px]"></i>
                 </div>
               </div>
-              <div>
-                <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_phone_label">Số Điện Thoại Liên Hệ *</label>
-                <div class="relative">
-                  <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-400 text-xs"><i class="fa-solid fa-phone"></i></span>
-                  <input type="tel" id="resPhone" required placeholder="0838 xxx xxx" class="w-full pl-9 pr-3.5 py-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald font-medium bg-stone-50/50">
+
+              <!-- Tile 2: 🎾 Đặt sân Pickleball -->
+              <div onclick="handlePickleballTile()" id="tile-PICKLEBALL" class="service-tile cursor-pointer p-4 rounded-2xl border-2 border-white/15 bg-white/5 hover:border-brand-gold/60 hover:bg-white/10 transition-all transform hover:-translate-y-0.5 relative group">
+                <div class="flex items-start justify-between">
+                  <span class="text-3xl">🎾</span>
+                  <div class="tile-check w-6 h-6 rounded-full bg-white/20 text-white flex items-center justify-center text-xs font-bold opacity-0">
+                    <i class="fa-solid fa-check"></i>
+                  </div>
+                </div>
+                <h4 class="font-serif font-bold text-base text-white mt-3">Đặt Sân Pickleball</h4>
+                <p class="text-xs text-white/75 mt-1 leading-relaxed">
+                  4 sân thi đấu đạt chuẩn có mái che kiên cố, đèn chiếu sáng đêm & cho thuê phụ kiện.
+                </p>
+                <a href="/pickleball" onclick="event.stopPropagation()" class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-bold text-cyan-300 hover:text-cyan-200 bg-cyan-950/60 border border-cyan-500/40 px-2.5 py-1 rounded-lg">
+                  <i class="fa-solid fa-calendar-days text-[10px]"></i>
+                  <span>Lịch Đặt Sân Tương Tác ↗</span>
+                </a>
+              </div>
+
+              <!-- Tile 3: 🎂 Tiệc sinh nhật / Sự kiện -->
+              <div onclick="selectService('BIRTHDAY_EVENT')" id="tile-BIRTHDAY_EVENT" class="service-tile cursor-pointer p-4 rounded-2xl border-2 border-white/15 bg-white/5 hover:border-brand-gold/60 hover:bg-white/10 transition-all transform hover:-translate-y-0.5 relative group">
+                <div class="flex items-start justify-between">
+                  <span class="text-3xl">🎂</span>
+                  <div class="tile-check w-6 h-6 rounded-full bg-white/20 text-white flex items-center justify-center text-xs font-bold opacity-0">
+                    <i class="fa-solid fa-check"></i>
+                  </div>
+                </div>
+                <h4 class="font-serif font-bold text-base text-white mt-3">Tiệc Sinh Nhật / Sự Kiện</h4>
+                <p class="text-xs text-white/75 mt-1 leading-relaxed">
+                  Setup bàn tiệc hoa tươi, âm thanh ánh sáng, backdrop lung linh ven hồ cho ngày đặc biệt.
+                </p>
+                <div class="mt-3 flex items-center gap-1.5 text-[11px] font-bold text-brand-gold-light">
+                  <span>Trọn gói chu đáo</span> <i class="fa-solid fa-arrow-right text-[9px]"></i>
                 </div>
               </div>
+
+              <!-- Tile 4: 🏊 Pool & Chill -->
+              <div onclick="selectService('POOL_PARTY')" id="tile-POOL_PARTY" class="service-tile cursor-pointer p-4 rounded-2xl border-2 border-white/15 bg-white/5 hover:border-brand-gold/60 hover:bg-white/10 transition-all transform hover:-translate-y-0.5 relative group">
+                <div class="flex items-start justify-between">
+                  <span class="text-3xl">🏊</span>
+                  <div class="tile-check w-6 h-6 rounded-full bg-white/20 text-white flex items-center justify-center text-xs font-bold opacity-0">
+                    <i class="fa-solid fa-check"></i>
+                  </div>
+                </div>
+                <h4 class="font-serif font-bold text-base text-white mt-3">Pool & Chill Thư Giãn</h4>
+                <p class="text-xs text-white/75 mt-1 leading-relaxed">
+                  Bàn ven hồ bơi giải nhiệt, thưởng thức cocktail hoàng hôn, mocktail và thức ăn nhẹ.
+                </p>
+                <div class="mt-3 flex items-center gap-1.5 text-[11px] font-bold text-brand-gold-light">
+                  <span>Check-in hoàng hôn</span> <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                </div>
+              </div>
+
             </div>
 
-            <!-- Date, Time, Guest Count -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_date_label">Ngày Đến *</label>
-                <input type="date" id="resDate" required class="w-full p-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald font-medium bg-stone-50/50">
+            <!-- Floor plan selection hint if active -->
+            <div id="step1TableBadge" class="p-3 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="text-base">📍</span>
+                <span id="step1TableText" class="text-white/90">Chưa chọn vị trí bàn trên sơ đồ mặt bằng (PiPo Garden sẽ tự sắp xếp vị trí đẹp nhất).</span>
               </div>
+              <button type="button" onclick="scrollToFloorMap()" class="text-brand-gold font-bold hover:underline whitespace-nowrap text-[11px] ml-2">
+                Xem sơ đồ ↑
+              </button>
+            </div>
+
+            <!-- Next Step Action -->
+            <button type="button" onclick="validateAndGoToStep(2)" class="w-full min-h-[44px] gold-gradient text-brand-emerald-dark font-black text-sm py-3.5 rounded-2xl shadow-xl hover:brightness-110 transition flex items-center justify-center gap-2">
+              <span>Tiếp Theo: Điền Thông Tin Đặt Chỗ</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- STEP 2: THÔNG TIN ĐẶT CHỖ & GỌI MÓN TRƯỚC -->
+          <!-- ============================================== -->
+          <div id="wizardStep2" class="space-y-6 relative z-10 hidden">
+            <div class="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
               <div>
-                <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_time_label">Giờ Đến *</label>
-                <input type="time" id="resTime" value="18:30" required class="w-full p-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald font-medium bg-stone-50/50">
+                <div class="inline-flex items-center gap-1.5 text-[11px] font-bold text-brand-gold-light uppercase tracking-wider bg-white/10 px-3 py-1 rounded-full mb-1">
+                  <i class="fa-solid fa-user-pen text-brand-gold"></i> Bước 2 / 3
+                </div>
+                <h3 class="font-serif font-black text-xl sm:text-2xl text-white">
+                  Thông Tin Khách Hàng & Thực Đơn
+                </h3>
               </div>
-              <div>
-                <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_count_label">Số Lượng Khách</label>
-                <input type="number" id="resGuestCount" value="4" min="1" max="100" class="w-full p-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald font-bold bg-stone-50/50">
+              <div class="text-right">
+                <span id="step2ServiceBadge" class="inline-block text-xs font-bold px-3 py-1 rounded-xl bg-brand-gold/20 text-brand-gold-light border border-brand-gold/40">
+                  🍽️ Đặt bàn ăn uống
+                </span>
+                <button type="button" onclick="goToStep(1)" class="block text-[11px] text-white/60 hover:text-brand-gold mt-1 underline">Đổi dịch vụ</button>
               </div>
             </div>
 
-            <!-- Pre-order Signature Dishes Section -->
-            <div class="border border-stone-200 rounded-2xl p-4 bg-stone-50/70 space-y-3">
-              <div class="flex items-center justify-between cursor-pointer" onclick="togglePreorderBox()">
+            <!-- Table selection indicator -->
+            <div id="step2TableBadge" class="p-3 rounded-2xl bg-white/10 border border-brand-gold/30 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="text-brand-gold text-base">📍</span>
+                <span id="step2TableText" class="text-white/90">Vị trí: PiPo Garden tự sắp xếp vị trí đẹp nhất</span>
+              </div>
+              <button type="button" onclick="scrollToFloorMap()" class="text-brand-gold-light font-bold hover:underline whitespace-nowrap text-[11px]">
+                Chọn trên sơ đồ ↑
+              </button>
+            </div>
+
+            <!-- Form Inputs -->
+            <div class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-white/90 mb-1.5" for="resGuestName">
+                    Họ và Tên Quý Khách <span class="text-rose-400">*</span>
+                  </label>
+                  <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-400 text-xs pointer-events-none"><i class="fa-solid fa-user"></i></span>
+                    <input type="text" id="resGuestName" required placeholder="Nguyễn Văn A" class="w-full min-h-[44px] pl-9 pr-3.5 py-3 text-xs rounded-2xl border border-white/20 bg-stone-900/60 text-white placeholder-stone-400 focus:outline-none focus:border-brand-gold font-medium">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-white/90 mb-1.5" for="resPhone">
+                    Số Điện Thoại / Zalo <span class="text-rose-400">*</span>
+                  </label>
+                  <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-400 text-xs pointer-events-none"><i class="fa-solid fa-phone"></i></span>
+                    <input type="tel" id="resPhone" required placeholder="0838 xxx xxx" class="w-full min-h-[44px] pl-9 pr-3.5 py-3 text-xs rounded-2xl border border-white/20 bg-stone-900/60 text-white placeholder-stone-400 focus:outline-none focus:border-brand-gold font-medium">
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-white/90 mb-1.5" for="resDate">
+                    Ngày Đến <span class="text-rose-400">*</span>
+                  </label>
+                  <input type="date" id="resDate" required class="w-full min-h-[44px] px-3.5 py-3 text-xs rounded-2xl border border-white/20 bg-stone-900/60 text-white focus:outline-none focus:border-brand-gold font-medium">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-white/90 mb-1.5" for="resTime">
+                    Giờ Đến <span class="text-rose-400">*</span>
+                  </label>
+                  <input type="time" id="resTime" value="18:30" required class="w-full min-h-[44px] px-3.5 py-3 text-xs rounded-2xl border border-white/20 bg-stone-900/60 text-white focus:outline-none focus:border-brand-gold font-medium">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-white/90 mb-1.5" for="resGuestCount">
+                    Số Khách Dự Kiến
+                  </label>
+                  <input type="number" id="resGuestCount" value="2" min="1" max="100" class="w-full min-h-[44px] px-3.5 py-3 text-xs rounded-2xl border border-white/20 bg-stone-900/60 text-white focus:outline-none focus:border-brand-gold font-bold">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-white/90 mb-1.5" for="resNote">
+                  Yêu Cầu Đặc Biệt (Tùy chọn)
+                </label>
+                <textarea id="resNote" rows="2" placeholder="Ví dụ: Bàn sát hồ bơi, hoa tươi sinh nhật, nướng sẵn gà đồi khi đến nơi..." class="w-full min-h-[44px] p-3 text-xs rounded-2xl border border-white/20 bg-stone-900/60 text-white placeholder-stone-400 focus:outline-none focus:border-brand-gold font-medium"></textarea>
+              </div>
+            </div>
+
+            <!-- PREORDER SECTION (Enabled for DINING, BIRTHDAY_EVENT, POOL_PARTY) -->
+            <div id="preorderWizardContainer" class="border border-brand-gold/30 rounded-2xl p-4 bg-white/5 space-y-3">
+              <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
                   <span class="w-8 h-8 rounded-xl gold-gradient text-brand-emerald-dark flex items-center justify-center font-bold text-sm shadow">🍽️</span>
                   <div>
-                    <div class="font-bold text-xs text-brand-emerald-dark flex items-center gap-2">
-                      <span>Gọi Món Ăn Trước Khi Đến (Tùy chọn)</span>
-                      <span id="preorderCountBadge" class="bg-emerald-800 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0 món</span>
+                    <div class="font-bold text-xs text-white flex items-center gap-2">
+                      <span>Gọi Món Ăn Trước Khi Đến</span>
+                      <span id="wizardPreorderBadge" class="bg-brand-gold text-brand-emerald-dark text-[10px] font-black px-2 py-0.5 rounded-full hidden">0 món</span>
                     </div>
-                    <div class="text-[11px] text-stone-500">Bếp sẽ chuẩn bị sẵn nguyên liệu tươi ngon nhất đón chào quý khách</div>
+                    <div class="text-[11px] text-white/60">Bếp sẽ chuẩn bị sẵn nguyên liệu tươi ngon nhất chào đón bạn</div>
                   </div>
                 </div>
-                <button type="button" class="text-xs font-bold text-brand-emerald flex items-center gap-1">
-                  <span id="preorderToggleText">Mở chọn món</span> <i id="preorderToggleIcon" class="fa-solid fa-chevron-down text-xs"></i>
+                <button type="button" onclick="togglePreorderList()" class="text-xs font-bold text-brand-gold-light hover:underline flex items-center gap-1">
+                  <span id="preorderToggleTxt">Mở menu món</span> <i id="preorderToggleIco" class="fa-solid fa-chevron-down text-xs"></i>
                 </button>
               </div>
 
-              <!-- Collapsible Dishes Grid -->
-              <div id="preorderDishesList" class="hidden pt-3 border-t border-stone-200 space-y-2">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                  
-                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
-                    <div>
-                      <div class="font-bold text-stone-800">Gà Nướng Tây Bắc + Lòng Mề Xào</div>
-                      <div class="text-[10px] text-stone-500 font-mono">620 kcal</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button type="button" onclick="adjustPreorderItem('Gà Nướng Tây Bắc + Lòng Mề Xào', 350000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
-                      <span id="qty-Gà Nướng Tây Bắc + Lòng Mề Xào" class="font-bold w-4 text-center">0</span>
-                      <button type="button" onclick="adjustPreorderItem('Gà Nướng Tây Bắc + Lòng Mề Xào', 350000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
-                    <div>
-                      <div class="font-bold text-stone-800">Bò Xuyên Tiêu</div>
-                      <div class="text-[10px] text-stone-500 font-mono">520 kcal</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button type="button" onclick="adjustPreorderItem('Bò Xuyên Tiêu', 279000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
-                      <span id="qty-Bò Xuyên Tiêu" class="font-bold w-4 text-center">0</span>
-                      <button type="button" onclick="adjustPreorderItem('Bò Xuyên Tiêu', 279000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
-                    <div>
-                      <div class="font-bold text-stone-800">Gà Hấp Mắm Nhĩ + Lòng Mề</div>
-                      <div class="text-[10px] text-stone-500 font-mono">580 kcal</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button type="button" onclick="adjustPreorderItem('Gà Hấp Mắm Nhĩ + Lòng Mề', 350000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
-                      <span id="qty-Gà Hấp Mắm Nhĩ + Lòng Mề" class="font-bold w-4 text-center">0</span>
-                      <button type="button" onclick="adjustPreorderItem('Gà Hấp Mắm Nhĩ + Lòng Mề', 350000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
-                    <div>
-                      <div class="font-bold text-stone-800">Hàu Sữa Nướng Phô Mai</div>
-                      <div class="text-[10px] text-stone-500 font-mono">120 kcal</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button type="button" onclick="adjustPreorderItem('Hàu Sữa Nướng Phô Mai', 25000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
-                      <span id="qty-Hàu Sữa Nướng Phô Mai" class="font-bold w-4 text-center">0</span>
-                      <button type="button" onclick="adjustPreorderItem('Hàu Sữa Nướng Phô Mai', 25000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
-                    <div>
-                      <div class="font-bold text-stone-800">Ốc Hương Sốt Trứng Muối</div>
-                      <div class="text-[10px] text-stone-500 font-mono">420 kcal</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button type="button" onclick="adjustPreorderItem('Ốc Hương Sốt Trứng Muối', 150000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
-                      <span id="qty-Ốc Hương Sốt Trứng Muối" class="font-bold w-4 text-center">0</span>
-                      <button type="button" onclick="adjustPreorderItem('Ốc Hương Sốt Trứng Muối', 150000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 shadow-2xs">
-                    <div>
-                      <div class="font-bold text-stone-800">Bia Bivina Ướp Lạnh</div>
-                      <div class="text-[10px] text-stone-500 font-mono">140 kcal</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button type="button" onclick="adjustPreorderItem('Bia Bivina Ướp Lạnh', 16000, -1)" class="w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center">-</button>
-                      <span id="qty-Bia Bivina Ướp Lạnh" class="font-bold w-4 text-center">0</span>
-                      <button type="button" onclick="adjustPreorderItem('Bia Bivina Ướp Lạnh', 16000, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center">+</button>
-                    </div>
-                  </div>
-
+              <!-- Collapsible Dishes Preorder Grid -->
+              <div id="preorderMenuWrapper" class="hidden pt-3 border-t border-white/10 space-y-3">
+                <!-- Category tabs -->
+                <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 text-[11px] font-bold">
+                  <button type="button" onclick="filterPreorderCategory('ALL', this)" class="preorder-cat-btn px-3 py-1.5 rounded-xl gold-gradient text-brand-emerald-dark whitespace-nowrap">Tất Cả</button>
+                  <button type="button" onclick="filterPreorderCategory('SEAFOOD', this)" class="preorder-cat-btn px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 whitespace-nowrap">🦐 Hải Sản</button>
+                  <button type="button" onclick="filterPreorderCategory('GRILL', this)" class="preorder-cat-btn px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 whitespace-nowrap">🍗 Gà & Nướng</button>
+                  <button type="button" onclick="filterPreorderCategory('MEAT', this)" class="preorder-cat-btn px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 whitespace-nowrap">🥩 Bò & Heo</button>
+                  <button type="button" onclick="filterPreorderCategory('DRINK', this)" class="preorder-cat-btn px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 whitespace-nowrap">🍹 Thức Uống</button>
                 </div>
 
-                <div class="flex items-center justify-between pt-2 text-xs">
-                  <span class="text-stone-500 font-medium">Tạm tính đơn gọi trước:</span>
-                  <span id="preorderTotalDisplay" class="font-black text-sm text-emerald-800">0 đ</span>
+                <!-- Preorder Dishes Grid: 2 cols on mobile, 3 on desktop -->
+                <div id="preorderDishesGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-96 overflow-y-auto custom-scrollbar pr-1">
+                  <!-- Rendered dynamically by JS from /api/menu -->
+                  <div class="col-span-full text-center py-6 text-xs text-white/60">
+                    <i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải thực đơn PiPo Garden...
+                  </div>
+                </div>
+
+                <!-- Subtotal summary -->
+                <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs">
+                  <span class="text-white/70">Tổng tạm tính thực đơn gọi trước:</span>
+                  <span id="wizardPreorderTotal" class="font-black text-sm text-brand-gold-light">0 đ</span>
                 </div>
               </div>
             </div>
 
-            <!-- Notes -->
+            <!-- Validation Error Alert -->
+            <div id="step2Alert" class="hidden p-3.5 rounded-2xl text-xs font-bold bg-rose-500/20 text-rose-200 border border-rose-500/40"></div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex items-center justify-between gap-3 pt-2">
+              <button type="button" onclick="goToStep(1)" class="min-h-[44px] px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Bước 1</span>
+              </button>
+              <button type="button" onclick="validateAndGoToStep(3)" class="min-h-[44px] flex-1 gold-gradient text-brand-emerald-dark font-black text-xs sm:text-sm py-3.5 rounded-2xl shadow-xl hover:brightness-110 transition flex items-center justify-center gap-2">
+                <span>Tiếp Theo: Xem Lại & Xác Nhận</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- STEP 3: XÁC NHẬN & GỬI YÊU CẦU -->
+          <!-- ============================================== -->
+          <div id="wizardStep3" class="space-y-6 relative z-10 hidden">
             <div>
-              <label class="block text-xs font-bold text-stone-700 mb-1" data-i18n="form_note_label">Yêu Cầu Đặc Biệt (Tùy chọn)</label>
-              <textarea id="resNote" rows="2" placeholder="Ví dụ: Bàn sát hồ bơi, setup hoa sinh nhật, nướng sẵn khi đến nơi, thuê vợt pickleball..." class="w-full p-3 text-xs rounded-2xl border border-stone-300 focus:outline-none focus:border-brand-emerald bg-stone-50/50"></textarea>
+              <div class="inline-flex items-center gap-1.5 text-[11px] font-bold text-brand-gold-light uppercase tracking-wider bg-white/10 px-3 py-1 rounded-full mb-1">
+                <i class="fa-solid fa-clipboard-check text-brand-gold"></i> Bước 3 / 3
+              </div>
+              <h3 class="font-serif font-black text-xl sm:text-2xl text-white">
+                Kiểm Tra Thông Tin & Xác Nhận Đặt Chỗ
+              </h3>
+              <p class="text-xs text-white/75 mt-1">
+                Vui lòng xem lại thông tin chi tiết trước khi hoàn tất gửi yêu cầu.
+              </p>
             </div>
 
-            <div id="bookingAlert" class="hidden p-3.5 rounded-2xl text-xs font-bold"></div>
+            <!-- Summary Review Card -->
+            <div class="rounded-2xl bg-white/10 border border-white/15 p-4 sm:p-5 space-y-4 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 border-b border-white/10 pb-4">
+                <div>
+                  <div class="text-[11px] text-white/60">Dịch Vụ:</div>
+                  <div id="sumService" class="font-bold text-sm text-brand-gold-light mt-0.5">🍽️ Đặt Bàn Ăn Uống</div>
+                </div>
+                <div>
+                  <div class="text-[11px] text-white/60">Vị Trí Bàn:</div>
+                  <div id="sumTable" class="font-bold text-sm text-white mt-0.5">PiPo Garden sắp xếp vị trí đẹp nhất</div>
+                </div>
+                <div>
+                  <div class="text-[11px] text-white/60">Khách Hàng:</div>
+                  <div id="sumGuest" class="font-bold text-sm text-white mt-0.5">Nguyễn Văn A</div>
+                </div>
+                <div>
+                  <div class="text-[11px] text-white/60">Số Điện Thoại / Zalo:</div>
+                  <div id="sumPhone" class="font-bold text-sm text-white mt-0.5">0838 xxx xxx</div>
+                </div>
+                <div>
+                  <div class="text-[11px] text-white/60">Thời Gian Đến:</div>
+                  <div id="sumDateTime" class="font-bold text-sm text-white mt-0.5">18:30 - Hôm nay</div>
+                </div>
+                <div>
+                  <div class="text-[11px] text-white/60">Số Lượng Khách:</div>
+                  <div id="sumGuestCount" class="font-bold text-sm text-white mt-0.5">2 người</div>
+                </div>
+              </div>
 
-            <button type="submit" id="btnSubmitBooking" class="w-full gold-gradient hover:brightness-110 text-brand-emerald-dark font-black text-sm py-4 rounded-2xl transition shadow-lg flex items-center justify-center gap-2">
-              <i class="fa-solid fa-paper-plane"></i>
-              <span data-i18n="form_submit_btn">Xác Nhận Đặt Bàn & Gửi Yêu Cầu</span>
-            </button>
+              <!-- Note if any -->
+              <div id="sumNoteContainer" class="border-b border-white/10 pb-3 hidden">
+                <div class="text-[11px] text-white/60">Yêu cầu đặc biệt:</div>
+                <div id="sumNote" class="font-medium text-white/90 italic mt-0.5"></div>
+              </div>
 
-          </form>
+              <!-- Preorder Items Summary -->
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[11px] font-bold text-brand-gold-light uppercase tracking-wider">Thực Đơn Gọi Trước:</span>
+                  <span id="sumPreorderCount" class="text-[11px] text-white/60">0 món</span>
+                </div>
+                <div id="sumPreorderList" class="space-y-1.5">
+                  <div class="text-white/60 italic text-center py-2">Quý khách chưa gọi món trước (Sẽ chọn món trực tiếp tại bàn).</div>
+                </div>
+                
+                <div class="flex items-center justify-between pt-3 mt-3 border-t border-white/10">
+                  <span class="font-bold text-white">Tổng Tiền Ước Tính:</span>
+                  <span id="sumTotalEstimated" class="font-serif font-black text-lg gold-text-gradient">0 đ</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Guarantee Note -->
+            <div class="p-3.5 rounded-2xl bg-brand-gold/10 border border-brand-gold/30 text-white/90 text-xs flex items-start gap-2.5">
+              <i class="fa-solid fa-shield-halved text-brand-gold text-base flex-shrink-0 mt-0.5"></i>
+              <div class="leading-relaxed">
+                Sau khi gửi yêu cầu, <strong>Thu ngân / Quản lý PiPo Garden</strong> sẽ liên hệ xác nhận bàn và hướng dẫn chi tiết qua số điện thoại của quý khách trong ít phút!
+              </div>
+            </div>
+
+            <div id="bookingSubmitAlert" class="hidden p-3.5 rounded-2xl text-xs font-bold"></div>
+
+            <!-- Submit Buttons -->
+            <div class="flex items-center justify-between gap-3 pt-2">
+              <button type="button" onclick="goToStep(2)" class="min-h-[44px] px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Sửa Thông Tin</span>
+              </button>
+              <button type="button" id="btnSubmitWizard" onclick="submitReservationWizard()" class="min-h-[44px] flex-1 gold-gradient text-brand-emerald-dark font-black text-xs sm:text-sm py-4 rounded-2xl shadow-xl hover:brightness-110 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span>Xác Nhận Đặt Bàn Ngay</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- CONFIRMATION SUCCESS CARD (REPLACES FORM UPON SUBMIT) -->
+          <!-- ============================================== -->
+          <div id="wizardConfirmationCard" class="space-y-6 relative z-10 hidden text-center py-4">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full gold-gradient text-brand-emerald-dark flex items-center justify-center text-3xl sm:text-4xl mx-auto shadow-2xl animate-bounce">
+              <i class="fa-solid fa-check"></i>
+            </div>
+
+            <div>
+              <span class="inline-block text-[11px] font-bold text-brand-gold-light uppercase tracking-widest bg-brand-gold/15 px-3 py-1 rounded-full mb-2">
+                ĐẶT CHỖ THÀNH CÔNG
+              </span>
+              <h3 class="font-serif font-black text-2xl sm:text-3xl text-white">
+                Cảm Ơn Quý Khách Đã Đặt Chỗ Tại PiPo Garden!
+              </h3>
+              <p class="text-xs text-white/80 mt-1 max-w-md mx-auto">
+                Yêu cầu của bạn đã được ghi nhận vào hệ thống quản lý nhà hàng.
+              </p>
+            </div>
+
+            <!-- Confirmation Details Box -->
+            <div class="bg-white/10 rounded-2xl p-5 border border-brand-gold/40 text-left text-xs space-y-3 max-w-lg mx-auto">
+              <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                <span class="text-white/70">Mã Đặt Chỗ:</span>
+                <span id="confirmBookingId" class="font-mono font-bold text-sm text-brand-gold-light">#RES-000</span>
+              </div>
+              <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                <span class="text-white/70">Khách Hàng:</span>
+                <span id="confirmGuestName" class="font-bold text-white">---</span>
+              </div>
+              <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                <span class="text-white/70">Thời Gian Đến:</span>
+                <span id="confirmDateTime" class="font-bold text-white">---</span>
+              </div>
+              <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                <span class="text-white/70">Dịch Vụ & Bàn:</span>
+                <span id="confirmServiceTable" class="font-bold text-brand-gold-light">---</span>
+              </div>
+              <div class="flex items-center justify-between pt-1">
+                <span class="text-white/70">Tổng Tiền Ước Tính:</span>
+                <span id="confirmTotalEst" class="font-serif font-black text-base text-brand-gold-light">0 đ</span>
+              </div>
+            </div>
+
+            <!-- Hotline Direct Action Card -->
+            <div class="bg-gradient-to-r from-brand-gold/20 via-brand-gold/10 to-brand-gold/20 rounded-2xl p-4 sm:p-5 border border-brand-gold/40 max-w-lg mx-auto text-left space-y-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-full gold-gradient text-brand-emerald-dark flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  <i class="fa-solid fa-phone-volume"></i>
+                </span>
+                <div>
+                  <div class="font-bold text-xs text-white">Cần xác nhận ngay hoặc hỗ trợ gấp?</div>
+                  <div class="text-[11px] text-white/75">Vui lòng gọi trực tiếp hotline hoặc nhắn tin Zalo:</div>
+                </div>
+              </div>
+              <div class="flex flex-col sm:flex-row gap-2.5 pt-1">
+                <a href="tel:0838993316" class="min-h-[44px] flex-1 gold-gradient text-brand-emerald-dark font-black text-xs sm:text-sm py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow hover:brightness-110 transition">
+                  <i class="fa-solid fa-phone"></i>
+                  <span>Gọi: 0838.993.316</span>
+                </a>
+                <a href="https://zalo.me/0838993316" target="_blank" class="min-h-[44px] flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow transition">
+                  <i class="fa-solid fa-comment-dots"></i>
+                  <span>Chat Zalo</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Reset to book another -->
+            <div class="pt-2">
+              <button type="button" onclick="resetBookingWizard()" class="text-xs text-white/70 hover:text-brand-gold underline font-medium">
+                Đặt thêm bàn hoặc tạo yêu cầu khác
+              </button>
+            </div>
+
+          </div>
+
         </div>
 
         <!-- Contact Info & Google Map (5 Cols) -->
@@ -1564,6 +1918,9 @@
       }
     }
 
+    // ==========================================
+    // 7. SƠ ĐỒ MẶT BẰNG & CHỌN BÀN THÔNG MINH
+    // ==========================================
     let currentSelectedTable = null;
     function selectTable(code, area, info) {
       currentSelectedTable = { code, area, info };
@@ -1577,10 +1934,14 @@
         displayEl.innerHTML = `<span class="gold-text-gradient font-black">Bàn ${code}</span> • ${area} <span class="text-xs text-white/75 font-normal">(${info})</span>`;
       }
       
-      const formBadge = document.getElementById("formTableBadge");
-      if (formBadge) {
-        formBadge.classList.remove("hidden");
-        formBadge.innerHTML = `✨ Đang chọn: <strong>${code}</strong> (${area})`;
+      const step1Text = document.getElementById("step1TableText");
+      if (step1Text) {
+        step1Text.innerHTML = `✨ Vị trí đã chọn: <strong>Bàn ${code}</strong> (${area}) - <em>${info}</em>`;
+      }
+
+      const step2Text = document.getElementById("step2TableText");
+      if (step2Text) {
+        step2Text.innerHTML = `✨ Vị trí đã chọn: <strong>Bàn ${code}</strong> (${area}) - <em>${info}</em>`;
       }
       
       // Highlight active chip
@@ -1593,54 +1954,365 @@
       });
     }
 
+    function scrollToFloorMap() {
+      const el = document.getElementById("floorMapImg");
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+
     function scrollToBookingForm() {
       const el = document.getElementById("bookingFormContainer");
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
 
     // ==========================================
-    // 8. GỌI MÓN TRƯỚC CHO BÀN (PRE-ORDER)
+    // 8. SMART 3-STEP BOOKING WIZARD & PREORDER
     // ==========================================
-    let preorderCart = {};
+    let currentWizardStep = 1;
+    let selectedServiceType = 'DINING';
+    let allMenuItems = [];
+    let preorderCart = {}; // key: item_id or name -> { item_id, name, price, quantity, image_url }
+    let activePreorderCategory = 'ALL';
 
-    function togglePreorderBox() {
-      const box = document.getElementById("preorderDishesList");
-      const icon = document.getElementById("preorderToggleIcon");
-      const txt = document.getElementById("preorderToggleText");
-      if (!box) return;
-      const isHidden = box.classList.toggle("hidden");
-      if (isHidden) {
-        if (icon) icon.className = "fa-solid fa-chevron-down text-xs";
-        if (txt) txt.innerText = "Mở chọn món";
-      } else {
-        if (icon) icon.className = "fa-solid fa-chevron-up text-xs";
-        if (txt) txt.innerText = "Thu gọn";
+    const SERVICE_INFO = {
+      DINING: { name: "🍽️ Đặt Bàn Ăn Uống", badge: "🍽️ Bàn Ăn Uống & Hải Sản" },
+      PICKLEBALL: { name: "🎾 Đặt Sân Pickleball", badge: "🎾 Sân Pickleball Có Mái Che" },
+      BIRTHDAY_EVENT: { name: "🎂 Tiệc Sinh Nhật / Sự Kiện", badge: "🎂 Tiệc Bờ Hồ & Sinh Nhật" },
+      POOL_PARTY: { name: "🏊 Pool & Chill Thư Giãn", badge: "🏊 Pool Bar & Chill" }
+    };
+
+    function selectService(srv) {
+      selectedServiceType = srv;
+      
+      // Update visual styles of 4 tiles
+      ['DINING', 'PICKLEBALL', 'BIRTHDAY_EVENT', 'POOL_PARTY'].forEach(key => {
+        const tile = document.getElementById(`tile-${key}`);
+        if (!tile) return;
+        const check = tile.querySelector('.tile-check');
+        if (key === srv) {
+          tile.className = "service-tile cursor-pointer p-4 rounded-2xl border-2 border-brand-gold bg-brand-gold/15 shadow-lg transition-all transform hover:-translate-y-0.5 relative group";
+          if (check) {
+            check.className = "tile-check w-6 h-6 rounded-full bg-brand-gold text-brand-emerald-dark flex items-center justify-center text-xs font-bold shadow opacity-100";
+          }
+        } else {
+          tile.className = "service-tile cursor-pointer p-4 rounded-2xl border-2 border-white/15 bg-white/5 hover:border-brand-gold/60 hover:bg-white/10 transition-all transform hover:-translate-y-0.5 relative group";
+          if (check) {
+            check.className = "tile-check w-6 h-6 rounded-full bg-white/20 text-white flex items-center justify-center text-xs font-bold opacity-0";
+          }
+        }
+      });
+
+      // Update badge in step 2
+      const step2Badge = document.getElementById("step2ServiceBadge");
+      if (step2Badge && SERVICE_INFO[srv]) {
+        step2Badge.innerText = SERVICE_INFO[srv].badge;
       }
     }
 
-    function adjustPreorderItem(name, price, delta) {
-      if (!preorderCart[name]) {
-        preorderCart[name] = { name, price, quantity: 0 };
+    function handlePickleballTile() {
+      selectService('PICKLEBALL');
+    }
+
+    function goToStep(step) {
+      if (step === currentWizardStep) return;
+
+      // When jumping forward, validate
+      if (step > currentWizardStep) {
+        if (!validateCurrentStep(currentWizardStep)) {
+          return;
+        }
       }
-      preorderCart[name].quantity = Math.max(0, preorderCart[name].quantity + delta);
-      if (preorderCart[name].quantity === 0) {
-        delete preorderCart[name];
+
+      currentWizardStep = step;
+      updateWizardUI();
+    }
+
+    function validateAndGoToStep(targetStep) {
+      if (validateCurrentStep(currentWizardStep)) {
+        currentWizardStep = targetStep;
+        updateWizardUI();
+        scrollToBookingForm();
       }
-      
-      const qtyEl = document.getElementById("qty-" + name);
+    }
+
+    function validateCurrentStep(step) {
+      if (step === 1) {
+        return true;
+      }
+      if (step === 2) {
+        const name = (document.getElementById("resGuestName")?.value || "").trim();
+        const phone = (document.getElementById("resPhone")?.value || "").trim();
+        const date = (document.getElementById("resDate")?.value || "").trim();
+        const time = (document.getElementById("resTime")?.value || "").trim();
+        const alertEl = document.getElementById("step2Alert");
+
+        if (!name) {
+          if (alertEl) {
+            alertEl.classList.remove("hidden");
+            alertEl.innerText = "⚠️ Vui lòng nhập họ và tên quý khách.";
+          }
+          document.getElementById("resGuestName")?.focus();
+          return false;
+        }
+        if (!phone || phone.length < 8) {
+          if (alertEl) {
+            alertEl.classList.remove("hidden");
+            alertEl.innerText = "⚠️ Vui lòng nhập số điện thoại hoặc Zalo hợp lệ (tối thiểu 8 chữ số).";
+          }
+          document.getElementById("resPhone")?.focus();
+          return false;
+        }
+        if (!date) {
+          if (alertEl) {
+            alertEl.classList.remove("hidden");
+            alertEl.innerText = "⚠️ Vui lòng chọn ngày đến.";
+          }
+          document.getElementById("resDate")?.focus();
+          return false;
+        }
+        if (!time) {
+          if (alertEl) {
+            alertEl.classList.remove("hidden");
+            alertEl.innerText = "⚠️ Vui lòng chọn giờ dự kiến đến.";
+          }
+          document.getElementById("resTime")?.focus();
+          return false;
+        }
+
+        if (alertEl) alertEl.classList.add("hidden");
+        return true;
+      }
+      return true;
+    }
+
+    function updateWizardUI() {
+      // Containers visibility
+      const s1 = document.getElementById("wizardStep1");
+      const s2 = document.getElementById("wizardStep2");
+      const s3 = document.getElementById("wizardStep3");
+      const sConf = document.getElementById("wizardConfirmationCard");
+
+      if (sConf) sConf.classList.add("hidden");
+      if (s1) s1.classList.toggle("hidden", currentWizardStep !== 1);
+      if (s2) s2.classList.toggle("hidden", currentWizardStep !== 2);
+      if (s3) s3.classList.toggle("hidden", currentWizardStep !== 3);
+
+      // Progress bar fill
+      const fill = document.getElementById("stepProgressFill");
+      if (fill) {
+        if (currentWizardStep === 1) fill.style.width = "0%";
+        else if (currentWizardStep === 2) fill.style.width = "50%";
+        else if (currentWizardStep === 3) fill.style.width = "100%";
+      }
+
+      // Step indicators
+      for (let i = 1; i <= 3; i++) {
+        const circle = document.getElementById(`stepCircle-${i}`);
+        const icon = document.getElementById(`stepIcon-${i}`);
+        const text = document.getElementById(`stepText-${i}`);
+        if (!circle || !icon || !text) continue;
+
+        if (i < currentWizardStep) {
+          // Completed
+          circle.className = "w-10 h-10 rounded-full flex items-center justify-center font-black text-xs bg-emerald-600 text-white shadow-lg ring-4 ring-brand-emerald-dark transition-all duration-300";
+          icon.innerHTML = `<i class="fa-solid fa-check"></i>`;
+          text.className = "text-[11px] font-bold text-emerald-400 mt-2 whitespace-nowrap";
+        } else if (i === currentWizardStep) {
+          // Active
+          circle.className = "w-10 h-10 rounded-full flex items-center justify-center font-black text-xs gold-gradient text-brand-emerald-dark shadow-lg ring-4 ring-brand-emerald-dark transition-all duration-300";
+          icon.innerText = i;
+          text.className = "text-[11px] font-bold text-brand-gold-light mt-2 whitespace-nowrap";
+        } else {
+          // Inactive
+          circle.className = "w-10 h-10 rounded-full flex items-center justify-center font-black text-xs bg-white/20 text-white/60 border border-white/20 shadow-lg ring-4 ring-brand-emerald-dark transition-all duration-300";
+          icon.innerText = i;
+          text.className = "text-[11px] font-medium text-white/60 mt-2 whitespace-nowrap";
+        }
+      }
+
+      // If at step 3, populate summary
+      if (currentWizardStep === 3) {
+        renderWizardSummary();
+      }
+    }
+
+    // Toggle preorder menu drawer in Step 2
+    function togglePreorderList() {
+      const wrapper = document.getElementById("preorderMenuWrapper");
+      const icon = document.getElementById("preorderToggleIco");
+      const txt = document.getElementById("preorderToggleTxt");
+      if (!wrapper) return;
+      const isHidden = wrapper.classList.toggle("hidden");
+      if (isHidden) {
+        if (icon) icon.className = "fa-solid fa-chevron-down text-xs";
+        if (txt) txt.innerText = "Mở menu món";
+      } else {
+        if (icon) icon.className = "fa-solid fa-chevron-up text-xs";
+        if (txt) txt.innerText = "Thu gọn menu";
+        // If not loaded dishes yet, load
+        if (allMenuItems.length === 0) {
+          fetchMenuForPreorder();
+        }
+      }
+    }
+
+    // Fetch full menu from /api/menu
+    async function fetchMenuForPreorder() {
+      const grid = document.getElementById("preorderDishesGrid");
+      try {
+        const res = await fetch("/api/menu");
+        if (!res.ok) throw new Error("Fetch menu failed");
+        const categories = await res.json();
+        
+        allMenuItems = [];
+        categories.forEach(cat => {
+          (cat.items || []).forEach(it => {
+            if (it.is_available === 1 || it.is_available === undefined) {
+              allMenuItems.push({
+                ...it,
+                parent_category_name: cat.name || ""
+              });
+            }
+          });
+        });
+
+        renderPreorderDishes();
+      } catch (err) {
+        console.error("Error fetching menu:", err);
+        if (grid) {
+          grid.innerHTML = `
+            <div class="col-span-full text-center py-4 text-xs text-rose-300">
+              Không thể tải menu tự động. Vui lòng ghi chú món muốn gọi vào ô Yêu cầu đặc biệt.
+            </div>`;
+        }
+      }
+    }
+
+    function filterPreorderCategory(category, btn) {
+      activePreorderCategory = category;
+      document.querySelectorAll(".preorder-cat-btn").forEach(b => {
+        b.className = "preorder-cat-btn px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 whitespace-nowrap";
+      });
+      if (btn) {
+        btn.className = "preorder-cat-btn px-3 py-1.5 rounded-xl gold-gradient text-brand-emerald-dark whitespace-nowrap";
+      }
+      renderPreorderDishes();
+    }
+
+    function renderPreorderDishes() {
+      const grid = document.getElementById("preorderDishesGrid");
+      if (!grid) return;
+
+      let filtered = allMenuItems;
+      if (activePreorderCategory === 'SEAFOOD') {
+        filtered = allMenuItems.filter(it => 
+          (it.category_name || it.parent_category_name || "").toLowerCase().includes("hải sản") ||
+          (it.name || "").toLowerCase().includes("hàu") ||
+          (it.name || "").toLowerCase().includes("ốc") ||
+          (it.name || "").toLowerCase().includes("tôm") ||
+          (it.name || "").toLowerCase().includes("ghẹ") ||
+          (it.name || "").toLowerCase().includes("nghêu") ||
+          (it.name || "").toLowerCase().includes("bạch tuộc")
+        );
+      } else if (activePreorderCategory === 'GRILL') {
+        filtered = allMenuItems.filter(it => 
+          (it.category_name || it.parent_category_name || "").toLowerCase().includes("gà") ||
+          (it.category_name || it.parent_category_name || "").toLowerCase().includes("nướng") ||
+          (it.name || "").toLowerCase().includes("gà") ||
+          (it.name || "").toLowerCase().includes("nướng") ||
+          (it.name || "").toLowerCase().includes("sườn")
+        );
+      } else if (activePreorderCategory === 'MEAT') {
+        filtered = allMenuItems.filter(it => 
+          (it.category_name || it.parent_category_name || "").toLowerCase().includes("bò") ||
+          (it.category_name || it.parent_category_name || "").toLowerCase().includes("heo") ||
+          (it.name || "").toLowerCase().includes("bò") ||
+          (it.name || "").toLowerCase().includes("heo") ||
+          (it.name || "").toLowerCase().includes("vịt")
+        );
+      } else if (activePreorderCategory === 'DRINK') {
+        filtered = allMenuItems.filter(it => 
+          (it.category_name || it.parent_category_name || "").toLowerCase().includes("uống") ||
+          (it.category_name || it.parent_category_name || "").toLowerCase().includes("bia") ||
+          (it.name || "").toLowerCase().includes("bia") ||
+          (it.name || "").toLowerCase().includes("nước") ||
+          (it.name || "").toLowerCase().includes("trà") ||
+          (it.name || "").toLowerCase().includes("coca") ||
+          (it.name || "").toLowerCase().includes("pepsi")
+        );
+      }
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-6 text-xs text-white/60">Không tìm thấy món ăn trong mục này.</div>`;
+        return;
+      }
+
+      // 2 columns on mobile, 3 columns on desktop
+      grid.innerHTML = filtered.map(it => {
+        const qty = preorderCart[it.id] ? preorderCart[it.id].quantity : 0;
+        const imgUrl = it.image_url || "/static/logo.png";
+        const formattedPrice = (it.price || 0).toLocaleString("vi-VN") + " đ";
+        const escapedName = (it.name || "").replace(/'/g, "\\'");
+
+        return `
+          <div class="bg-white/10 rounded-2xl p-2.5 sm:p-3 border border-white/10 flex flex-col justify-between hover:border-brand-gold/40 transition group">
+            <div>
+              <div class="relative h-24 sm:h-28 rounded-xl overflow-hidden bg-black/30 mb-2">
+                <img src="${imgUrl}" alt="${it.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='/static/logo.png'">
+                ${it.calories ? `<span class="absolute bottom-1.5 right-1.5 bg-black/70 backdrop-blur-xs text-white text-[9px] font-mono px-1.5 py-0.5 rounded">${it.calories} kcal</span>` : ''}
+              </div>
+              <h5 class="font-serif font-bold text-xs text-white line-clamp-1" title="${it.name}">${it.name}</h5>
+              <div class="font-black text-xs text-brand-gold-light mt-0.5">${formattedPrice}</div>
+            </div>
+
+            <!-- Stepper Controls (touch-friendly min 36px) -->
+            <div class="flex items-center justify-between mt-2 pt-2 border-t border-white/10">
+              <button type="button" onclick="adjustWizardPreorderItem(${it.id}, '${escapedName}', ${it.price}, -1, '${imgUrl}')" class="min-w-[32px] min-h-[32px] sm:min-w-[36px] sm:min-h-[36px] rounded-lg bg-white/15 hover:bg-white/25 active:bg-brand-gold active:text-brand-emerald-dark text-white font-black flex items-center justify-center text-xs transition">
+                -
+              </button>
+              <span id="wizard-qty-${it.id}" class="font-bold text-xs text-white px-2">${qty}</span>
+              <button type="button" onclick="adjustWizardPreorderItem(${it.id}, '${escapedName}', ${it.price}, 1, '${imgUrl}')" class="min-w-[32px] min-h-[32px] sm:min-w-[36px] sm:min-h-[36px] rounded-lg gold-gradient text-brand-emerald-dark font-black flex items-center justify-center text-xs shadow hover:brightness-110 active:scale-95 transition">
+                +
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function adjustWizardPreorderItem(id, name, price, delta, imgUrl) {
+      if (!preorderCart[id]) {
+        preorderCart[id] = { item_id: id, name, price, quantity: 0, image_url: imgUrl };
+      }
+      preorderCart[id].quantity = Math.max(0, preorderCart[id].quantity + delta);
+      if (preorderCart[id].quantity === 0) {
+        delete preorderCart[id];
+      }
+
+      const qtyEl = document.getElementById(`wizard-qty-${id}`);
       if (qtyEl) {
-        qtyEl.innerText = preorderCart[name] ? preorderCart[name].quantity : 0;
+        qtyEl.innerText = preorderCart[id] ? preorderCart[id].quantity : 0;
       }
-      
+
       updatePreorderSummary();
     }
 
     function quickPreorderDish(name, price) {
-      const box = document.getElementById("preorderDishesList");
-      if (box && box.classList.contains("hidden")) {
-        togglePreorderBox();
+      selectService('DINING');
+      
+      // Look for dish in allMenuItems if available
+      let item = allMenuItems.find(i => (i.name || "").toLowerCase() === name.toLowerCase());
+      let itemId = item ? item.id : ("custom_" + Math.abs(name.split("").reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0)));
+      let img = item ? item.image_url : "/static/logo.png";
+
+      adjustWizardPreorderItem(itemId, name, price, 1, img);
+
+      // Open preorder list and switch to step 2
+      const wrapper = document.getElementById("preorderMenuWrapper");
+      if (wrapper && wrapper.classList.contains("hidden")) {
+        togglePreorderList();
       }
-      adjustPreorderItem(name, price, 1);
+
+      goToStep(2);
       scrollToBookingForm();
     }
 
@@ -1652,8 +2324,8 @@
         totalQty += it.quantity;
         totalEst += it.quantity * it.price;
       });
-      
-      const badge = document.getElementById("preorderCountBadge");
+
+      const badge = document.getElementById("wizardPreorderBadge");
       if (badge) {
         if (totalQty > 0) {
           badge.classList.remove("hidden");
@@ -1662,89 +2334,261 @@
           badge.classList.add("hidden");
         }
       }
-      
-      const totalDisplay = document.getElementById("preorderTotalDisplay");
+
+      const totalDisplay = document.getElementById("wizardPreorderTotal");
       if (totalDisplay) {
         totalDisplay.innerText = totalEst.toLocaleString("vi-VN") + " đ";
       }
-      
+
       const jsonInput = document.getElementById("resPreorderJson");
       const estInput = document.getElementById("resTotalEstimated");
       if (jsonInput) jsonInput.value = JSON.stringify(items);
       if (estInput) estInput.value = totalEst;
     }
 
-    // ==========================================
-    // 9. GỬI YÊU CẦU ĐẶT BÀN & GỌI TRƯỚC
-    // ==========================================
-    async function handleOnlineBooking(e) {
-      e.preventDefault();
-      const btn = document.getElementById("btnSubmitBooking");
-      const alertBox = document.getElementById("bookingAlert");
+    // Step 3 Summary Review Rendering
+    function renderWizardSummary() {
+      const name = (document.getElementById("resGuestName")?.value || "").trim();
+      const phone = (document.getElementById("resPhone")?.value || "").trim();
+      const date = (document.getElementById("resDate")?.value || "").trim();
+      const time = (document.getElementById("resTime")?.value || "").trim();
+      const count = document.getElementById("resGuestCount")?.value || "2";
+      const note = (document.getElementById("resNote")?.value || "").trim();
       
-      const guestName = document.getElementById("resGuestName").value.trim();
-      const phone = document.getElementById("resPhone").value.trim();
-      const bookingDate = document.getElementById("resDate").value;
-      const bookingTime = document.getElementById("resTime").value;
-      const guestCount = parseInt(document.getElementById("resGuestCount").value) || 2;
-      const note = document.getElementById("resNote").value.trim();
-      
-      const srvRadio = document.querySelector('input[name="service_type"]:checked');
-      const serviceType = srvRadio ? srvRadio.value : "DINING";
+      const srvObj = SERVICE_INFO[selectedServiceType] || { name: selectedServiceType };
+      document.getElementById("sumService").innerText = srvObj.name;
 
-      const tableCode = document.getElementById("resTableCode") ? document.getElementById("resTableCode").value : "";
-      const area = document.getElementById("resArea") ? document.getElementById("resArea").value : "";
-      const preorderItemsJson = document.getElementById("resPreorderJson") ? document.getElementById("resPreorderJson").value : "[]";
-      const totalEstimated = parseInt(document.getElementById("resTotalEstimated") ? document.getElementById("resTotalEstimated").value : 0) || 0;
+      if (currentSelectedTable && currentSelectedTable.code) {
+        document.getElementById("sumTable").innerHTML = `<span class="gold-text-gradient font-black">Bàn ${currentSelectedTable.code}</span> (${currentSelectedTable.area})`;
+      } else {
+        document.getElementById("sumTable").innerText = "PiPo Garden sắp xếp vị trí đẹp nhất";
+      }
+
+      document.getElementById("sumGuest").innerText = name || "---";
+      document.getElementById("sumPhone").innerText = phone || "---";
+      document.getElementById("sumDateTime").innerText = `${time} • Ngày ${date}`;
+      document.getElementById("sumGuestCount").innerText = `${count} người`;
+
+      const noteBox = document.getElementById("sumNoteContainer");
+      const noteTxt = document.getElementById("sumNote");
+      if (note) {
+        noteBox.classList.remove("hidden");
+        noteTxt.innerText = `"${note}"`;
+      } else {
+        noteBox.classList.add("hidden");
+      }
+
+      // Preorder items
+      const items = Object.values(preorderCart);
+      const listEl = document.getElementById("sumPreorderList");
+      const countEl = document.getElementById("sumPreorderCount");
+      const totalEl = document.getElementById("sumTotalEstimated");
+
+      let totalEst = 0;
+      if (items.length > 0) {
+        countEl.innerText = `${items.reduce((acc, it) => acc + it.quantity, 0)} phần`;
+        listEl.innerHTML = items.map(it => {
+          const sub = it.quantity * it.price;
+          totalEst += sub;
+          return `
+            <div class="flex items-center justify-between py-1 border-b border-white/5 text-xs">
+              <span class="text-white">${it.name} <span class="text-brand-gold-light font-bold">× ${it.quantity}</span></span>
+              <span class="font-mono text-white/90">${sub.toLocaleString('vi-VN')} đ</span>
+            </div>
+          `;
+        }).join('');
+      } else {
+        countEl.innerText = "0 món";
+        listEl.innerHTML = `<div class="text-white/60 italic text-center py-2">Quý khách chưa gọi món trước (Sẽ gọi món trực tiếp tại bàn).</div>`;
+      }
+
+      totalEl.innerText = totalEst.toLocaleString("vi-VN") + " đ";
+    }
+
+    // Submit Reservation
+    async function submitReservationWizard() {
+      const btn = document.getElementById("btnSubmitWizard");
+      const alertBox = document.getElementById("bookingSubmitAlert");
+      
+      const guestName = (document.getElementById("resGuestName")?.value || "").trim();
+      const phone = (document.getElementById("resPhone")?.value || "").trim();
+      const bookingDate = (document.getElementById("resDate")?.value || "").trim();
+      const bookingTime = (document.getElementById("resTime")?.value || "").trim();
+      const guestCount = parseInt(document.getElementById("resGuestCount")?.value) || 2;
+      const note = (document.getElementById("resNote")?.value || "").trim();
+      
+      const tableCode = currentSelectedTable ? currentSelectedTable.code : "";
+      const area = currentSelectedTable ? currentSelectedTable.area : "";
+      
+      const preorderItems = Object.values(preorderCart).map(it => ({
+        item_id: it.item_id,
+        name: it.name,
+        quantity: it.quantity,
+        price: it.price
+      }));
+      const preorderItemsJson = JSON.stringify(preorderItems);
+      const totalEstimated = preorderItems.reduce((acc, it) => acc + it.quantity * it.price, 0);
 
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi yêu cầu...`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang gửi yêu cầu...`;
+      if (alertBox) alertBox.classList.add("hidden");
 
       try {
+        const payload = {
+          guest_name: guestName,
+          phone: phone,
+          booking_date: bookingDate,
+          booking_time: bookingTime,
+          guest_count: guestCount,
+          service_type: selectedServiceType,
+          table_code: tableCode,
+          area: area,
+          preorder_items_json: preorderItemsJson,
+          total_estimated: totalEstimated,
+          note: note
+        };
+
         const res = await fetch("/api/reservations", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            guest_name: guestName,
-            phone: phone,
-            booking_date: bookingDate,
-            booking_time: bookingTime,
-            guest_count: guestCount,
-            service_type: serviceType,
-            table_code: tableCode,
-            area: area,
-            preorder_items_json: preorderItemsJson,
-            total_estimated: totalEstimated,
-            note: note
-          })
+          body: JSON.stringify(payload)
         });
 
         const data = await res.json();
         if (res.ok) {
-          alertBox.className = "p-4 rounded-2xl text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 block";
-          const tableText = tableCode ? ` cho <strong>Bàn ${tableCode} (${area})</strong>` : "";
-          const preorderItems = JSON.parse(preorderItemsJson || "[]");
-          const preorderText = preorderItems.length > 0 ? ` kèm đơn gọi trước <strong>${preorderItems.length} món (${totalEstimated.toLocaleString('vi-VN')} đ)</strong>` : "";
-          alertBox.innerHTML = `🎉 <strong>Đặt bàn thành công!</strong> Cảm ơn quý khách <strong>${guestName}</strong>. Yêu cầu đặt bàn${tableText}${preorderText} đã được gửi tới Thu ngân & Quản lý. PiPo Garden sẽ gọi điện xác nhận theo số <strong>${phone}</strong> trong ít phút!`;
-          e.target.reset();
-          preorderCart = {};
-          updatePreorderSummary();
+          const resObj = data.reservation || {};
+          const bookingId = resObj.id ? `#RES-${String(resObj.id).padStart(4, '0')}` : `#RES-${Date.now().toString().slice(-4)}`;
+          
+          // Populate confirmation card
+          document.getElementById("confirmBookingId").innerText = bookingId;
+          document.getElementById("confirmGuestName").innerText = `${guestName} (${phone})`;
+          document.getElementById("confirmDateTime").innerText = `${bookingTime} • Ngày ${bookingDate} • ${guestCount} khách`;
+          
+          const srvTitle = SERVICE_INFO[selectedServiceType]?.name || selectedServiceType;
+          const tableTitle = tableCode ? ` • Bàn ${tableCode} (${area})` : "";
+          document.getElementById("confirmServiceTable").innerText = `${srvTitle}${tableTitle}`;
+          document.getElementById("confirmTotalEst").innerText = totalEstimated > 0 ? `${totalEstimated.toLocaleString('vi-VN')} đ (${preorderItems.length} món)` : "0 đ (Gọi món tại bàn)";
+
+          // Switch view to Confirmation card
+          document.getElementById("wizardStep3").classList.add("hidden");
+          const confCard = document.getElementById("wizardConfirmationCard");
+          if (confCard) {
+            confCard.classList.remove("hidden");
+            confCard.scrollIntoView({ behavior: 'smooth' });
+          }
         } else {
-          alertBox.className = "p-4 rounded-2xl text-xs font-bold bg-rose-100 text-rose-900 border border-rose-300 block";
-          alertBox.innerText = "❌ " + (data.detail || "Không thể gửi yêu cầu đặt chỗ. Vui lòng gọi trực tiếp hotline 0838.993.316.");
+          if (alertBox) {
+            alertBox.className = "p-3.5 rounded-2xl text-xs font-bold bg-rose-500/20 text-rose-200 border border-rose-500/40 block";
+            alertBox.innerText = "❌ " + (data.detail || "Không thể gửi yêu cầu đặt chỗ. Vui lòng gọi trực tiếp hotline 0838.993.316.");
+          }
         }
       } catch (err) {
-        alertBox.className = "p-4 rounded-2xl text-xs font-bold bg-rose-100 text-rose-900 border border-rose-300 block";
-        alertBox.innerText = "❌ Lỗi kết nối mạng. Vui lòng liên hệ trực tiếp hotline 0838.993.316 để đặt bàn nhanh.";
+        console.error("Booking submit error:", err);
+        if (alertBox) {
+          alertBox.className = "p-3.5 rounded-2xl text-xs font-bold bg-rose-500/20 text-rose-200 border border-rose-500/40 block";
+          alertBox.innerText = "❌ Lỗi kết nối mạng. Quý khách vui lòng liên hệ hotline 0838.993.316 để đặt bàn nhanh.";
+        }
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> <span>Xác Nhận Đặt Bàn & Gửi Yêu Cầu</span>`;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-1"></i> <span>Xác Nhận Đặt Bàn Ngay</span>`;
       }
     }
 
+    function resetBookingWizard() {
+      preorderCart = {};
+      currentSelectedTable = null;
+      document.getElementById("resGuestName").value = "";
+      document.getElementById("resPhone").value = "";
+      document.getElementById("resNote").value = "";
+      document.getElementById("resGuestCount").value = "2";
+      updatePreorderSummary();
+      selectService('DINING');
+      currentWizardStep = 1;
+      updateWizardUI();
+      scrollToBookingForm();
+    }
+
     // ==========================================
-    // 10. ĐỒNG BỘ DỮ LIỆU TỪ CMS NỘI BỘ
+    // 9. ANIMATIONS & CMS SYNC INITIALIZATION
     // ==========================================
+    // Parallax hero background effect
+    function initHeroParallax() {
+      const heroBg = document.getElementById("heroBgImage");
+      if (!heroBg) return;
+      let ticking = false;
+      window.addEventListener("scroll", () => {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            const scrolled = window.pageYOffset;
+            if (scrolled < window.innerHeight) {
+              heroBg.style.transform = `translate3d(0, ${scrolled * 0.35}px, 0) scale(1.05)`;
+            }
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }, { passive: true });
+    }
+
+    // Scroll Fade-in IntersectionObserver
+    function initScrollAnimations() {
+      const scrollObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.15 });
+
+      document.querySelectorAll('.animate-on-scroll').forEach(el => scrollObserver.observe(el));
+    }
+
+    // Statistics Counter Bar IntersectionObserver
+    let statsAnimated = false;
+    function initStatsCounter() {
+      const statsBar = document.getElementById('statsCounterBar');
+      if (!statsBar) return;
+
+      const statsObserver = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !statsAnimated) {
+            statsAnimated = true;
+            obs.unobserve(entry.target);
+            animateNumbers();
+          }
+        });
+      }, { threshold: 0.2 });
+
+      statsObserver.observe(statsBar);
+    }
+
+    function animateNumbers() {
+      const counters = document.querySelectorAll('.counter-number');
+      counters.forEach(counter => {
+        const target = parseFloat(counter.getAttribute('data-target')) || 0;
+        const decimals = parseInt(counter.getAttribute('data-decimals')) || 0;
+        const duration = 1800;
+        const startTime = performance.now();
+
+        function step(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeProgress = 1 - Math.pow(1 - progress, 3);
+          const currentVal = target * easeProgress;
+          
+          counter.innerText = decimals > 0 ? currentVal.toFixed(decimals) : Math.floor(currentVal);
+          
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            counter.innerText = decimals > 0 ? target.toFixed(decimals) : target;
+          }
+        }
+        requestAnimationFrame(step);
+      });
+    }
+
+    // 10. CMS dynamic settings
     async function loadHomepageCMS() {
       try {
         const res = await fetch("/api/homepage/cms");
@@ -1779,7 +2623,7 @@
       }
     }
 
-    // Khởi tạo mặc định khi tải trang
+    // On Document Loaded
     document.addEventListener("DOMContentLoaded", () => {
       const today = new Date().toISOString().split("T")[0];
       const dateEl = document.getElementById("resDate");
@@ -1787,6 +2631,11 @@
         dateEl.value = today;
         dateEl.min = today;
       }
+
+      initHeroParallax();
+      initScrollAnimations();
+      initStatsCounter();
+      fetchMenuForPreorder();
       loadHomepageCMS();
     });
   </script>
