@@ -124,21 +124,21 @@
   <!-- ======================================================== -->
   <!-- 1. HEADER / NAVIGATION BAR -->
   <!-- ======================================================== -->
-  <header id="mainHeader" class="fixed top-0 inset-x-0 z-50 transition-all duration-300 py-3.5 px-4 sm:px-8">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
+  <header id="mainHeader" class="fixed top-0 inset-x-0 z-50 transition-all duration-300 py-2.5 sm:py-3.5 px-3 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
       
       <!-- Brand Logo -->
-      <a href="#hero" class="flex items-center gap-3 group">
-        <div class="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-white/95 p-0.5 shadow-lg border-2 border-brand-gold/60 group-hover:scale-105 transition-transform flex items-center justify-center">
+      <a href="#hero" class="flex items-center gap-2 group flex-shrink-0">
+        <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/95 p-0.5 shadow-lg border-2 border-brand-gold/60 group-hover:scale-105 transition-transform flex-shrink-0 flex items-center justify-center">
           <img src="/static/logo.png" alt="PiPo Garden Logo" class="w-full h-full object-contain rounded-full">
         </div>
-        <div class="text-white">
-          <div class="font-serif text-lg sm:text-xl font-bold tracking-wide flex items-center gap-1.5 leading-none">
+        <div class="text-white leading-tight">
+          <div class="font-serif text-sm sm:text-base lg:text-lg font-bold tracking-wide flex items-baseline gap-1 whitespace-nowrap">
             <span>PiPo Garden</span>
-            <span class="text-xs gold-text-gradient font-sans font-bold uppercase tracking-wider">Phú Quốc</span>
+            <span class="text-[9px] sm:text-[10px] gold-text-gradient font-sans font-extrabold uppercase tracking-wider">Phú Quốc</span>
           </div>
-          <div class="text-[10px] sm:text-[11px] text-white/80 font-medium tracking-wider uppercase mt-1">
-            Restaurant, Cafe, Pool Bar
+          <div class="text-[8px] sm:text-[9px] text-white/65 font-medium tracking-widest uppercase whitespace-nowrap">
+            Restaurant · Cafe · Pool Bar
           </div>
         </div>
       </a>
@@ -153,81 +153,79 @@
         <a href="#booking" class="hover:text-brand-gold transition py-1" data-i18n="nav_reservations">Đặt Bàn / Đặt Sân</a>
       </nav>
 
-      <!-- Right Actions: Language Switcher, Call CTA, Book CTA -->
-      <div class="hidden sm:flex items-center gap-3">
-        <!-- Language Switcher Toggle -->
-        <button onclick="toggleLanguage()" class="px-3 py-1.5 rounded-full border border-white/30 text-white/90 text-xs font-bold hover:bg-white/10 transition flex items-center gap-1.5 backdrop-blur-xs">
+      <!-- Right Actions -->
+      <div class="hidden sm:flex items-center gap-2 flex-shrink-0">
+        <button onclick="toggleLanguage()" class="px-2.5 py-1.5 rounded-full border border-white/30 text-white/90 text-xs font-bold hover:bg-white/10 transition flex items-center gap-1 backdrop-blur-sm">
           <i class="fa-solid fa-globe text-brand-gold text-xs"></i>
-          <span id="langLabel">VI / EN</span>
+          <span id="langLabel">VI/EN</span>
         </button>
-
-        <!-- View Menu Quick Button -->
-        <a href="/menu" class="hidden md:inline-flex items-center gap-1.5 text-xs font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 px-4 py-2 rounded-full transition backdrop-blur-xs shadow-xs">
-          <i class="fa-solid fa-utensils text-brand-gold-light"></i>
-          <span data-i18n="cta_menu_online">Menu Gọi Món</span>
+        <a href="/menu" class="hidden md:inline-flex items-center gap-1.5 text-xs font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 px-3 py-1.5 rounded-full transition backdrop-blur-sm">
+          <i class="fa-solid fa-utensils text-brand-gold-light text-xs"></i>
+          <span data-i18n="cta_menu_online">Gọi Món</span>
         </a>
-
-        <!-- Install App Button (PWA) -->
-        <button onclick="handlePwaInstallClick()" id="navInstallBtn" class="inline-flex items-center gap-1.5 text-xs font-bold text-brand-gold-light bg-brand-emerald-dark/80 hover:bg-brand-emerald-dark border border-brand-gold/50 px-3.5 py-2 rounded-full transition backdrop-blur-xs shadow-xs" title="Cài đặt ứng dụng trên điện thoại hoặc máy tính">
-          <i class="fa-solid fa-mobile-screen"></i>
-          <span>Tải App</span>
+        <!-- PWA Install — hidden by default, JS shows when prompt available -->
+        <button onclick="handlePwaInstallClick()" id="navInstallBtn" class="hidden items-center gap-1 text-xs font-bold text-brand-gold-light bg-brand-emerald-dark/80 hover:bg-brand-emerald-dark border border-brand-gold/50 px-2.5 py-1.5 rounded-full transition" title="Cài ứng dụng">
+          <i class="fa-solid fa-mobile-screen text-xs"></i>
         </button>
-
-        <!-- Book a Table CTA -->
-        <a href="#booking" class="gold-gradient text-brand-emerald-dark hover:brightness-110 font-bold text-xs px-5 py-2.5 rounded-full transition shadow-lg hover:shadow-brand-gold/30 flex items-center gap-2">
-          <i class="fa-regular fa-calendar-check text-sm"></i>
-          <span data-i18n="cta_book_now">Đặt Bàn Ngay</span>
+        <a href="#booking" class="gold-gradient text-brand-emerald-dark hover:brightness-110 font-bold text-xs px-4 py-2 rounded-full transition shadow-md flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-regular fa-calendar-check text-xs"></i>
+          <span data-i18n="cta_book_now">Đặt Bàn</span>
         </a>
       </div>
 
-      <!-- Mobile Hamburger Button -->
-      <div class="flex items-center gap-2 lg:hidden">
-        <button onclick="toggleLanguage()" class="px-2.5 py-1 rounded-full border border-white/30 text-white text-[11px] font-bold">
+      <!-- Mobile: Đặt Bàn quick + Lang + Hamburger -->
+      <div class="flex items-center gap-1.5 sm:hidden flex-shrink-0">
+        <a href="#booking" class="gold-gradient text-brand-emerald-dark font-bold text-[10px] px-2.5 py-1.5 rounded-full shadow-sm whitespace-nowrap">
+          Đặt Bàn
+        </a>
+        <button onclick="toggleLanguage()" class="px-2 py-1 rounded-full border border-white/30 text-white text-[10px] font-bold">
           <span id="langLabelMob">VI</span>
         </button>
-        <button onclick="toggleMobileNav()" class="w-10 h-10 rounded-xl bg-white/15 text-white flex items-center justify-center border border-white/20 text-base">
-          <i id="mobNavIcon" class="fa-solid fa-bars"></i>
+        <button onclick="toggleMobileNav()" class="w-8 h-8 rounded-xl bg-white/15 text-white flex items-center justify-center border border-white/20">
+          <i id="mobNavIcon" class="fa-solid fa-bars text-xs"></i>
+        </button>
+      </div>
+      <!-- Tablet (sm-lg): only lang + hamburger -->
+      <div class="hidden sm:flex lg:hidden items-center gap-2 flex-shrink-0">
+        <button onclick="toggleLanguage()" class="px-2.5 py-1.5 rounded-full border border-white/30 text-white text-[11px] font-bold">
+          <span id="langLabelMobMd">VI</span>
+        </button>
+        <button onclick="toggleMobileNav()" class="w-9 h-9 rounded-xl bg-white/15 text-white flex items-center justify-center border border-white/20">
+          <i id="mobNavIconMd" class="fa-solid fa-bars text-sm"></i>
         </button>
       </div>
 
     </div>
 
     <!-- Mobile Drawer Menu -->
-    <div id="mobileDrawer" class="hidden lg:hidden mt-3 max-w-7xl mx-auto bg-brand-emerald-dark/95 backdrop-blur-xl border border-white/10 rounded-3xl p-5 text-white shadow-2xl space-y-4">
-      <nav class="flex flex-col space-y-3 text-sm font-semibold border-b border-white/10 pb-4">
-        <a href="#hero" onclick="toggleMobileNav()" class="flex items-center justify-between py-1 text-white hover:text-brand-gold">
-          <span data-i18n="nav_home">Trang Chủ</span> <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+    <div id="mobileDrawer" class="hidden lg:hidden mt-2 max-w-7xl mx-auto bg-brand-emerald-dark/97 backdrop-blur-xl border border-white/10 rounded-2xl p-4 text-white shadow-2xl">
+      <nav class="grid grid-cols-2 gap-1 border-b border-white/10 pb-3 mb-3">
+        <a href="#hero" onclick="toggleMobileNav()" class="flex items-center gap-2 py-2 px-3 rounded-xl hover:bg-white/10 transition text-xs font-semibold">
+          <i class="fa-solid fa-house text-brand-gold/70"></i><span data-i18n="nav_home">Trang Chủ</span>
         </a>
-        <a href="#about" onclick="toggleMobileNav()" class="flex items-center justify-between py-1 text-white hover:text-brand-gold">
-          <span data-i18n="nav_about">Giới Thiệu & Điểm Nổi Bật</span> <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+        <a href="#about" onclick="toggleMobileNav()" class="flex items-center gap-2 py-2 px-3 rounded-xl hover:bg-white/10 transition text-xs font-semibold">
+          <i class="fa-solid fa-leaf text-brand-gold/70"></i><span data-i18n="nav_about">Giới Thiệu</span>
         </a>
-        <a href="#gallery" onclick="toggleMobileNav()" class="flex items-center justify-between py-1 text-white hover:text-brand-gold">
-          <span data-i18n="nav_ambiance">Khám Phá Không Gian</span> <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+        <a href="#gallery" onclick="toggleMobileNav()" class="flex items-center gap-2 py-2 px-3 rounded-xl hover:bg-white/10 transition text-xs font-semibold">
+          <i class="fa-regular fa-images text-brand-gold/70"></i><span data-i18n="nav_ambiance">Không Gian</span>
         </a>
-        <a href="#menu-showcase" onclick="toggleMobileNav()" class="flex items-center justify-between py-1 text-white hover:text-brand-gold">
-          <span data-i18n="nav_menu">Thực Đơn Món Ngon</span> <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+        <a href="#menu-showcase" onclick="toggleMobileNav()" class="flex items-center gap-2 py-2 px-3 rounded-xl hover:bg-white/10 transition text-xs font-semibold">
+          <i class="fa-solid fa-utensils text-brand-gold/70"></i><span data-i18n="nav_menu">Thực Đơn</span>
         </a>
-        <a href="#pickleball" onclick="toggleMobileNav()" class="flex items-center justify-between py-1 text-white hover:text-brand-gold">
-          <span data-i18n="nav_sports">Cụm Sân Pickleball</span> <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+        <a href="#pickleball" onclick="toggleMobileNav()" class="flex items-center gap-2 py-2 px-3 rounded-xl hover:bg-white/10 transition text-xs font-semibold">
+          <i class="fa-solid fa-table-tennis-paddle-ball text-brand-gold/70"></i><span data-i18n="nav_sports">Pickleball</span>
         </a>
-        <a href="#booking" onclick="toggleMobileNav()" class="flex items-center justify-between py-1 text-white hover:text-brand-gold">
-          <span data-i18n="nav_reservations">Đặt Bàn / Đặt Sân Trực Tuyến</span> <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+        <a href="#booking" onclick="toggleMobileNav()" class="flex items-center gap-2 py-2 px-3 rounded-xl hover:bg-white/10 transition text-xs font-semibold">
+          <i class="fa-regular fa-calendar-check text-brand-gold/70"></i><span data-i18n="nav_reservations">Đặt Chỗ</span>
         </a>
       </nav>
-
-      <div class="grid grid-cols-2 gap-2 pt-1">
-        <a href="/menu" class="w-full text-center py-2.5 px-3 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20">
-          🍽️ Xem Menu QR
-        </a>
-        <a href="#booking" onclick="toggleMobileNav()" class="w-full text-center py-2.5 px-3 rounded-xl gold-gradient text-brand-emerald-dark text-xs font-bold shadow-md">
-          📅 Đặt Bàn Ngay
-        </a>
+      <div class="grid grid-cols-2 gap-2">
+        <a href="/menu" class="text-center py-2.5 px-3 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20">🍽️ Gọi Món QR</a>
+        <a href="#booking" onclick="toggleMobileNav()" class="text-center py-2.5 px-3 rounded-xl gold-gradient text-brand-emerald-dark text-xs font-bold shadow-md">📅 Đặt Bàn Ngay</a>
       </div>
-
-      <!-- Link cổng nhân viên -->
-      <div class="pt-2 text-center border-t border-white/10">
-        <a href="/login" class="text-[11px] text-white/60 hover:text-brand-gold font-medium">
-          <i class="fa-solid fa-lock mr-1"></i> Cổng đăng nhập Nhân Viên & Quản Lý
+      <div class="pt-2.5 mt-3 border-t border-white/10 text-center">
+        <a href="/login" class="text-[10px] text-white/40 hover:text-brand-gold font-medium">
+          <i class="fa-solid fa-lock mr-1"></i> Đăng nhập Nhân Viên
         </a>
       </div>
     </div>
@@ -282,23 +280,26 @@
         </a>
       </div>
 
-      <!-- Quick Info Bar (Gọn gàng 1 dòng thanh lịch, không tràn viền) -->
-      <div class="animate-hero-info glass-dark border border-white/20 rounded-2xl py-2 px-4 sm:px-6 max-w-3xl mx-auto flex flex-wrap items-center justify-center sm:justify-between gap-3 text-xs text-white/90 shadow-xl">
-        <div class="flex items-center gap-2 min-w-0">
-          <i class="fa-solid fa-location-dot text-brand-gold flex-shrink-0"></i>
-          <span id="cmsHeroAddress" data-i18n="info_address_val">{{ cms.address | default('Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc') }}</span>
-        </div>
-        <span class="hidden sm:inline text-white/30">•</span>
-        <div class="flex items-center gap-2 flex-shrink-0">
-          <i class="fa-regular fa-clock text-brand-gold"></i>
-          <span id="cmsHeroHours" data-i18n="info_hours_val">{{ cms.opening_hours | default('06:30 - 23:00 hàng ngày') }}</span>
-        </div>
-        <span class="hidden sm:inline text-white/30">•</span>
-        <div class="flex items-center gap-2 flex-shrink-0">
-          <i class="fa-solid fa-phone text-brand-gold"></i>
-          <a href="tel:{{ cms.phone | default('0838993316') }}" id="cmsHeroPhone" class="text-brand-gold font-bold hover:underline">{{ cms.phone_display | default('0838.993.316') }}</a>
+      <!-- Quick Info Bar — responsive, không tràn viền -->
+      <div class="animate-hero-info glass-dark border border-white/20 rounded-2xl py-3 px-4 max-w-2xl mx-auto shadow-xl w-full">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-center gap-2 sm:gap-4 text-xs text-white/90">
+          <div class="flex items-start gap-2 min-w-0 w-full sm:w-auto">
+            <i class="fa-solid fa-location-dot text-brand-gold flex-shrink-0 mt-0.5"></i>
+            <span id="cmsHeroAddress" data-i18n="info_address_val" class="leading-snug">Khu Tiện Ích Bể Bơi SV02,<br class="sm:hidden"> Sonasea, Bãi Trường, Phú Quốc</span>
+          </div>
+          <div class="hidden sm:block w-px h-4 bg-white/25 flex-shrink-0"></div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <i class="fa-regular fa-clock text-brand-gold"></i>
+            <span id="cmsHeroHours" data-i18n="info_hours_val">{{ cms.opening_hours | default('06:30 – 23:00') }}</span>
+          </div>
+          <div class="hidden sm:block w-px h-4 bg-white/25 flex-shrink-0"></div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <i class="fa-solid fa-phone text-brand-gold"></i>
+            <a href="tel:{{ cms.phone | default('0838993316') }}" id="cmsHeroPhone" class="text-brand-gold font-bold hover:underline">{{ cms.phone_display | default('0838.993.316') }}</a>
+          </div>
         </div>
       </div>
+
 
     </div>
   </section>
