@@ -7,10 +7,18 @@
   <meta name="description" content="Khám phá PiPo Garden tại Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc - Không gian Tropical Resort đẳng cấp với hồ bơi uốn lượn trung tâm, nhà chòi mái lá mộc mạc, ẩm thực hải sản tươi ngon và cụm sân Pickleball có mái che hiện đại.">
   <link rel="icon" type="image/png" href="/static/logo.png">
 
-  <!-- Google Fonts: Playfair Display + Plus Jakarta Sans -->
+  <!-- PWA & Mobile Web App Meta -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0F382C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PiPo Garden">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
+
+  <!-- Google Fonts: Plus Jakarta Sans (Clean, Modern, Elegant Sans-Serif) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;0,900;1,500;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Tailwind CSS & FontAwesome -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -33,7 +41,7 @@
             }
           },
           fontFamily: {
-            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            serif: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
             sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
           }
         }
@@ -43,7 +51,7 @@
 
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FDFBF7; color: #2B2B2B; }
-    h1, h2, h3, h4, .font-luxury { font-family: 'Playfair Display', Georgia, serif; }
+    h1, h2, h3, h4, .font-luxury { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.02em; }
     
     .gold-gradient {
       background: linear-gradient(135deg, #D4AF37 0%, #F5D77F 50%, #B38F22 100%);
@@ -159,6 +167,12 @@
           <span data-i18n="cta_menu_online">Menu Gọi Món</span>
         </a>
 
+        <!-- Install App Button (PWA) -->
+        <button onclick="handlePwaInstallClick()" id="navInstallBtn" class="inline-flex items-center gap-1.5 text-xs font-bold text-brand-gold-light bg-brand-emerald-dark/80 hover:bg-brand-emerald-dark border border-brand-gold/50 px-3.5 py-2 rounded-full transition backdrop-blur-xs shadow-xs" title="Cài đặt ứng dụng trên điện thoại hoặc máy tính">
+          <i class="fa-solid fa-mobile-screen"></i>
+          <span>Tải App</span>
+        </button>
+
         <!-- Book a Table CTA -->
         <a href="#booking" class="gold-gradient text-brand-emerald-dark hover:brightness-110 font-bold text-xs px-5 py-2.5 rounded-full transition shadow-lg hover:shadow-brand-gold/30 flex items-center gap-2">
           <i class="fa-regular fa-calendar-check text-sm"></i>
@@ -266,35 +280,38 @@
         </a>
       </div>
 
-      <!-- Quick Info Bar at the base of Hero -->
-      <div class="animate-hero-info glass-dark border border-white/20 rounded-2xl sm:rounded-full p-4 sm:px-8 max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 text-xs text-left shadow-2xl text-white/95">
+      <!-- Quick Info Bar at the base of Hero (Khắc phục tràn chữ địa chỉ & thiết kế thoáng đẹp) -->
+      <div class="animate-hero-info glass-dark border border-white/20 rounded-2xl md:rounded-3xl p-4 sm:p-5 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-3.5 sm:gap-4 text-xs text-left shadow-2xl text-white/95">
         
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold flex-shrink-0 text-sm">
+        <!-- Cột 1: Địa chỉ (chiếm 6/12 cột, hiển thị 2 dòng chữ đều đặn, không tràn ra ngoài) -->
+        <div class="flex items-center gap-3 md:col-span-6 min-w-0">
+          <div class="w-10 h-10 rounded-2xl bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold flex-shrink-0 text-sm shadow-sm">
             <i class="fa-solid fa-location-dot"></i>
           </div>
-          <div>
-            <div class="font-bold text-[11px] text-brand-gold-light uppercase tracking-wider" data-i18n="info_address_title">Địa chỉ</div>
-            <div class="text-white/90 text-xs font-medium truncate" id="cmsHeroAddress" data-i18n="info_address_val">{{ cms.address | default('Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc') }}</div>
+          <div class="min-w-0 pr-2">
+            <div class="font-bold text-[11px] text-brand-gold-light uppercase tracking-wider mb-0.5" data-i18n="info_address_title">Địa chỉ</div>
+            <div class="text-white/95 text-xs font-medium leading-relaxed" id="cmsHeroAddress" data-i18n="info_address_val">{{ cms.address | default('Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc') }}</div>
           </div>
         </div>
 
-        <div class="flex items-center gap-3 sm:border-x sm:border-white/15 sm:px-4">
-          <div class="w-9 h-9 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold flex-shrink-0 text-sm">
+        <!-- Cột 2: Giờ mở cửa (chiếm 3/12 cột) -->
+        <div class="flex items-center gap-3 md:col-span-3 md:border-l md:border-white/15 md:pl-4">
+          <div class="w-10 h-10 rounded-2xl bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold flex-shrink-0 text-sm shadow-sm">
             <i class="fa-regular fa-clock"></i>
           </div>
           <div>
-            <div class="font-bold text-[11px] text-brand-gold-light uppercase tracking-wider" data-i18n="info_hours_title">Giờ mở cửa</div>
-            <div class="text-white/90 text-xs font-medium" id="cmsHeroHours" data-i18n="info_hours_val">{{ cms.opening_hours | default('06:30 - 23:00 hàng ngày') }}</div>
+            <div class="font-bold text-[11px] text-brand-gold-light uppercase tracking-wider mb-0.5" data-i18n="info_hours_title">Giờ mở cửa</div>
+            <div class="text-white/95 text-xs font-medium" id="cmsHeroHours" data-i18n="info_hours_val">{{ cms.opening_hours | default('06:30 - 23:00 hàng ngày') }}</div>
           </div>
         </div>
 
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold flex-shrink-0 text-sm">
+        <!-- Cột 3: Hotline (chiếm 3/12 cột) -->
+        <div class="flex items-center gap-3 md:col-span-3 md:border-l md:border-white/15 md:pl-4">
+          <div class="w-10 h-10 rounded-2xl bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold flex-shrink-0 text-sm shadow-sm">
             <i class="fa-solid fa-phone-volume"></i>
           </div>
           <div>
-            <div class="font-bold text-[11px] text-brand-gold-light uppercase tracking-wider" data-i18n="info_hotline_title">Hotline Đặt Bàn</div>
+            <div class="font-bold text-[11px] text-brand-gold-light uppercase tracking-wider mb-0.5" data-i18n="info_hotline_title">Hotline Đặt Bàn</div>
             <a href="tel:{{ cms.phone | default('0838993316') }}" id="cmsHeroPhone" class="text-brand-gold font-bold text-xs hover:underline">{{ cms.phone_display | default('0838.993.316') }}</a>
           </div>
         </div>
@@ -915,161 +932,327 @@
       </div>
 
       <!-- ======================================================== -->
-      <!-- SƠ ĐỒ MẶT BẰNG RESORT & CHỌN BÀN TRỰC QUAN (FLOOR PLAN) -->
+      <!-- SƠ ĐỒ MẶT BẰNG RESORT & CHỌN BÀN TRỰC QUAN (3 PHÂN KHU - 27 BÀN) -->
       <!-- ======================================================== -->
       <div class="mb-10 bg-white rounded-3xl p-5 sm:p-8 border border-stone-200 shadow-xl">
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-stone-100 pb-5 mb-5">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-stone-100 pb-5 mb-6">
           <div>
             <div class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-emerald-dark bg-emerald-100 px-3 py-1 rounded-full mb-1">
-              <i class="fa-solid fa-map-location-dot text-brand-gold"></i> Sơ Đồ Mặt Bằng Thông Minh
+              <i class="fa-solid fa-map-location-dot text-brand-gold"></i> Sơ Đồ Phân Khu Resort PiPo Garden
             </div>
             <h3 class="font-serif font-black text-xl sm:text-2xl text-brand-emerald-dark">
-              Chọn Vị Trí Bàn Trực Tiếp Trên Mặt Bằng Resort
+              Chọn Vị Trí Bàn Trực Tiếp Trên Sơ Đồ Mặt Bằng
             </h3>
             <p class="text-xs text-stone-500 mt-1">
-              Bấm trực tiếp vào các phân khu hoặc danh sách bàn bên dưới để chọn vị trí ưng ý nhất chào đón bạn và gia đình.
+              Nhà hàng gồm 27 bàn bố trí tại 3 phân khu đặc sắc. Nhấp trực tiếp vào bàn để chọn vị trí yêu thích của bạn.
             </p>
           </div>
 
-          <!-- Switcher: 3D Perspective vs CAD Masterplan -->
-          <div class="flex items-center gap-2 bg-stone-100 p-1.5 rounded-2xl text-xs font-bold">
-            <button type="button" onclick="switchFloorMapView('3d')" id="btnView3D" class="px-3.5 py-1.5 rounded-xl bg-white shadow-xs text-brand-emerald-dark transition">
-              ✨ Phối Cảnh 3D Resort
-            </button>
-            <button type="button" onclick="switchFloorMapView('cad')" id="btnViewCAD" class="px-3.5 py-1.5 rounded-xl text-stone-600 hover:text-stone-900 transition">
-              📐 Mặt Bằng CAD Kỹ Thuật
-            </button>
+          <!-- Legend Chỉ Dẫn 3 Phân Khu -->
+          <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 text-teal-800 border border-teal-200">
+              <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span> 🏊 Hồ Bơi (12 bàn)
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> ✨ Sảnh 1 Chính Giữa (5 bàn)
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> 🎾 Sảnh 2 Cạnh Sân Pick (10 bàn)
+            </span>
           </div>
         </div>
 
-        <!-- Visual Floor Plan Image Container with Overlays -->
-        <div class="relative w-full rounded-2xl overflow-hidden border-2 border-stone-200 bg-stone-900 shadow-inner group">
-          <img id="floorMapImg" src="/static/home/resort_layout_3d.jpg" alt="Mặt bằng resort PiPo Garden" class="w-full h-64 sm:h-96 md:h-[450px] object-cover sm:object-contain transition-all duration-500">
+        <!-- MÔ HÌNH SƠ ĐỒ MẶT BẰNG TRỰC QUAN (ARCHITECTURAL FLOOR MAP) -->
+        <div class="relative w-full rounded-2xl overflow-hidden border-2 border-stone-200 bg-gradient-to-b from-stone-900 to-brand-emerald-dark p-4 sm:p-6 shadow-inner text-white">
           
-          <!-- Gradient overlay for legibility on small screens -->
-          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none"></div>
+          <!-- Background Subtle Grid Pattern -->
+          <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
 
-          <!-- Interactive Hotspot Pins on Visual Layout -->
-          <div class="absolute inset-0 pointer-events-none">
-            <!-- Hotspot 1: Hồ Bơi Trung Tâm -->
-            <button type="button" onclick="selectTable('P01', 'Ven Bể Bơi (Poolside)', '4 khách • Sát mép hồ bơi')" class="pointer-events-auto absolute top-[48%] left-[45%] -translate-x-1/2 -translate-y-1/2 group/pin cursor-pointer">
-              <span class="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-teal-500 text-white font-black text-[11px] sm:text-xs shadow-lg ring-4 ring-white/50 animate-bounce">
-                🏊
-              </span>
-              <span class="hidden group-hover/pin:block absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] font-bold px-2 py-1 rounded-md whitespace-nowrap z-20">
-                Bàn P01 - Ven Hồ Bơi
-              </span>
-            </button>
+          <!-- 3 Visual Zones Grid Layout -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 relative z-10">
+            
+            <!-- Phân Khu 1: KHU HỒ BƠI (12 Bàn: HB01 - HB12) - 5 Cols -->
+            <div class="lg:col-span-5 bg-teal-950/60 border border-teal-500/40 rounded-2xl p-4 flex flex-col justify-between backdrop-blur-xs relative overflow-hidden">
+              <div class="absolute -right-10 -bottom-10 w-36 h-36 bg-teal-500/10 rounded-full blur-2xl pointer-events-none"></div>
+              <div>
+                <div class="flex items-center justify-between mb-3 border-b border-teal-500/30 pb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-300 flex items-center justify-center text-sm font-bold">🏊</span>
+                    <div>
+                      <h4 class="font-bold text-xs sm:text-sm text-teal-200">Khu Hồ Bơi (12 Bàn)</h4>
+                      <p class="text-[10px] text-teal-300/80">Ven làn nước uốn lượn nhiệt đới • View chill</p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full font-bold">HB01 - HB12</span>
+                </div>
 
-            <!-- Hotspot 2: Nhà Chòi Gỗ Khu 1 -->
-            <button type="button" onclick="selectTable('K1-01', 'Nhà Chòi Gỗ Khu 1', '6 khách • Mái lá mộc mạc')" class="pointer-events-auto absolute top-[30%] left-[32%] -translate-x-1/2 -translate-y-1/2 group/pin cursor-pointer">
-              <span class="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-amber-500 text-stone-900 font-black text-[11px] sm:text-xs shadow-lg ring-4 ring-white/50">
-                🎋
-              </span>
-              <span class="hidden group-hover/pin:block absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] font-bold px-2 py-1 rounded-md whitespace-nowrap z-20">
-                K1-01 - Chòi Gỗ 1
-              </span>
-            </button>
+                <!-- Làn hồ bơi mô phỏng trung tâm -->
+                <div class="w-full bg-gradient-to-r from-teal-500/30 via-cyan-400/40 to-teal-500/30 rounded-xl py-2 px-3 text-center mb-3 border border-cyan-400/30 shadow-inner">
+                  <span class="text-[11px] font-bold text-cyan-200 tracking-wide flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-water text-cyan-300"></i> Hồ Bơi Uốn Lượn Trung Tâm
+                  </span>
+                </div>
 
-            <!-- Hotspot 3: Nhà Chòi Gỗ Khu 2 -->
-            <button type="button" onclick="selectTable('K2-01', 'Nhà Chòi Gỗ Khu 2', '6 khách • Gần Sân Pickleball')" class="pointer-events-auto absolute top-[35%] left-[62%] -translate-x-1/2 -translate-y-1/2 group/pin cursor-pointer">
-              <span class="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-emerald-600 text-white font-black text-[11px] sm:text-xs shadow-lg ring-4 ring-white/50">
-                🌴
-              </span>
-              <span class="hidden group-hover/pin:block absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] font-bold px-2 py-1 rounded-md whitespace-nowrap z-20">
-                K2-01 - Chòi Gỗ 2
-              </span>
-            </button>
+                <!-- 12 Bàn Hồ Bơi Interactive Grid -->
+                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 text-center">
+                  <!-- HB01 - HB04: 4 khách -->
+                  <button type="button" onclick="selectTable('HB01', 'Khu Hồ Bơi', '4 khách • Sát mép hồ bơi')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-teal-500 hover:text-white border border-teal-400/30 transition duration-200 cursor-pointer" data-code="HB01">
+                    <div class="text-[10px] text-teal-300 group-hover:text-white font-bold">HB01</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">4 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('HB02', 'Khu Hồ Bơi', '4 khách • Sát mép hồ bơi')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-teal-500 hover:text-white border border-teal-400/30 transition duration-200 cursor-pointer" data-code="HB02">
+                    <div class="text-[10px] text-teal-300 group-hover:text-white font-bold">HB02</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">4 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('HB03', 'Khu Hồ Bơi', '4 khách • Sát mép hồ bơi')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-teal-500 hover:text-white border border-teal-400/30 transition duration-200 cursor-pointer" data-code="HB03">
+                    <div class="text-[10px] text-teal-300 group-hover:text-white font-bold">HB03</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">4 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('HB04', 'Khu Hồ Bơi', '4 khách • Sát mép hồ bơi')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-teal-500 hover:text-white border border-teal-400/30 transition duration-200 cursor-pointer" data-code="HB04">
+                    <div class="text-[10px] text-teal-300 group-hover:text-white font-bold">HB04</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">4 khách</div>
+                  </button>
 
-            <!-- Hotspot 4: Sân Pickleball -->
-            <button type="button" onclick="selectTable('PB01', 'Cụm Sân Pickleball', 'Sân thể thao Pickleball tiêu chuẩn')" class="pointer-events-auto absolute top-[38%] left-[82%] -translate-x-1/2 -translate-y-1/2 group/pin cursor-pointer">
-              <span class="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-cyan-600 text-white font-black text-[11px] sm:text-xs shadow-lg ring-4 ring-white/50">
-                🎾
-              </span>
-              <span class="hidden group-hover/pin:block absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] font-bold px-2 py-1 rounded-md whitespace-nowrap z-20">
-                Sân Pickleball PB-1
-              </span>
-            </button>
+                  <!-- HB05 - HB08: 6 khách -->
+                  <button type="button" onclick="selectTable('HB05', 'Khu Hồ Bơi', '6 khách • View thoáng mát')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-teal-500 hover:text-white border border-teal-400/30 transition duration-200 cursor-pointer" data-code="HB05">
+                    <div class="text-[10px] text-teal-300 group-hover:text-white font-bold">HB05</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">6 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('HB06', 'Khu Hồ Bơi', '6 khách • View thoáng mát')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-teal-500 hover:text-white border border-teal-400/30 transition duration-200 cursor-pointer" data-code="HB06">
+                    <div class="text-[10px] text-teal-300 group-hover:text-white font-bold">HB06</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">6 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('HB07', 'Khu Hồ Bơi', '6 khách • View thoáng mát')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-teal-500 hover:text-white border border-teal-400/30 transition duration-200 cursor-pointer" data-code="HB07">
+                    <div class="text-[10px] text-teal-300 group-hover:text-white font-bold">HB07</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">6 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('HB08', 'Khu Hồ Bơi', '6 khách • Gần Pool Bar')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-teal-500 hover:text-white border border-teal-400/30 transition duration-200 cursor-pointer" data-code="HB08">
+                    <div class="text-[10px] text-teal-300 group-hover:text-white font-bold">HB08</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">6 khách</div>
+                  </button>
+
+                  <!-- HB09 - HB11: 8 khách, HB12: 10 khách -->
+                  <button type="button" onclick="selectTable('HB09', 'Khu Hồ Bơi', '8 khách • Bàn tiệc ven hồ')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-teal-500 hover:text-white border border-teal-400/30 transition duration-200 cursor-pointer" data-code="HB09">
+                    <div class="text-[10px] text-teal-300 group-hover:text-white font-bold">HB09</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">8 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('HB10', 'Khu Hồ Bơi', '8 khách • Bàn tiệc ven hồ')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-teal-500 hover:text-white border border-teal-400/30 transition duration-200 cursor-pointer" data-code="HB10">
+                    <div class="text-[10px] text-teal-300 group-hover:text-white font-bold">HB10</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">8 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('HB11', 'Khu Hồ Bơi', '8 khách • Bàn tiệc ven hồ')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-teal-500 hover:text-white border border-teal-400/30 transition duration-200 cursor-pointer" data-code="HB11">
+                    <div class="text-[10px] text-teal-300 group-hover:text-white font-bold">HB11</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">8 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('HB12', 'Khu Hồ Bơi', '10 khách • Bàn tiệc lớn')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-teal-500 hover:text-white border border-teal-400/30 transition duration-200 cursor-pointer" data-code="HB12">
+                    <div class="text-[10px] text-teal-300 group-hover:text-white font-bold">HB12</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">10 khách</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Phân Khu 2: SẢNH 1 - CHÍNH GIỮA (5 Bàn: S1-01 - S1-05) - 3 Cols -->
+            <div class="lg:col-span-3 bg-amber-950/60 border border-brand-gold/40 rounded-2xl p-4 flex flex-col justify-between backdrop-blur-xs relative overflow-hidden">
+              <div class="absolute -right-10 -bottom-10 w-36 h-36 bg-brand-gold/10 rounded-full blur-2xl pointer-events-none"></div>
+              <div>
+                <div class="flex items-center justify-between mb-3 border-b border-brand-gold/30 pb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg bg-brand-gold/20 text-brand-gold flex items-center justify-center text-sm font-bold">✨</span>
+                    <div>
+                      <h4 class="font-bold text-xs sm:text-sm text-brand-gold-light">Sảnh 1 Chính Giữa (5 Bàn)</h4>
+                      <p class="text-[10px] text-white/70">Không gian trung tâm sang trọng</p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] bg-brand-gold/20 text-brand-gold-light px-2 py-0.5 rounded-full font-bold">S1</span>
+                </div>
+
+                <!-- 5 Bàn Sảnh 1 Interactive List -->
+                <div class="space-y-2">
+                  <button type="button" onclick="selectTable('S1-01', 'Sảnh 1 (Chính Giữa)', '6 khách • Bàn tiệc sảnh chính')" class="visual-table-btn group w-full p-2 rounded-xl bg-white/10 hover:bg-brand-gold hover:text-brand-emerald-dark border border-brand-gold/30 transition duration-200 flex items-center justify-between cursor-pointer" data-code="S1-01">
+                    <div class="flex items-center gap-2">
+                      <span class="w-6 h-6 rounded-lg bg-brand-gold/20 text-brand-gold group-hover:text-brand-emerald-dark font-black text-xs flex items-center justify-center">01</span>
+                      <span class="text-xs font-bold text-white group-hover:text-brand-emerald-dark">Sảnh 1 - Bàn 01</span>
+                    </div>
+                    <span class="text-[10px] text-white/70 group-hover:text-brand-emerald-dark font-medium">6 khách</span>
+                  </button>
+
+                  <button type="button" onclick="selectTable('S1-02', 'Sảnh 1 (Chính Giữa)', '6 khách • Bàn tiệc sảnh chính')" class="visual-table-btn group w-full p-2 rounded-xl bg-white/10 hover:bg-brand-gold hover:text-brand-emerald-dark border border-brand-gold/30 transition duration-200 flex items-center justify-between cursor-pointer" data-code="S1-02">
+                    <div class="flex items-center gap-2">
+                      <span class="w-6 h-6 rounded-lg bg-brand-gold/20 text-brand-gold group-hover:text-brand-emerald-dark font-black text-xs flex items-center justify-center">02</span>
+                      <span class="text-xs font-bold text-white group-hover:text-brand-emerald-dark">Sảnh 1 - Bàn 02</span>
+                    </div>
+                    <span class="text-[10px] text-white/70 group-hover:text-brand-emerald-dark font-medium">6 khách</span>
+                  </button>
+
+                  <button type="button" onclick="selectTable('S1-03', 'Sảnh 1 (Chính Giữa)', '8 khách • Bàn tiệc trung tâm')" class="visual-table-btn group w-full p-2 rounded-xl bg-white/10 hover:bg-brand-gold hover:text-brand-emerald-dark border border-brand-gold/30 transition duration-200 flex items-center justify-between cursor-pointer" data-code="S1-03">
+                    <div class="flex items-center gap-2">
+                      <span class="w-6 h-6 rounded-lg bg-brand-gold/20 text-brand-gold group-hover:text-brand-emerald-dark font-black text-xs flex items-center justify-center">03</span>
+                      <span class="text-xs font-bold text-white group-hover:text-brand-emerald-dark">Sảnh 1 - Bàn 03</span>
+                    </div>
+                    <span class="text-[10px] text-white/70 group-hover:text-brand-emerald-dark font-medium">8 khách</span>
+                  </button>
+
+                  <button type="button" onclick="selectTable('S1-04', 'Sảnh 1 (Chính Giữa)', '10 khách • Bàn tiệc VIP')" class="visual-table-btn group w-full p-2 rounded-xl bg-white/10 hover:bg-brand-gold hover:text-brand-emerald-dark border border-brand-gold/30 transition duration-200 flex items-center justify-between cursor-pointer" data-code="S1-04">
+                    <div class="flex items-center gap-2">
+                      <span class="w-6 h-6 rounded-lg bg-brand-gold/20 text-brand-gold group-hover:text-brand-emerald-dark font-black text-xs flex items-center justify-center">04</span>
+                      <span class="text-xs font-bold text-white group-hover:text-brand-emerald-dark">Sảnh 1 - Bàn 04</span>
+                    </div>
+                    <span class="text-[10px] text-white/70 group-hover:text-brand-emerald-dark font-medium">10 khách</span>
+                  </button>
+
+                  <button type="button" onclick="selectTable('S1-05', 'Sảnh 1 (Chính Giữa)', '12 khách • Bàn đại tiệc')" class="visual-table-btn group w-full p-2 rounded-xl bg-white/10 hover:bg-brand-gold hover:text-brand-emerald-dark border border-brand-gold/30 transition duration-200 flex items-center justify-between cursor-pointer" data-code="S1-05">
+                    <div class="flex items-center gap-2">
+                      <span class="w-6 h-6 rounded-lg bg-brand-gold/20 text-brand-gold group-hover:text-brand-emerald-dark font-black text-xs flex items-center justify-center">05</span>
+                      <span class="text-xs font-bold text-white group-hover:text-brand-emerald-dark">Sảnh 1 - Bàn 05</span>
+                    </div>
+                    <span class="text-[10px] text-white/70 group-hover:text-brand-emerald-dark font-medium">12 khách</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Phân Khu 3: SẢNH 2 - CẠNH SÂN PICKLEBALL (10 Bàn: S2-01 - S2-10) - 4 Cols -->
+            <div class="lg:col-span-4 bg-emerald-950/60 border border-emerald-500/40 rounded-2xl p-4 flex flex-col justify-between backdrop-blur-xs relative overflow-hidden">
+              <div class="absolute -right-10 -bottom-10 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+              <div>
+                <div class="flex items-center justify-between mb-3 border-b border-emerald-500/30 pb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-sm font-bold">🎾</span>
+                    <div>
+                      <h4 class="font-bold text-xs sm:text-sm text-emerald-200">Sảnh 2 Cạnh Sân Pick (10 Bàn)</h4>
+                      <p class="text-[10px] text-emerald-300/80">Khu thể thao năng động • Gió trời thoáng</p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold">S2</span>
+                </div>
+
+                <!-- 10 Bàn Sảnh 2 Interactive Grid -->
+                <div class="grid grid-cols-2 gap-2 text-center">
+                  <button type="button" onclick="selectTable('S2-01', 'Sảnh 2 (Cạnh Sân Pickleball)', '4 khách • Cạnh sân thể thao')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-emerald-600 hover:text-white border border-emerald-400/30 transition duration-200 cursor-pointer" data-code="S2-01">
+                    <div class="text-[10px] text-emerald-300 group-hover:text-white font-bold">S2-01</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">4 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('S2-02', 'Sảnh 2 (Cạnh Sân Pickleball)', '4 khách • Cạnh sân thể thao')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-emerald-600 hover:text-white border border-emerald-400/30 transition duration-200 cursor-pointer" data-code="S2-02">
+                    <div class="text-[10px] text-emerald-300 group-hover:text-white font-bold">S2-02</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">4 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('S2-03', 'Sảnh 2 (Cạnh Sân Pickleball)', '4 khách • Cạnh sân thể thao')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-emerald-600 hover:text-white border border-emerald-400/30 transition duration-200 cursor-pointer" data-code="S2-03">
+                    <div class="text-[10px] text-emerald-300 group-hover:text-white font-bold">S2-03</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">4 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('S2-04', 'Sảnh 2 (Cạnh Sân Pickleball)', '4 khách • Cạnh sân thể thao')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-emerald-600 hover:text-white border border-emerald-400/30 transition duration-200 cursor-pointer" data-code="S2-04">
+                    <div class="text-[10px] text-emerald-300 group-hover:text-white font-bold">S2-04</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">4 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('S2-05', 'Sảnh 2 (Cạnh Sân Pickleball)', '6 khách • Gần cụm sân Pickleball')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-emerald-600 hover:text-white border border-emerald-400/30 transition duration-200 cursor-pointer" data-code="S2-05">
+                    <div class="text-[10px] text-emerald-300 group-hover:text-white font-bold">S2-05</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">6 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('S2-06', 'Sảnh 2 (Cạnh Sân Pickleball)', '6 khách • Gần cụm sân Pickleball')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-emerald-600 hover:text-white border border-emerald-400/30 transition duration-200 cursor-pointer" data-code="S2-06">
+                    <div class="text-[10px] text-emerald-300 group-hover:text-white font-bold">S2-06</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">6 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('S2-07', 'Sảnh 2 (Cạnh Sân Pickleball)', '6 khách • Không gian thể thao')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-emerald-600 hover:text-white border border-emerald-400/30 transition duration-200 cursor-pointer" data-code="S2-07">
+                    <div class="text-[10px] text-emerald-300 group-hover:text-white font-bold">S2-07</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">6 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('S2-08', 'Sảnh 2 (Cạnh Sân Pickleball)', '6 khách • Không gian thể thao')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-emerald-600 hover:text-white border border-emerald-400/30 transition duration-200 cursor-pointer" data-code="S2-08">
+                    <div class="text-[10px] text-emerald-300 group-hover:text-white font-bold">S2-08</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">6 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('S2-09', 'Sảnh 2 (Cạnh Sân Pickleball)', '8 khách • Bàn tiệc liên hoan')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-emerald-600 hover:text-white border border-emerald-400/30 transition duration-200 cursor-pointer" data-code="S2-09">
+                    <div class="text-[10px] text-emerald-300 group-hover:text-white font-bold">S2-09</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">8 khách</div>
+                  </button>
+                  <button type="button" onclick="selectTable('S2-10', 'Sảnh 2 (Cạnh Sân Pickleball)', '10 khách • Bàn tiệc lớn')" class="visual-table-btn group p-2 rounded-xl bg-white/10 hover:bg-emerald-600 hover:text-white border border-emerald-400/30 transition duration-200 cursor-pointer" data-code="S2-10">
+                    <div class="text-[10px] text-emerald-300 group-hover:text-white font-bold">S2-10</div>
+                    <div class="text-[9px] text-white/70 group-hover:text-white">10 khách</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          <!-- Selected Table Floating Banner -->
-          <div class="absolute bottom-4 left-4 right-4 sm:left-6 sm:right-auto bg-brand-emerald-dark/95 backdrop-blur-md border border-brand-gold/50 text-white p-3 sm:px-5 sm:py-3.5 rounded-2xl shadow-2xl flex items-center justify-between sm:justify-start gap-4 z-10">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl gold-gradient text-brand-emerald-dark flex items-center justify-center font-black text-base shadow">
+          <!-- Thanh Banner Hiển Thị Vị Trí Bàn Đang Chọn -->
+          <div class="mt-4 bg-brand-emerald-dark/95 border border-brand-gold/50 rounded-2xl p-3 sm:px-5 sm:py-3.5 shadow-xl flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl gold-gradient text-brand-emerald-dark flex items-center justify-center font-black text-base shadow flex-shrink-0">
                 <i class="fa-solid fa-chair"></i>
               </div>
-              <div>
-                <div class="text-[10px] text-brand-gold-light uppercase tracking-wider font-bold">Vị Trí Đang Chọn</div>
-                <div id="selectedTableDisplay" class="font-bold text-xs sm:text-sm text-white">Chưa chọn bàn (Bấm chọn theo danh sách bên dưới)</div>
+              <div class="min-w-0">
+                <div class="text-[10px] text-brand-gold-light uppercase tracking-wider font-bold">Vị Trí Bàn Đang Chọn</div>
+                <div id="selectedTableDisplay" class="font-bold text-xs sm:text-sm text-white truncate">Chưa chọn bàn (Bấm vào bàn trên sơ đồ để chọn)</div>
               </div>
             </div>
-            <button type="button" onclick="scrollToBookingForm()" class="gold-gradient text-brand-emerald-dark font-black text-xs px-3.5 py-2 rounded-xl shadow hover:brightness-110 whitespace-nowrap">
-              Nhập Đơn ↓
+            <button type="button" onclick="scrollToBookingForm()" class="gold-gradient text-brand-emerald-dark font-black text-xs px-4 py-2 rounded-xl shadow hover:brightness-110 whitespace-nowrap active:scale-95 flex-shrink-0">
+              Nhập Đơn Đặt Chỗ ↓
             </button>
           </div>
+
         </div>
 
-        <!-- Quick Area & Table Selector Chips -->
-        <div class="mt-6 space-y-3">
-          <div class="text-xs font-bold uppercase tracking-wider text-stone-500">Danh Sách Bàn Phân Theo Từng Khu Vực Resort:</div>
+        <!-- Danh Sách Bàn Phân Nhóm 3 Khu (Table Chips Phân Loại Chi Tiết) -->
+        <div class="mt-6 space-y-4">
+          <div class="text-xs font-bold uppercase tracking-wider text-stone-500">Danh Sách Nhanh 27 Bàn Theo Phân Khu:</div>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
             
-            <!-- Zone 1: Bàn Ven Bể Bơi -->
-            <div class="p-3.5 rounded-2xl bg-teal-50/70 border border-teal-200/90 space-y-2">
+            <!-- Zone 1: Khu Hồ Bơi (12 Bàn) -->
+            <div class="p-4 rounded-2xl bg-teal-50/80 border border-teal-200/90 space-y-2.5">
               <div class="flex items-center justify-between">
-                <span class="font-black text-teal-900 flex items-center gap-1.5"><i class="fa-solid fa-water text-teal-600"></i> Ven Bể Bơi (Poolside)</span>
-                <span class="text-[10px] text-teal-700 font-bold bg-teal-100/80 px-2 py-0.5 rounded-md">View cực chill</span>
+                <span class="font-black text-teal-900 flex items-center gap-1.5"><i class="fa-solid fa-water text-teal-600"></i> Khu Hồ Bơi</span>
+                <span class="text-[10px] text-teal-700 font-bold bg-teal-100 px-2 py-0.5 rounded-md">12 Bàn</span>
               </div>
               <div class="flex flex-wrap gap-1.5">
-                <button type="button" onclick="selectTable('P01', 'Ven Bể Bơi (Poolside)', '4 khách • Sát mép hồ bơi')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="P01">P01 (4k)</button>
-                <button type="button" onclick="selectTable('P02', 'Ven Bể Bơi (Poolside)', '4 khách • View mặt hồ thoáng mát')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="P02">P02 (4k)</button>
-                <button type="button" onclick="selectTable('P03', 'Ven Bể Bơi (Poolside)', '6 khách • Trung tâm hồ bơi')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="P03">P03 (6k)</button>
-                <button type="button" onclick="selectTable('P04', 'Ven Bể Bơi (Poolside)', '4 khách • Cạnh ô che nhiệt đới')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="P04">P04 (4k)</button>
-                <button type="button" onclick="selectTable('P05', 'Ven Bể Bơi (Poolside)', '6 khách • Gần Pool Bar')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="P05">P05 (6k)</button>
-                <button type="button" onclick="selectTable('P06', 'Ven Bể Bơi (Poolside)', '8 khách • Bàn tiệc cạnh hồ')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="P06">P06 (8k)</button>
+                <button type="button" onclick="selectTable('HB01', 'Khu Hồ Bơi', '4 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-teal-500 hover:bg-teal-50 transition" data-code="HB01">HB01 (4k)</button>
+                <button type="button" onclick="selectTable('HB02', 'Khu Hồ Bơi', '4 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-teal-500 hover:bg-teal-50 transition" data-code="HB02">HB02 (4k)</button>
+                <button type="button" onclick="selectTable('HB03', 'Khu Hồ Bơi', '4 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-teal-500 hover:bg-teal-50 transition" data-code="HB03">HB03 (4k)</button>
+                <button type="button" onclick="selectTable('HB04', 'Khu Hồ Bơi', '4 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-teal-500 hover:bg-teal-50 transition" data-code="HB04">HB04 (4k)</button>
+                <button type="button" onclick="selectTable('HB05', 'Khu Hồ Bơi', '6 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-teal-500 hover:bg-teal-50 transition" data-code="HB05">HB05 (6k)</button>
+                <button type="button" onclick="selectTable('HB06', 'Khu Hồ Bơi', '6 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-teal-500 hover:bg-teal-50 transition" data-code="HB06">HB06 (6k)</button>
+                <button type="button" onclick="selectTable('HB07', 'Khu Hồ Bơi', '6 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-teal-500 hover:bg-teal-50 transition" data-code="HB07">HB07 (6k)</button>
+                <button type="button" onclick="selectTable('HB08', 'Khu Hồ Bơi', '6 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-teal-500 hover:bg-teal-50 transition" data-code="HB08">HB08 (6k)</button>
+                <button type="button" onclick="selectTable('HB09', 'Khu Hồ Bơi', '8 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-teal-500 hover:bg-teal-50 transition" data-code="HB09">HB09 (8k)</button>
+                <button type="button" onclick="selectTable('HB10', 'Khu Hồ Bơi', '8 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-teal-500 hover:bg-teal-50 transition" data-code="HB10">HB10 (8k)</button>
+                <button type="button" onclick="selectTable('HB11', 'Khu Hồ Bơi', '8 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-teal-500 hover:bg-teal-50 transition" data-code="HB11">HB11 (8k)</button>
+                <button type="button" onclick="selectTable('HB12', 'Khu Hồ Bơi', '10 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-teal-500 hover:bg-teal-50 transition" data-code="HB12">HB12 (10k)</button>
               </div>
             </div>
 
-            <!-- Zone 2: Nhà Chòi Khu 1 -->
-            <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/90 space-y-2">
+            <!-- Zone 2: Sảnh 1 - Chính Giữa (5 Bàn) -->
+            <div class="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/90 space-y-2.5">
               <div class="flex items-center justify-between">
-                <span class="font-black text-amber-900 flex items-center gap-1.5"><i class="fa-solid fa-umbrella-beach text-amber-700"></i> Nhà Chòi Gỗ Khu 1</span>
-                <span class="text-[10px] text-amber-700 font-bold bg-amber-100/80 px-2 py-0.5 rounded-md">Gần Bar & Bếp</span>
+                <span class="font-black text-amber-900 flex items-center gap-1.5"><i class="fa-solid fa-sparkles text-amber-600"></i> Sảnh 1 (Chính Giữa)</span>
+                <span class="text-[10px] text-amber-700 font-bold bg-amber-100 px-2 py-0.5 rounded-md">5 Bàn</span>
               </div>
               <div class="flex flex-wrap gap-1.5">
-                <button type="button" onclick="selectTable('K1-01', 'Nhà Chòi Gỗ Khu 1', '6 khách • Mái lá mộc mạc')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K1-01">K1-01 (6k)</button>
-                <button type="button" onclick="selectTable('K1-02', 'Nhà Chòi Gỗ Khu 1', '6 khách • Gần quầy bar')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K1-02">K1-02 (6k)</button>
-                <button type="button" onclick="selectTable('K1-03', 'Nhà Chòi Gỗ Khu 1', '8 khách • Thoáng gió hồ')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K1-03">K1-03 (8k)</button>
-                <button type="button" onclick="selectTable('K1-04', 'Nhà Chòi Gỗ Khu 1', '10 khách • Tiệc gia đình')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K1-04">K1-04 (10k)</button>
+                <button type="button" onclick="selectTable('S1-01', 'Sảnh 1 (Chính Giữa)', '6 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50 transition" data-code="S1-01">S1-01 (6k)</button>
+                <button type="button" onclick="selectTable('S1-02', 'Sảnh 1 (Chính Giữa)', '6 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50 transition" data-code="S1-02">S1-02 (6k)</button>
+                <button type="button" onclick="selectTable('S1-03', 'Sảnh 1 (Chính Giữa)', '8 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50 transition" data-code="S1-03">S1-03 (8k)</button>
+                <button type="button" onclick="selectTable('S1-04', 'Sảnh 1 (Chính Giữa)', '10 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50 transition" data-code="S1-04">S1-04 (10k)</button>
+                <button type="button" onclick="selectTable('S1-05', 'Sảnh 1 (Chính Giữa)', '12 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50 transition" data-code="S1-05">S1-05 (12k)</button>
               </div>
             </div>
 
-            <!-- Zone 3: Nhà Chòi Khu 2 -->
-            <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/90 space-y-2">
+            <!-- Zone 3: Sảnh 2 - Cạnh Sân Pickleball (10 Bàn) -->
+            <div class="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200/90 space-y-2.5">
               <div class="flex items-center justify-between">
-                <span class="font-black text-emerald-900 flex items-center gap-1.5"><i class="fa-solid fa-tree text-emerald-700"></i> Nhà Chòi Gỗ Khu 2</span>
-                <span class="text-[10px] text-emerald-700 font-bold bg-emerald-100/80 px-2 py-0.5 rounded-md">Gần Pickleball</span>
+                <span class="font-black text-emerald-900 flex items-center gap-1.5"><i class="fa-solid fa-table-tennis-paddle-ball text-emerald-700"></i> Sảnh 2 (Cạnh Sân Pick)</span>
+                <span class="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded-md">10 Bàn</span>
               </div>
               <div class="flex flex-wrap gap-1.5">
-                <button type="button" onclick="selectTable('K2-01', 'Nhà Chòi Gỗ Khu 2', '6 khách • Không gian ấm cúng')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K2-01">K2-01 (6k)</button>
-                <button type="button" onclick="selectTable('K2-02', 'Nhà Chòi Gỗ Khu 2', '6 khách • Hướng sân Pickleball')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K2-02">K2-02 (6k)</button>
-                <button type="button" onclick="selectTable('K2-03', 'Nhà Chòi Gỗ Khu 2', '8 khách • Bàn rộng rãi')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K2-03">K2-03 (8k)</button>
-                <button type="button" onclick="selectTable('K2-04', 'Nhà Chòi Gỗ Khu 2', '10 khách • Tiệc liên hoan')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50" data-code="K2-04">K2-04 (10k)</button>
-              </div>
-            </div>
-
-            <!-- Zone 4: VIP & Pickleball -->
-            <div class="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-200/90 space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="font-black text-purple-900 flex items-center gap-1.5"><i class="fa-solid fa-crown text-purple-700"></i> Phòng VIP & Sân Thể Thao</span>
-                <span class="text-[10px] text-purple-700 font-bold bg-purple-100/80 px-2 py-0.5 rounded-md">Riêng tư / Thể thao</span>
-              </div>
-              <div class="flex flex-wrap gap-1.5">
-                <button type="button" onclick="selectTable('VIP01', 'Khu VIP Sân Vườn', '12 khách • Phòng VIP bờ hồ')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-purple-900 hover:border-purple-500 hover:bg-purple-100" data-code="VIP01">VIP 01 (12k)</button>
-                <button type="button" onclick="selectTable('VIP02', 'Khu VIP Sân Vườn', '16 khách • Phòng VIP lớn')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-purple-900 hover:border-purple-500 hover:bg-purple-100" data-code="VIP02">VIP 02 (16k)</button>
-                <button type="button" onclick="selectTable('PB01', 'Cụm Sân Pickleball', 'Sân Pickleball số 1 có mái che')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-teal-800 hover:border-teal-500 hover:bg-teal-100" data-code="PB01">Sân PB-1</button>
-                <button type="button" onclick="selectTable('PB02', 'Cụm Sân Pickleball', 'Sân Pickleball số 2 có mái che')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-teal-800 hover:border-teal-500 hover:bg-teal-100" data-code="PB02">Sân PB-2</button>
+                <button type="button" onclick="selectTable('S2-01', 'Sảnh 2 (Cạnh Sân Pickleball)', '4 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-emerald-600 hover:bg-emerald-50 transition" data-code="S2-01">S2-01 (4k)</button>
+                <button type="button" onclick="selectTable('S2-02', 'Sảnh 2 (Cạnh Sân Pickleball)', '4 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-emerald-600 hover:bg-emerald-50 transition" data-code="S2-02">S2-02 (4k)</button>
+                <button type="button" onclick="selectTable('S2-03', 'Sảnh 2 (Cạnh Sân Pickleball)', '4 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-emerald-600 hover:bg-emerald-50 transition" data-code="S2-03">S2-03 (4k)</button>
+                <button type="button" onclick="selectTable('S2-04', 'Sảnh 2 (Cạnh Sân Pickleball)', '4 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-emerald-600 hover:bg-emerald-50 transition" data-code="S2-04">S2-04 (4k)</button>
+                <button type="button" onclick="selectTable('S2-05', 'Sảnh 2 (Cạnh Sân Pickleball)', '6 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-emerald-600 hover:bg-emerald-50 transition" data-code="S2-05">S2-05 (6k)</button>
+                <button type="button" onclick="selectTable('S2-06', 'Sảnh 2 (Cạnh Sân Pickleball)', '6 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-emerald-600 hover:bg-emerald-50 transition" data-code="S2-06">S2-06 (6k)</button>
+                <button type="button" onclick="selectTable('S2-07', 'Sảnh 2 (Cạnh Sân Pickleball)', '6 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-emerald-600 hover:bg-emerald-50 transition" data-code="S2-07">S2-07 (6k)</button>
+                <button type="button" onclick="selectTable('S2-08', 'Sảnh 2 (Cạnh Sân Pickleball)', '6 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-emerald-600 hover:bg-emerald-50 transition" data-code="S2-08">S2-08 (6k)</button>
+                <button type="button" onclick="selectTable('S2-09', 'Sảnh 2 (Cạnh Sân Pickleball)', '8 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-emerald-600 hover:bg-emerald-50 transition" data-code="S2-09">S2-09 (8k)</button>
+                <button type="button" onclick="selectTable('S2-10', 'Sảnh 2 (Cạnh Sân Pickleball)', '10 khách')" class="table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-emerald-600 hover:bg-emerald-50 transition" data-code="S2-10">S2-10 (10k)</button>
               </div>
             </div>
 
@@ -1685,7 +1868,63 @@
     <div class="relative max-w-4xl w-full" onclick="event.stopPropagation()">
       <button onclick="closeLightbox()" class="absolute -top-12 right-0 text-white/80 hover:text-white text-2xl p-2"><i class="fa-solid fa-xmark"></i></button>
       <img id="lightboxImg" src="" alt="Không gian PiPo Garden" class="w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl">
-      <div id="lightboxCaption" class="text-center text-white/90 text-sm font-serif font-bold mt-3"></div>
+      <div id="lightboxCaption" class="text-center text-white/90 text-sm font-bold mt-3"></div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- PWA INSTALL FLOATING BANNER (TẢI APP CHO MOBILE & MÁY TÍNH) -->
+  <!-- ======================================================== -->
+  <div id="pwaInstallBanner" class="fixed bottom-5 right-5 z-40 hidden animate-in slide-in-from-bottom duration-300">
+    <div class="bg-brand-emerald-dark/95 border-2 border-brand-gold/70 backdrop-blur-md text-white p-3.5 sm:px-5 sm:py-4 rounded-3xl shadow-2xl flex items-center gap-3.5 max-w-sm ring-4 ring-black/20">
+      <div class="w-11 h-11 rounded-2xl bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold flex-shrink-0 text-xl shadow-inner">
+        <i class="fa-solid fa-mobile-screen-button"></i>
+      </div>
+      <div class="flex-1 min-w-0 pr-1">
+        <div class="font-bold text-xs sm:text-sm text-brand-gold-light leading-tight">Cài Đặt App PiPo Garden</div>
+        <div class="text-[11px] text-white/80 mt-0.5 line-clamp-1">Tải xuống dùng ngay, không cần mở web</div>
+      </div>
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        <button id="btnPwaInstall" onclick="handlePwaInstallClick()" class="gold-gradient text-brand-emerald-dark font-black text-xs px-3.5 py-2 rounded-xl shadow hover:brightness-110 transition whitespace-nowrap active:scale-95">
+          Cài đặt
+        </button>
+        <button onclick="dismissPwaBanner()" class="text-white/60 hover:text-white p-1.5 text-xs transition" title="Đóng">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL HƯỚNG DẪN CÀI ĐẶT CHO IPHONE / IPAD (iOS SAFARI) -->
+  <div id="iosInstallModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-stone-800 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
+      <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+        <h3 class="font-bold text-sm text-stone-900 flex items-center gap-2">
+          <i class="fa-brands fa-apple text-xl text-stone-900"></i>
+          <span>Cài Đặt App Trên iPhone / iPad</span>
+        </h3>
+        <button onclick="closeIosInstallModal()" class="text-stone-400 hover:text-stone-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+      </div>
+      <p class="text-xs text-stone-600 leading-relaxed">
+        Để cài đặt ứng dụng PiPo Garden lên màn hình chính thiết bị Apple của bạn:
+      </p>
+      <div class="space-y-3 text-xs bg-stone-50 p-3.5 rounded-2xl border border-stone-200">
+        <div class="flex items-start gap-2.5">
+          <span class="w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-[10px] flex-shrink-0 mt-0.5">1</span>
+          <span>Bấm vào nút <strong>Chia sẻ (Share)</strong> <i class="fa-solid fa-arrow-up-from-bracket text-emerald-700 mx-1"></i> trên thanh công cụ Safari.</span>
+        </div>
+        <div class="flex items-start gap-2.5">
+          <span class="w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-[10px] flex-shrink-0 mt-0.5">2</span>
+          <span>Cuộn xuống và chọn <strong>"Thêm vào Màn hình chính" (Add to Home Screen)</strong> 📲.</span>
+        </div>
+        <div class="flex items-start gap-2.5">
+          <span class="w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-[10px] flex-shrink-0 mt-0.5">3</span>
+          <span>Bấm <strong>Thêm (Add)</strong> ở góc trên bên phải để hoàn tất!</span>
+        </div>
+      </div>
+      <button onclick="closeIosInstallModal()" class="w-full py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition shadow-sm">
+        Đã hiểu
+      </button>
     </div>
   </div>
 
@@ -1901,25 +2140,7 @@
     }
 
     // ==========================================
-    // 7. SƠ ĐỒ MẶT BẰNG & CHỌN BÀN THÔNG MINH
-    // ==========================================
-    function switchFloorMapView(mode) {
-      const img = document.getElementById("floorMapImg");
-      const btn3D = document.getElementById("btnView3D");
-      const btnCAD = document.getElementById("btnViewCAD");
-      if (mode === '3d') {
-        img.src = "/static/home/resort_layout_3d.jpg";
-        btn3D.className = "px-3.5 py-1.5 rounded-xl bg-white shadow-xs text-brand-emerald-dark font-bold transition";
-        btnCAD.className = "px-3.5 py-1.5 rounded-xl text-stone-600 hover:text-stone-900 font-bold transition";
-      } else {
-        img.src = "/static/home/resort_masterplan.jpg";
-        btnCAD.className = "px-3.5 py-1.5 rounded-xl bg-white shadow-xs text-brand-emerald-dark font-bold transition";
-        btn3D.className = "px-3.5 py-1.5 rounded-xl text-stone-600 hover:text-stone-900 font-bold transition";
-      }
-    }
-
-    // ==========================================
-    // 7. SƠ ĐỒ MẶT BẰNG & CHỌN BÀN THÔNG MINH
+    // 7. SƠ ĐỒ MẶT BẰNG & CHỌN BÀN THÔNG MINH (27 BÀN CHUẨN)
     // ==========================================
     let currentSelectedTable = null;
     function selectTable(code, area, info) {
@@ -1952,10 +2173,23 @@
           chip.className = "table-chip px-2.5 py-1 rounded-lg bg-white border border-stone-200 font-bold text-stone-700 hover:border-brand-gold hover:bg-amber-50";
         }
       });
+
+      // Highlight active visual-table-btn on architectural floor map
+      document.querySelectorAll(".visual-table-btn").forEach(btn => {
+        if (btn.getAttribute("data-code") === code) {
+          btn.classList.add("ring-4", "ring-brand-gold", "gold-gradient", "!text-brand-emerald-dark", "scale-105", "shadow-xl");
+          const childDivs = btn.querySelectorAll("div, span");
+          childDivs.forEach(cd => cd.classList.add("!text-brand-emerald-dark", "!font-black"));
+        } else {
+          btn.classList.remove("ring-4", "ring-brand-gold", "gold-gradient", "!text-brand-emerald-dark", "scale-105", "shadow-xl");
+          const childDivs = btn.querySelectorAll("div, span");
+          childDivs.forEach(cd => cd.classList.remove("!text-brand-emerald-dark", "!font-black"));
+        }
+      });
     }
 
     function scrollToFloorMap() {
-      const el = document.getElementById("floorMapImg");
+      const el = document.getElementById("booking");
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -2621,6 +2855,76 @@
       } catch (e) {
         console.warn("CMS dynamic sync skipped", e);
       }
+    }
+
+    // ==========================================
+    // 11. PWA INSTALLATION & SERVICE WORKER
+    // ==========================================
+    let deferredPwaPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      const navBtn = document.getElementById('navInstallBtn');
+      if (navBtn) navBtn.classList.remove('hidden');
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner && !sessionStorage.getItem('pwa_banner_dismissed')) {
+        banner.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPwaPrompt = null;
+      const navBtn = document.getElementById('navInstallBtn');
+      if (navBtn) navBtn.classList.add('hidden');
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.classList.add('hidden');
+      console.log('PiPo Garden PWA installed successfully');
+    });
+
+    function handlePwaInstallClick() {
+      if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        deferredPwaPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted PWA installation');
+          }
+          deferredPwaPrompt = null;
+        });
+      } else {
+        const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+        if (isIos) {
+          const modal = document.getElementById('iosInstallModal');
+          if (modal) modal.classList.remove('hidden');
+        } else {
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+          if (isStandalone) {
+            alert('Quý khách đang sử dụng ứng dụng PiPo Garden.');
+          } else {
+            alert('Để cài đặt PiPo Garden, quý khách hãy chọn biểu tượng "Cài đặt ứng dụng" trên thanh địa chỉ trình duyệt hoặc vào Cài đặt trình duyệt > "Thêm vào màn hình chính / Cài đặt app".');
+          }
+        }
+      }
+    }
+
+    function dismissPwaBanner() {
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.classList.add('hidden');
+      sessionStorage.setItem('pwa_banner_dismissed', '1');
+    }
+
+    function closeIosInstallModal() {
+      const modal = document.getElementById('iosInstallModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    // Register service worker for offline caching & PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then(reg => console.log('Service Worker registered with scope:', reg.scope))
+          .catch(err => console.warn('Service Worker registration skipped/failed:', err));
+      });
     }
 
     // On Document Loaded

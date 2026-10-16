@@ -1,0 +1,55 @@
+{
+  "name": "PiPo Garden - Resort & Dining",
+  "short_name": "PiPo Garden",
+  "description": "Tổ hợp Ẩm Thực Sân Vườn, Hồ Bơi & Cụm Sân Pickleball PiPo Garden Phú Quốc",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0F382C",
+  "theme_color": "#0F382C",
+  "categories": ["food", "lifestyle", "sports"],
+  "icons": [
+    {
+      "src": "/static/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Thực Đơn Gọi Món",
+      "short_name": "Menu",
+      "description": "Xem thực đơn & gọi món trực tuyến",
+      "url": "/menu",
+      "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Đặt Sân Pickleball",
+      "short_name": "Pickleball",
+      "description": "Đặt sân thể thao Pickleball PiPo Garden",
+      "url": "/pickleball",
+      "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Thu Ngân POS",
+      "short_name": "POS",
+      "description": "Hệ thống quản lý thu ngân & thanh toán",
+      "url": "/pos",
+      "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

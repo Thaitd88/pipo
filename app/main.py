@@ -7,7 +7,7 @@ if sys.platform == "win32":
         pass
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from contextlib import asynccontextmanager
@@ -162,6 +162,21 @@ app.include_router(reservations.router)
 app.include_router(homepage_cms.router)
 app.include_router(pickleball.router)
 
+# PWA Progressive Web App Endpoints
+@app.get("/manifest.json")
+def get_pwa_manifest():
+    manifest_path = os.path.join(STATIC_DIR, "manifest.json")
+    if os.path.exists(manifest_path):
+        return FileResponse(manifest_path, media_type="application/manifest+json")
+    return {"name": "PiPo Garden"}
+
+@app.get("/sw.js")
+def get_pwa_service_worker():
+    sw_path = os.path.join(STATIC_DIR, "sw.js")
+    if os.path.exists(sw_path):
+        return FileResponse(sw_path, media_type="application/javascript", headers={"Service-Worker-Allowed": "/"})
+    return HTMLResponse("", status_code=404)
+
 # ==========================================
 # WEBSOCKET ENDPOINTS
 # ==========================================
@@ -222,13 +237,13 @@ def home_page(request: Request):
     """Trang chủ quảng bá thương hiệu đẳng cấp PiPo Garden Phú Quốc."""
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM tables WHERE table_code LIKE 'NH%' OR area LIKE '%Nhà Hàng%' ORDER BY id ASC LIMIT 1")
+    cursor.execute("SELECT * FROM tables WHERE table_code LIKE 'HB%' OR area LIKE '%Hồ Bơi%' ORDER BY id ASC LIMIT 1")
     nh_row = cursor.fetchone()
     if not nh_row:
         cursor.execute("SELECT * FROM tables ORDER BY id ASC LIMIT 1")
         nh_row = cursor.fetchone()
 
-    cursor.execute("SELECT * FROM tables WHERE table_code LIKE 'CF%' OR area LIKE '%Cafe%' ORDER BY id ASC LIMIT 1")
+    cursor.execute("SELECT * FROM tables WHERE table_code LIKE 'S2%' OR area LIKE '%Sảnh 2%' ORDER BY id ASC LIMIT 1")
     cf_row = cursor.fetchone()
     if not cf_row:
         cursor.execute("SELECT * FROM tables ORDER BY id DESC LIMIT 1")
@@ -261,13 +276,13 @@ def staff_portal_page(request: Request):
 
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM tables WHERE table_code LIKE 'NH%' OR area LIKE '%Nhà Hàng%' ORDER BY id ASC LIMIT 1")
+    cursor.execute("SELECT * FROM tables WHERE table_code LIKE 'HB%' OR area LIKE '%Hồ Bơi%' ORDER BY id ASC LIMIT 1")
     nh_row = cursor.fetchone()
     if not nh_row:
         cursor.execute("SELECT * FROM tables ORDER BY id ASC LIMIT 1")
         nh_row = cursor.fetchone()
 
-    cursor.execute("SELECT * FROM tables WHERE table_code LIKE 'CF%' OR area LIKE '%Cafe%' ORDER BY id ASC LIMIT 1")
+    cursor.execute("SELECT * FROM tables WHERE table_code LIKE 'S2%' OR area LIKE '%Sảnh 2%' ORDER BY id ASC LIMIT 1")
     cf_row = cursor.fetchone()
     if not cf_row:
         cursor.execute("SELECT * FROM tables ORDER BY id DESC LIMIT 1")
@@ -306,8 +321,15 @@ def pickleball_page(request: Request):
 
 @app.get("/menu", response_class=HTMLResponse)
 def menu_shortcut_page(request: Request):
-    """Đường dẫn tắt /menu?table=NH01 hoặc /menu để mở nhanh giao diện gọi món."""
-    table_param = request.query_params.get("table", "NH01")
+    """Đường dẫn tắt /menu?table=HB01 hoặc /menu để mở nhanh giao diện gọi món."""
+    table_param = request.query_params.get("table")
+    if not table_param:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT table_code FROM tables ORDER BY id ASC LIMIT 1")
+        row = cursor.fetchone()
+        conn.close()
+        table_param = row["table_code"] if row else "HB01"
     return customer_page(request, table_param)
 
 @app.get("/table/{qr_token}", response_class=HTMLResponse)
@@ -318,7 +340,7 @@ def customer_page(request: Request, qr_token: str):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM tables WHERE qr_token = ? OR UPPER(table_code) = UPPER(?)", (qr_token, qr_token))
     table = cursor.fetchone()
-    if not table and qr_token == "e6c08568cf3aaffa":
+    if not table and (qr_token == "e6c08568cf3aaffa" or qr_token.startswith("NH") or qr_token.startswith("CF")):
         cursor.execute("SELECT * FROM tables ORDER BY id ASC LIMIT 1")
         table = cursor.fetchone()
     cursor.execute("SELECT key, value FROM system_settings")

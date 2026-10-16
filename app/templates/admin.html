@@ -1606,11 +1606,14 @@
             </td>
             <td class="py-3 px-4 max-w-xs">
               <div class="space-y-0.5">
-                ${o.items.map(it => `
-                  <div class="text-[11px] text-stone-700">
-                    <strong>[${it.quantity}]</strong> ${it.item_name}
-                  </div>
-                `).join('')}
+                ${o.items.map(it => {
+                  const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
+                  return `
+                    <div class="text-[11px] text-stone-700">
+                      <span>${it.item_name}</span> × <strong>${it.quantity}</strong> × ${formatVND(uPrice)} = <strong class="text-emerald-700">${formatVND(it.total_price)}</strong>
+                    </div>
+                  `;
+                }).join('')}
               </div>
             </td>
             <td class="py-3 px-4 text-center">

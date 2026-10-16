@@ -11,9 +11,20 @@
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     @media print {
-      body * { visibility: hidden; }
-      #printArea, #printArea * { visibility: visible; }
-      #printArea { position: absolute; left: 0; top: 0; width: 100%; }
+      body * { visibility: hidden !important; }
+      #printableReceipt, #printableReceipt * { visibility: visible !important; }
+      #printableReceipt {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 80mm !important;
+        padding: 4mm !important;
+        margin: 0 auto !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: white !important;
+        color: black !important;
+      }
     }
   </style>
 </head>
@@ -516,10 +527,103 @@
         </button>
       </div>
 
+      <button onclick="openPrintBillModal()" class="w-full bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-xs">
+        <i class="fa-solid fa-print"></i>
+        <span>In Phiếu Tính Tiền (Tạm Tính)</span>
+      </button>
+
       <div class="pt-1">
         <a id="drawerCustomerLink" href="#" target="_blank" class="w-full text-center block text-xs text-emerald-700 hover:underline">
           <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Xem giao diện gọi món của bàn này
         </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL IN PHIẾU TÍNH TIỀN / HÓA ĐƠN TẠM TÍNH (POS) -->
+  <div id="printBillModal" class="fixed inset-0 z-60 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+        <h3 class="font-bold text-sm text-stone-900 flex items-center gap-2">
+          <i class="fa-solid fa-receipt text-emerald-700"></i>
+          <span>Phiếu Tính Tiền Tạm Tính</span>
+        </h3>
+        <button onclick="closePrintBillModal()" class="text-stone-400 hover:text-stone-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Khung hóa đơn in 80mm -->
+      <div class="flex-1 overflow-y-auto py-3">
+        <div id="printableReceipt" class="bg-stone-50 p-4 rounded-2xl border border-dashed border-stone-300 text-xs font-mono text-stone-800">
+          <div class="text-center pb-3 border-b border-dashed border-stone-300">
+            <div class="font-black text-sm text-stone-900 tracking-wider uppercase">PiPo Garden</div>
+            <div class="text-[10px] text-stone-500">Ẩm Thực Sân Vườn & Pickleball</div>
+            <div class="text-[10px] text-stone-400 mt-0.5">Hotline: 0838.993.316</div>
+          </div>
+
+          <div class="py-2.5 border-b border-dashed border-stone-300 space-y-1 text-[11px]">
+            <div class="flex justify-between">
+              <span class="text-stone-500">Bàn:</span>
+              <span class="font-bold text-stone-900" id="receiptTableName">Bàn 01</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-stone-500">Khu vực:</span>
+              <span class="text-stone-700" id="receiptTableArea">Khu Hồ Bơi</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-stone-500">Thời gian:</span>
+              <span class="text-stone-700" id="receiptPrintTime">...</span>
+            </div>
+          </div>
+
+          <!-- Bảng món ăn: Tên món x Số lượng x Đơn giá = Thành tiền -->
+          <div class="py-2.5 border-b border-dashed border-stone-300">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="text-[10px] text-stone-400 border-b border-stone-200">
+                  <th class="pb-1">Tên món / SL × Đơn giá</th>
+                  <th class="pb-1 text-right">T.Tiền</th>
+                </tr>
+              </thead>
+              <tbody id="receiptItemsBody" class="divide-y divide-dashed divide-stone-200 text-xs">
+                <!-- Render dòng món ăn -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Tổng cộng -->
+          <div class="pt-3 space-y-1.5 text-xs">
+            <div class="flex justify-between items-center text-sm font-black text-stone-900">
+              <span>TỔNG CỘNG:</span>
+              <span class="text-emerald-800 text-base font-black" id="receiptGrandTotal">0 đ</span>
+            </div>
+            <div class="text-[10px] text-stone-400 text-center pt-1 italic">
+              (Phiếu tạm tính - Chưa gồm VAT)
+            </div>
+          </div>
+
+          <!-- QR thanh toán nếu có -->
+          <div id="receiptQRContainer" class="mt-3 pt-3 border-t border-dashed border-stone-300 text-center">
+            <img id="receiptQRImg" src="" alt="VietQR" class="w-32 h-32 mx-auto rounded-lg border border-stone-200 bg-white p-1">
+            <div class="text-[10px] text-stone-500 mt-1">Quét mã VietQR để thanh toán nhanh</div>
+          </div>
+
+          <div class="text-center pt-3 text-[10px] text-stone-400 border-t border-dashed border-stone-200 mt-3">
+            Cảm ơn quý khách & Hẹn gặp lại!
+          </div>
+        </div>
+      </div>
+
+      <!-- Nút in & Đóng -->
+      <div class="pt-3 border-t border-stone-100 flex items-center gap-2">
+        <button onclick="closePrintBillModal()" class="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 font-bold text-xs hover:bg-stone-50 transition">
+          Đóng
+        </button>
+        <button onclick="executePrintReceipt()" class="flex-1 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition">
+          <i class="fa-solid fa-print"></i>
+          <span>In Ngay</span>
+        </button>
       </div>
     </div>
   </div>
@@ -949,15 +1053,32 @@
       if (currentBillData.items.length === 0) {
         itemsContainer.innerHTML = `<div class="text-center py-12 text-stone-400 text-xs">Bàn hiện chưa có món nào được gọi.</div>`;
       } else {
-        itemsContainer.innerHTML = currentBillData.items.map(it => `
-          <div class="flex items-center justify-between text-xs py-2 border-b border-stone-100">
-            <div>
-              <div class="font-bold text-stone-800">[${it.quantity}] ${it.item_name}</div>
-              ${it.note ? `<div class="text-[11px] text-amber-700 italic">Lưu ý: ${it.note}</div>` : ''}
+        itemsContainer.innerHTML = currentBillData.items.map(it => {
+          const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
+          return `
+            <div class="flex items-center justify-between text-xs py-2.5 border-b border-stone-100 ${it.status === 'CANCELLED' ? 'opacity-50 line-through' : ''}">
+              <div class="pr-2">
+                <div class="font-bold text-stone-800 leading-tight">${it.item_name}</div>
+                <div class="text-[11px] text-stone-500 font-medium mt-0.5 flex items-center gap-1 flex-wrap">
+                  <span class="font-semibold text-stone-800">${it.item_name}</span>
+                  <span class="text-stone-400 font-bold text-[10px]">×</span>
+                  <span class="font-bold text-stone-900">${it.quantity}</span>
+                  <span class="text-stone-400 font-bold text-[10px]">×</span>
+                  <span>${formatVND(uPrice)}</span>
+                  <span class="text-stone-400 font-bold text-[10px]">=</span>
+                  <span class="font-bold text-emerald-700">${formatVND(it.total_price)}</span>
+                </div>
+                ${it.note ? `<div class="text-[11px] text-amber-700 italic mt-0.5">Lưu ý: ${it.note}</div>` : ''}
+              </div>
+              <div class="text-right flex-shrink-0">
+                ${it.status === 'CANCELLED' 
+                  ? '<span class="text-rose-500 text-[10px] font-semibold bg-rose-50 px-1.5 py-0.5 rounded">Đã hủy</span>' 
+                  : `<div class="font-extrabold text-stone-900">${formatVND(it.total_price)}</div>`
+                }
+              </div>
             </div>
-            <div class="font-bold text-stone-900">${formatVND(it.total_price)}</div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       }
 
       document.getElementById("billDrawer").classList.remove("translate-x-full");
@@ -965,6 +1086,65 @@
 
     function closeBillDrawer() {
       document.getElementById("billDrawer").classList.add("translate-x-full");
+    }
+
+    function openPrintBillModal() {
+      if (!currentBillData || !selectedTable) {
+        alert("Vui lòng chọn bàn trước khi in hóa đơn!");
+        return;
+      }
+      document.getElementById("receiptTableName").innerText = selectedTable.name;
+      document.getElementById("receiptTableArea").innerText = `${selectedTable.area} • Mã: ${selectedTable.table_code}`;
+      const now = new Date();
+      document.getElementById("receiptPrintTime").innerText = now.toLocaleString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      });
+
+      const tbody = document.getElementById("receiptItemsBody");
+      if (!currentBillData.items || currentBillData.items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="2" class="py-4 text-center text-stone-400 italic">Chưa có món nào</td></tr>`;
+      } else {
+        tbody.innerHTML = currentBillData.items.map(it => {
+          const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
+          return `
+            <tr class="py-1.5 ${it.status === 'CANCELLED' ? 'line-through text-stone-400' : ''}">
+              <td class="py-1.5 pr-2 align-top">
+                <div class="font-bold text-stone-800 leading-tight">${it.item_name}</div>
+                <div class="text-[10px] text-stone-600 font-mono mt-0.5">
+                  ${it.item_name} × ${it.quantity} × ${formatVND(uPrice)} = ${it.status === 'CANCELLED' ? 'Hủy' : formatVND(it.total_price)}
+                </div>
+                ${it.note ? `<div class="text-[10px] text-amber-700 italic">(${it.note})</div>` : ''}
+              </td>
+              <td class="py-1.5 text-right font-bold text-stone-900 align-top whitespace-nowrap">
+                ${it.status === 'CANCELLED' ? 'Hủy' : formatVND(it.total_price)}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      document.getElementById("receiptGrandTotal").innerText = formatVND(currentBillData.grand_total);
+
+      if (currentBillData.vietqr_url && currentBillData.grand_total > 0) {
+        document.getElementById("receiptQRImg").src = currentBillData.vietqr_url;
+        document.getElementById("receiptQRContainer").classList.remove("hidden");
+      } else {
+        document.getElementById("receiptQRContainer").classList.add("hidden");
+      }
+
+      document.getElementById("printBillModal").classList.remove("hidden");
+    }
+
+    function closePrintBillModal() {
+      document.getElementById("printBillModal").classList.add("hidden");
+    }
+
+    function executePrintReceipt() {
+      window.print();
     }
 
     function openVietQRModal() {
@@ -1232,11 +1412,14 @@
             </td>
             <td class="py-3 px-4 max-w-xs">
               <div class="space-y-0.5">
-                ${o.items.map(it => `
-                  <div class="text-[11px] text-stone-700">
-                    <strong>[${it.quantity}]</strong> ${it.item_name}
-                  </div>
-                `).join('')}
+                ${o.items.map(it => {
+                  const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
+                  return `
+                    <div class="text-[11px] text-stone-700">
+                      <span>${it.item_name}</span> × <strong>${it.quantity}</strong> × ${formatVND(uPrice)} = <strong class="text-emerald-700">${formatVND(it.total_price)}</strong>
+                    </div>
+                  `;
+                }).join('')}
               </div>
             </td>
             <td class="py-3 px-4 text-center">

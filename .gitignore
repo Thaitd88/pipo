@@ -6,6 +6,8 @@ __pycache__/
 # Local and temporary databases / volumes
 data/
 backup/
+*.db
+*.sqlite
 *.zip
 *.tar.gz
 *.mp4
