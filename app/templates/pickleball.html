@@ -121,15 +121,15 @@
 
       <!-- Quick Actions & View Mode Switcher -->
       <div class="flex items-center gap-2 sm:gap-3">
-        <!-- DEMO TOGGLE: User Booking vs Admin Calendar -->
-        <div class="bg-black/40 p-1 rounded-full border border-white/20 flex items-center">
+        <!-- ADMIN TOGGLE (Only visible after auth check for ADMIN/CASHIER) -->
+        <div id="adminToggleWrapper" class="hidden bg-black/40 p-1 rounded-full border border-white/20 flex items-center">
           <button onclick="setViewMode('user')" id="btnViewUser" class="px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-sport-gold text-sport-emerald-dark shadow-sm">
             <i class="fa-solid fa-user"></i>
             <span class="hidden sm:inline">Khách Đặt Sân</span>
           </button>
           <button onclick="setViewMode('admin')" id="btnViewAdmin" class="px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 text-white/80 hover:text-white">
-            <i class="fa-solid fa-calendar-days"></i>
-            <span class="hidden sm:inline">Lịch 4 Sân (Admin)</span>
+            <i class="fa-solid fa-shield-halved text-sport-gold"></i>
+            <span class="hidden sm:inline">Chế Độ Quản Trị</span>
           </button>
         </div>
 
@@ -576,47 +576,150 @@
     </div>
 
     <!-- ====================================================== -->
-    <!-- VIEW MODE 2: ADMIN / CASHIER CALENDAR MATRIX VIEW -->
+    <!-- VIEW MODE 2: ADMIN PANEL (LỊCH 4 SÂN & QUẢN LÝ BOOKINGS) -->
     <!-- ====================================================== -->
-    <div id="adminCalendarView" class="hidden space-y-6">
-      <div class="bg-white rounded-3xl p-5 sm:p-7 border border-stone-200 shadow-sm space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
+    <div id="adminCalendarView" class="hidden space-y-8">
+      
+      <!-- Top Bar: Date picker & Filters -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border border-stone-200 shadow-sm space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-stone-100">
           <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold mb-1">
-              <i class="fa-solid fa-lock text-xs"></i>
-              <span>QUẢN TRỊ VIÊN & THU NGÂN POS</span>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold mb-1.5">
+              <i class="fa-solid fa-shield-halved text-xs text-blue-700"></i>
+              <span id="adminStaffBadge">BẢNG ĐIỀU KHIỂN QUẢN TRỊ PICKLEBALL</span>
             </div>
-            <h2 class="text-xl font-black text-stone-900">Lịch Hoạt Động & Khách Đặt 4 Sân Pickleball</h2>
-            <p class="text-xs text-stone-500">Xem toàn cảnh ma trận 16 khung giờ và tình trạng thanh toán của từng sân.</p>
+            <h2 class="text-xl sm:text-2xl font-black text-stone-900">Quản Trị Lịch Đặt Sân & Khách Chơi Pickleball</h2>
+            <p class="text-xs text-stone-500">Giám sát 4 cụm sân có mái che, duyệt thanh toán đặt cọc và xác nhận check-in trực tiếp.</p>
           </div>
 
-          <div class="flex items-center gap-3">
-            <input type="date" id="adminDateInput" onchange="loadAdminMatrix(this.value)" class="bg-stone-50 border border-stone-300 rounded-xl px-3 py-2 text-xs font-bold text-stone-800">
-            <button onclick="loadAdminMatrix()" class="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1.5">
+          <!-- Controls: Date picker, Court filter, Status filter, Refresh -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <div class="flex items-center gap-1 bg-stone-50 border border-stone-300 rounded-xl px-2 py-1">
+              <button type="button" onclick="changeAdminDate(-1)" class="p-1.5 text-stone-500 hover:text-stone-800 text-xs" title="Ngày hôm trước"><i class="fa-solid fa-chevron-left"></i></button>
+              <input type="date" id="adminDateInput" onchange="onAdminDateChanged(this.value)" class="bg-transparent text-xs font-bold text-stone-800 focus:outline-none py-1">
+              <button type="button" onclick="changeAdminDate(1)" class="p-1.5 text-stone-500 hover:text-stone-800 text-xs" title="Ngày kế tiếp"><i class="fa-solid fa-chevron-right"></i></button>
+              <button type="button" onclick="setAdminDateToday()" class="px-2 py-1 bg-white border border-stone-200 text-stone-700 rounded-lg text-[10px] font-bold hover:bg-stone-100">Hôm nay</button>
+            </div>
+
+            <!-- Filter Sân -->
+            <select id="adminCourtFilter" onchange="applyAdminFilters()" class="bg-stone-50 border border-stone-300 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none">
+              <option value="ALL">Tất Cả 4 Sân</option>
+              <option value="1">Sân 1 (Center)</option>
+              <option value="2">Sân 2 (Covered)</option>
+              <option value="3">Sân 3 (Covered)</option>
+              <option value="4">Sân 4 (Poolside)</option>
+            </select>
+
+            <!-- Filter Trạng thái -->
+            <select id="adminStatusFilter" onchange="applyAdminFilters()" class="bg-stone-50 border border-stone-300 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none">
+              <option value="ALL">Tất Cả Trạng Thái</option>
+              <option value="PENDING">Chờ Duyệt / Cọc (PENDING)</option>
+              <option value="CONFIRMED">Đã Xác Nhận (CONFIRMED)</option>
+              <option value="PAID">Đã Thanh Toán Đủ (PAID)</option>
+              <option value="CANCELLED">Đã Hủy (CANCELLED)</option>
+            </select>
+
+            <button type="button" onclick="reloadAdminData()" class="px-3.5 py-2 rounded-xl bg-sport-emerald hover:bg-sport-emerald-dark text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
               <i class="fa-solid fa-arrows-rotate"></i>
               <span>Làm Mới</span>
             </button>
           </div>
         </div>
 
-        <!-- Full Matrix Table -->
-        <div class="overflow-x-auto no-scrollbar">
-          <table class="w-full text-xs text-left border-collapse min-w-[700px]">
+        <!-- Quick Status Metrics -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div class="p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
+            <div class="text-stone-500 text-[11px] font-medium">Tổng Đơn Đặt Sân</div>
+            <div id="adminStatTotal" class="text-xl font-black text-stone-900 mt-0.5">0</div>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200">
+            <div class="text-amber-800 text-[11px] font-medium">Chờ Xử Lý / Cọc</div>
+            <div id="adminStatPending" class="text-xl font-black text-amber-700 mt-0.5">0</div>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200">
+            <div class="text-emerald-800 text-[11px] font-medium">Đã Xác Nhận / Đã Thu</div>
+            <div id="adminStatConfirmed" class="text-xl font-black text-emerald-700 mt-0.5">0</div>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-blue-50 border border-blue-200">
+            <div class="text-blue-800 text-[11px] font-medium">Doanh Thu Dự Kiến</div>
+            <div id="adminStatRevenue" class="text-xl font-black text-blue-700 mt-0.5">0 đ</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section A: Schedule Grid (4 Cột Sân x 16 Time Slot 06:00 - 22:00) -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border border-stone-200 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2">
+          <div>
+            <h3 class="text-base font-black text-stone-900 flex items-center gap-2">
+              <i class="fa-solid fa-calendar-week text-sport-emerald"></i>
+              <span>Ma Trận Lịch Thi Đấu 4 Sân (06:00 - 22:00)</span>
+            </h3>
+            <p class="text-xs text-stone-500">Trực quan tình trạng từng sân theo từng ca đấu 60 phút.</p>
+          </div>
+
+          <!-- Color Legend -->
+          <div class="flex flex-wrap items-center gap-3 text-[11px]">
+            <div class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded-md bg-white border border-stone-300"></span> <span class="text-stone-600">Trống (Trắng)</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded-md bg-amber-200 border border-amber-300"></span> <span class="text-amber-800 font-bold">PENDING (Vàng)</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded-md bg-emerald-200 border border-emerald-300"></span> <span class="text-emerald-800 font-bold">CONFIRMED / PAID (Xanh lá)</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded-md bg-stone-300 border border-stone-400"></span> <span class="text-stone-600 font-bold">CANCELLED (Xám)</span></div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto no-scrollbar rounded-2xl border border-stone-200">
+          <table class="w-full text-xs text-left border-collapse min-w-[760px]">
             <thead>
               <tr class="bg-stone-100 text-stone-700 uppercase text-[10px] font-black border-b border-stone-200">
-                <th class="p-3">Khung Giờ</th>
-                <th class="p-3 text-center">Sân 1 (Center Court)</th>
-                <th class="p-3 text-center">Sân 2 (Covered)</th>
-                <th class="p-3 text-center">Sân 3 (Covered)</th>
-                <th class="p-3 text-center">Sân 4 (Poolside)</th>
+                <th class="p-3 w-32 border-r border-stone-200">Khung Giờ</th>
+                <th id="thCourt-1" class="p-3 text-center border-r border-stone-200">🏆 Sân 1 (Center VIP)</th>
+                <th id="thCourt-2" class="p-3 text-center border-r border-stone-200">⚡ Sân 2 (Covered)</th>
+                <th id="thCourt-3" class="p-3 text-center border-r border-stone-200">🎾 Sân 3 (Covered)</th>
+                <th id="thCourt-4" class="p-3 text-center">🏊 Sân 4 (Poolside)</th>
               </tr>
             </thead>
-            <tbody id="adminMatrixBody" class="divide-y divide-stone-100">
-              <!-- Rendered by JS -->
+            <tbody id="adminScheduleGridBody" class="divide-y divide-stone-200">
+              <!-- Rendered by loadSchedule() -->
             </tbody>
           </table>
         </div>
       </div>
+
+      <!-- Section B: Table Danh Sách Booking -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border border-stone-200 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
+          <div>
+            <h3 class="text-base font-black text-stone-900 flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-sport-blue"></i>
+              <span>Danh Sách Đơn Đặt Sân Chi Tiết</span>
+            </h3>
+            <p class="text-xs text-stone-500">Quản lý và cập nhật trạng thái thanh toán / hủy cho từng khách hàng.</p>
+          </div>
+          <span id="adminBookingCountBadge" class="text-xs font-bold bg-stone-100 px-3 py-1 rounded-full text-stone-600">0 đơn đặt</span>
+        </div>
+
+        <div class="overflow-x-auto no-scrollbar rounded-2xl border border-stone-200">
+          <table class="w-full text-xs text-left border-collapse min-w-[850px]">
+            <thead class="bg-stone-100 text-stone-700 uppercase text-[10px] font-black border-b border-stone-200">
+              <tr>
+                <th class="p-3">Mã Vé</th>
+                <th class="p-3">Khách Hàng</th>
+                <th class="p-3">Số ĐT</th>
+                <th class="p-3">Ngày</th>
+                <th class="p-3">Sân</th>
+                <th class="p-3">Khung Giờ</th>
+                <th class="p-3">Chi Phí</th>
+                <th class="p-3 text-center">Trạng Thái</th>
+                <th class="p-3 text-right">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="adminBookingsTableBody" class="divide-y divide-stone-100">
+              <!-- Rendered by loadBookings() -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
   </main>
@@ -752,6 +855,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       initDatePickers();
       loadSlotsForDate(currentDate);
+      checkAdminAuth();
     });
 
     function initDatePickers() {
@@ -1064,8 +1168,54 @@
       document.getElementById("bookingVoucherModal").classList.add("hidden");
     }
 
-    // 9. CHUYỂN ĐỔI CHẾ ĐỘ VIEW (Khách Hàng vs Admin Calendar Matrix)
+    // 9. QUẢN TRỊ VIÊN PICKLEBALL (AUTH CHECK & ADMIN PANEL)
+    let isAdminUser = false;
+    let currentAdminUser = null;
+    let currentAdminDate = currentDate;
+
+    const ADMIN_TIME_SLOTS = [
+      "06:00 - 07:00", "07:00 - 08:00", "08:00 - 09:00", "09:00 - 10:00",
+      "10:00 - 11:00", "11:00 - 12:00", "12:00 - 13:00", "13:00 - 14:00",
+      "14:00 - 15:00", "15:00 - 16:00", "16:00 - 17:00", "17:00 - 18:00",
+      "18:00 - 19:00", "19:00 - 20:00", "20:00 - 21:00", "21:00 - 22:00"
+    ];
+
+    async function checkAdminAuth() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.authenticated && data.user && ['ADMIN', 'CASHIER'].includes(data.user.role)) {
+          isAdminUser = true;
+          currentAdminUser = data.user;
+          const toggleWrapper = document.getElementById("adminToggleWrapper");
+          if (toggleWrapper) {
+            toggleWrapper.classList.remove("hidden");
+          }
+          const staffBadge = document.getElementById("adminStaffBadge");
+          if (staffBadge) {
+            staffBadge.innerText = `${data.user.full_name} (${data.user.role}) • QUẢN TRỊ PICKLEBALL`;
+          }
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get("mode") === "admin") {
+            setViewMode("admin");
+          }
+        } else {
+          const toggleWrapper = document.getElementById("adminToggleWrapper");
+          if (toggleWrapper) {
+            toggleWrapper.classList.add("hidden");
+          }
+        }
+      } catch (e) {
+        console.error("Lỗi kiểm tra quyền quản trị", e);
+      }
+    }
+
     function setViewMode(mode) {
+      if (mode === 'admin' && !isAdminUser) {
+        alert("⚠️ Bạn cần đăng nhập với tài khoản Quản trị (ADMIN) hoặc Thu ngân (CASHIER) để truy cập chế độ quản trị.");
+        return;
+      }
       currentViewMode = mode;
       const uView = document.getElementById("userBookingView");
       const aView = document.getElementById("adminCalendarView");
@@ -1073,54 +1223,105 @@
       const btnA = document.getElementById("btnViewAdmin");
 
       if (mode === 'user') {
-        uView.classList.remove("hidden");
-        aView.classList.add("hidden");
-        btnU.className = "px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-sport-gold text-sport-emerald-dark shadow-sm";
-        btnA.className = "px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 text-white/80 hover:text-white";
+        if (uView) uView.classList.remove("hidden");
+        if (aView) aView.classList.add("hidden");
+        if (btnU) btnU.className = "px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-sport-gold text-sport-emerald-dark shadow-sm";
+        if (btnA) btnA.className = "px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 text-white/80 hover:text-white";
       } else {
-        uView.classList.add("hidden");
-        aView.classList.remove("hidden");
-        btnA.className = "px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-sport-gold text-sport-emerald-dark shadow-sm";
-        btnU.className = "px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 text-white/80 hover:text-white";
-        loadAdminMatrix(currentDate);
+        if (uView) uView.classList.add("hidden");
+        if (aView) aView.classList.remove("hidden");
+        if (btnA) btnA.className = "px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-sport-gold text-sport-emerald-dark shadow-sm";
+        if (btnU) btnU.className = "px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 text-white/80 hover:text-white";
+        
+        const targetDate = document.getElementById("adminDateInput")?.value || currentAdminDate || currentDate;
+        currentAdminDate = targetDate;
+        loadSchedule(targetDate);
+        loadBookings(targetDate);
       }
     }
 
-    // 10. Tải ma trận quản trị 4 sân x 16 khung giờ
-    async function loadAdminMatrix(date) {
-      const targetDate = date || currentDate;
+    // 10. Tải ma trận lịch 4 sân x 16 khung giờ (Màu: Trống=trắng, PENDING=vàng, CONFIRMED/PAID=xanh lá, CANCELLED=xám)
+    async function loadSchedule(date) {
+      const targetDate = date || currentAdminDate || currentDate;
+      currentAdminDate = targetDate;
+      const tbody = document.getElementById("adminScheduleGridBody");
+      if (!tbody) return;
+
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-stone-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải ma trận lịch 4 sân...</td></tr>`;
+
       try {
-        const res = await fetch(`/api/pickleball/slots?date=${targetDate}`);
+        const res = await fetch(`/api/pickleball/schedule?date=${targetDate}`);
         const data = await res.json();
-        if (!res.ok) return;
+        if (!res.ok) {
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-rose-500">Không thể tải lịch sân</td></tr>`;
+          return;
+        }
 
-        const tbody = document.getElementById("adminMatrixBody");
-        if (!tbody) return;
+        const schedule = data.schedule || { 1: [], 2: [], 3: [], 4: [] };
+        const courtFilterVal = document.getElementById("adminCourtFilter")?.value || "ALL";
 
-        const baseSlots = data.courts[0].slots;
-        tbody.innerHTML = baseSlots.map((base, idx) => {
+        tbody.innerHTML = ADMIN_TIME_SLOTS.map(slotStr => {
           return `
-            <tr class="hover:bg-stone-50 transition">
-              <td class="p-3 font-mono font-bold text-stone-800 bg-stone-50 border-r border-stone-200">
-                ${base.slot}
-                <div class="text-[10px] text-stone-400 font-sans font-normal">${base.is_peak ? '🌙 Giờ Vàng' : '☀️ Off-Peak'}</div>
+            <tr class="hover:bg-stone-50/70 transition">
+              <td class="p-2.5 font-mono font-bold text-stone-800 bg-stone-50/90 border-r border-stone-200 text-center whitespace-nowrap">
+                ${slotStr}
               </td>
               ${[1, 2, 3, 4].map(cId => {
-                const cData = data.courts.find(c => c.court_id === cId);
-                const s = cData ? cData.slots[idx] : null;
-                if (!s) return `<td class="p-2 text-center">-</td>`;
+                if (courtFilterVal !== "ALL" && String(courtFilterVal) !== String(cId)) {
+                  return `<td class="p-2 text-center bg-stone-50/40 border-r border-stone-200 text-stone-300">-</td>`;
+                }
 
-                if (s.status === 'BOOKED') {
+                const courtBookings = schedule[cId] || schedule[String(cId)] || [];
+                const activeBookings = courtBookings.filter(b => (b.time_slots || []).includes(slotStr));
+                let b = activeBookings.find(x => (x.status || '').toUpperCase() !== 'CANCELLED');
+                if (!b && activeBookings.length > 0) {
+                  b = activeBookings[0];
+                }
+
+                if (!b) {
+                  // Trống = Trắng
                   return `
-                    <td class="p-2 text-center bg-rose-50/70 border border-rose-200">
-                      <div class="font-bold text-rose-900">${s.booking_info ? s.booking_info.customer_name : 'Đã Đặt'}</div>
-                      <div class="text-[10px] font-mono text-rose-700">${s.booking_info ? s.booking_info.booking_code : ''}</div>
+                    <td class="p-2 text-center bg-white border-r border-stone-200">
+                      <span class="inline-block px-2.5 py-1 rounded-lg text-[10px] text-stone-400 font-semibold bg-stone-50 border border-stone-100">Trống</span>
+                    </td>
+                  `;
+                }
+
+                const st = (b.status || 'PENDING').toUpperCase();
+                if (st === 'PENDING') {
+                  // PENDING = Vàng
+                  return `
+                    <td class="p-2 text-center bg-amber-100/90 border-r border-amber-300 text-amber-950 transition hover:bg-amber-200/90">
+                      <div class="font-extrabold text-xs text-amber-950 truncate max-w-[150px] mx-auto" title="${b.customer_name}">${b.customer_name}</div>
+                      <div class="text-[10px] font-mono text-amber-800">${b.phone || b.booking_code}</div>
+                      <div class="mt-1 flex items-center justify-center gap-1">
+                        <span class="px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 text-[9px] font-bold">Chờ Cọc</span>
+                        <button onclick="updateBookingStatus(${b.booking_id}, 'CONFIRMED')" class="px-1.5 py-0.5 rounded bg-emerald-700 text-white text-[9px] font-bold hover:bg-emerald-800" title="Xác nhận">✓</button>
+                        <button onclick="updateBookingStatus(${b.booking_id}, 'CANCELLED')" class="px-1.5 py-0.5 rounded bg-rose-700 text-white text-[9px] font-bold hover:bg-rose-800" title="Hủy">✕</button>
+                      </div>
+                    </td>
+                  `;
+                } else if (st === 'CONFIRMED' || st === 'PAID' || st === 'DEPOSITED' || st === 'COMPLETED') {
+                  // CONFIRMED / PAID = Xanh lá
+                  const isPaid = st === 'PAID';
+                  return `
+                    <td class="p-2 text-center bg-emerald-100/90 border-r border-emerald-300 text-emerald-950 transition hover:bg-emerald-200/90">
+                      <div class="font-extrabold text-xs text-emerald-950 truncate max-w-[150px] mx-auto" title="${b.customer_name}">${b.customer_name}</div>
+                      <div class="text-[10px] font-mono text-emerald-800">${b.phone || b.booking_code}</div>
+                      <div class="mt-1 flex items-center justify-center gap-1">
+                        <span class="px-1.5 py-0.5 rounded ${isPaid ? 'bg-blue-100 text-blue-900 border border-blue-300' : 'bg-emerald-200 text-emerald-900'} text-[9px] font-bold">${isPaid ? 'Đã Thu Đủ' : 'Đã Xác Nhận'}</span>
+                        ${!isPaid ? `<button onclick="updateBookingStatus(${b.booking_id}, 'PAID')" class="px-1.5 py-0.5 rounded bg-blue-700 text-white text-[9px] font-bold hover:bg-blue-800" title="Thu đủ tiền">Thu</button>` : ''}
+                        <button onclick="updateBookingStatus(${b.booking_id}, 'CANCELLED')" class="px-1.5 py-0.5 rounded bg-stone-500 text-white text-[9px] font-bold hover:bg-stone-600" title="Hủy">✕</button>
+                      </div>
                     </td>
                   `;
                 } else {
+                  // CANCELLED = Xám
                   return `
-                    <td class="p-2 text-center bg-emerald-50/40 border border-emerald-100">
-                      <span class="inline-block px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">Trống (${(s.price/1000)}k)</span>
+                    <td class="p-2 text-center bg-stone-200 border-r border-stone-300 text-stone-600">
+                      <div class="font-medium text-xs text-stone-600 line-through truncate max-w-[140px] mx-auto" title="${b.customer_name}">${b.customer_name}</div>
+                      <div class="text-[10px] font-mono text-stone-500">${b.booking_code}</div>
+                      <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded bg-stone-300 text-stone-700 text-[9px] font-bold">Đã Hủy</span>
                     </td>
                   `;
                 }
@@ -1129,9 +1330,194 @@
           `;
         }).join('');
 
-      } catch (e) {
-        console.error("Lỗi tải admin matrix", e);
+      } catch (err) {
+        console.error("Lỗi tải schedule", err);
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-rose-500">Lỗi kết nối khi tải lịch</td></tr>`;
       }
+    }
+
+    // 11. Tải danh sách đơn đặt sân (Bookings Table & KPIs)
+    async function loadBookings(date) {
+      const targetDate = date || currentAdminDate || currentDate;
+      currentAdminDate = targetDate;
+      const tbody = document.getElementById("adminBookingsTableBody");
+      if (!tbody) return;
+
+      tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-stone-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải danh sách đặt sân...</td></tr>`;
+
+      let url = `/api/pickleball/bookings?date=${targetDate}&limit=100`;
+      const courtFilterVal = document.getElementById("adminCourtFilter")?.value || "ALL";
+      if (courtFilterVal !== "ALL") url += `&court_id=${courtFilterVal}`;
+      const statusFilterVal = document.getElementById("adminStatusFilter")?.value || "ALL";
+      if (statusFilterVal !== "ALL") url += `&status=${statusFilterVal}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!res.ok) {
+          tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-rose-500">Không thể tải danh sách đơn đặt</td></tr>`;
+          return;
+        }
+
+        const bookings = data.bookings || [];
+        const countBadge = document.getElementById("adminBookingCountBadge");
+        if (countBadge) countBadge.innerText = `${bookings.length} đơn đặt`;
+
+        // Update KPIs
+        let pendingCnt = 0;
+        let confirmedCnt = 0;
+        let revenueSum = 0;
+        bookings.forEach(b => {
+          const st = (b.payment_status || 'PENDING').toUpperCase();
+          if (st === 'PENDING') pendingCnt++;
+          if (st === 'CONFIRMED' || st === 'PAID' || st === 'DEPOSITED' || st === 'COMPLETED') confirmedCnt++;
+          if (st !== 'CANCELLED') revenueSum += (b.total_amount || 0);
+        });
+
+        const elTot = document.getElementById("adminStatTotal");
+        const elPen = document.getElementById("adminStatPending");
+        const elCon = document.getElementById("adminStatConfirmed");
+        const elRev = document.getElementById("adminStatRevenue");
+        if (elTot) elTot.innerText = bookings.length;
+        if (elPen) elPen.innerText = pendingCnt;
+        if (elCon) elCon.innerText = confirmedCnt;
+        if (elRev) elRev.innerText = revenueSum.toLocaleString('vi-VN') + " đ";
+
+        if (bookings.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" class="text-center py-10 text-stone-400">Không có đơn đặt sân nào cho ngày ${targetDate} theo bộ lọc đã chọn.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = bookings.map(r => {
+          const st = (r.payment_status || 'PENDING').toUpperCase();
+          let stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">⏳ PENDING</span>`;
+          if (st === 'CONFIRMED') stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">✅ CONFIRMED</span>`;
+          if (st === 'PAID') stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-300">💰 PAID</span>`;
+          if (st === 'CANCELLED') stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-stone-200 text-stone-600 border border-stone-300">❌ CANCELLED</span>`;
+
+          const slotsHtml = (r.time_slots || []).map(s => `<div class="font-mono text-[11px] text-stone-700">${s}</div>`).join('');
+
+          let actionsHtml = "";
+          if (st === 'PENDING') {
+            actionsHtml = `
+              <div class="flex items-center justify-end gap-1.5">
+                <button onclick="updateBookingStatus(${r.id}, 'CONFIRMED')" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition">Xác Nhận</button>
+                <button onclick="updateBookingStatus(${r.id}, 'CANCELLED')" class="px-2.5 py-1.5 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 font-bold text-xs transition" title="Hủy đơn">Hủy</button>
+              </div>
+            `;
+          } else if (st === 'CONFIRMED') {
+            actionsHtml = `
+              <div class="flex items-center justify-end gap-1.5">
+                <button onclick="updateBookingStatus(${r.id}, 'PAID')" class="px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs shadow-xs transition">Đã Thu Đủ</button>
+                <button onclick="updateBookingStatus(${r.id}, 'CANCELLED')" class="px-2.5 py-1.5 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 font-bold text-xs transition" title="Hủy đơn">Hủy</button>
+              </div>
+            `;
+          } else if (st === 'PAID') {
+            actionsHtml = `
+              <div class="flex items-center justify-end gap-1.5">
+                <span class="text-[11px] text-emerald-700 font-bold mr-1"><i class="fa-solid fa-circle-check"></i> Đã hoàn tất</span>
+                <button onclick="updateBookingStatus(${r.id}, 'CANCELLED')" class="px-2 py-1 rounded-lg border border-stone-300 text-stone-500 hover:text-rose-600 text-xs transition" title="Hủy">Hủy</button>
+              </div>
+            `;
+          } else {
+            actionsHtml = `
+              <div class="flex items-center justify-end gap-1.5">
+                <button onclick="updateBookingStatus(${r.id}, 'PENDING')" class="px-2.5 py-1.5 rounded-xl border border-amber-300 text-amber-700 hover:bg-amber-50 font-bold text-xs transition">Khôi Phục</button>
+              </div>
+            `;
+          }
+
+          return `
+            <tr class="hover:bg-stone-50/70 transition">
+              <td class="p-3 font-mono font-bold text-xs text-sport-emerald">${r.booking_code}</td>
+              <td class="p-3">
+                <div class="font-bold text-stone-900">${r.customer_name}</div>
+                ${r.notes ? `<div class="text-[10px] text-stone-400 truncate max-w-[150px]" title="${r.notes}">"${r.notes}"</div>` : ''}
+              </td>
+              <td class="p-3">
+                <a href="tel:${r.phone}" class="font-mono text-xs text-blue-700 hover:underline flex items-center gap-1">
+                  <i class="fa-solid fa-phone text-[10px]"></i> ${r.phone}
+                </a>
+              </td>
+              <td class="p-3 font-mono text-xs text-stone-700">${r.booking_date}</td>
+              <td class="p-3 font-bold text-xs text-stone-800">${r.court_name || ('Sân ' + r.court_id)}</td>
+              <td class="p-3">${slotsHtml}</td>
+              <td class="p-3">
+                <div class="font-black text-stone-900 text-xs">${(r.total_amount || 0).toLocaleString('vi-VN')} đ</div>
+                <div class="text-[10px] text-stone-500">Cọc: ${(r.deposit_amount || 0).toLocaleString('vi-VN')} đ</div>
+              </td>
+              <td class="p-3 text-center">${stBadge}</td>
+              <td class="p-3 text-right">${actionsHtml}</td>
+            </tr>
+          `;
+        }).join('');
+
+      } catch (err) {
+        console.error("Lỗi tải bookings", err);
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-rose-500">Lỗi kết nối khi tải danh sách đơn</td></tr>`;
+      }
+    }
+
+    // 12. Cập nhật trạng thái đơn đặt sân (Xác nhận / Hủy / Đã thu)
+    async function updateBookingStatus(id, status) {
+      if (status === 'CANCELLED' && !confirm("Bạn có chắc chắn muốn hủy đơn đặt sân này?")) return;
+      try {
+        const res = await fetch(`/api/pickleball/bookings/${id}/status`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: status })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert("✅ " + (data.message || `Đã cập nhật đơn sang trạng thái [${status}]`));
+          const targetDate = document.getElementById("adminDateInput")?.value || currentAdminDate || currentDate;
+          loadSchedule(targetDate);
+          loadBookings(targetDate);
+        } else {
+          alert("❌ " + (data.detail || "Không thể cập nhật trạng thái đơn"));
+        }
+      } catch (err) {
+        alert("Lỗi kết nối máy chủ");
+      }
+    }
+
+    // Helper functions điều khiển bộ lọc admin
+    function onAdminDateChanged(newDate) {
+      currentAdminDate = newDate;
+      loadSchedule(newDate);
+      loadBookings(newDate);
+    }
+
+    function changeAdminDate(delta) {
+      const base = currentAdminDate ? new Date(currentAdminDate + "T00:00:00") : new Date();
+      base.setDate(base.getDate() + delta);
+      const iso = base.toISOString().split("T")[0];
+      currentAdminDate = iso;
+      const input = document.getElementById("adminDateInput");
+      if (input) input.value = iso;
+      loadSchedule(iso);
+      loadBookings(iso);
+    }
+
+    function setAdminDateToday() {
+      const todayIso = new Date().toISOString().split("T")[0];
+      currentAdminDate = todayIso;
+      const input = document.getElementById("adminDateInput");
+      if (input) input.value = todayIso;
+      loadSchedule(todayIso);
+      loadBookings(todayIso);
+    }
+
+    function applyAdminFilters() {
+      const targetDate = document.getElementById("adminDateInput")?.value || currentAdminDate || currentDate;
+      loadSchedule(targetDate);
+      loadBookings(targetDate);
+    }
+
+    function reloadAdminData() {
+      const targetDate = document.getElementById("adminDateInput")?.value || currentAdminDate || currentDate;
+      loadSchedule(targetDate);
+      loadBookings(targetDate);
     }
   </script>
 

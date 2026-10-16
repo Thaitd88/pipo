@@ -546,22 +546,63 @@
         </div>
       </div>
 
+      <!-- 2 Tabs Ngày: Hôm Nay / Ngày Mai (kèm Tất Cả) -->
+      <div class="flex items-center gap-2 border-b border-stone-200 pb-3">
+        <button onclick="switchReservationDateTab('TODAY')" id="resDateTab-today" class="res-date-tab px-4 py-2 rounded-xl bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition">
+          <i class="fa-solid fa-calendar-day"></i>
+          <span id="labelResToday">Hôm Nay</span>
+          <span id="badgeResToday" class="bg-white/20 text-white px-2 py-0.5 rounded-full text-[10px]">0</span>
+        </button>
+        <button onclick="switchReservationDateTab('TOMORROW')" id="resDateTab-tomorrow" class="res-date-tab px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs flex items-center gap-2 hover:bg-stone-50 transition">
+          <i class="fa-solid fa-calendar-plus"></i>
+          <span id="labelResTomorrow">Ngày Mai</span>
+          <span id="badgeResTomorrow" class="bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full text-[10px]">0</span>
+        </button>
+        <button onclick="switchReservationDateTab('ALL')" id="resDateTab-all" class="res-date-tab px-3.5 py-2 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs flex items-center gap-2 hover:bg-stone-50 transition">
+          <i class="fa-solid fa-calendar-week"></i>
+          <span>Tất Cả Ngày</span>
+          <span id="badgeResAll" class="bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full text-[10px]">0</span>
+        </button>
+      </div>
+
       <!-- Action & Filter Bar -->
       <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-2">
-          <button onclick="filterReservations('ALL')" class="res-filter-btn px-3.5 py-1.5 rounded-xl bg-emerald-700 text-white font-bold text-xs shadow-xs">Tất Cả</button>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="filterReservations('ALL')" class="res-filter-btn px-3.5 py-1.5 rounded-xl bg-stone-800 text-white font-bold text-xs shadow-xs">Tất Cả</button>
           <button onclick="filterReservations('PENDING')" class="res-filter-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs hover:bg-stone-50">⏳ Chờ Phân Bàn</button>
           <button onclick="filterReservations('CONFIRMED')" class="res-filter-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs hover:bg-stone-50">✅ Đã Phân Bàn</button>
           <button onclick="filterReservations('CANCELLED')" class="res-filter-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs hover:bg-stone-50">❌ Đã Hủy</button>
         </div>
 
-        <button onclick="loadAdminReservations()" class="px-3.5 py-1.5 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-700 font-bold text-xs flex items-center gap-1.5 transition">
-          <i class="fa-solid fa-rotate"></i> Làm Mới Dữ Liệu
-        </button>
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <input type="text" id="resSearchInput" oninput="onReservationSearch(this.value)" placeholder="Tìm khách, SĐT, bàn..." class="bg-stone-50 border border-stone-300 rounded-xl pl-8 pr-3 py-1.5 text-xs font-medium text-stone-800 focus:outline-none focus:border-emerald-600 w-44 sm:w-56">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-stone-400 text-xs pointer-events-none"></i>
+          </div>
+
+          <!-- Chế độ hiển thị: Dạng Thẻ (Card) vs Dạng Bảng (Table) -->
+          <div class="bg-stone-100 p-1 rounded-xl flex items-center border border-stone-200">
+            <button onclick="setReservationViewMode('CARDS')" id="btnResViewCards" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-xs transition" title="Dạng thẻ (Cards)">
+              <i class="fa-solid fa-grip mr-1"></i> Thẻ
+            </button>
+            <button onclick="setReservationViewMode('TABLE')" id="btnResViewTable" class="px-2.5 py-1 rounded-lg text-xs font-bold text-stone-500 hover:text-stone-800 transition" title="Dạng bảng (Table)">
+              <i class="fa-solid fa-table-list mr-1"></i> Bảng
+            </button>
+          </div>
+
+          <button onclick="loadAdminReservations()" class="px-3.5 py-1.5 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-700 font-bold text-xs flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-rotate"></i> Làm Mới
+          </button>
+        </div>
       </div>
 
-      <!-- Bảng Danh Sách Đặt Bàn -->
-      <div class="bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
+      <!-- Danh Sách Đặt Bàn Dạng Thẻ (Card Grid Container) -->
+      <div id="reservationsCardsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5 sm:gap-6">
+        <!-- Rendered by renderReservationsView() -->
+      </div>
+
+      <!-- Bảng Danh Sách Đặt Bàn (Table Container - hidden by default, toggled via switcher) -->
+      <div id="reservationsTableContainer" class="hidden bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-xs text-left">
             <thead class="bg-stone-50 text-stone-500 font-semibold border-b border-stone-200">
@@ -2779,7 +2820,10 @@
     // 6. QUẢN LÝ ĐẶT BÀN & ĐƠN GỌI TRƯỚC (ADMIN)
     // ==========================================
     let allAdminReservations = [];
-    let currentReservationFilter = 'ALL';
+    let currentReservationDateTab = 'TODAY'; // 'TODAY', 'TOMORROW', 'ALL'
+    let currentReservationFilter = 'ALL';   // 'ALL', 'PENDING', 'CONFIRMED', 'CANCELLED'
+    let currentReservationSearch = '';
+    let currentReservationViewMode = 'CARDS'; // 'CARDS' or 'TABLE'
 
     async function loadAdminReservations() {
       try {
@@ -2792,6 +2836,15 @@
         let preorderCount = 0;
         let estimatedRev = 0;
         
+        const today = new Date();
+        const todayIso = today.toISOString().split("T")[0];
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        const tomorrowIso = tomorrow.toISOString().split("T")[0];
+
+        let todayCount = 0;
+        let tomorrowCount = 0;
+
         allAdminReservations.forEach(r => {
           const st = (r.status || 'PENDING').toUpperCase();
           if (st === 'PENDING') pendingCount++;
@@ -2800,6 +2853,9 @@
           try { items = JSON.parse(r.preorder_items_json || '[]'); } catch(e){}
           if (items.length > 0) preorderCount++;
           estimatedRev += (r.total_estimated || 0);
+
+          if (r.booking_date === todayIso) todayCount++;
+          if (r.booking_date === tomorrowIso) tomorrowCount++;
         });
         
         const elPending = document.getElementById("resKpiPending");
@@ -2820,11 +2876,40 @@
             badge.classList.add("hidden");
           }
         }
+
+        // Cập nhật nhãn và số lượng badge cho 2 tab Hôm Nay / Ngày Mai
+        const lblToday = document.getElementById("labelResToday");
+        const bgToday = document.getElementById("badgeResToday");
+        const lblTom = document.getElementById("labelResTomorrow");
+        const bgTom = document.getElementById("badgeResTomorrow");
+        const bgAll = document.getElementById("badgeResAll");
+
+        if (lblToday) lblToday.innerText = `Hôm Nay (${today.getDate()}/${today.getMonth() + 1})`;
+        if (bgToday) bgToday.innerText = todayCount;
+        if (lblTom) lblTom.innerText = `Ngày Mai (${tomorrow.getDate()}/${tomorrow.getMonth() + 1})`;
+        if (bgTom) bgTom.innerText = tomorrowCount;
+        if (bgAll) bgAll.innerText = allAdminReservations.length;
         
-        renderReservationsTable();
+        renderReservationsView();
       } catch (err) {
         console.error("Lỗi tải danh sách đặt bàn", err);
       }
+    }
+
+    function switchReservationDateTab(tabKey) {
+      currentReservationDateTab = tabKey;
+      const tToday = document.getElementById("resDateTab-today");
+      const tTom = document.getElementById("resDateTab-tomorrow");
+      const tAll = document.getElementById("resDateTab-all");
+
+      const activeClass = "res-date-tab px-4 py-2 rounded-xl bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition";
+      const inactiveClass = "res-date-tab px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs flex items-center gap-2 hover:bg-stone-50 transition";
+
+      if (tToday) tToday.className = tabKey === 'TODAY' ? activeClass : inactiveClass;
+      if (tTom) tTom.className = tabKey === 'TOMORROW' ? activeClass : inactiveClass;
+      if (tAll) tAll.className = tabKey === 'ALL' ? activeClass : inactiveClass;
+
+      renderReservationsView();
     }
 
     function filterReservations(status) {
@@ -2833,32 +2918,251 @@
         b.className = "res-filter-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs hover:bg-stone-50";
       });
       if (event && event.target) {
-        event.target.className = "res-filter-btn px-3.5 py-1.5 rounded-xl bg-emerald-700 text-white font-bold text-xs shadow-xs";
+        event.target.className = "res-filter-btn px-3.5 py-1.5 rounded-xl bg-stone-800 text-white font-bold text-xs shadow-xs";
       }
+      renderReservationsView();
+    }
+
+    function onReservationSearch(keyword) {
+      currentReservationSearch = (keyword || '').toLowerCase().trim();
+      renderReservationsView();
+    }
+
+    function setReservationViewMode(mode) {
+      currentReservationViewMode = mode;
+      const cardsBox = document.getElementById("reservationsCardsContainer");
+      const tableBox = document.getElementById("reservationsTableContainer");
+      const btnCards = document.getElementById("btnResViewCards");
+      const btnTable = document.getElementById("btnResViewTable");
+
+      if (mode === 'CARDS') {
+        if (cardsBox) cardsBox.classList.remove("hidden");
+        if (tableBox) tableBox.classList.add("hidden");
+        if (btnCards) btnCards.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-xs transition";
+        if (btnTable) btnTable.className = "px-2.5 py-1 rounded-lg text-xs font-bold text-stone-500 hover:text-stone-800 transition";
+      } else {
+        if (cardsBox) cardsBox.classList.add("hidden");
+        if (tableBox) tableBox.classList.remove("hidden");
+        if (btnTable) btnTable.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-xs transition";
+        if (btnCards) btnCards.className = "px-2.5 py-1 rounded-lg text-xs font-bold text-stone-500 hover:text-stone-800 transition";
+      }
+    }
+
+    function getFilteredReservations() {
+      const today = new Date();
+      const todayIso = today.toISOString().split("T")[0];
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      const tomorrowIso = tomorrow.toISOString().split("T")[0];
+
+      return allAdminReservations.filter(r => {
+        // 1. Lọc theo 2 Tab Ngày (Hôm nay / Ngày mai / Tất cả)
+        if (currentReservationDateTab === 'TODAY' && r.booking_date !== todayIso) return false;
+        if (currentReservationDateTab === 'TOMORROW' && r.booking_date !== tomorrowIso) return false;
+
+        // 2. Lọc theo trạng thái
+        const st = (r.status || 'PENDING').toUpperCase();
+        if (currentReservationFilter !== 'ALL' && st !== currentReservationFilter) return false;
+
+        // 3. Tìm kiếm từ khóa
+        if (currentReservationSearch) {
+          const q = currentReservationSearch;
+          const matchName = (r.guest_name || '').toLowerCase().includes(q);
+          const matchPhone = (r.phone || '').includes(q);
+          const matchTable = (r.table_code || '').toLowerCase().includes(q);
+          const matchNote = (r.note || '').toLowerCase().includes(q);
+          if (!matchName && !matchPhone && !matchTable && !matchNote) return false;
+        }
+
+        return true;
+      });
+    }
+
+    function renderReservationsView() {
+      renderReservationsCards();
       renderReservationsTable();
     }
 
+    // Render Cards: Mỗi đặt bàn thành một Card độc lập đầy đủ chi tiết
+    function renderReservationsCards() {
+      const container = document.getElementById("reservationsCardsContainer");
+      if (!container) return;
+      container.innerHTML = "";
+
+      const filtered = getFilteredReservations();
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-12 text-center bg-white rounded-3xl border border-stone-200">
+            <div class="w-12 h-12 rounded-full bg-stone-100 text-stone-400 flex items-center justify-center text-xl mx-auto mb-3">
+              <i class="fa-regular fa-calendar-xmark"></i>
+            </div>
+            <div class="font-bold text-stone-700 text-sm">Không có lượt đặt bàn nào phù hợp</div>
+            <div class="text-xs text-stone-400 mt-1">Thử đổi tab ngày hoặc bộ lọc trạng thái để xem các đơn khác.</div>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(r => {
+        const st = (r.status || 'PENDING').toUpperCase();
+        
+        // Badge trạng thái chuẩn: PENDING=vàng, CONFIRMED=xanh lá, CANCELLED=đỏ
+        let stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">⏳ PENDING</span>`;
+        if (st === 'CONFIRMED' || st === 'SEATED') {
+          stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">✅ CONFIRMED</span>`;
+        } else if (st === 'CANCELLED') {
+          stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300">❌ CANCELLED</span>`;
+        }
+
+        // Parse danh sách món gọi trước nếu có
+        let preorderItems = [];
+        try {
+          preorderItems = JSON.parse(r.preorder_items_json || '[]');
+        } catch(e) {}
+        const hasPreorder = Array.isArray(preorderItems) && preorderItems.length > 0;
+
+        // Vị trí bàn đã phân hoặc yêu cầu
+        let assignedTableBadge = `<span class="text-stone-400 italic text-[11px]">Chưa phân bàn</span>`;
+        if (r.table_code) {
+          assignedTableBadge = `
+            <span class="inline-flex items-center gap-1 font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 text-xs">
+              <i class="fa-solid fa-chair text-emerald-600"></i> Bàn ${r.table_code} <span class="text-[10px] text-stone-500 font-normal">(${r.area || 'Resort'})</span>
+            </span>
+          `;
+        } else if (r.area) {
+          assignedTableBadge = `<span class="text-stone-600 font-medium text-[11px]"><i class="fa-solid fa-location-dot text-amber-600 mr-1"></i>Khu ${r.area}</span>`;
+        }
+
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-3xl p-5 border border-stone-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 relative group";
+        card.innerHTML = `
+          <!-- Card Header: Tên, SĐT, ID & Badge trạng thái -->
+          <div>
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h4 class="font-black text-base text-stone-900 leading-tight">${r.guest_name}</h4>
+                  <span class="text-[10px] font-mono text-stone-400">#${r.id}</span>
+                </div>
+                <div class="flex items-center gap-2 mt-1">
+                  <a href="tel:${r.phone}" class="text-xs font-mono font-bold text-emerald-700 hover:underline flex items-center gap-1">
+                    <i class="fa-solid fa-phone text-[10px]"></i> ${r.phone}
+                  </a>
+                  <button type="button" onclick="navigator.clipboard.writeText('${r.phone}'); alert('Đã sao chép SĐT ${r.phone}!');" class="text-stone-400 hover:text-stone-600 text-xs" title="Sao chép SĐT">
+                    <i class="fa-regular fa-copy"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="shrink-0">${stBadge}</div>
+            </div>
+
+            <!-- Booking Info: Ngày Giờ, Số Khách, Khu Vực/Bàn -->
+            <div class="grid grid-cols-2 gap-2 text-xs bg-stone-50 p-3 rounded-2xl border border-stone-100 mt-3.5">
+              <div>
+                <div class="text-[10px] text-stone-400 font-semibold uppercase">Thời Gian Đến</div>
+                <div class="font-bold text-stone-900 flex items-center gap-1 mt-0.5">
+                  <i class="fa-regular fa-clock text-amber-600"></i> ${r.booking_time}
+                </div>
+                <div class="text-[10px] text-stone-500 font-mono">${r.booking_date}</div>
+              </div>
+
+              <div>
+                <div class="text-[10px] text-stone-400 font-semibold uppercase">Số Lượng Khách</div>
+                <div class="font-bold text-stone-900 flex items-center gap-1 mt-0.5">
+                  <i class="fa-solid fa-users text-blue-600"></i> ${r.guest_count || 2} khách
+                </div>
+                <div class="text-[10px] text-stone-500">${r.service_type || 'Ăn uống'}</div>
+              </div>
+
+              <div class="col-span-2 pt-2 border-t border-stone-200/60 flex items-center justify-between">
+                <span class="text-[10px] text-stone-400 font-semibold uppercase">Vị Trí Bàn:</span>
+                <div>${assignedTableBadge}</div>
+              </div>
+            </div>
+
+            <!-- Ghi Chú Của Khách Nếu Có -->
+            ${r.note ? `
+              <div class="mt-3 text-xs bg-amber-50/70 border border-amber-200/60 rounded-xl p-2.5 text-amber-900 leading-snug">
+                <div class="text-[10px] font-bold text-amber-700 uppercase flex items-center gap-1">
+                  <i class="fa-regular fa-comment-dots"></i> Ghi chú của khách:
+                </div>
+                <div class="mt-0.5 text-[11px] italic">"${r.note}"</div>
+              </div>
+            ` : ''}
+
+            <!-- Preorder List & Tổng Tiền Tạm Tính Nếu Có -->
+            ${hasPreorder ? `
+              <div class="mt-3.5 space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold text-stone-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-utensils text-emerald-600"></i> Món Gọi Trước (${preorderItems.length})
+                  </span>
+                  <span class="font-black text-emerald-800">${(r.total_estimated || 0).toLocaleString('vi-VN')} đ</span>
+                </div>
+                <div class="bg-emerald-50/60 p-2.5 rounded-2xl border border-emerald-100 max-h-28 overflow-y-auto space-y-1 text-xs">
+                  ${preorderItems.map(it => `
+                    <div class="flex items-center justify-between text-[11px]">
+                      <span class="font-medium text-stone-800 truncate mr-2">${it.name} <span class="text-stone-500 font-normal">x${it.quantity}</span></span>
+                      <span class="font-mono font-bold text-emerald-800 whitespace-nowrap">${((it.price || 0) * (it.quantity || 1)).toLocaleString('vi-VN')} đ</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Card Actions: Phân bàn / Đổi bàn, Hủy, Xóa -->
+          <div class="pt-3 border-t border-stone-100 flex items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-1.5 flex-1">
+              ${st === 'PENDING' ? `
+                <button onclick="openAssignTableModal(${r.id})" class="flex-1 px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold transition flex items-center justify-center gap-1.5 shadow-xs">
+                  <i class="fa-solid fa-chair"></i> Phân Bàn
+                </button>
+                <button onclick="updateReservationStatus(${r.id}, 'CANCELLED')" class="px-2.5 py-2 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 font-bold transition" title="Hủy đơn">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              ` : (st === 'CONFIRMED' || st === 'SEATED' ? `
+                <button onclick="openAssignTableModal(${r.id})" class="flex-1 px-3 py-2 rounded-xl border border-stone-300 text-stone-700 hover:bg-stone-100 font-bold transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-arrows-rotate text-emerald-600"></i> Đổi Bàn
+                </button>
+                <button onclick="updateReservationStatus(${r.id}, 'CANCELLED')" class="px-2.5 py-2 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 font-bold transition" title="Hủy đơn">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              ` : `
+                <button onclick="updateReservationStatus(${r.id}, 'PENDING')" class="flex-1 px-3 py-2 rounded-xl border border-amber-300 text-amber-700 hover:bg-amber-50 font-bold transition flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-rotate-left"></i> Khôi Phục
+                </button>
+              `)}
+            </div>
+            <button onclick="deleteReservation(${r.id})" class="p-2 rounded-xl text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Xóa bỏ đơn">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // Render Table View (Giữ lại dự phòng khi quản lý cần xem dạng bảng)
     function renderReservationsTable() {
       const tbody = document.getElementById("reservationsTableBody");
       if (!tbody) return;
       tbody.innerHTML = "";
       
-      const filtered = allAdminReservations.filter(r => {
-        if (currentReservationFilter === 'ALL') return true;
-        return (r.status || 'PENDING').toUpperCase() === currentReservationFilter;
-      });
+      const filtered = getFilteredReservations();
       
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-stone-400">Không có yêu cầu đặt bàn nào trong mục này.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-stone-400">Không có yêu cầu đặt bàn nào phù hợp.</td></tr>`;
         return;
       }
       
       filtered.forEach(r => {
         const st = (r.status || 'PENDING').toUpperCase();
-        let stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">⏳ Chờ Phân Bàn</span>`;
-        if (st === 'CONFIRMED') stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">✅ Đã Phân Bàn</span>`;
-        if (st === 'CANCELLED') stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300">❌ Đã Hủy</span>`;
-        if (st === 'SEATED') stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-300">🎉 Đang Ngồi</span>`;
+        let stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">⏳ PENDING</span>`;
+        if (st === 'CONFIRMED' || st === 'SEATED') stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">✅ CONFIRMED</span>`;
+        if (st === 'CANCELLED') stBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300">❌ CANCELLED</span>`;
         
         let items = [];
         try { items = JSON.parse(r.preorder_items_json || '[]'); } catch(e){}
@@ -2919,6 +3223,7 @@
 
     let activeAssignReservation = null;
 
+    // Modal Phân Bàn: Tải danh sách bàn trống (fetch /api/tables?status=AVAILABLE)
     async function openAssignTableModal(resId) {
       activeAssignReservation = allAdminReservations.find(r => r.id === resId);
       if (!activeAssignReservation) return;
@@ -2948,23 +3253,29 @@
       }
       
       const select = document.getElementById("assignTargetTableSelect");
-      select.innerHTML = `<option value="">-- Đang tải danh sách bàn... --</option>`;
+      select.innerHTML = `<option value="">-- Đang tải danh sách bàn trống... --</option>`;
       
       try {
-        const res = await fetch("/api/tables");
+        // Tải danh sách bàn trống AVAILABLE
+        const res = await fetch("/api/tables?status=AVAILABLE");
         const tables = await res.json();
         select.innerHTML = "";
         
-        tables.forEach(t => {
-          const isPref = activeAssignReservation.table_code && t.table_code.toUpperCase() === activeAssignReservation.table_code.toUpperCase();
-          const opt = document.createElement("option");
-          opt.value = t.table_code;
-          opt.selected = isPref;
-          opt.innerText = `Bàn ${t.table_code} - ${t.name} (${t.area}) [${t.status === 'AVAILABLE' ? 'Trống' : 'Đang ngồi'}]`;
-          select.appendChild(opt);
-        });
+        if (!tables || tables.length === 0) {
+          select.innerHTML = `<option value="">-- Không có bàn nào đang trống (AVAILABLE) --</option>`;
+        } else {
+          tables.forEach(t => {
+            const isPref = activeAssignReservation.table_code && t.table_code.toUpperCase() === activeAssignReservation.table_code.toUpperCase();
+            const opt = document.createElement("option");
+            opt.value = t.table_code;
+            opt.selected = isPref;
+            opt.innerText = `Bàn ${t.table_code} - ${t.name} (${t.area}, ${t.capacity || 4} chỗ) [TRỐNG]`;
+            select.appendChild(opt);
+          });
+        }
       } catch (err) {
-        console.error("Lỗi tải bàn", err);
+        console.error("Lỗi tải bàn trống", err);
+        select.innerHTML = `<option value="">Lỗi tải danh sách bàn</option>`;
       }
       
       document.getElementById("assignTableModal").classList.remove("hidden");
@@ -2974,6 +3285,7 @@
       document.getElementById("assignTableModal").classList.add("hidden");
     }
 
+    // Gửi yêu cầu phân bàn qua PUT /api/reservations/{id}/assign-table
     async function submitAssignTable() {
       const resId = document.getElementById("assignActiveResId").value;
       const tableCode = document.getElementById("assignTargetTableSelect").value;
@@ -2990,7 +3302,7 @@
       
       try {
         const res = await fetch(`/api/reservations/${resId}/assign-table`, {
-          method: "POST",
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             table_code: tableCode,

@@ -378,10 +378,16 @@ def create_court_booking(payload: PickleballBookingCreate):
         }
     }
 
+class BookingStatusUpdate(BaseModel):
+    status: Optional[str] = None
+    payment_status: Optional[str] = None
+
 @router.get("/bookings")
 def list_pickleball_bookings(
     date: Optional[str] = None, 
-    limit: int = 50,
+    court_id: Optional[int] = None,
+    status: Optional[str] = None,
+    limit: int = 100,
     search: Optional[str] = None
 ):
     """Danh sách các đơn đặt sân Pickleball (cho Admin / Lễ tân / Thu ngân theo dõi)."""
@@ -394,6 +400,14 @@ def list_pickleball_bookings(
     if date:
         query += " AND booking_date = ?"
         params.append(date)
+
+    if court_id:
+        query += " AND court_id = ?"
+        params.append(court_id)
+
+    if status:
+        query += " AND UPPER(payment_status) = ?"
+        params.append(status.upper().strip())
 
     if search:
         query += " AND (customer_name LIKE ? OR phone LIKE ? OR booking_code LIKE ?)"
@@ -422,15 +436,28 @@ def list_pickleball_bookings(
 
     return {
         "status": "SUCCESS",
+        "total": len(res),
         "count": len(res),
         "bookings": res
     }
 
+@router.put("/bookings/{booking_id}/status")
 @router.patch("/bookings/{booking_id}/status")
-def update_booking_payment_status(booking_id: int, status: str = Query(...)):
-    """Cập nhật trạng thái thanh toán hoặc check-in (DEPOSITED, PAID, COMPLETED, CANCELLED)."""
-    valid_statuses = ["PENDING", "DEPOSITED", "PAID", "COMPLETED", "CANCELLED"]
-    status_upper = status.upper().strip()
+def update_booking_payment_status(
+    booking_id: int, 
+    payload: Optional[BookingStatusUpdate] = None,
+    status: Optional[str] = Query(None)
+):
+    """Cập nhật trạng thái thanh toán hoặc check-in (CONFIRMED, PAID, DEPOSITED, COMPLETED, CANCELLED, PENDING)."""
+    valid_statuses = ["PENDING", "CONFIRMED", "DEPOSITED", "PAID", "COMPLETED", "CANCELLED"]
+    
+    req_status = (payload.status or payload.payment_status) if payload else None
+    if not req_status and status:
+        req_status = status
+    if not req_status:
+        raise HTTPException(status_code=400, detail="Vui lòng cung cấp trạng thái cần cập nhật (status).")
+
+    status_upper = req_status.upper().strip()
     if status_upper not in valid_statuses:
         raise HTTPException(status_code=400, detail=f"Trạng thái không hợp lệ. Chọn một trong: {valid_statuses}")
 
@@ -446,8 +473,66 @@ def update_booking_payment_status(booking_id: int, status: str = Query(...)):
     updated = dict(cursor.fetchone())
     conn.close()
 
+    try:
+        updated["time_slots"] = json.loads(updated["time_slots_json"])
+    except Exception:
+        updated["time_slots"] = []
+    try:
+        updated["addons"] = json.loads(updated["addons_json"])
+    except Exception:
+        updated["addons"] = []
+
     return {
         "status": "SUCCESS",
         "message": f"Đã chuyển trạng thái đơn {updated['booking_code']} sang [{status_upper}].",
         "booking": updated
     }
+
+@router.get("/schedule")
+def get_pickleball_schedule(date: Optional[str] = None):
+    """
+    Lịch 4 sân thi đấu trong ngày: {date, schedule: {1:[...], 2:[...], 3:[...], 4:[...]}}
+    Mỗi booking chứa: booking_id, booking_code, customer_name, phone, time_slots (list), status
+    """
+    if not date:
+        date = datetime.now().strftime("%Y-%m-%d")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, booking_code, customer_name, phone, court_id, time_slots_json, payment_status, total_amount, notes, court_name
+        FROM pickleball_bookings
+        WHERE booking_date = ?
+        ORDER BY id ASC
+    """, (date,))
+    rows = cursor.fetchall()
+    conn.close()
+
+    schedule: Dict[int, List[Dict[str, Any]]] = {1: [], 2: [], 3: [], 4: []}
+    for r in rows:
+        c_id = r["court_id"]
+        if c_id not in schedule:
+            schedule[c_id] = []
+        try:
+            slots = json.loads(r["time_slots_json"])
+        except Exception:
+            slots = []
+        schedule[c_id].append({
+            "booking_id": r["id"],
+            "booking_code": r["booking_code"],
+            "customer_name": r["customer_name"],
+            "phone": r["phone"],
+            "time_slots": slots,
+            "status": r["payment_status"],
+            "court_id": c_id,
+            "court_name": r["court_name"],
+            "total_amount": r["total_amount"],
+            "notes": r["notes"] or ""
+        })
+
+    return {
+        "status": "SUCCESS",
+        "date": date,
+        "schedule": schedule
+    }
+

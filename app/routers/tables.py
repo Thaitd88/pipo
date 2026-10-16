@@ -32,18 +32,24 @@ class AreaUpdateRequest(BaseModel):
     description: Optional[str] = None
 
 @router.get("")
-def list_tables():
+def list_tables(status: Optional[str] = None):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("""
+    query = """
         SELECT t.*, 
                s.id as active_session_id, s.session_token, s.guest_count, s.opened_at,
                (SELECT COUNT(*) FROM orders o WHERE o.table_id = t.id AND o.payment_status = 'UNPAID') as unpaid_orders_count,
                (SELECT COALESCE(SUM(total), 0) FROM orders o WHERE o.table_id = t.id AND o.payment_status = 'UNPAID') as current_bill_total
         FROM tables t
         LEFT JOIN table_sessions s ON t.id = s.table_id AND s.status = 'ACTIVE'
-        ORDER BY t.area, t.table_code
-    """)
+    """
+    params = []
+    if status:
+        query += " WHERE UPPER(t.status) = ?"
+        params.append(status.upper().strip())
+    query += " ORDER BY t.area, t.table_code"
+
+    cursor.execute(query, tuple(params))
     rows = cursor.fetchall()
     tables = [dict(r) for r in rows]
     conn.close()

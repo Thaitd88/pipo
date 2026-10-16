@@ -131,6 +131,7 @@ def get_reservation(res_id: int):
     return dict(row)
 
 @router.post("/{res_id}/assign-table")
+@router.put("/{res_id}/assign-table")
 def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
     """Thu ngân hoặc Quản trị phân bàn chính thức cho khách đã đặt bàn/gọi món trước."""
     conn = get_db()
