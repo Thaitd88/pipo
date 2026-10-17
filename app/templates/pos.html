@@ -62,6 +62,9 @@
       <button onclick="switchTab('tables')" id="tabBtn-tables" class="nav-tab px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold shadow flex-shrink-0 flex items-center gap-1.5 whitespace-nowrap">
         <i class="fa-solid fa-border-all"></i> Sơ đồ bàn
       </button>
+      <button onclick="switchTab('bill-history')" id="tabBtn-bill-history" class="nav-tab px-3 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-800 text-emerald-200 text-xs font-bold flex-shrink-0 flex items-center gap-1.5 transition whitespace-nowrap">
+        <i class="fa-solid fa-receipt text-amber-300"></i> Lịch sử Bill
+      </button>
       <button onclick="switchTab('reports')" id="tabBtn-reports" class="nav-tab px-3 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-800 text-emerald-200 text-xs font-bold flex-shrink-0 flex items-center gap-1.5 transition whitespace-nowrap">
         <i class="fa-solid fa-chart-line"></i> Báo cáo
       </button>
@@ -473,6 +476,154 @@
 
       <div id="qrPrintSection" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
     </main>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- TAB: LỊCH SỬ HÓA ĐƠN & IN LẠI BILL (BILL HISTORY) -->
+  <!-- ======================================================== -->
+  <div id="tabContent-bill-history" class="tab-panel flex-1 flex flex-col hidden bg-stone-100">
+    <!-- Header công cụ tìm kiếm và lọc -->
+    <div class="bg-white border-b border-stone-200 px-4 sm:px-6 py-3.5 shadow-xs">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-base shadow-xs">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <div>
+            <h2 class="text-sm sm:text-base font-extrabold text-stone-900 leading-tight">Lịch Sử Hóa Đơn & In Lại Bill</h2>
+            <p class="text-[11px] text-stone-500">Xem lại chi tiết hóa đơn đã thanh toán và in lại phiếu thanh toán cho khách</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <div class="relative flex-1 sm:w-64">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-stone-400 text-xs"></i>
+            <input type="text" id="posBillSearchInput" oninput="debounceBillSearch()" placeholder="Tìm bàn, mã bill, admin..." class="w-full text-xs pl-8 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-emerald-600 focus:bg-white font-medium">
+          </div>
+          <button onclick="loadPosBillsHistory()" class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition">
+            <i class="fa-solid fa-rotate"></i>
+            <span class="hidden sm:inline">Làm mới</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danh sách hóa đơn -->
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 flex-1 w-full">
+      <div class="bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-stone-50 border-b border-stone-200 text-stone-600 font-bold uppercase text-[10px] tracking-wider">
+              <tr>
+                <th class="py-3 px-4">Mã Bill</th>
+                <th class="py-3 px-4">Bàn & Khu Vực</th>
+                <th class="py-3 px-4">Giờ Thanh Toán</th>
+                <th class="py-3 px-4">Số Món</th>
+                <th class="py-3 px-4 text-right">Tổng Tiền</th>
+                <th class="py-3 px-4">Hình Thức</th>
+                <th class="py-3 px-4 text-center">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="posBillsTableBody" class="divide-y divide-stone-100 font-medium text-stone-800">
+              <tr>
+                <td colspan="7" class="py-10 text-center text-stone-400">
+                  <i class="fa-solid fa-spinner fa-spin text-base mr-2"></i> Đang tải lịch sử hóa đơn...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: CHI TIẾT HÓA ĐƠN & IN LẠI BILL -->
+  <div id="posBillDetailModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+      <!-- Header modal -->
+      <div class="p-4 sm:p-5 bg-stone-900 text-white flex items-center justify-between border-b border-stone-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white" id="modalBillTitle">Chi Tiết Hóa Đơn #HD-00</h3>
+            <p class="text-[11px] text-stone-400" id="modalBillSubtitle">Bàn -- • Giờ --</p>
+          </div>
+        </div>
+        <button onclick="closePosBillDetailModal()" class="w-8 h-8 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Body cuộn danh sách món -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs">
+        <div class="bg-stone-50 rounded-2xl p-3.5 border border-stone-200 space-y-2">
+          <div class="flex justify-between text-stone-600">
+            <span>Bàn:</span>
+            <span class="font-bold text-stone-900" id="modalBillTable">--</span>
+          </div>
+          <div class="flex justify-between text-stone-600">
+            <span>Thời gian thanh toán:</span>
+            <span class="font-semibold text-stone-800" id="modalBillTime">--</span>
+          </div>
+          <div class="flex justify-between text-stone-600">
+            <span>Hình thức thanh toán:</span>
+            <span class="font-bold text-emerald-700" id="modalBillMethod">--</span>
+          </div>
+          <div id="modalBillAdminRow" class="flex justify-between text-stone-600 hidden">
+            <span>Admin chịu bill:</span>
+            <span class="font-bold text-purple-700" id="modalBillAdmin">--</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-stone-700 mb-2 uppercase text-[10px] tracking-wider">Danh Sách Món Ăn</h4>
+          <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden">
+            <table class="w-full text-left">
+              <thead class="bg-stone-50 border-b border-stone-100 text-[10px] text-stone-500 font-bold uppercase">
+                <tr>
+                  <th class="py-2 px-3">Tên món</th>
+                  <th class="py-2 px-2 text-center">SL</th>
+                  <th class="py-2 px-3 text-right">Đơn giá</th>
+                  <th class="py-2 px-3 text-right">Thành tiền</th>
+                </tr>
+              </thead>
+              <tbody id="modalBillItemsList" class="divide-y divide-stone-100">
+                <!-- Render món -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Khung tổng kết -->
+        <div class="bg-stone-50 rounded-2xl p-3.5 border border-stone-200 space-y-1.5 font-semibold text-stone-700">
+          <div class="flex justify-between">
+            <span>Tổng tiền món:</span>
+            <span id="modalBillSubtotal">0 đ</span>
+          </div>
+          <div class="flex justify-between text-rose-600" id="modalBillDiscountRow">
+            <span>Giảm giá:</span>
+            <span id="modalBillDiscount">-0 đ</span>
+          </div>
+          <div class="flex justify-between text-stone-900 font-black text-sm pt-2 border-t border-stone-200">
+            <span>TỔNG CỘNG:</span>
+            <span class="text-emerald-700 font-black text-base" id="modalBillGrandTotal">0 đ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer modal với nút in lại bill to rõ -->
+      <div class="p-4 bg-stone-50 border-t border-stone-200 flex items-center justify-between gap-3">
+        <button onclick="closePosBillDetailModal()" class="px-4 py-2.5 rounded-xl border border-stone-300 text-stone-700 font-bold text-xs hover:bg-stone-100 transition">
+          Đóng
+        </button>
+        <button id="modalBtnReprint" onclick="reprintFromModal()" class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs shadow-md transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-print"></i>
+          <span>IN LẠI HÓA ĐƠN NÀY (80MM)</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- ======================================================== -->
@@ -988,6 +1139,8 @@
         loadRevenueOverview();
       } else if (tab === 'kitchen') {
         loadPosKitchenMonitor();
+      } else if (tab === 'bill-history') {
+        loadPosBillsHistory();
       }
     }
 
@@ -1625,12 +1778,169 @@
         if (res.ok) {
           closeBillDrawer();
           fetchTablesOverview();
+          showPosToast(`✅ Đã thanh toán bàn ${selectedTable.name}! Máy in đang tự động in hóa đơn...`);
+          const billHistPanel = document.getElementById("tabContent-bill-history");
+          if (billHistPanel && !billHistPanel.classList.contains("hidden")) {
+            loadPosBillsHistory();
+          }
         } else {
           const err = await res.json().catch(() => ({}));
           alert("Lỗi khi thanh toán: " + (err.detail || "Không xác định"));
         }
       } catch (e) {
         alert("Lỗi kết nối khi thanh toán!");
+      }
+    }
+
+    // ==========================================
+    // LỊCH SỬ HÓA ĐƠN & IN LẠI BILL
+    // ==========================================
+    let posBillsData = [];
+    let currentViewingBill = null;
+    let billSearchTimer = null;
+
+    function debounceBillSearch() {
+      clearTimeout(billSearchTimer);
+      billSearchTimer = setTimeout(() => {
+        const val = document.getElementById("posBillSearchInput")?.value || "";
+        loadPosBillsHistory(val);
+      }, 300);
+    }
+
+    async function loadPosBillsHistory(search = "") {
+      const tbody = document.getElementById("posBillsTableBody");
+      if (!tbody) return;
+      tbody.innerHTML = `<tr><td colspan="7" class="py-10 text-center text-stone-400"><i class="fa-solid fa-spinner fa-spin text-base mr-2"></i> Đang tải dữ liệu lịch sử hóa đơn...</td></tr>`;
+
+      try {
+        let url = "/api/pos/bills/history";
+        if (search) url += `?search=${encodeURIComponent(search)}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Lỗi tải lịch sử");
+        const data = await res.json();
+        posBillsData = data.bills || [];
+
+        if (posBillsData.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-stone-400 text-xs italic">Không tìm thấy hóa đơn nào đã thanh toán.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = posBillsData.map(b => {
+          const itemsCount = (b.items || []).reduce((acc, it) => acc + (it.quantity || 1), 0);
+          const isAdm = b.bill_target === "ADMIN";
+          const methodBadge = isAdm 
+            ? `<span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full font-bold text-[10px]">Admin: ${b.billed_admin_name || 'Admin'}</span>`
+            : `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold text-[10px]">${b.payment_method || 'Tiền mặt'}</span>`;
+
+          return `
+            <tr class="hover:bg-amber-50/40 transition">
+              <td class="py-3 px-4 font-bold text-stone-900">#HD-${b.id}</td>
+              <td class="py-3 px-4">
+                <div class="font-bold text-stone-900">${b.table_name}</div>
+                <div class="text-[10px] text-stone-400">${b.area} • ${b.table_code}</div>
+              </td>
+              <td class="py-3 px-4 text-stone-600 whitespace-nowrap">${b.paid_at || '--'}</td>
+              <td class="py-3 px-4 text-stone-700 font-semibold">${itemsCount} món</td>
+              <td class="py-3 px-4 text-right font-black text-emerald-700 text-sm whitespace-nowrap">${formatVND(b.total)}</td>
+              <td class="py-3 px-4">${methodBadge}</td>
+              <td class="py-3 px-4 text-center">
+                <div class="flex items-center justify-center gap-1.5">
+                  <button onclick="openPosBillDetail(${b.id})" class="px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1" title="Xem chi tiết">
+                    <i class="fa-solid fa-eye text-stone-500"></i> Xem
+                  </button>
+                  <button onclick="reprintPosBill(${b.id}, event)" class="px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition shadow-xs flex items-center gap-1" title="In lại hóa đơn">
+                    <i class="fa-solid fa-print"></i> In bill
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-rose-500 text-xs font-bold">Lỗi khi tải lịch sử hóa đơn: ${err.message}</td></tr>`;
+      }
+    }
+
+    function openPosBillDetail(billId) {
+      const bill = posBillsData.find(b => b.id === billId);
+      if (!bill) return;
+      currentViewingBill = bill;
+
+      document.getElementById("modalBillTitle").innerText = `Chi Tiết Hóa Đơn #HD-${bill.id}`;
+      document.getElementById("modalBillSubtitle").innerText = `${bill.table_name} • Giờ: ${bill.paid_at || '--'}`;
+      document.getElementById("modalBillTable").innerText = `${bill.table_name} (${bill.area})`;
+      document.getElementById("modalBillTime").innerText = bill.paid_at || '--';
+      document.getElementById("modalBillMethod").innerText = bill.payment_method || 'Tiền mặt';
+
+      const admRow = document.getElementById("modalBillAdminRow");
+      if (bill.bill_target === "ADMIN") {
+        admRow.classList.remove("hidden");
+        document.getElementById("modalBillAdmin").innerText = bill.billed_admin_name || 'Admin';
+      } else {
+        admRow.classList.add("hidden");
+      }
+
+      const itemsList = document.getElementById("modalBillItemsList");
+      itemsList.innerHTML = (bill.items || []).map(it => `
+        <tr class="hover:bg-stone-50 transition">
+          <td class="py-2 px-3 font-semibold text-stone-900">
+            ${it.item_name}
+            ${it.note ? `<div class="text-[10px] text-amber-700">(${it.note})</div>` : ''}
+          </td>
+          <td class="py-2 px-2 text-center font-bold text-stone-800">${it.quantity}</td>
+          <td class="py-2 px-3 text-right text-stone-600">${formatVND(it.unit_price)}</td>
+          <td class="py-2 px-3 text-right font-bold text-stone-900">${formatVND(it.total_price)}</td>
+        </tr>
+      `).join("");
+
+      document.getElementById("modalBillSubtotal").innerText = formatVND(bill.subtotal);
+      const discRow = document.getElementById("modalBillDiscountRow");
+      if (bill.discount > 0) {
+        discRow.classList.remove("hidden");
+        document.getElementById("modalBillDiscount").innerText = `-${formatVND(bill.discount)} ${bill.discount_reason ? '(' + bill.discount_reason + ')' : ''}`;
+      } else {
+        discRow.classList.add("hidden");
+      }
+      document.getElementById("modalBillGrandTotal").innerText = formatVND(bill.total);
+
+      document.getElementById("posBillDetailModal").classList.remove("hidden");
+    }
+
+    function closePosBillDetailModal() {
+      document.getElementById("posBillDetailModal").classList.add("hidden");
+      currentViewingBill = null;
+    }
+
+    async function reprintFromModal() {
+      if (!currentViewingBill) return;
+      await reprintPosBill(currentViewingBill.id);
+    }
+
+    async function reprintPosBill(orderId, event = null) {
+      if (event) event.stopPropagation();
+      let clickedBtn = event ? event.currentTarget : document.getElementById("modalBtnReprint");
+      let originalHtml = "";
+      if (clickedBtn) {
+        originalHtml = clickedBtn.innerHTML;
+        clickedBtn.disabled = true;
+        clickedBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang in...`;
+      }
+
+      try {
+        const res = await fetch(`/api/pos/bills/${orderId}/reprint`, { method: "POST" });
+        const data = await res.json();
+        if (res.ok) {
+          showPosToast(`🖨️ ${data.message || 'Đã gửi lệnh in lại hóa đơn xuống máy in!'}`);
+        } else {
+          alert("Lỗi in bill: " + (data.detail || "Không thể in lại hóa đơn"));
+        }
+      } catch (e) {
+        alert("Lỗi kết nối máy in!");
+      } finally {
+        if (clickedBtn) {
+          clickedBtn.disabled = false;
+          clickedBtn.innerHTML = originalHtml;
+        }
       }
     }
 

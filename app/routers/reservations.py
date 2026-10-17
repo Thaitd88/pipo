@@ -283,14 +283,17 @@ async def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
                 item_name = item.get("name") or item.get("item_name") or raw_obj.get("name")
                 station = item.get("station") or raw_obj.get("station") or "HOT_KITCHEN"
 
-                if (not item_name or not station) and item_id:
-                    cursor.execute("SELECT name, station FROM menu_items WHERE id = ?", (item_id,))
+                portion = item.get("portion") or raw_obj.get("portion") or ""
+                if (not item_name or not station or not portion) and item_id:
+                    cursor.execute("SELECT name, station, portion FROM menu_items WHERE id = ?", (item_id,))
                     d_row = cursor.fetchone()
                     if d_row:
                         if not item_name:
                             item_name = d_row["name"]
                         if not station:
                             station = d_row["station"]
+                        if not portion and "portion" in d_row.keys():
+                            portion = d_row["portion"] or ""
 
                 item_name = item_name or "Món đặt trước"
                 station = station or "HOT_KITCHEN"
@@ -305,6 +308,7 @@ async def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
                     "name": item_name,
                     "item_name": item_name,
                     "quantity": qty,
+                    "portion": portion,
                     "note": item.get("note", "")
                 })
 

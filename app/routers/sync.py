@@ -60,7 +60,13 @@ async def clear_revenue_data(request: Request):
     cursor.execute("DELETE FROM table_sessions")
     cursor.execute("DELETE FROM print_jobs")
     cursor.execute("DELETE FROM reservations")
+    cursor.execute("DELETE FROM inventory_transactions")
+    cursor.execute("DELETE FROM pickleball_bookings")
     cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL")
+    try:
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name IN ('orders', 'order_items', 'print_jobs', 'service_calls', 'table_sessions', 'inventory_transactions', 'reservations', 'pickleball_bookings')")
+    except Exception:
+        pass
     conn.commit()
     conn.close()
 

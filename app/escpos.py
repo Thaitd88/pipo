@@ -106,9 +106,14 @@ def format_kitchen_ticket_text(order_info: dict, items: list, station: str = "HO
         name = it.get("item_name") or it.get("name", "")
         note = it.get("note", "")
         modifiers = it.get("modifiers", [])
+        portion = it.get("portion") or ""
 
         # Dòng 1: Số lượng và tên món nổi bật
         lines.append(f"[ {qty} ]  {name}")
+
+        # Định lượng chính của món để bếp định lượng chế biến
+        if portion:
+            lines.append(f"       * Dinh luong: {portion}")
 
         # Tùy chọn nếu có
         if modifiers and isinstance(modifiers, list):
@@ -330,13 +335,32 @@ def build_escpos_kitchen_bytes(order_info: dict, items: list, station: str = "HO
         name = remove_vietnamese_accents(it.get("item_name") or it.get("name", "")).upper()
         note = remove_vietnamese_accents(it.get("note", ""))
         modifiers = it.get("modifiers", [])
+        portion = remove_vietnamese_accents(it.get("portion") or "")
 
-        # Số lượng và tên món in đậm, phóng cao cho bếp
-        buf.extend(ESC + b'E\x01')
-        buf.extend(GS + b'!\x01') # Double height
+        # Fallback lấy định lượng món từ DB nếu chưa có trong dict
+        if not portion and (it.get("item_id") or it.get("id")):
+            try:
+                from .database import get_db
+                _conn = get_db()
+                _c = _conn.cursor()
+                _c.execute("SELECT portion FROM menu_items WHERE id = ?", (it.get("item_id") or it.get("id"),))
+                _row = _c.fetchone()
+                if _row and _row["portion"]:
+                    portion = remove_vietnamese_accents(_row["portion"])
+                _conn.close()
+            except Exception:
+                pass
+
+        # Số lượng và tên món in đậm, chiều cao chuẩn (gọn gàng, không bị kéo cao)
+        buf.extend(ESC + b'E\x01') # Bold on
         buf.extend(f"[ {qty} ] {name}\n".encode("ascii"))
-        buf.extend(GS + b'!\x00') # Normal
-        buf.extend(ESC + b'E\x00')
+        buf.extend(ESC + b'E\x00') # Bold off
+
+        # Hiển thị định lượng chính của món bên dưới để bếp biết mà làm
+        if portion:
+            buf.extend(ESC + b'E\x01')
+            buf.extend(f"      * Dinh luong: {portion}\n".encode("ascii"))
+            buf.extend(ESC + b'E\x00')
 
         if modifiers and isinstance(modifiers, list):
             mod_str = ", ".join([f"{remove_vietnamese_accents(str(m.get('name')))}: {remove_vietnamese_accents(str(m.get('value')))}" for m in modifiers if isinstance(m, dict)])

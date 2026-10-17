@@ -101,6 +101,7 @@ async def create_order(payload: dict):
             "station": menu_row["station"],
             "note": note,
             "modifiers": mods,
+            "portion": menu_row["portion"] if "portion" in menu_row.keys() and menu_row["portion"] else "",
         })
 
     if not detailed_items:

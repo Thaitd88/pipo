@@ -139,6 +139,17 @@ async def ws_listener(url: str, label: str, config: dict):
                                 if print_to_lan_printer(host, port, escpos_bytes):
                                     printed_success = True
 
+                            # Dự phòng: Nếu máy in Thu ngân không phản hồi, thử gửi qua máy in Bếp (192.168.31.251)
+                            if not printed_success and station in ["CASHIER", "BAR"]:
+                                kitchen_cfg = printers.get("HOT_KITCHEN")
+                                if kitchen_cfg and kitchen_cfg.get("enabled"):
+                                    k_host = kitchen_cfg.get("host")
+                                    k_port = kitchen_cfg.get("port", 9100)
+                                    if k_host and k_host != (printer_cfg.get("host") if printer_cfg else ""):
+                                        if print_to_lan_printer(k_host, k_port, escpos_bytes):
+                                            printed_success = True
+                                            print(f"  [FALLBACK] Đã in thành công phiếu {station} qua máy in {k_host}:{k_port}")
+
                             # In giả lập ra màn hình nếu bật simulate_mode
                             if simulate_mode or not printed_success:
                                 print_simulated_ticket(ticket_text, station, label)

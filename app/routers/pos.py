@@ -1,9 +1,11 @@
 # POS Cashier management router for PiPo Garden
+import os
+import base64
 import urllib.parse
 from fastapi import APIRouter, HTTPException, Request
 from datetime import datetime
 from ..database import get_db
-from .auth import require_api_auth
+from .auth import require_api_auth, get_current_user_from_request
 
 router = APIRouter(prefix="/api/pos", tags=["POS Cashier"])
 
@@ -235,25 +237,54 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
     conn.commit()
     conn.close()
 
-    # Tự động in hóa đơn thanh toán xuống Máy in Thu ngân (192.168.31.252:9100)
+    # Tự động in hóa đơn thanh toán xuống Máy in Thu ngân (80mm)
     try:
-        from ..printer_service import get_printer_config, print_cashier_receipt
-        p_cfg = get_printer_config()
-        if p_cfg.get("auto_cashier") and checkout_items:
+        from ..escpos import format_receipt_ticket_text, build_escpos_receipt_bytes
+        cashier_display = user.get("full_name") or "Thu Ngan PiPo"
+        totals_info = {
+            "title": "HOA DON THANH TOAN",
+            "cashier_name": cashier_display,
+            "discount": discount_amount,
+            "discount_reason": discount_reason,
+            "bill_target": bill_target,
+            "billed_admin_name": billed_admin_name
+        }
+        receipt_text = format_receipt_ticket_text(dict(table), checkout_items, totals_info=totals_info)
+        receipt_bytes = build_escpos_receipt_bytes(dict(table), checkout_items, totals_info=totals_info)
+        receipt_b64 = base64.b64encode(receipt_bytes).decode("ascii")
+
+        first_order_id = orders_to_checkout[0]["id"] if orders_to_checkout else 0
+        conn_p = get_db()
+        cur_p = conn_p.cursor()
+        cur_p.execute("""
+            INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+            VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?)
+        """, (first_order_id, receipt_text))
+        job_id = cur_p.lastrowid
+        conn_p.commit()
+        conn_p.close()
+
+        if ws_broadcaster:
+            await ws_broadcaster.send_to_printers({
+                "event": "PRINT_JOB",
+                "job_id": job_id,
+                "station": "CASHIER",
+                "job_type": "RECEIPT",
+                "ticket_text": receipt_text,
+                "escpos_b64": receipt_b64,
+                "table_name": table["name"]
+            })
+
+        # Nếu đang chạy local (mạng LAN), gửi socket trực tiếp
+        is_cloud = os.environ.get("VIBE_PROJECT_ID") or os.environ.get("KUBERNETES_SERVICE_HOST") or (os.name != "nt")
+        if not is_cloud:
+            from ..printer_service import get_printer_config, send_escpos_to_printer
+            p_cfg = get_printer_config()
             import asyncio
-            cashier_display = user.get("full_name") or "Thu Ngan PiPo"
-            totals_info = {
-                "title": "HOA DON THANH TOAN",
-                "cashier_name": cashier_display,
-                "discount": discount_amount,
-                "discount_reason": discount_reason,
-                "bill_target": bill_target,
-                "billed_admin_name": billed_admin_name
-            }
             loop = asyncio.get_event_loop()
-            loop.run_in_executor(None, print_cashier_receipt, dict(table), checkout_items, totals_info)
-    except Exception:
-        pass
+            loop.run_in_executor(None, send_escpos_to_printer, p_cfg["cashier_ip"], p_cfg["cashier_port"], receipt_bytes)
+    except Exception as ex:
+        print("[POS Checkout Receipt Print Error]:", ex)
 
     if ws_broadcaster:
         # Thông báo tới toàn hệ thống
@@ -272,6 +303,145 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
 
     target_msg = f" (Tính bill với Admin: {billed_admin_name})" if bill_target == "ADMIN" else ""
     return {"status": "SUCCESS", "message": f"Đã thanh toán và mở lại bàn {table['name']}{target_msg}"}
+
+@router.get("/bills/history")
+async def get_bills_history(limit: int = 60, search: str = ""):
+    """Lấy danh sách các hóa đơn đã thanh toán để thu ngân xem lại và in lại bill."""
+    conn = get_db()
+    cursor = conn.cursor()
+    query = """
+        SELECT o.id, o.session_id, o.table_id, o.round_number, o.subtotal, o.total,
+               o.payment_status, o.payment_method, o.discount, o.discount_reason,
+               o.bill_target, o.billed_admin_name, o.created_at, o.updated_at,
+               t.name as table_name, t.table_code, t.area
+        FROM orders o
+        JOIN tables t ON o.table_id = t.id
+        WHERE o.payment_status = 'PAID'
+    """
+    params = []
+    if search:
+        query += " AND (t.name LIKE ? OR t.table_code LIKE ? OR o.id LIKE ? OR o.billed_admin_name LIKE ?)"
+        s = f"%{search}%"
+        params.extend([s, s, s, s])
+
+    query += " ORDER BY o.updated_at DESC, o.id DESC LIMIT ?"
+    params.append(limit)
+
+    cursor.execute(query, tuple(params))
+    rows = cursor.fetchall()
+
+    bills = []
+    for r in rows:
+        order_id = r["id"]
+        cursor.execute("""
+            SELECT item_name, quantity, unit_price, total_price, station, note, status
+            FROM order_items
+            WHERE order_id = ?
+        """, (order_id,))
+        items = [dict(it) for it in cursor.fetchall()]
+
+        bills.append({
+            "id": r["id"],
+            "session_id": r["session_id"],
+            "table_id": r["table_id"],
+            "table_name": r["table_name"],
+            "table_code": r["table_code"],
+            "area": r["area"],
+            "subtotal": r["subtotal"],
+            "discount": r["discount"] or 0,
+            "discount_reason": r["discount_reason"] or "",
+            "total": r["total"],
+            "payment_method": r["payment_method"] or "TIỀN MẶT",
+            "bill_target": r["bill_target"],
+            "billed_admin_name": r["billed_admin_name"],
+            "paid_at": r["updated_at"] or r["created_at"],
+            "items": items
+        })
+
+    conn.close()
+    return {"status": "SUCCESS", "bills": bills, "count": len(bills)}
+
+@router.post("/bills/{order_id}/reprint")
+async def reprint_bill(order_id: int, request: Request):
+    """In lại hóa đơn đã thanh toán xuống máy in thu ngân."""
+    user = get_current_user_from_request(request)
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT o.*, t.name as table_name, t.table_code, t.area
+        FROM orders o
+        JOIN tables t ON o.table_id = t.id
+        WHERE o.id = ?
+    """, (order_id,))
+    order_row = cursor.fetchone()
+    if not order_row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Không tìm thấy hóa đơn cần in lại.")
+
+    cursor.execute("""
+        SELECT item_name, quantity, unit_price, total_price, station, note, status
+        FROM order_items
+        WHERE order_id = ?
+    """, (order_id,))
+    items = [dict(it) for it in cursor.fetchall()]
+    conn.close()
+
+    table_dict = {
+        "name": order_row["table_name"],
+        "table_code": order_row["table_code"],
+        "area": order_row["area"]
+    }
+    cashier_display = (user.get("full_name") if user else None) or "Thu Ngan PiPo"
+    totals_info = {
+        "title": "HOA DON BAN HANG (IN LAI)",
+        "cashier_name": cashier_display,
+        "discount": order_row["discount"] or 0,
+        "discount_reason": order_row["discount_reason"] or "",
+        "bill_target": order_row["bill_target"],
+        "billed_admin_name": order_row["billed_admin_name"]
+    }
+
+    from ..escpos import format_receipt_ticket_text, build_escpos_receipt_bytes
+    receipt_text = format_receipt_ticket_text(table_dict, items, totals_info=totals_info)
+    receipt_bytes = build_escpos_receipt_bytes(table_dict, items, totals_info=totals_info)
+    receipt_b64 = base64.b64encode(receipt_bytes).decode("ascii")
+
+    conn_p = get_db()
+    cur_p = conn_p.cursor()
+    cur_p.execute("""
+        INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+        VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?)
+    """, (order_id, receipt_text))
+    job_id = cur_p.lastrowid
+    conn_p.commit()
+    conn_p.close()
+
+    if ws_broadcaster:
+        await ws_broadcaster.send_to_printers({
+            "event": "PRINT_JOB",
+            "job_id": job_id,
+            "station": "CASHIER",
+            "job_type": "RECEIPT",
+            "ticket_text": receipt_text,
+            "escpos_b64": receipt_b64,
+            "table_name": order_row["table_name"]
+        })
+
+    is_cloud = os.environ.get("VIBE_PROJECT_ID") or os.environ.get("KUBERNETES_SERVICE_HOST") or (os.name != "nt")
+    if not is_cloud:
+        try:
+            from ..printer_service import get_printer_config, send_escpos_to_printer
+            p_cfg = get_printer_config()
+            import asyncio
+            loop = asyncio.get_event_loop()
+            loop.run_in_executor(None, send_escpos_to_printer, p_cfg["cashier_ip"], p_cfg["cashier_port"], receipt_bytes)
+        except Exception:
+            pass
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Đã gửi lệnh in lại hóa đơn #{order_id} ({order_row['table_name']}) xuống máy in thành công!"
+    }
 
 @router.post("/service-call/{call_id}/dismiss")
 async def dismiss_service_call(call_id: int):

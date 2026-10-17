@@ -821,9 +821,21 @@
 
     // 1. Khởi chạy khi load trang
     document.addEventListener("DOMContentLoaded", () => {
-      // Nhận diện tự động nếu bàn cafe
+      // Nhận diện tự động nếu bàn Sân Pickle hoặc Cafe
+      const isPickleTable = (TABLE_INFO.branchType === "PICKLE" || (TABLE_INFO.area || "").toLowerCase().includes("pickle") || (TABLE_INFO.code || "").toUpperCase().startsWith("PK"));
       const isCafeTable = (TABLE_INFO.branchType === "CAFE" || (TABLE_INFO.area || "").toLowerCase().includes("cafe") || (TABLE_INFO.code || "").toUpperCase().startsWith("CF"));
-      if (isCafeTable && !localStorage.getItem("pipo_main_menu")) {
+      
+      if (isPickleTable) {
+        currentMainMenu = "PICKLE";
+        const sel = document.getElementById("mainMenuSelector");
+        if (sel && sel.parentElement) sel.parentElement.classList.add("hidden");
+        const catTabs = document.getElementById("categoryTabs");
+        if (catTabs) catTabs.classList.add("hidden");
+        const bBadge = document.getElementById("bannerBadge");
+        if (bBadge) bBadge.innerText = "🏓 THỰC ĐƠN SÂN PICKLEBALL";
+        const bDesc = document.getElementById("bannerDesc");
+        if (bDesc) bDesc.innerText = "Gọi nước giải khát & đồ uống nhanh chóng, nhân viên sẽ mang ra tận sân.";
+      } else if (isCafeTable && !localStorage.getItem("pipo_main_menu")) {
         currentMainMenu = "CAFE";
       }
 
@@ -1117,6 +1129,11 @@
     // Helper kiểm tra món có thuộc Menu chính đang chọn hay không
     function isItemInMainMenu(item, menuType) {
       if (!menuType || menuType === "ALL") return true;
+      if (menuType === "PICKLE") {
+        if (item.category_id === 6) return true;
+        if (item.main_menu_type && item.main_menu_type.toUpperCase().includes("PICKLE")) return true;
+        return false;
+      }
       if (!item.main_menu_type) return true;
       const parts = item.main_menu_type.split(",").map(s => s.trim().toUpperCase());
       return parts.includes(menuType.toUpperCase()) || parts.includes("ALL");
