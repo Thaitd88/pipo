@@ -217,7 +217,11 @@ def format_receipt_ticket_text(table_info: dict, items: list, totals_info: dict 
 
     if discount > 0:
         disc_reason = totals_info.get("discount_reason")
-        lbl_disc = f" Giam gia ({remove_vietnamese_accents(disc_reason)}):" if disc_reason else " Giam gia:"
+        disc_pct = totals_info.get("discount_percent")
+        if disc_pct:
+            lbl_disc = f" Giam gia ({disc_pct}% - {remove_vietnamese_accents(disc_reason)}):" if disc_reason else f" Giam gia ({disc_pct}%):"
+        else:
+            lbl_disc = f" Giam gia ({remove_vietnamese_accents(disc_reason)}):" if disc_reason else " Giam gia:"
         val_disc = f"-{format_currency_vnd(discount)}"
         sp_disc = w - len(lbl_disc) - len(val_disc)
         lines.append(f"{lbl_disc}{' ' * max(1, sp_disc)}{val_disc}")
@@ -499,7 +503,11 @@ def build_escpos_receipt_bytes(table_info: dict, items: list, totals_info: dict 
 
     if discount > 0:
         disc_reason = totals_info.get("discount_reason")
-        lbl_disc = f" Giam gia ({remove_vietnamese_accents(disc_reason)}):" if disc_reason else " Giam gia:"
+        disc_pct = totals_info.get("discount_percent")
+        if disc_pct:
+            lbl_disc = f" Giam gia ({disc_pct}% - {remove_vietnamese_accents(disc_reason)}):" if disc_reason else f" Giam gia ({disc_pct}%):"
+        else:
+            lbl_disc = f" Giam gia ({remove_vietnamese_accents(disc_reason)}):" if disc_reason else " Giam gia:"
         val_disc = f"-{format_currency_vnd(discount)}"
         sp_disc = w - len(lbl_disc) - len(val_disc)
         buf.extend(f"{lbl_disc}{' ' * max(1, sp_disc)}{val_disc}\n".encode("ascii"))

@@ -214,6 +214,7 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
         except Exception:
             payload = {}
 
+    discount_percent = float(payload.get("discount_percent") or 0)
     discount_amount = max(0, int(payload.get("discount_amount") or 0))
     discount_reason = (payload.get("discount_reason") or "").strip()
     bill_target = (payload.get("bill_target") or "CUSTOMER").strip().upper()
@@ -280,6 +281,7 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
             "title": "HOA DON THANH TOAN",
             "cashier_name": cashier_display,
             "discount": discount_amount,
+            "discount_percent": int(discount_percent) if discount_percent.is_integer() else discount_percent if discount_percent > 0 else None,
             "discount_reason": discount_reason,
             "bill_target": bill_target,
             "billed_admin_name": billed_admin_name

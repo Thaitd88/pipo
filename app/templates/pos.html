@@ -757,31 +757,43 @@
 
     <!-- CÀI ĐẶT GIẢM GIÁ & ĐỐI TƯỢNG THANH TOÁN -->
     <div class="p-3.5 bg-stone-100/90 border-t border-stone-200 space-y-2.5 text-xs">
-      <!-- 1. Giảm giá tổng bill -->
+      <!-- 1. Giảm giá tổng bill theo % -->
       <div>
         <div class="flex items-center justify-between mb-1">
           <label class="font-bold text-stone-700 flex items-center gap-1">
-            <span>🏷️ Giảm giá tổng bill:</span>
+            <span>🏷️ Giảm giá theo %:</span>
           </label>
-          <div class="flex items-center gap-1">
-            <button type="button" onclick="setDiscountType('VND')" id="btnDiscTypeVND" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-700 text-white">VNĐ</button>
-            <button type="button" onclick="setDiscountType('PCT')" id="btnDiscTypePCT" class="px-2 py-0.5 rounded text-[10px] font-bold bg-white text-stone-600 border border-stone-300">%</button>
-          </div>
+          <span id="drawerDiscountCalculatedPill" class="text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 hidden">
+            -0 đ
+          </span>
         </div>
         <div class="grid grid-cols-12 gap-1.5">
-          <div class="col-span-6 relative">
-            <input type="number" id="drawerDiscountVal" min="0" value="0" placeholder="0" oninput="calculateDrawerTotal()" class="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 font-bold text-rose-600 text-xs focus:outline-emerald-600">
-            <span id="drawerDiscountUnit" class="absolute right-2 top-1.5 text-stone-400 font-bold text-[10px]">đ</span>
+          <div class="col-span-5 relative">
+            <input type="number" id="drawerDiscountVal" min="0" max="100" value="0" placeholder="0" oninput="calculateDrawerTotal()" class="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 font-black text-rose-600 text-sm focus:outline-emerald-600 pr-7 text-center">
+            <span class="absolute right-2.5 top-1.5 text-stone-500 font-black text-xs">%</span>
           </div>
-          <div class="col-span-6">
+          <div class="col-span-7">
             <select id="drawerDiscountReason" onchange="onDiscountReasonChange()" class="w-full bg-white border border-stone-300 rounded-lg px-2 py-1.5 font-semibold text-stone-700 text-xs focus:outline-emerald-600">
               <option value="">Lý do giảm giá...</option>
               <option value="Nội bộ">🏢 Nội bộ</option>
+              <option value="Khách quen">🌟 Khách quen</option>
               <option value="Thử bếp">🍳 Thử bếp</option>
               <option value="Khác">📝 Khác</option>
             </select>
           </div>
         </div>
+
+        <!-- Quick discount percentage chips -->
+        <div class="flex items-center gap-1 mt-1.5 flex-wrap">
+          <button type="button" onclick="setQuickDiscountPct(0)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-stone-200 border border-stone-300 text-stone-600 transition">0%</button>
+          <button type="button" onclick="setQuickDiscountPct(5)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">5%</button>
+          <button type="button" onclick="setQuickDiscountPct(10)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">10%</button>
+          <button type="button" onclick="setQuickDiscountPct(15)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">15%</button>
+          <button type="button" onclick="setQuickDiscountPct(20)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">20%</button>
+          <button type="button" onclick="setQuickDiscountPct(50)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">50%</button>
+          <button type="button" onclick="setQuickDiscountPct(100)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">100%</button>
+        </div>
+
         <input type="text" id="drawerDiscountCustomReason" placeholder="Ghi chú lý do giảm giá khác..." class="w-full mt-1.5 bg-white border border-stone-300 rounded-lg px-2.5 py-1 text-stone-700 text-xs focus:outline-emerald-600 hidden">
       </div>
 
@@ -807,10 +819,21 @@
       </div>
     </div>
 
-    <div class="p-4 bg-stone-50 border-t border-stone-200 space-y-3">
-      <div class="flex items-center justify-between text-base">
-        <span class="text-stone-600 font-medium">Tổng cộng thanh toán:</span>
-        <span class="font-black text-xl text-emerald-800" id="drawerGrandTotal">0 đ</span>
+    <div class="p-4 bg-stone-50 border-t border-stone-200 space-y-2.5">
+      <!-- Chi tiết tổng tiền & giảm giá -->
+      <div class="space-y-1">
+        <div id="drawerSubtotalRow" class="flex items-center justify-between text-xs text-stone-500 hidden">
+          <span>Tiền món:</span>
+          <span id="drawerSubtotalVal" class="font-bold text-stone-700">0 đ</span>
+        </div>
+        <div id="drawerDiscountRow" class="flex items-center justify-between text-xs text-rose-600 hidden">
+          <span id="drawerDiscountLabel">Giảm giá (%):</span>
+          <span id="drawerDiscountRowVal" class="font-bold">-0 đ</span>
+        </div>
+        <div class="flex items-center justify-between text-base pt-1 border-t border-stone-200">
+          <span class="text-stone-700 font-bold">Cần thanh toán:</span>
+          <span class="font-black text-xl text-emerald-800" id="drawerGrandTotal">0 đ</span>
+        </div>
       </div>
 
       <div class="grid grid-cols-2 gap-2">
@@ -824,12 +847,17 @@
         </button>
       </div>
 
-      <button onclick="openPrintBillModal()" class="w-full bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-xs">
-        <i class="fa-solid fa-print"></i>
-        <span>In Phiếu Tính Tiền (Tạm Tính)</span>
-      </button>
+      <div class="flex items-center gap-2">
+        <button onclick="printProvisionalBill()" class="flex-1 bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-xs" title="In trực tiếp ra Máy in Thu ngân 80mm">
+          <i class="fa-solid fa-print"></i>
+          <span>In Phiếu Tính Tiền (Tạm Tính)</span>
+        </button>
+        <button onclick="openPrintBillModal()" class="px-3 py-2.5 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs transition" title="Xem trước mẫu phiếu in">
+          <i class="fa-solid fa-eye"></i>
+        </button>
+      </div>
 
-      <div class="pt-1">
+      <div class="pt-0.5">
         <a id="drawerCustomerLink" href="#" target="_blank" class="w-full text-center block text-xs text-emerald-700 hover:underline">
           <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Xem giao diện gọi món của bàn này
         </a>
@@ -889,13 +917,21 @@
             </table>
           </div>
 
-          <!-- Tổng cộng -->
-          <div class="pt-3 space-y-1.5 text-xs">
-            <div class="flex justify-between items-center text-sm font-black text-stone-900">
+          <!-- Tổng cộng & Chiết khấu -->
+          <div class="pt-3 space-y-1 text-xs">
+            <div id="receiptSubtotalRow" class="flex justify-between items-center text-stone-600 hidden">
+              <span>Tổng tiền món:</span>
+              <span id="receiptSubtotalVal" class="font-bold">0 đ</span>
+            </div>
+            <div id="receiptDiscountRow" class="flex justify-between items-center text-rose-600 hidden">
+              <span id="receiptDiscountLabel">Giảm giá (%):</span>
+              <span id="receiptDiscountVal" class="font-bold">-0 đ</span>
+            </div>
+            <div class="flex justify-between items-center text-sm font-black text-stone-900 pt-1 border-t border-dashed border-stone-300">
               <span>TỔNG CỘNG:</span>
               <span class="text-emerald-800 text-base font-black" id="receiptGrandTotal">0 đ</span>
             </div>
-            <div class="text-[10px] text-stone-400 text-center pt-1 italic">
+            <div class="text-[10px] text-stone-400 text-center pt-0.5 italic">
               (Phiếu tạm tính - Chưa gồm VAT)
             </div>
           </div>
@@ -917,9 +953,9 @@
         <button onclick="closePrintBillModal()" class="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 font-bold text-xs hover:bg-stone-50 transition">
           Đóng
         </button>
-        <button onclick="executePrintReceipt()" class="flex-1 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition">
+        <button onclick="printProvisionalBill()" class="flex-1 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition">
           <i class="fa-solid fa-print"></i>
-          <span>In Ngay</span>
+          <span>In Ra Máy In (80mm)</span>
         </button>
       </div>
     </div>
@@ -1493,52 +1529,61 @@
       }
     }
 
-    function setDiscountType(type) {
-      posDiscountType = type;
-      const btnVND = document.getElementById("btnDiscTypeVND");
-      const btnPCT = document.getElementById("btnDiscTypePCT");
-      const unit = document.getElementById("drawerDiscountUnit");
-      const input = document.getElementById("drawerDiscountVal");
+    let posDiscountType = 'PCT';
 
-      if (type === 'PCT') {
-        if (btnPCT) btnPCT.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-700 text-white";
-        if (btnVND) btnVND.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-white text-stone-600 border border-stone-300";
-        if (unit) unit.innerText = "%";
-        if (input) input.max = 100;
-      } else {
-        if (btnVND) btnVND.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-700 text-white";
-        if (btnPCT) btnPCT.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-white text-stone-600 border border-stone-300";
-        if (unit) unit.innerText = "đ";
-        if (input) input.removeAttribute("max");
+    function setQuickDiscountPct(pct) {
+      const input = document.getElementById("drawerDiscountVal");
+      if (input) {
+        input.value = pct;
+        calculateDrawerTotal();
       }
-      calculateDrawerTotal();
     }
 
     function calculateCalculatedDiscount() {
       if (!currentBillData || !currentBillData.grand_total) return 0;
       const rawVal = parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0;
-      if (rawVal <= 0) return 0;
+      const pct = Math.min(100, Math.max(0, rawVal));
+      if (pct <= 0) return 0;
       const subtotal = currentBillData.grand_total;
-      if (posDiscountType === 'PCT') {
-        const pct = Math.min(100, Math.max(0, rawVal));
-        return Math.round(subtotal * pct / 100);
-      } else {
-        return Math.min(subtotal, Math.max(0, rawVal));
-      }
+      return Math.round(subtotal * pct / 100);
     }
 
     function calculateDrawerTotal() {
       if (!currentBillData) return;
       const subtotal = currentBillData.grand_total || 0;
-      const discount = calculateCalculatedDiscount();
+      const rawVal = parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0;
+      const pct = Math.min(100, Math.max(0, rawVal));
+      const discount = (pct > 0) ? Math.round(subtotal * pct / 100) : 0;
       const finalTotal = Math.max(0, subtotal - discount);
+
       const totalEl = document.getElementById("drawerGrandTotal");
-      if (totalEl) {
-        if (discount > 0) {
-          totalEl.innerHTML = `${formatVND(finalTotal)} <span class="text-xs text-rose-500 font-medium block">(-${formatVND(discount)})</span>`;
-        } else {
-          totalEl.innerText = formatVND(finalTotal);
+      const pill = document.getElementById("drawerDiscountCalculatedPill");
+      const subRow = document.getElementById("drawerSubtotalRow");
+      const subVal = document.getElementById("drawerSubtotalVal");
+      const discRow = document.getElementById("drawerDiscountRow");
+      const discLabel = document.getElementById("drawerDiscountLabel");
+      const discVal = document.getElementById("drawerDiscountRowVal");
+
+      if (totalEl) totalEl.innerText = formatVND(finalTotal);
+
+      if (discount > 0) {
+        if (pill) {
+          pill.innerText = `-${formatVND(discount)}`;
+          pill.classList.remove("hidden");
         }
+        if (subRow && subVal) {
+          subVal.innerText = formatVND(subtotal);
+          subRow.classList.remove("hidden");
+        }
+        if (discRow && discLabel && discVal) {
+          discLabel.innerText = `Giảm giá (${pct}%):`;
+          discVal.innerText = `-${formatVND(discount)}`;
+          discRow.classList.remove("hidden");
+        }
+      } else {
+        if (pill) pill.classList.add("hidden");
+        if (subRow) subRow.classList.add("hidden");
+        if (discRow) discRow.classList.add("hidden");
       }
     }
 
@@ -1605,7 +1650,6 @@
       document.getElementById("drawerGrandTotal").innerText = formatVND(currentBillData.grand_total || 0);
 
       // Reset controls giảm giá & đối tượng thanh toán
-      setDiscountType('VND');
       if (document.getElementById("drawerDiscountVal")) document.getElementById("drawerDiscountVal").value = 0;
       if (document.getElementById("drawerDiscountReason")) document.getElementById("drawerDiscountReason").value = "";
       if (document.getElementById("drawerDiscountCustomReason")) {
@@ -1944,7 +1988,26 @@
       }
 
       const disc = calculateCalculatedDiscount();
+      const discPct = Math.min(100, Math.max(0, parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0));
       const finalTotal = Math.max(0, currentBillData.grand_total - disc);
+
+      const receiptSubtotalRow = document.getElementById("receiptSubtotalRow");
+      const receiptDiscountRow = document.getElementById("receiptDiscountRow");
+      if (disc > 0) {
+        if (receiptSubtotalRow) {
+          receiptSubtotalRow.classList.remove("hidden");
+          document.getElementById("receiptSubtotalVal").innerText = formatVND(currentBillData.grand_total);
+        }
+        if (receiptDiscountRow) {
+          receiptDiscountRow.classList.remove("hidden");
+          document.getElementById("receiptDiscountLabel").innerText = `Giảm giá (${discPct}%):`;
+          document.getElementById("receiptDiscountVal").innerText = `-${formatVND(disc)}`;
+        }
+      } else {
+        if (receiptSubtotalRow) receiptSubtotalRow.classList.add("hidden");
+        if (receiptDiscountRow) receiptDiscountRow.classList.add("hidden");
+      }
+
       document.getElementById("receiptGrandTotal").innerText = formatVND(finalTotal);
 
       let qrUrl = currentBillData.vietqr_url;
@@ -1966,19 +2029,45 @@
       document.getElementById("printBillModal").classList.add("hidden");
     }
 
-    async function executePrintReceipt() {
-      if (!selectedTable) return;
+    async function printProvisionalBill() {
+      if (!selectedTable || !currentBillData) {
+        alert("Vui lòng chọn bàn có đơn hàng để in phiếu tạm tính!");
+        return;
+      }
+      const discPct = Math.min(100, Math.max(0, parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0));
+      let discReason = document.getElementById("drawerDiscountReason")?.value || "";
+      if (discReason === "Khác") {
+        discReason = document.getElementById("drawerDiscountCustomReason")?.value?.trim() || "Khác";
+      }
+      const discAmount = calculateCalculatedDiscount();
+
       try {
-        const res = await fetch(`/api/printer/table/${selectedTable.id}/print-bill`, { method: "POST" });
+        showPosToast(`🖨️ Đang in phiếu tạm tính bàn ${selectedTable.name}...`);
+        const res = await fetch(`/api/printer/table/${selectedTable.id}/print-bill`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            discount_percent: discPct,
+            discount_amount: discAmount,
+            discount_reason: discReason,
+            cashier_name: currentUser ? currentUser.full_name : "Thu Ngân PiPo"
+          })
+        });
+        const data = await res.json();
         if (res.ok) {
           closePrintBillModal();
-          alert(`✅ Đã in hóa đơn bàn ${selectedTable.name} ra Máy in Thu ngân (192.168.31.252)!`);
-          return;
+          showPosToast(`✅ ${data.message || 'Đã in phiếu tạm tính ra Máy in Thu ngân (80mm)!'}`);
+        } else {
+          alert(data.detail || "Không thể in phiếu tạm tính");
         }
       } catch (e) {
-        console.warn("Không kết nối được máy in LAN trực tiếp:", e);
+        console.error(e);
+        alert("Lỗi kết nối khi gửi lệnh in phiếu tạm tính!");
       }
-      window.print();
+    }
+
+    function executePrintReceipt() {
+      return printProvisionalBill();
     }
 
     function openVietQRModal() {
@@ -2005,6 +2094,7 @@
     async function confirmCheckoutTable() {
       if (!selectedTable) return;
 
+      const discountPercent = Math.min(100, Math.max(0, parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0));
       const discountAmount = calculateCalculatedDiscount();
       let discountReason = document.getElementById("drawerDiscountReason")?.value || "";
       if (discountReason === "Khác") {
@@ -2040,13 +2130,14 @@
         confirmMsg += `\n(Hình thức: Tính bill với Admin "${billedAdminName}")`;
       }
       if (discountAmount > 0) {
-        confirmMsg += `\n(Giảm giá: ${formatVND(discountAmount)} - Lý do: ${discountReason || 'Không có'})`;
+        confirmMsg += `\n(Giảm giá ${discountPercent}%: ${formatVND(discountAmount)} - Lý do: ${discountReason || 'Không có'})`;
       }
 
       if (!confirm(confirmMsg)) return;
 
       try {
         const payload = {
+          discount_percent: discountPercent,
           discount_amount: discountAmount,
           discount_reason: discountReason,
           bill_target: billTarget,
