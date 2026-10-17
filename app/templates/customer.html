@@ -833,23 +833,23 @@
 
     function applyLanguage(lang) {
       const dict = I18N[lang] || I18N["vi"];
-      document.getElementById("currentLangFlag").innerText = dict.flag;
-      document.getElementById("currentLangCode").innerText = dict.label;
-      document.getElementById("headerSubText").innerText = dict.restaurant_sub;
-      document.getElementById("bannerBadge").innerText = dict.banner_tag;
-      document.getElementById("bannerGreeting").innerText = dict.banner_greeting(TABLE_INFO.name);
-      document.getElementById("bannerDesc").innerText = dict.banner_desc;
-      document.getElementById("loadingMenuText").innerText = dict.loading_menu;
+      if (document.getElementById("currentLangFlag")) document.getElementById("currentLangFlag").innerText = dict.flag;
+      if (document.getElementById("currentLangCode")) document.getElementById("currentLangCode").innerText = dict.label;
+      if (document.getElementById("headerSubText")) document.getElementById("headerSubText").innerText = dict.restaurant_sub;
+      if (document.getElementById("bannerBadge")) document.getElementById("bannerBadge").innerText = dict.banner_tag;
+      if (document.getElementById("bannerGreeting")) document.getElementById("bannerGreeting").innerText = dict.banner_greeting(TABLE_INFO.name);
+      if (document.getElementById("bannerDesc")) document.getElementById("bannerDesc").innerText = dict.banner_desc;
+      if (document.getElementById("loadingMenuText")) document.getElementById("loadingMenuText").innerText = dict.loading_menu;
 
-      // Quick Service buttons
-      document.getElementById("btnTextIce").innerText = dict.call_ice;
-      document.getElementById("btnTextTissue").innerText = dict.call_tissue;
-      document.getElementById("btnTextWaiter").innerText = dict.call_waiter;
-      document.getElementById("btnTextBill").innerText = dict.call_bill;
+      // Quick Service buttons (chỉ có khi gọi món tại bàn, không có ở chế độ đặt trước trực tuyến)
+      if (document.getElementById("btnTextIce")) document.getElementById("btnTextIce").innerText = dict.call_ice;
+      if (document.getElementById("btnTextTissue")) document.getElementById("btnTextTissue").innerText = dict.call_tissue;
+      if (document.getElementById("btnTextWaiter")) document.getElementById("btnTextWaiter").innerText = dict.call_waiter;
+      if (document.getElementById("btnTextBill")) document.getElementById("btnTextBill").innerText = dict.call_bill;
 
       // Cart bar
-      document.getElementById("cartTapDetailsText").innerText = dict.cart_tap_details;
-      document.getElementById("cartBtnViewText").innerText = dict.cart_view;
+      if (document.getElementById("cartTapDetailsText")) document.getElementById("cartTapDetailsText").innerText = dict.cart_tap_details;
+      if (document.getElementById("cartBtnViewText")) document.getElementById("cartBtnViewText").innerText = dict.cart_view;
 
       // Modals
       if (document.getElementById("modalTapToZoomText")) {
@@ -858,19 +858,19 @@
       if (document.getElementById("modalDetailTitleText")) {
         document.getElementById("modalDetailTitleText").innerText = dict.modal_detail_title || "Chi tiết & Mô tả món:";
       }
-      document.getElementById("modalItemNoteLabel").innerText = dict.item_note_label;
-      document.getElementById("modalItemNote").placeholder = dict.item_note_ph;
+      if (document.getElementById("modalItemNoteLabel")) document.getElementById("modalItemNoteLabel").innerText = dict.item_note_label;
+      if (document.getElementById("modalItemNote")) document.getElementById("modalItemNote").placeholder = dict.item_note_ph;
       const addBtnTextEl = document.getElementById("modalAddToCartBtnText");
       if (addBtnTextEl) addBtnTextEl.innerText = dict.btn_add_to_cart;
       else if (document.getElementById("modalAddToCartBtn")) document.getElementById("modalAddToCartBtn").innerText = dict.btn_add_to_cart;
 
-      document.getElementById("modalCartHeaderTitle").innerText = dict.cart_title(TABLE_INFO.name);
-      document.getElementById("modalCartHeaderSub").innerText = dict.cart_desc;
-      document.getElementById("cartGeneralNoteLabel").innerText = dict.general_note_label;
-      document.getElementById("orderGeneralNote").placeholder = dict.general_note_ph;
-      document.getElementById("cartTotalLabel").innerText = dict.total_this_round;
-      document.getElementById("btnSubmitOrderText").innerText = dict.btn_submit_order;
-      document.getElementById("orderProgressTitle").innerText = dict.order_progress_title;
+      if (document.getElementById("modalCartHeaderTitle")) document.getElementById("modalCartHeaderTitle").innerText = dict.cart_title(TABLE_INFO.name);
+      if (document.getElementById("modalCartHeaderSub")) document.getElementById("modalCartHeaderSub").innerText = dict.cart_desc;
+      if (document.getElementById("cartGeneralNoteLabel")) document.getElementById("cartGeneralNoteLabel").innerText = dict.general_note_label;
+      if (document.getElementById("orderGeneralNote")) document.getElementById("orderGeneralNote").placeholder = dict.general_note_ph;
+      if (document.getElementById("cartTotalLabel")) document.getElementById("cartTotalLabel").innerText = dict.total_this_round;
+      if (document.getElementById("btnSubmitOrderText")) document.getElementById("btnSubmitOrderText").innerText = dict.btn_submit_order;
+      if (document.getElementById("orderProgressTitle")) document.getElementById("orderProgressTitle").innerText = dict.order_progress_title;
 
       if (document.getElementById("modalCalorieTitleText")) {
         document.getElementById("modalCalorieTitleText").innerText = dict.calorie_title || "Năng lượng ước tính:";
@@ -1873,6 +1873,7 @@
 
     // 10. WebSocket khách hàng (Real-time updates)
     function connectCustomerWebSocket() {
+      if (IS_PREORDER || !TABLE_INFO || !TABLE_INFO.id) return;
       const protocol = location.protocol === "https:" ? "wss:" : "ws:";
       const wsUrl = `${protocol}//${location.host}/ws/customer/${TABLE_INFO.id}`;
       const ws = new WebSocket(wsUrl);
