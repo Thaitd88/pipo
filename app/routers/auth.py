@@ -89,7 +89,7 @@ def check_page_access(request: Request, allowed_roles: Optional[List[str]] = Non
             "ADMIN": "/admin",
             "CASHIER": "/pos",
             "CHEF": "/kitchen",
-            "WAITER": "/waiter"
+            "WAITER": "/pos"
         }
         dest = role_default_pages.get(user["role"], "/")
         return RedirectResponse(
@@ -178,7 +178,7 @@ def login(req: LoginRequest, response: Response, request: Request):
         "ADMIN": "/admin",
         "CASHIER": "/pos",
         "CHEF": "/kitchen",
-        "WAITER": "/waiter"
+        "WAITER": "/pos"
     }
     redirect_url = role_redirects.get(user["role"], "/admin")
 

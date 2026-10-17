@@ -58,10 +58,18 @@ async def clear_revenue_data(request: Request):
     cursor.execute("DELETE FROM orders")
     cursor.execute("DELETE FROM service_calls")
     cursor.execute("DELETE FROM table_sessions")
+    cursor.execute("DELETE FROM print_jobs")
     cursor.execute("DELETE FROM reservations")
     cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL")
     conn.commit()
     conn.close()
+
+    if ws_broadcaster:
+        try:
+            await ws_broadcaster.send_to_pos({"event": "REVENUE_CLEARED"})
+            await ws_broadcaster.send_to_kds({"event": "REVENUE_CLEARED"})
+        except Exception:
+            pass
 
     return {
         "status": "SUCCESS",

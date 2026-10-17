@@ -247,6 +247,7 @@ def get_active_orders():
         FROM orders o
         JOIN tables t ON o.table_id = t.id
         WHERE o.payment_status = 'UNPAID'
+          AND t.status != 'AVAILABLE'
         ORDER BY o.created_at ASC
     """)
     orders = [dict(o) for o in cursor.fetchall()]
@@ -273,9 +274,52 @@ def get_active_orders():
     conn.close()
     return orders
 
+@router.patch("/table/{table_id}/serve-all")
+async def serve_all_table_items(table_id: int):
+    """Xác nhận đã ra tất cả món cho bàn từ POS/Thu ngân."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id FROM order_items 
+        WHERE order_id IN (SELECT id FROM orders WHERE table_id = ? AND payment_status = 'UNPAID')
+          AND status != 'SERVED'
+    """, (table_id,))
+    item_rows = cursor.fetchall()
+    for ir in item_rows:
+        try:
+            deduct_inventory_for_order_item(conn, ir["id"])
+        except Exception:
+            pass
+
+    cursor.execute("""
+        UPDATE order_items 
+        SET status = 'SERVED', updated_at = CURRENT_TIMESTAMP
+        WHERE order_id IN (SELECT id FROM orders WHERE table_id = ? AND payment_status = 'UNPAID')
+          AND status != 'SERVED'
+    """, (table_id,))
+    conn.commit()
+    conn.close()
+
+    if ws_broadcaster:
+        await ws_broadcaster.send_to_pos({
+            "event": "TABLE_ITEMS_SERVED",
+            "table_id": table_id
+        })
+        await ws_broadcaster.send_to_kds({
+            "event": "TABLE_ITEMS_SERVED",
+            "table_id": table_id
+        })
+        await ws_broadcaster.send_to_customer(table_id, {
+            "event": "ITEM_STATUS_CHANGED",
+            "item_name": "Tất cả món",
+            "new_status": "SERVED"
+        })
+
+    return {"status": "SUCCESS", "table_id": table_id}
+
 @router.patch("/item/{order_item_id}/status")
 async def update_item_status(order_item_id: int, payload: dict):
-    """Bếp bấm chuyển trạng thái món: QUEUED -> COOKING -> READY -> SERVED."""
+    """Bếp hoặc Thu ngân bấm chuyển trạng thái món: QUEUED -> COOKING -> READY -> SERVED."""
     new_status = payload.get("status")
     if new_status not in ["QUEUED", "COOKING", "READY", "SERVED", "CANCELLED"]:
         raise HTTPException(status_code=400, detail="Trạng thái không hợp lệ")
@@ -297,8 +341,8 @@ async def update_item_status(order_item_id: int, payload: dict):
     cursor.execute("UPDATE order_items SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (new_status, order_item_id))
     conn.commit()
 
-    # TỰ ĐỘNG TRỪ TỒN KHO NẾU BẮT ĐẦU NẤU HOẶC HOÀN TẤT
-    if new_status in ["COOKING", "READY"]:
+    # TỰ ĐỘNG TRỪ TỒN KHO NẾU BẮT ĐẦU NẤU HOẶC HOÀN TẤT / RA MÓN
+    if new_status in ["COOKING", "READY", "SERVED"]:
         try:
             deduct_inventory_for_order_item(conn, order_item_id)
         except Exception as e:

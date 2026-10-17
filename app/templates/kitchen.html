@@ -653,18 +653,11 @@
 
             <div class="p-3 space-y-2.5 flex-1 overflow-y-auto">
               ${order.filteredItems.map(item => {
-                let statusBadge = "";
-                let actionBtn = "";
-
-                if (item.status === 'QUEUED') {
-                  statusBadge = `<span class="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full font-bold">Chờ nấu</span>`;
-                  actionBtn = `<button onclick="updateItemStatus(${item.id}, 'COOKING')" class="w-full mt-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-1.5 rounded-xl transition shadow-xs">BẮT ĐẦU NẤU (Tự Trừ Kho) 🔥</button>`;
-                } else if (item.status === 'COOKING') {
+                let statusBadge = `<span class="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full font-bold">Chờ chế biến</span>`;
+                if (item.status === 'COOKING') {
                   statusBadge = `<span class="text-[10px] bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 rounded-full font-bold">Đang nấu</span>`;
-                  actionBtn = `<button onclick="updateItemStatus(${item.id}, 'READY')" class="w-full mt-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs py-1.5 rounded-xl transition shadow-xs">XONG / RA BÀN 🛎️</button>`;
                 } else if (item.status === 'READY') {
-                  statusBadge = `<span class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full font-bold">Chờ bưng</span>`;
-                  actionBtn = `<button onclick="updateItemStatus(${item.id}, 'SERVED')" class="w-full mt-2 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-xs py-1.5 rounded-xl">ĐÃ BƯNG RA BÀN ✅</button>`;
+                  statusBadge = `<span class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full font-bold">Chờ ra món</span>`;
                 }
 
                 return `
@@ -674,7 +667,7 @@
                         <span class="w-6 h-6 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-black flex items-center justify-center flex-shrink-0">${item.quantity}</span>
                         <div>
                           <div class="font-bold text-sm text-stone-900">${item.item_name}</div>
-                          ${item.note ? `<div class="text-xs text-amber-700 italic mt-0.5">${item.note}</div>` : ''}
+                          ${item.note ? `<div class="text-xs text-amber-700 italic mt-0.5">⚠️ ${item.note}</div>` : ''}
                         </div>
                       </div>
                       <div class="flex flex-col items-end gap-1 flex-shrink-0">
@@ -684,17 +677,14 @@
                         </button>
                       </div>
                     </div>
-                    ${actionBtn}
                   </div>
                 `;
               }).join('')}
             </div>
 
-            <div class="p-3 bg-stone-50 border-t border-stone-200 flex justify-between items-center">
-              <span class="text-xs text-stone-500">${order.filteredItems.length} món</span>
-              <button onclick="completeAllItems(${order.id})" class="text-xs text-emerald-700 hover:text-emerald-800 font-bold">
-                Hoàn tất vé (Trừ kho) <i class="fa-solid fa-check-double text-[10px]"></i>
-              </button>
+            <div class="p-3 bg-stone-50 border-t border-stone-200 flex justify-between items-center text-xs text-stone-500">
+              <span>${order.filteredItems.length} món</span>
+              <span class="font-bold text-stone-600">Thu ngân sẽ xác nhận ra món</span>
             </div>
           </div>
         `;

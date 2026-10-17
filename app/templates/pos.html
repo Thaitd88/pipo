@@ -132,18 +132,32 @@
     </div>
 
     <main class="max-w-7xl mx-auto p-6 flex-1 w-full">
-      <!-- Bộ lọc 2 Nhánh Bàn Lớn: Bàn Nhà Hàng & Bàn Cafe -->
-      <div class="flex items-center justify-between mb-4">
-        <div class="flex flex-wrap gap-2">
-          <button onclick="filterArea('ALL')" class="area-btn px-3.5 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold shadow-xs">Tất cả bàn</button>
-          <button onclick="filterArea('Bàn Nhà Hàng')" class="area-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🍽️ Bàn Nhà Hàng</button>
-          <button onclick="filterArea('Bàn Cafe')" class="area-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">☕ Bàn Cafe / Ăn Sáng</button>
-          <button onclick="filterArea('Sân Pickle')" class="area-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🏓 Sân Pickle</button>
+      <!-- Thanh bộ lọc trạng thái bàn & khu vực -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+        <!-- 1. Lọc theo Trạng thái (Đang có khách, Bàn trống, Đặt trước) -->
+        <div class="flex flex-wrap items-center gap-2 bg-stone-100 p-1.5 rounded-2xl border border-stone-200">
+          <button onclick="filterTableStatus('ALL')" id="tblStatusBtn-ALL" class="tbl-status-btn px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold shadow-xs">
+            Tất cả bàn (<span id="countTblAll">0</span>)
+          </button>
+          <button onclick="filterTableStatus('OCCUPIED')" id="tblStatusBtn-OCCUPIED" class="tbl-status-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50">
+            🔥 Đang có khách (<span id="countTblOccupied">0</span>)
+          </button>
+          <button onclick="filterTableStatus('AVAILABLE')" id="tblStatusBtn-AVAILABLE" class="tbl-status-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50">
+            ⚪ Bàn trống (<span id="countTblAvailable">0</span>)
+          </button>
+          <button onclick="openPosPreordersModal()" class="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold hover:bg-amber-200 flex items-center gap-1.5 shadow-xs transition">
+            <i class="fa-solid fa-calendar-check text-amber-600"></i>
+            <span>Đơn đặt trước</span>
+            <span id="posPreordersBadge" class="bg-rose-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold hidden">0</span>
+          </button>
         </div>
-        <div class="flex items-center gap-3 text-xs">
-          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-stone-200 border border-stone-300"></span> Bàn trống</span>
-          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-blue-500"></span> Đang có khách</span>
-          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-amber-500"></span> Chờ thanh toán</span>
+
+        <!-- 2. Lọc theo Khu Vực Bàn -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button onclick="filterArea('ALL')" class="area-btn px-3 py-1.5 rounded-xl bg-stone-800 text-white text-xs font-bold shadow-xs">Mọi khu</button>
+          <button onclick="filterArea('Bàn Nhà Hàng')" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🍽️ Nhà Hàng</button>
+          <button onclick="filterArea('Bàn Cafe')" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">☕ Cafe</button>
+          <button onclick="filterArea('Sân Pickle')" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🏓 Sân Pickle</button>
         </div>
       </div>
 
@@ -1075,6 +1089,18 @@
       }
     }
 
+    let currentTableStatus = 'ALL';
+
+    function filterTableStatus(status) {
+      currentTableStatus = status;
+      document.querySelectorAll(".tbl-status-btn").forEach(b => {
+        b.className = "tbl-status-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50";
+      });
+      const targetBtn = document.getElementById(`tblStatusBtn-${status}`);
+      if (targetBtn) targetBtn.className = "tbl-status-btn px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold shadow-xs";
+      renderTablesGrid();
+    }
+
     function filterArea(area) {
       currentArea = area;
       document.querySelectorAll(".area-btn").forEach(b => {
@@ -1086,13 +1112,50 @@
 
     function renderTablesGrid() {
       const container = document.getElementById("tablesGrid");
-      const filtered = currentArea === 'ALL' ? allTables : allTables.filter(t => {
-        if (t.area === currentArea) return true;
-        if (currentArea === 'Bàn Nhà Hàng') return t.area !== 'Bàn Cafe' && !(t.area || '').toLowerCase().includes('cafe') && !(t.area || '').toLowerCase().includes('pickle');
-        if (currentArea === 'Bàn Cafe') return t.area === 'Bàn Cafe' || (t.area || '').toLowerCase().includes('cafe');
-        if (currentArea === 'Sân Pickle') return (t.area || '').toLowerCase().includes('pickle');
-        return false;
+
+      // Cập nhật số lượng bàn hiển thị lên các nút lọc
+      const occupiedCount = allTables.filter(t => t.status === 'OCCUPIED' || t.status === 'BILLING' || (t.current_bill_total || 0) > 0).length;
+      const availableCount = allTables.length - occupiedCount;
+      if (document.getElementById("countTblAll")) document.getElementById("countTblAll").innerText = allTables.length;
+      if (document.getElementById("countTblOccupied")) document.getElementById("countTblOccupied").innerText = occupiedCount;
+      if (document.getElementById("countTblAvailable")) document.getElementById("countTblAvailable").innerText = availableCount;
+
+      // SẮP XẾP: Bàn đang có khách (BILLING -> OCCUPIED) tự động hiển thị LÊN ĐẦU TIÊN!
+      const sortedTables = [...allTables].sort((a, b) => {
+        const getPriority = (t) => {
+          if (t.status === 'BILLING') return 0;
+          if (t.status === 'OCCUPIED' || (t.current_bill_total || 0) > 0) return 1;
+          return 2;
+        };
+        const pDiff = getPriority(a) - getPriority(b);
+        if (pDiff !== 0) return pDiff;
+        return (a.name || '').localeCompare(b.name || '');
       });
+
+      const filtered = sortedTables.filter(t => {
+        // 1. Lọc theo khu vực
+        if (currentArea !== 'ALL') {
+          if (currentArea === 'Bàn Nhà Hàng' && (t.area === 'Bàn Cafe' || (t.area || '').toLowerCase().includes('cafe') || (t.area || '').toLowerCase().includes('pickle'))) return false;
+          if (currentArea === 'Bàn Cafe' && !(t.area === 'Bàn Cafe' || (t.area || '').toLowerCase().includes('cafe'))) return false;
+          if (currentArea === 'Sân Pickle' && !(t.area || '').toLowerCase().includes('pickle')) return false;
+          if (currentArea !== 'Bàn Nhà Hàng' && currentArea !== 'Bàn Cafe' && currentArea !== 'Sân Pickle' && t.area !== currentArea) return false;
+        }
+        // 2. Lọc theo trạng thái bàn
+        const isOccupied = (t.status === 'OCCUPIED' || t.status === 'BILLING' || (t.current_bill_total || 0) > 0);
+        if (currentTableStatus === 'OCCUPIED' && !isOccupied) return false;
+        if (currentTableStatus === 'AVAILABLE' && isOccupied) return false;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-16 text-center text-stone-400 bg-white rounded-2xl border border-stone-200">
+            <i class="fa-solid fa-chair text-3xl mb-2 text-stone-300"></i>
+            <p class="text-xs font-semibold">Không có bàn nào phù hợp với bộ lọc hiện tại.</p>
+          </div>
+        `;
+        return;
+      }
 
       container.innerHTML = filtered.map(t => {
         let statusBadge = "";
@@ -1100,12 +1163,12 @@
         let subText = "Bàn trống";
 
         if (t.status === 'OCCUPIED') {
-          borderClass = "border-blue-300 bg-blue-50/50 shadow-sm";
-          statusBadge = `<span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>`;
-          subText = `<span class="font-bold text-blue-700">${formatVND(t.current_bill_total)}</span> • ${t.unpaid_orders_count} đợt món`;
+          borderClass = "border-blue-400 bg-blue-50/70 shadow-sm ring-1 ring-blue-300";
+          statusBadge = `<span class="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></span>`;
+          subText = `<span class="font-bold text-blue-700">${formatVND(t.current_bill_total)}</span> • ${t.unpaid_orders_count || 1} đợt món`;
         } else if (t.status === 'BILLING') {
-          borderClass = "border-amber-400 bg-amber-50 shadow-md";
-          statusBadge = `<span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>`;
+          borderClass = "border-amber-400 bg-amber-50 shadow-md ring-1 ring-amber-300";
+          statusBadge = `<span class="w-3 h-3 rounded-full bg-amber-500 animate-ping"></span>`;
           subText = `<span class="font-bold text-amber-800">Yêu cầu tính tiền: ${formatVND(t.current_bill_total)}</span>`;
         }
 
@@ -1113,7 +1176,10 @@
           <div onclick="openTableDetails(${t.id})" class="p-4 rounded-2xl border ${borderClass} cursor-pointer hover:shadow-md transition flex flex-col justify-between h-36">
             <div class="flex items-start justify-between">
               <div>
-                <div class="font-black text-base text-stone-900">${t.name}</div>
+                <div class="font-black text-base text-stone-900 flex items-center gap-1.5">
+                  ${t.name}
+                  ${(t.status === 'OCCUPIED' || t.status === 'BILLING') ? '<span class="text-[10px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-bold">CÓ KHÁCH</span>' : ''}
+                </div>
                 <div class="text-[11px] text-stone-400 font-medium">${t.area} • Sức chứa ${t.capacity}</div>
               </div>
               ${statusBadge}
@@ -1312,8 +1378,29 @@
       if (currentBillData.items.length === 0) {
         itemsContainer.innerHTML = `<div class="text-center py-12 text-stone-400 text-xs">Bàn hiện chưa có món nào được gọi.</div>`;
       } else {
-        itemsContainer.innerHTML = currentBillData.items.map(it => {
+        const hasUnserved = currentBillData.items.some(it => it.status !== 'SERVED' && it.status !== 'CANCELLED');
+        let headerActions = '';
+        if (hasUnserved) {
+          headerActions = `
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-stone-200">
+              <span class="text-xs font-bold text-stone-700">Món ăn của bàn (${currentBillData.items.length}):</span>
+              <button onclick="posMarkAllItemsServed(${tableId})" class="text-xs text-emerald-700 hover:text-emerald-800 font-bold hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-check-double text-[11px]"></i> Xác nhận ra tất cả món
+              </button>
+            </div>
+          `;
+        }
+        itemsContainer.innerHTML = headerActions + currentBillData.items.map(it => {
           const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
+          let itemAction = '';
+          if (it.status === 'CANCELLED') {
+            itemAction = '<span class="text-rose-500 text-[10px] font-semibold bg-rose-50 px-1.5 py-0.5 rounded">Đã hủy</span>';
+          } else if (it.status === 'SERVED') {
+            itemAction = '<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">✅ Đã ra món</span>';
+          } else {
+            itemAction = `<button onclick="posMarkItemServed(${it.id})" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center gap-1 transition"><i class="fa-solid fa-check text-[10px]"></i> Ra món</button>`;
+          }
+
           return `
             <div class="flex items-center justify-between text-xs py-2.5 border-b border-stone-100 ${it.status === 'CANCELLED' ? 'opacity-50 line-through' : ''}">
               <div class="pr-2">
@@ -1327,11 +1414,9 @@
                 </div>
                 ${it.note ? `<div class="text-[11px] text-amber-700 italic mt-0.5">Lưu ý: ${it.note}</div>` : ''}
               </div>
-              <div class="text-right flex-shrink-0">
-                ${it.status === 'CANCELLED' 
-                  ? '<span class="text-rose-500 text-[10px] font-semibold bg-rose-50 px-1.5 py-0.5 rounded">Đã hủy</span>' 
-                  : `<div class="font-extrabold text-stone-900">${formatVND(it.total_price)}</div>`
-                }
+              <div class="text-right flex-shrink-0 flex flex-col items-end gap-1">
+                <div class="font-extrabold text-stone-900">${formatVND(it.total_price)}</div>
+                ${itemAction}
               </div>
             </div>
           `;
@@ -1339,6 +1424,42 @@
       }
 
       document.getElementById("billDrawer").classList.remove("translate-x-full");
+    }
+
+    async function posMarkItemServed(itemId) {
+      try {
+        const res = await fetch(`/api/orders/item/${itemId}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "SERVED" })
+        });
+        if (res.ok) {
+          showPosToast("✅ Đã xác nhận ra món!");
+          if (selectedTable) {
+            await openTableDetails(selectedTable.id);
+            await fetchTablesOverview();
+          }
+        }
+      } catch (e) {
+        alert("Lỗi khi xác nhận ra món");
+      }
+    }
+
+    async function posMarkAllItemsServed(tableId) {
+      if (!confirm("Xác nhận đã phục vụ ra bàn tất cả các món?")) return;
+      try {
+        const res = await fetch(`/api/orders/table/${tableId}/serve-all`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" }
+        });
+        if (res.ok) {
+          showPosToast("✅ Đã xác nhận ra tất cả món cho bàn!");
+          await openTableDetails(tableId);
+          await fetchTablesOverview();
+        }
+      } catch (e) {
+        alert("Lỗi khi xác nhận ra món");
+      }
     }
 
     function closeBillDrawer() {
@@ -2037,7 +2158,7 @@
             }
           }
 
-          if (data.event === "NEW_ORDER" || data.event === "SERVICE_CALL" || data.event === "TABLE_CHECKED_OUT" || data.event === "ITEM_STATUS_CHANGED" || data.event === "ORDER_ITEMS_COMPLETED") {
+          if (data.event === "NEW_ORDER" || data.event === "SERVICE_CALL" || data.event === "TABLE_CHECKED_OUT" || data.event === "ITEM_STATUS_CHANGED" || data.event === "ORDER_ITEMS_COMPLETED" || data.event === "REVENUE_CLEARED" || data.event === "TABLE_ITEMS_SERVED") {
             fetchTablesOverview();
             // Nếu đang mở tab báo cáo thì cập nhật
             if (!document.getElementById("tabContent-reports").classList.contains("hidden")) {
@@ -2045,6 +2166,9 @@
             }
             if (!document.getElementById("tabContent-kitchen").classList.contains("hidden")) {
               loadPosKitchenMonitor();
+            }
+            if (selectedTable && !document.getElementById("billDrawer").classList.contains("translate-x-full")) {
+              openTableDetails(selectedTable.id);
             }
           }
         } catch (e) {}

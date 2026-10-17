@@ -111,6 +111,7 @@ broadcaster = ConnectionBroadcaster()
 orders.set_broadcaster(broadcaster)
 pos.set_broadcaster(broadcaster)
 reservations.set_broadcaster(broadcaster)
+sync.set_broadcaster(broadcaster)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -442,11 +443,8 @@ def kitchen_hub_page(request: Request):
 
 @app.get("/waiter", response_class=HTMLResponse)
 def waiter_page(request: Request):
-    """Trang Nhân viên khác / Phục vụ: Bắt buộc đăng nhập, cho phép WAITER, ADMIN, CASHIER."""
-    auth_check = check_page_access(request, allowed_roles=["WAITER", "ADMIN", "CASHIER"])
-    if isinstance(auth_check, RedirectResponse):
-        return auth_check
-    return templates.TemplateResponse(request=request, name="waiter.html", context={"user": auth_check})
+    """Trang Phục vụ: Tạm thời chuyển hướng sang POS/Thu ngân."""
+    return RedirectResponse(url="/pos", status_code=303)
 
 @app.get("/inventory", response_class=HTMLResponse)
 def inventory_page(request: Request):
@@ -458,8 +456,8 @@ def inventory_page(request: Request):
 
 @app.get("/pos", response_class=HTMLResponse)
 def pos_page(request: Request):
-    """Trang Quản trị & Thu ngân: Bắt buộc đăng nhập, chỉ cho phép ADMIN hoặc CASHIER."""
-    auth_check = check_page_access(request, allowed_roles=["ADMIN", "CASHIER"])
+    """Trang Quản trị, Thu ngân & Phục vụ: Bắt buộc đăng nhập, cho phép ADMIN, CASHIER, WAITER."""
+    auth_check = check_page_access(request, allowed_roles=["ADMIN", "CASHIER", "WAITER"])
     if isinstance(auth_check, RedirectResponse):
         return auth_check
     return templates.TemplateResponse(request=request, name="pos.html", context={"user": auth_check})

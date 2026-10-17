@@ -171,7 +171,7 @@ def get_table_bill(table_id: int):
 
 @router.post("/table/{table_id}/checkout")
 async def checkout_table(table_id: int, request: Request, payload: dict = None):
-    user = require_api_auth(request, allowed_roles=["ADMIN", "CASHIER"])
+    user = require_api_auth(request, allowed_roles=["ADMIN", "CASHIER", "WAITER"])
     if payload is None:
         try:
             payload = await request.json()
@@ -219,10 +219,17 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
         WHERE table_id = ? AND payment_status = 'UNPAID'
     """, (discount_amount, discount_reason, bill_target, billed_admin_id, billed_admin_name, discount_amount, table_id))
 
-    # 2. Đóng session hiện tại
-    cursor.execute("UPDATE table_sessions SET status = 'CLOSED', closed_at = CURRENT_TIMESTAMP WHERE table_id = ? AND status = 'ACTIVE'", (table_id,))
+    # 2. Đánh dấu tất cả món của các đơn bàn này là SERVED (đã phục vụ xong)
+    cursor.execute("""
+        UPDATE order_items 
+        SET status = 'SERVED'
+        WHERE order_id IN (SELECT id FROM orders WHERE table_id = ?)
+    """, (table_id,))
 
-    # 3. Đưa bàn về AVAILABLE
+    # 3. Đóng toàn bộ session của bàn
+    cursor.execute("UPDATE table_sessions SET status = 'CLOSED', closed_at = CURRENT_TIMESTAMP WHERE table_id = ?", (table_id,))
+
+    # 4. Đưa bàn về trạng thái AVAILABLE sẵn sàng cho khách mới
     cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL WHERE id = ?", (table_id,))
 
     conn.commit()
@@ -257,8 +264,9 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
             "table_name": table["name"]
         }
         await ws_broadcaster.send_to_pos(event_data)
+        await ws_broadcaster.send_to_kds(event_data)
         await ws_broadcaster.send_to_customer(table_id, {
-            "event": "SESSION_CLOSED",
+            "event": "TABLE_CHECKED_OUT",
             "message": "Cảm ơn quý khách đã dùng bữa tại PiPo Garden! Hẹn gặp lại quý khách."
         })
 
