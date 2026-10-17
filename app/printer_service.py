@@ -23,35 +23,25 @@ DEFAULT_KITCHEN_IP = "192.168.31.251"
 DEFAULT_CASHIER_IP = "192.168.31.252"
 DEFAULT_PORT = 9100
 
-def get_printer_config() -> dict:
-    """Lấy cấu hình IP và Port của 2 máy in từ CSDL system_settings."""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS system_settings (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL
-        )
-    """)
-    defaults = {
-        "printer_kitchen_ip": DEFAULT_KITCHEN_IP,
-        "printer_kitchen_port": str(DEFAULT_PORT),
-        "printer_kitchen_enabled": "1",
-        "printer_cashier_ip": DEFAULT_CASHIER_IP,
-        "printer_cashier_port": str(DEFAULT_PORT),
-        "printer_cashier_enabled": "1",
-        "printer_auto_kitchen": "1",
-        "printer_auto_cashier": "1",
-    }
-    for k, v in defaults.items():
-        cursor.execute("INSERT OR IGNORE INTO system_settings (key, value) VALUES (?, ?)", (k, v))
-    conn.commit()
+_PRINTER_CONFIG_CACHE = None
 
-    cursor.execute("SELECT key, value FROM system_settings WHERE key LIKE 'printer_%'")
-    rows = {r["key"]: r["value"] for r in cursor.fetchall()}
-    conn.close()
+def get_printer_config(force_reload: bool = False) -> dict:
+    """Lấy cấu hình IP và Port của 2 máy in từ CSDL system_settings (có in-memory cache chống lock SQLite)."""
+    global _PRINTER_CONFIG_CACHE
+    if _PRINTER_CONFIG_CACHE is not None and not force_reload:
+        return _PRINTER_CONFIG_CACHE
 
-    return {
+    rows = {}
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT key, value FROM system_settings WHERE key LIKE 'printer_%'")
+        rows = {r["key"]: r["value"] for r in cursor.fetchall()}
+        conn.close()
+    except Exception:
+        pass
+
+    cfg = {
         "kitchen_ip": rows.get("printer_kitchen_ip", DEFAULT_KITCHEN_IP),
         "kitchen_port": int(rows.get("printer_kitchen_port", DEFAULT_PORT)),
         "kitchen_enabled": rows.get("printer_kitchen_enabled", "1") == "1",
@@ -61,11 +51,19 @@ def get_printer_config() -> dict:
         "auto_kitchen": rows.get("printer_auto_kitchen", "1") == "1",
         "auto_cashier": rows.get("printer_auto_cashier", "1") == "1",
     }
+    _PRINTER_CONFIG_CACHE = cfg
+    return cfg
 
 def save_printer_config(cfg: dict):
-    """Lưu cấu hình máy in vào database."""
+    """Lưu cấu hình máy in vào database và cập nhật cache tức thì."""
     conn = get_db()
     cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS system_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+    """)
     if "kitchen_ip" in cfg:
         cursor.execute("INSERT OR REPLACE INTO system_settings (key, value) VALUES ('printer_kitchen_ip', ?)", (str(cfg["kitchen_ip"]),))
     if "kitchen_port" in cfg:
@@ -84,6 +82,7 @@ def save_printer_config(cfg: dict):
         cursor.execute("INSERT OR REPLACE INTO system_settings (key, value) VALUES ('printer_auto_cashier', ?)", ("1" if cfg["auto_cashier"] else "0",))
     conn.commit()
     conn.close()
+    get_printer_config(force_reload=True)
 
 def send_escpos_to_printer(host: str, port: int, payload_bytes: bytes, timeout: float = 3.0) -> tuple[bool, str]:
     """Gửi dữ liệu ESC/POS trực tiếp tới máy in nhiệt qua TCP socket."""

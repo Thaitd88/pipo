@@ -166,20 +166,25 @@ async def create_order(payload: dict):
             "table_name": table["name"]
         })
 
-        # Bắn lệnh in trực tiếp qua mạng LAN tới máy in tương ứng (Bếp 251 hoặc Bar 252)
+    conn.commit()
+    conn.close()
+
+    # Bắn lệnh in trực tiếp qua mạng LAN nếu server chạy nội bộ (không chạy trên Cloud)
+    is_cloud = os.environ.get("VIBE_PROJECT_ID") or os.environ.get("KUBERNETES_SERVICE_HOST") or (os.name != "nt")
+    if not is_cloud:
         try:
             p_cfg = get_printer_config()
             if p_cfg.get("auto_kitchen"):
-                dest_ip = p_cfg["cashier_ip"] if station == "BAR" else p_cfg["kitchen_ip"]
-                dest_port = p_cfg["cashier_port"] if station == "BAR" else p_cfg["kitchen_port"]
-                import asyncio
-                loop = asyncio.get_event_loop()
-                loop.run_in_executor(None, send_escpos_to_printer, dest_ip, dest_port, escpos_bytes)
+                for pjob in print_jobs_created:
+                    dest_ip = p_cfg["cashier_ip"] if pjob["station"] == "BAR" else p_cfg["kitchen_ip"]
+                    dest_port = p_cfg["cashier_port"] if pjob["station"] == "BAR" else p_cfg["kitchen_port"]
+                    raw_b = base64.b64decode(pjob["escpos_b64"]) if pjob.get("escpos_b64") else b""
+                    if raw_b:
+                        import asyncio
+                        loop = asyncio.get_event_loop()
+                        loop.run_in_executor(None, send_escpos_to_printer, dest_ip, dest_port, raw_b)
         except Exception:
             pass
-
-    conn.commit()
-    conn.close()
 
     # 8. PHÁT SỰ KIỆN REAL-TIME
     full_order_payload = {

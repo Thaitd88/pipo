@@ -334,23 +334,28 @@ async def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
                     "table_name": table_dict["name"]
                 })
 
-                # In LAN trực tiếp nếu server đang chạy nội bộ
-                try:
-                    p_cfg = get_printer_config()
-                    if p_cfg.get("auto_kitchen"):
-                        dest_ip = p_cfg["cashier_ip"] if stn == "BAR" else p_cfg["kitchen_ip"]
-                        dest_port = p_cfg["cashier_port"] if stn == "BAR" else p_cfg["kitchen_port"]
-                        import asyncio
-                        loop = asyncio.get_event_loop()
-                        loop.run_in_executor(None, send_escpos_to_printer, dest_ip, dest_port, escpos_bytes)
-                except Exception:
-                    pass
-
     conn.commit()
 
     cursor.execute("SELECT * FROM reservations WHERE id = ?", (res_id,))
     updated_res = dict(cursor.fetchone())
     conn.close()
+
+    # In LAN trực tiếp nếu server đang chạy nội bộ (không chạy trên Cloud)
+    is_cloud = os.environ.get("VIBE_PROJECT_ID") or os.environ.get("KUBERNETES_SERVICE_HOST") or (os.name != "nt")
+    if not is_cloud and print_jobs_created:
+        try:
+            p_cfg = get_printer_config()
+            if p_cfg.get("auto_kitchen"):
+                for pjob in print_jobs_created:
+                    dest_ip = p_cfg["cashier_ip"] if pjob["station"] == "BAR" else p_cfg["kitchen_ip"]
+                    dest_port = p_cfg["cashier_port"] if pjob["station"] == "BAR" else p_cfg["kitchen_port"]
+                    raw_b = base64.b64decode(pjob["escpos_b64"]) if pjob.get("escpos_b64") else b""
+                    if raw_b:
+                        import asyncio
+                        loop = asyncio.get_event_loop()
+                        loop.run_in_executor(None, send_escpos_to_printer, dest_ip, dest_port, raw_b)
+        except Exception:
+            pass
 
     # Bắn WebSocket cập nhật thời gian thực
     if ws_broadcaster:

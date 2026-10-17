@@ -60,6 +60,7 @@ def print_to_lan_printer(host: str, port: int, payload_bytes: bytes) -> bool:
         s.settimeout(3.0)
         s.connect((host, port))
         s.sendall(payload_bytes)
+        time.sleep(0.05)
         s.close()
         return True
     except Exception as e:
