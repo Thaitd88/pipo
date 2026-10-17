@@ -1593,9 +1593,13 @@
       const existing = cart.find(it => it.item_id === item.id && (!it.note || it.note === "") && (!it.modifiers || it.modifiers.length === 0));
       if (existing) {
         existing.quantity += 1;
+        if (!existing.name) existing.name = item.name;
       } else {
         cart.push({
           item_id: item.id,
+          id: item.id,
+          name: item.name,
+          station: item.station || "HOT_KITCHEN",
           raw_item: item,
           price: effectivePrice,
           original_price: item.price,
@@ -1636,6 +1640,9 @@
       // Thêm vào giỏ
       cart.push({
         item_id: currentModalItem.id,
+        id: currentModalItem.id,
+        name: currentModalItem.name,
+        station: currentModalItem.station || "HOT_KITCHEN",
         raw_item: currentModalItem,
         price: effectivePrice,
         original_price: currentModalItem.price,
@@ -1881,6 +1888,19 @@
       btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đang gửi thông tin...`;
 
       try {
+        const sanitizedPreorderItems = cart.map(it => ({
+          item_id: it.item_id || it.id || (it.raw_item && it.raw_item.id),
+          id: it.item_id || it.id || (it.raw_item && it.raw_item.id),
+          name: it.name || (it.raw_item && it.raw_item.name) || (typeof getItemName === 'function' ? getItemName(it.raw_item) : '') || "Món ăn",
+          price: it.price,
+          original_price: it.original_price || it.price,
+          discount_percent: it.discount_percent || 0,
+          quantity: it.quantity,
+          note: it.note || "",
+          station: it.station || (it.raw_item && it.raw_item.station) || "HOT_KITCHEN",
+          modifiers: it.modifiers || []
+        }));
+
         const payload = {
           guest_name: name,
           phone: phone,
@@ -1889,7 +1909,7 @@
           guest_count: guestCount,
           service_type: "DINING",
           area: area,
-          preorder_items_json: JSON.stringify(cart),
+          preorder_items_json: JSON.stringify(sanitizedPreorderItems),
           total_estimated: totalEst,
           note: note
         };

@@ -9,6 +9,12 @@ from ..database import get_db
 
 router = APIRouter(prefix="/api/reservations", tags=["Reservations"])
 
+ws_broadcaster = None
+
+def set_broadcaster(broadcaster):
+    global ws_broadcaster
+    ws_broadcaster = broadcaster
+
 class ReservationCreate(BaseModel):
     guest_name: str
     phone: str
@@ -32,7 +38,7 @@ class AssignTableRequest(BaseModel):
     assigned_by: Optional[str] = "Quản lý / Thu ngân"
 
 @router.post("")
-def create_reservation(data: ReservationCreate):
+async def create_reservation(data: ReservationCreate):
     """Đặt bàn / Đặt sân trực tuyến & Đơn gọi món trước từ website."""
     name = data.guest_name.strip()
     phone = data.phone.strip()
@@ -59,6 +65,48 @@ def create_reservation(data: ReservationCreate):
             if not area_val:
                 area_val = t_row["area"]
 
+    # Phân tích & làm giàu dữ liệu món gọi trước (đảm bảo luôn có tên món, id, giá, trạm bếp)
+    enriched_items = []
+    try:
+        raw_items = json.loads(data.preorder_items_json or "[]")
+        if isinstance(raw_items, list):
+            for it in raw_items:
+                raw_obj = it.get("raw_item") if isinstance(it.get("raw_item"), dict) else {}
+                iid = it.get("item_id") or it.get("id") or raw_obj.get("id") or 0
+                iname = it.get("name") or it.get("item_name") or raw_obj.get("name")
+                iprice = it.get("price") if it.get("price") is not None else raw_obj.get("price", 0)
+                iqty = it.get("quantity") or 1
+                istation = it.get("station") or raw_obj.get("station") or "HOT_KITCHEN"
+                inote = it.get("note") or ""
+
+                if (not iname or not iprice) and iid:
+                    cursor.execute("SELECT name, price, station FROM menu_items WHERE id = ?", (iid,))
+                    d_row = cursor.fetchone()
+                    if d_row:
+                        if not iname:
+                            iname = d_row["name"]
+                        if not iprice:
+                            iprice = d_row["price"]
+                        if not istation or istation == "HOT_KITCHEN":
+                            istation = d_row["station"]
+
+                enriched_items.append({
+                    "id": iid,
+                    "item_id": iid,
+                    "name": iname or f"Món #{iid or '?'}",
+                    "price": int(iprice or 0),
+                    "quantity": int(iqty or 1),
+                    "station": istation or "HOT_KITCHEN",
+                    "note": inote
+                })
+    except Exception as e:
+        print(f"[Reservations] Error parsing preorder_items_json: {e}")
+        enriched_items = []
+
+    final_preorder_json = json.dumps(enriched_items, ensure_ascii=False)
+    calculated_total = sum(it["price"] * it["quantity"] for it in enriched_items)
+    final_total = max(data.total_estimated or 0, calculated_total)
+
     cursor.execute("""
         INSERT INTO reservations (
             guest_name, phone, booking_date, booking_time, guest_count, 
@@ -76,8 +124,8 @@ def create_reservation(data: ReservationCreate):
         table_id,
         table_code_val or None,
         area_val or None,
-        data.preorder_items_json or "[]",
-        max(0, data.total_estimated or 0),
+        final_preorder_json,
+        final_total,
         (data.note or "").strip()
     ))
     res_id = cursor.lastrowid
@@ -87,14 +135,17 @@ def create_reservation(data: ReservationCreate):
     created = dict(cursor.fetchone())
     conn.close()
 
-    # Kiểm tra xem có món gọi trước không để thông báo
-    has_preorder = False
-    try:
-        items = json.loads(created.get("preorder_items_json") or "[]")
-        has_preorder = len(items) > 0
-    except Exception:
-        pass
+    # Bắn WebSocket cập nhật tức thời tới POS & Admin
+    if ws_broadcaster:
+        try:
+            await ws_broadcaster.send_to_pos({
+                "event": "NEW_RESERVATION",
+                "reservation": created
+            })
+        except Exception as e:
+            print(f"[WebSocket] Error broadcasting NEW_RESERVATION: {e}")
 
+    has_preorder = len(enriched_items) > 0
     msg = f"Đặt bàn thành công! PiPo Garden sẽ liên hệ xác nhận qua số {phone}."
     if has_preorder:
         msg = f"Đơn gọi món trước & đặt bàn thành công! Thu ngân/Quản lý PiPo Garden sẽ liên hệ xác nhận và phân bàn chu đáo cho quý khách."
@@ -132,7 +183,7 @@ def get_reservation(res_id: int):
 
 @router.post("/{res_id}/assign-table")
 @router.put("/{res_id}/assign-table")
-def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
+async def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
     """Thu ngân hoặc Quản trị phân bàn chính thức cho khách đã đặt bàn/gọi món trước."""
     conn = get_db()
     cursor = conn.cursor()
@@ -218,13 +269,26 @@ def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
             """, (session_id, table_id, subtotal, subtotal, f"Đơn đặt bàn trước của khách {res_dict['guest_name']} ({res_dict['phone']}) - Giờ đến: {res_dict['booking_time']}"))
             created_order_id = cursor.lastrowid
 
-            # 3. Thêm các món vào order_items
+            # 3. Thêm các món vào order_items (đảm bảo tên món chính xác)
             for item in preorder_items:
                 qty = item.get("quantity", 1)
                 price = item.get("price", 0)
-                item_id = item.get("id") or 0
-                item_name = item.get("name") or "Món đặt trước"
-                station = item.get("station") or "HOT_KITCHEN"
+                raw_obj = item.get("raw_item") if isinstance(item.get("raw_item"), dict) else {}
+                item_id = item.get("item_id") or item.get("id") or raw_obj.get("id") or 0
+                item_name = item.get("name") or item.get("item_name") or raw_obj.get("name")
+                station = item.get("station") or raw_obj.get("station") or "HOT_KITCHEN"
+
+                if (not item_name or not station) and item_id:
+                    cursor.execute("SELECT name, station FROM menu_items WHERE id = ?", (item_id,))
+                    d_row = cursor.fetchone()
+                    if d_row:
+                        if not item_name:
+                            item_name = d_row["name"]
+                        if not station:
+                            station = d_row["station"]
+
+                item_name = item_name or "Món đặt trước"
+                station = station or "HOT_KITCHEN"
                 cursor.execute("""
                     INSERT INTO order_items (order_id, item_id, item_name, quantity, unit_price, total_price, station, note, status)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'QUEUED')
@@ -236,6 +300,28 @@ def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
     updated_res = dict(cursor.fetchone())
     conn.close()
 
+    # Bắn WebSocket cập nhật thời gian thực
+    if ws_broadcaster:
+        try:
+            await ws_broadcaster.send_to_pos({
+                "event": "RESERVATION_UPDATED",
+                "reservation": updated_res
+            })
+            if created_order_id:
+                await ws_broadcaster.send_to_kds({
+                    "event": "NEW_ORDER",
+                    "order_id": created_order_id,
+                    "table_code": table_code,
+                    "table_name": f"Bàn {table_code}"
+                })
+                await ws_broadcaster.send_to_pos({
+                    "event": "NEW_ORDER",
+                    "order_id": created_order_id,
+                    "table_code": table_code
+                })
+        except Exception as e:
+            print(f"[WebSocket] Error broadcasting assignment: {e}")
+
     return {
         "status": "SUCCESS",
         "message": f"Đã phân thành công Bàn {table_code} cho khách {res_dict['guest_name']}!",
@@ -245,7 +331,7 @@ def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
     }
 
 @router.put("/{res_id}/status")
-def update_reservation_status(res_id: int, req: ReservationUpdateStatus):
+async def update_reservation_status(res_id: int, req: ReservationUpdateStatus):
     """Cập nhật trạng thái duyệt đặt bàn (PENDING, CONFIRMED, CANCELLED, SEATED)."""
     conn = get_db()
     cursor = conn.cursor()
@@ -254,11 +340,26 @@ def update_reservation_status(res_id: int, req: ReservationUpdateStatus):
         conn.close()
         raise HTTPException(status_code=404, detail="Không tìm thấy yêu cầu đặt bàn.")
     conn.commit()
+    cursor.execute("SELECT * FROM reservations WHERE id = ?", (res_id,))
+    row = cursor.fetchone()
+    updated_res = dict(row) if row else None
     conn.close()
+
+    if ws_broadcaster:
+        try:
+            await ws_broadcaster.send_to_pos({
+                "event": "RESERVATION_UPDATED",
+                "res_id": res_id,
+                "status": req.status.upper(),
+                "reservation": updated_res
+            })
+        except Exception:
+            pass
+
     return {"status": "SUCCESS", "message": f"Đã cập nhật trạng thái sang {req.status.upper()}."}
 
 @router.delete("/{res_id}")
-def delete_reservation(res_id: int):
+async def delete_reservation(res_id: int):
     """Xóa yêu cầu đặt bàn khỏi hệ thống."""
     conn = get_db()
     cursor = conn.cursor()
@@ -268,4 +369,14 @@ def delete_reservation(res_id: int):
         raise HTTPException(status_code=404, detail="Không tìm thấy yêu cầu đặt bàn.")
     conn.commit()
     conn.close()
+
+    if ws_broadcaster:
+        try:
+            await ws_broadcaster.send_to_pos({
+                "event": "RESERVATION_DELETED",
+                "res_id": res_id
+            })
+        except Exception:
+            pass
+
     return {"status": "SUCCESS", "message": "Đã xóa yêu cầu đặt bàn."}

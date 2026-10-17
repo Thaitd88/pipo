@@ -110,6 +110,7 @@ broadcaster = ConnectionBroadcaster()
 # Dependency injection for routers
 orders.set_broadcaster(broadcaster)
 pos.set_broadcaster(broadcaster)
+reservations.set_broadcaster(broadcaster)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

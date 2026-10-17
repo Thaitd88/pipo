@@ -356,6 +356,29 @@ def init_db():
         except Exception:
             pass
 
+    # Tự động chuẩn hóa tên món trong preorder_items_json của các đơn đã tạo trước đó
+    try:
+        cursor.execute("SELECT id, preorder_items_json FROM reservations WHERE preorder_items_json IS NOT NULL AND preorder_items_json != '[]'")
+        for r_id, p_json in cursor.fetchall():
+            try:
+                items = json.loads(p_json or '[]')
+                changed = False
+                for it in items:
+                    raw = it.get('raw_item', {}) if isinstance(it.get('raw_item'), dict) else {}
+                    if not it.get('name'):
+                        it['name'] = raw.get('name')
+                        if not it['name'] and it.get('item_id'):
+                            cursor.execute("SELECT name FROM menu_items WHERE id = ?", (it['item_id'],))
+                            d_row = cursor.fetchone()
+                            if d_row: it['name'] = d_row[0]
+                        changed = True
+                if changed:
+                    cursor.execute("UPDATE reservations SET preorder_items_json = ? WHERE id = ?", (json.dumps(items, ensure_ascii=False), r_id))
+            except Exception:
+                pass
+    except Exception:
+        pass
+
     # 15. Quản Trị Nội Dung Trang Chủ (Homepage CMS)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS homepage_cms (
