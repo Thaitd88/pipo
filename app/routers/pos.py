@@ -212,6 +212,7 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
         UPDATE orders 
         SET payment_status = 'PAID', 
             status = 'COMPLETED',
+            completed_at = CURRENT_TIMESTAMP,
             discount = ?,
             discount_reason = ?,
             bill_target = ?,
@@ -312,7 +313,7 @@ async def get_bills_history(limit: int = 60, search: str = ""):
     query = """
         SELECT o.id, o.session_id, o.table_id, o.round_number, o.subtotal, o.total,
                o.payment_status, o.payment_method, o.discount, o.discount_reason,
-               o.bill_target, o.billed_admin_name, o.created_at, o.updated_at,
+               o.bill_target, o.billed_admin_name, o.created_at, o.completed_at,
                t.name as table_name, t.table_code, t.area
         FROM orders o
         JOIN tables t ON o.table_id = t.id
@@ -324,7 +325,7 @@ async def get_bills_history(limit: int = 60, search: str = ""):
         s = f"%{search}%"
         params.extend([s, s, s, s])
 
-    query += " ORDER BY o.updated_at DESC, o.id DESC LIMIT ?"
+    query += " ORDER BY COALESCE(o.completed_at, o.created_at) DESC, o.id DESC LIMIT ?"
     params.append(limit)
 
     cursor.execute(query, tuple(params))
@@ -354,7 +355,7 @@ async def get_bills_history(limit: int = 60, search: str = ""):
             "payment_method": r["payment_method"] or "TIỀN MẶT",
             "bill_target": r["bill_target"],
             "billed_admin_name": r["billed_admin_name"],
-            "paid_at": r["updated_at"] or r["created_at"],
+            "paid_at": r["completed_at"] or r["created_at"],
             "items": items
         })
 
