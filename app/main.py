@@ -349,7 +349,7 @@ def menu_shortcut_page(request: Request):
         "qr_token": "ONLINE"
     }
 
-    return templates.TemplateResponse(
+    res = templates.TemplateResponse(
         request=request,
         name="customer.html",
         context={
@@ -359,6 +359,10 @@ def menu_shortcut_page(request: Request):
             "is_preorder": True
         }
     )
+    res.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    res.headers["Pragma"] = "no-cache"
+    res.headers["Expires"] = "0"
+    return res
 
 @app.get("/table/{qr_token}", response_class=HTMLResponse)
 def customer_page(request: Request, qr_token: str):
@@ -396,7 +400,7 @@ def customer_page(request: Request, qr_token: str):
         "routing_mode": settings_rows.get("routing_mode", "TIME_AND_BRANCH")
     }
 
-    return templates.TemplateResponse(
+    res = templates.TemplateResponse(
         request=request,
         name="customer.html",
         context={
@@ -406,6 +410,10 @@ def customer_page(request: Request, qr_token: str):
             "is_preorder": False
         }
     )
+    res.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    res.headers["Pragma"] = "no-cache"
+    res.headers["Expires"] = "0"
+    return res
 
 @app.get("/admin", response_class=HTMLResponse)
 def admin_dashboard_page(request: Request):
