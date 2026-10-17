@@ -1082,7 +1082,7 @@
     let currentUser = null;
     let currentDetailPeriod = 'DAY';
     let posAdmins = [];
-    let posDiscountType = 'VND';
+    let posDiscountType = 'PCT';
     let posAdminBillsData = [];
 
     let chartDaysInstance = null;
@@ -1528,8 +1528,6 @@
         console.warn("loadAdminsList error:", e);
       }
     }
-
-    let posDiscountType = 'PCT';
 
     function setQuickDiscountPct(pct) {
       const input = document.getElementById("drawerDiscountVal");
