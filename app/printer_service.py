@@ -180,7 +180,12 @@ def print_cashier_receipt(table_info: dict, items: list, totals_info: dict = Non
         return False, "Máy in thu ngân đang bị tắt trong cấu hình"
 
     escpos_bytes = build_escpos_receipt_bytes(table_info, items, totals_info=totals_info)
-    return send_escpos_to_printer(cfg["cashier_ip"], cfg["cashier_port"], escpos_bytes)
+    ok, err = send_escpos_to_printer(cfg["cashier_ip"], cfg["cashier_port"], escpos_bytes)
+    if not ok and cfg.get("kitchen_ip") and cfg["kitchen_ip"] != cfg["cashier_ip"]:
+        ok_k, err_k = send_escpos_to_printer(cfg["kitchen_ip"], cfg["kitchen_port"], escpos_bytes)
+        if ok_k:
+            return True, "Printed via fallback kitchen printer"
+    return ok, err
 
 def test_kitchen_printer() -> tuple[bool, str]:
     """In phiếu test kiểm tra Máy in Bếp khổ 80mm kèm còi báo."""
@@ -226,7 +231,24 @@ async def async_dispatch_kitchen_print(order_info: dict, items: list, station: s
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, print_kitchen_order, order_info, items, station, beep)
 
-async def async_dispatch_cashier_print(table_info: dict, items: list, totals_info: dict = None):
+async def async_dispatch_cashier_print(table_or_bytes, items: list = None, totals_info: dict = None):
     """Bắn lệnh in hóa đơn bất đồng bộ trong background thread để không chặn API."""
+    cfg = get_printer_config()
+    if not cfg.get("cashier_enabled", True):
+        return False, "Máy in thu ngân đang bị tắt trong cấu hình"
+
+    if isinstance(table_or_bytes, (bytes, bytearray)):
+        payload = table_or_bytes
+    else:
+        payload = build_escpos_receipt_bytes(table_or_bytes, items or [], totals_info=totals_info)
+
+    def _do_send():
+        ok, err = send_escpos_to_printer(cfg["cashier_ip"], cfg["cashier_port"], payload)
+        if not ok and cfg.get("kitchen_ip") and cfg["kitchen_ip"] != cfg["cashier_ip"]:
+            ok_k, _ = send_escpos_to_printer(cfg["kitchen_ip"], cfg["kitchen_port"], payload)
+            if ok_k:
+                return True, "Printed via fallback kitchen printer"
+        return ok, err
+
     loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, print_cashier_receipt, table_info, items, totals_info)
+    return await loop.run_in_executor(None, _do_send)

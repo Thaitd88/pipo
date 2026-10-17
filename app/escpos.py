@@ -1,4 +1,5 @@
 # ESC/POS byte generator and 80mm Formatter (T80W / Xprinter / Epson standard) for PiPo Garden
+import re
 import unicodedata
 from datetime import datetime
 

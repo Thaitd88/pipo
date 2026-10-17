@@ -314,14 +314,11 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
                 "table_name": table["name"]
             })
 
-        # Nếu đang chạy local (mạng LAN), gửi socket trực tiếp
+        # Nếu đang chạy local (mạng LAN), gửi socket trực tiếp (có tự động fallback máy in nếu cần)
         is_cloud = os.environ.get("VIBE_PROJECT_ID") or os.environ.get("KUBERNETES_SERVICE_HOST") or (os.name != "nt")
         if not is_cloud:
-            from ..printer_service import get_printer_config, send_escpos_to_printer
-            p_cfg = get_printer_config()
-            import asyncio
-            loop = asyncio.get_event_loop()
-            loop.run_in_executor(None, send_escpos_to_printer, p_cfg["cashier_ip"], p_cfg["cashier_port"], receipt_bytes)
+            from ..printer_service import async_dispatch_cashier_print
+            await async_dispatch_cashier_print(receipt_bytes)
     except Exception as ex:
         print("[POS Checkout Receipt Print Error]:", ex)
 

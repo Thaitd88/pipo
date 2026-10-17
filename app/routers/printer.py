@@ -165,8 +165,8 @@ async def api_print_table_bill(table_id: int, request: Request):
     try:
         from ..printer_service import async_dispatch_cashier_print
         await async_dispatch_cashier_print(receipt_bytes)
-    except Exception:
-        pass
+    except Exception as ex:
+        print("[Print Bill Direct LAN Error]:", ex)
 
     return {
         "status": "SUCCESS",
