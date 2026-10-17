@@ -963,19 +963,38 @@
 
   <!-- MODAL VIETQR -->
   <div id="vietqrModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 text-center shadow-2xl">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-stone-100">
       <div class="flex justify-between items-center mb-2">
-        <h3 class="font-bold text-stone-900 text-sm">Quét VietQR Thanh Toán</h3>
-        <button onclick="closeVietQRModal()" class="text-stone-400 p-1"><i class="fa-solid fa-xmark"></i></button>
+        <h3 class="font-bold text-stone-900 text-base">Quét VietQR Thanh Toán</h3>
+        <button onclick="closeVietQRModal()" class="text-stone-400 hover:text-stone-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <p class="text-xs text-stone-500 mb-3" id="qrModalDesc">Bàn 01 - PiPo Garden</p>
       
-      <div class="bg-stone-50 p-3 rounded-xl border border-stone-200 inline-block mb-3">
-        <img id="vietqrImage" src="" alt="VietQR" class="w-56 h-56 mx-auto rounded-lg">
+      <div class="bg-stone-50 p-3 rounded-2xl border border-stone-200 inline-block mb-3 shadow-inner">
+        <img id="vietqrImage" src="" alt="VietQR" class="w-56 h-56 mx-auto rounded-xl">
       </div>
 
-      <div class="text-emerald-800 font-bold text-lg mb-3" id="qrModalAmount">0 đ</div>
-      <p class="text-[11px] text-stone-400">Tiền vào tài khoản ngay lập tức qua Napas247</p>
+      <div class="text-emerald-800 font-black text-2xl mb-2" id="qrModalAmount">0 đ</div>
+      
+      <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-200 text-xs text-stone-700 space-y-1 mb-3 text-left">
+        <div class="flex justify-between">
+          <span class="text-stone-500">Ngân hàng:</span>
+          <span class="font-bold text-stone-900">MB Bank (Quân Đội)</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-stone-500">Số tài khoản:</span>
+          <span class="font-bold text-stone-900 tracking-wider">075624456</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-stone-500">Chủ tài khoản:</span>
+          <span class="font-bold text-stone-900">PIPO GARDEN</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-stone-500">Nội dung CK:</span>
+          <span class="font-bold text-amber-700 font-mono" id="qrModalNote">TT PiPo Ban ...</span>
+        </div>
+      </div>
+      <p class="text-[11px] text-stone-400">Tự động điền số tiền & nội dung • Quét được trên mọi App ngân hàng</p>
     </div>
   </div>
 
@@ -2010,7 +2029,7 @@
 
       let qrUrl = currentBillData.vietqr_url;
       if (disc > 0 && currentBillData.grand_total > 0) {
-        qrUrl = `https://img.vietqr.io/image/MB-075624456-compact.png?amount=${finalTotal}&addInfo=${encodeURIComponent(currentBillData.transfer_note || '')}`;
+        qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${finalTotal}&addInfo=${encodeURIComponent(currentBillData.transfer_note || '')}&accountName=PIPO%20GARDEN`;
       }
 
       if (qrUrl && finalTotal > 0) {
@@ -2077,11 +2096,14 @@
       const finalTotal = Math.max(0, currentBillData.grand_total - disc);
       let qrUrl = currentBillData.vietqr_url;
       if (disc > 0) {
-        qrUrl = `https://img.vietqr.io/image/MB-075624456-compact.png?amount=${finalTotal}&addInfo=${encodeURIComponent(currentBillData.transfer_note || '')}`;
+        qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${finalTotal}&addInfo=${encodeURIComponent(currentBillData.transfer_note || '')}&accountName=PIPO%20GARDEN`;
       }
       document.getElementById("vietqrImage").src = qrUrl;
       document.getElementById("qrModalDesc").innerText = `${selectedTable.name} • ${selectedTable.area}`;
       document.getElementById("qrModalAmount").innerText = formatVND(finalTotal);
+      if (document.getElementById("qrModalNote")) {
+        document.getElementById("qrModalNote").innerText = currentBillData.transfer_note || `TT PiPo Ban ${selectedTable.name}`;
+      }
       document.getElementById("vietqrModal").classList.remove("hidden");
     }
 

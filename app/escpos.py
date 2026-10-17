@@ -25,15 +25,24 @@ def format_currency_vnd(amount: int) -> str:
     return f"{int(amount):,.0f}".replace(",", ".") + " d"
 
 def crc16_ccitt(data: str) -> str:
+    """Thuật toán CRC-16/CCITT-FALSE chuẩn theo quy định quốc tế EMVCo và Napas 247."""
     crc = 0xFFFF
-    for ch in data:
-        crc = (crc >> 8) ^ (((crc ^ ord(ch)) & 0xFF) << 8)
+    for byte in data.encode("ascii"):
+        crc ^= (byte << 8)
         for _ in range(8):
             if crc & 0x8000:
                 crc = ((crc << 1) ^ 0x1021) & 0xFFFF
             else:
                 crc = (crc << 1) & 0xFFFF
     return f"{crc:04X}"
+
+def clean_vietqr_message(msg: str) -> str:
+    """Chuẩn hóa nội dung chuyển khoản theo chuẩn VietQR (chỉ chữ, số, khoảng trắng, tối đa 25 ký tự)."""
+    import re
+    msg = remove_vietnamese_accents(str(msg or ""))
+    msg = re.sub(r'[^a-zA-Z0-9 ]', ' ', msg)
+    msg = re.sub(r'\s+', ' ', msg).strip()
+    return msg[:25]
 
 def generate_vietqr_emvco(bank_bin: str = "970422", account_no: str = "075624456", amount: int = 0, message: str = "") -> str:
     """Tạo chuỗi chuẩn Napas247 VietQR EMVCo để mọi ứng dụng ngân hàng quét thanh toán tự động."""
@@ -53,7 +62,7 @@ def generate_vietqr_emvco(bank_bin: str = "970422", account_no: str = "075624456
         amt_str = str(int(amount))
         payload += f"54{len(amt_str):02d}{amt_str}"
     payload += "5802VN"
-    clean_msg = remove_vietnamese_accents(message)
+    clean_msg = clean_vietqr_message(message)
     if clean_msg:
         sub_08 = f"08{len(clean_msg):02d}{clean_msg}"
         payload += f"62{len(sub_08):02d}{sub_08}"
@@ -251,13 +260,12 @@ def format_receipt_ticket_text(table_info: dict, items: list, totals_info: dict 
     table_code = remove_vietnamese_accents(str(table_info.get("table_code") or table_info.get("name", "01"))).upper()
     if table_code.startswith("BAN "):
         table_code = table_code.replace("BAN ", "")
-    in_time = totals_info.get("in_time") or table_info.get("opened_at_str") or now_str.split(" - ")[0]
-    out_time = totals_info.get("out_time") or datetime.now().strftime("%H:%M")
-    transfer_note = f"TT PiPo Garden Ban {table_code} {in_time}-{out_time}"
+    clean_table_code = re.sub(r'[^a-zA-Z0-9]', '', table_code) or "01"
+    transfer_note = f"TT PiPo Ban {clean_table_code}"
 
     lines.append("QUET MA VIETQR THANH TOAN".center(w))
-    lines.append("Ngan hang: MB Bank - STK: 075624456".center(w))
-    lines.append("Chu TK: PiPo Garden".center(w))
+    lines.append("Ngan hang: MB Bank (Quan Doi) - STK: 075624456".center(w))
+    lines.append("Chu TK: PIPO GARDEN".center(w))
     lines.append(f"ND: {transfer_note}".center(w))
     lines.append(div_double)
     lines.append("Cam on Quy khach & Hen gap lai!".center(w))
@@ -542,9 +550,8 @@ def build_escpos_receipt_bytes(table_info: dict, items: list, totals_info: dict 
     table_code = remove_vietnamese_accents(str(table_info.get("table_code") or table_info.get("name", "01"))).upper()
     if table_code.startswith("BAN "):
         table_code = table_code.replace("BAN ", "")
-    in_time = totals_info.get("in_time") or table_info.get("opened_at_str") or now_str.split(" - ")[0]
-    out_time = totals_info.get("out_time") or datetime.now().strftime("%H:%M")
-    transfer_note = f"TT PiPo Garden Ban {table_code} {in_time}-{out_time}"
+    clean_table_code = re.sub(r'[^a-zA-Z0-9]', '', table_code) or "01"
+    transfer_note = f"TT PiPo Ban {clean_table_code}"
 
     # Tạo chuỗi EMVCo chuẩn Napas247 cho mọi App ngân hàng
     qr_emvco = generate_vietqr_emvco("970422", "075624456", grand_total, transfer_note)
@@ -554,8 +561,8 @@ def build_escpos_receipt_bytes(table_info: dict, items: list, totals_info: dict 
     buf.extend(ESC + b'E\x01')
     buf.extend(b'QUET MA VIETQR THANH TOAN\n')
     buf.extend(ESC + b'E\x00')
-    buf.extend(b'Ngan hang: MB Bank - STK: 075624456\n')
-    buf.extend(b'Chu TK: PiPo Garden\n')
+    buf.extend(b'Ngan hang: MB Bank (Quan Doi) - STK: 075624456\n')
+    buf.extend(b'Chu TK: PIPO GARDEN\n')
     buf.extend(f"ND: {transfer_note}\n\n".encode("ascii"))
 
     # Lệnh in mã QR chuẩn ESC/POS Model 2 trên T80W

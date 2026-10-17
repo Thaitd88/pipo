@@ -1,5 +1,6 @@
 # POS Cashier management router for PiPo Garden
 import os
+import re
 import base64
 import urllib.parse
 from fastapi import APIRouter, HTTPException, Request
@@ -179,15 +180,16 @@ def get_table_bill(table_id: int):
     else:
         in_time_str = out_time_str
 
-    clean_table_code = str(table["table_code"] or table["name"] or "01").upper()
-    if clean_table_code.startswith("BAN "):
-        clean_table_code = clean_table_code.replace("BAN ", "")
+    raw_table_code = str(table["table_code"] or table["name"] or "01").upper()
+    if raw_table_code.startswith("BAN "):
+        raw_table_code = raw_table_code.replace("BAN ", "")
+    clean_table_code = re.sub(r'[^a-zA-Z0-9]', '', raw_table_code) or "01"
 
-    transfer_note = f"TT PiPo Garden Ban {clean_table_code} {in_time_str}-{out_time_str}"
+    transfer_note = f"TT PiPo Ban {clean_table_code}"
     encoded_note = urllib.parse.quote(transfer_note)
 
-    # Link VietQR động cho nhà hàng PiPo Garden (MB Bank 075624456)
-    vietqr_url = f"https://img.vietqr.io/image/MB-075624456-compact.png?amount={grand_total}&addInfo={encoded_note}"
+    # Link VietQR động cho nhà hàng PiPo Garden (MB Bank 970422 - STK 075624456)
+    vietqr_url = f"https://img.vietqr.io/image/970422-075624456-compact2.png?amount={grand_total}&addInfo={encoded_note}&accountName=PIPO%20GARDEN"
 
     return {
         "table": dict(table),
