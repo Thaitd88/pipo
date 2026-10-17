@@ -1280,6 +1280,7 @@
                         <i class="fa-solid fa-triangle-exclamation text-rose-600 text-[10px]"></i>
                         <span>${t('dish_out_of_ingredients_badge')}</span>
                       </span>
+                    ` : (isAvailable ? `
                       <button type="button" onclick="event.stopPropagation(); quickAddToCart(${item.id})" class="${theme.btnAction} font-bold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 shadow-xs active:scale-95" title="Thêm ngay vào giỏ">
                         <span>${t('btn_add_short')}</span>
                         <i class="fa-solid fa-plus text-[10px]"></i>
