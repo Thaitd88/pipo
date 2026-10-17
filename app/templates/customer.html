@@ -215,7 +215,7 @@
   <!-- Thanh Giỏ Hàng Nổi (Bottom Bar) -->
   <div id="cartBar" class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200 p-3 shadow-lg transform translate-y-full transition-transform duration-300">
     <div class="max-w-md mx-auto flex items-center justify-between">
-      <div class="cursor-pointer" onclick="openCartModal()">
+      <div class="cursor-pointer" onclick="handleBottomCartClick()">
         <div class="flex items-center gap-2">
           <div class="relative">
             <span class="text-2xl">🛒</span>
@@ -227,7 +227,7 @@
           </div>
         </div>
       </div>
-      <button onclick="openCartModal()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold px-5 py-2.5 rounded-xl shadow-md transition text-sm flex items-center gap-1.5">
+      <button onclick="handleBottomCartClick()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold px-5 py-2.5 rounded-xl shadow-md transition text-sm flex items-center gap-1.5">
         <span id="cartBtnViewText">Xem giỏ hàng</span>
         <i class="fa-solid fa-chevron-right text-xs"></i>
       </button>
@@ -470,12 +470,20 @@
           <textarea id="preorderNote" rows="2" placeholder="Ví dụ: Cần ghế trẻ em, bàn nhìn ra hồ bơi..." class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2 text-stone-900 focus:outline-none focus:border-amber-600"></textarea>
         </div>
 
-        <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between">
-          <div>
-            <div class="text-[11px] text-amber-800 font-medium">Tạm tính các món đã chọn:</div>
-            <div class="text-xs text-stone-500" id="preorderItemSummary">0 món</div>
+        <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-[11px] text-amber-800 font-medium">Tạm tính các món đã chọn:</div>
+              <div class="text-xs text-stone-700 font-semibold" id="preorderItemSummary">0 món</div>
+            </div>
+            <div class="font-black text-base text-amber-950" id="preorderTotalEst">0 đ</div>
           </div>
-          <div class="font-black text-base text-amber-950" id="preorderTotalEst">0 đ</div>
+          <div class="text-right pt-1 border-t border-amber-200/60">
+            <button type="button" onclick="closePreorderModal(); openCartModal();" class="text-[11px] text-amber-900 hover:text-emerald-800 font-bold underline inline-flex items-center gap-1">
+              <i class="fa-solid fa-list-check text-[10px]"></i>
+              <span>Xem & chỉnh số lượng từng món trong giỏ</span>
+            </button>
+          </div>
         </div>
 
         <button onclick="confirmSubmitPreorder()" id="btnConfirmPreorder" class="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-stone-950 font-black text-sm shadow-md transition flex items-center justify-center gap-2">
@@ -1272,8 +1280,7 @@
                         <i class="fa-solid fa-triangle-exclamation text-rose-600 text-[10px]"></i>
                         <span>${t('dish_out_of_ingredients_badge')}</span>
                       </span>
-                    ` : (isAvailable ? `
-                      <button type="button" onclick="event.stopPropagation(); openItemModal(${item.id})" class="${theme.btnAction} font-bold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 shadow-xs">
+                      <button type="button" onclick="event.stopPropagation(); quickAddToCart(${item.id})" class="${theme.btnAction} font-bold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 shadow-xs active:scale-95" title="Thêm ngay vào giỏ">
                         <span>${t('btn_add_short')}</span>
                         <i class="fa-solid fa-plus text-[10px]"></i>
                       </button>
@@ -1522,6 +1529,61 @@
       }
     });
 
+    // Thêm nhanh món vào giỏ khi bấm nút dấu cộng (+)
+    function quickAddToCart(itemId) {
+      let item = null;
+      for (let c of menuData) {
+        let f = (c.items || []).find(x => x.id === itemId);
+        if (f) { item = f; break; }
+      }
+      if (!item) return;
+
+      const isOutOfIngredients = (item.out_of_ingredients === 1);
+      const isAvailable = (item.is_available === 1 && !isOutOfIngredients);
+      if (!isAvailable) {
+        alert("Món ăn hiện tạm hết nguyên liệu hoặc ngưng phục vụ!");
+        return;
+      }
+
+      const discPct = item.discount_percent || 0;
+      const hasDisc = discPct > 0 && discPct <= 100;
+      const effectivePrice = hasDisc ? Math.round(item.price * (100 - discPct) / 100) : item.price;
+
+      // Tìm xem món này đã có trong giỏ chưa (không có ghi chú riêng)
+      const existing = cart.find(it => it.item_id === item.id && (!it.note || it.note === "") && (!it.modifiers || it.modifiers.length === 0));
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({
+          item_id: item.id,
+          raw_item: item,
+          price: effectivePrice,
+          original_price: item.price,
+          discount_percent: discPct,
+          quantity: 1,
+          note: "",
+          modifiers: []
+        });
+      }
+
+      localStorage.setItem("pipo_cart_" + TABLE_INFO.id, JSON.stringify(cart));
+      updateCartUI();
+      const localizedName = getItemName(item);
+      showToast(t("toast_added", 1, localizedName));
+
+      if (navigator.vibrate) {
+        try { navigator.vibrate(35); } catch(e){}
+      }
+    }
+
+    function handleBottomCartClick() {
+      if (IS_PREORDER) {
+        openPreorderModal();
+      } else {
+        openCartModal();
+      }
+    }
+
     function confirmAddToCart() {
       if (!currentModalItem) return;
       const note = document.getElementById("modalItemNote").value.trim();
@@ -1557,10 +1619,24 @@
       const totalPrice = cart.reduce((sum, it) => sum + (it.price * it.quantity), 0);
 
       const cartBar = document.getElementById("cartBar");
+      if (!cartBar) return;
+
       if (totalQty > 0) {
         cartBar.classList.remove("translate-y-full");
-        document.getElementById("cartCountBadge").innerText = totalQty;
-        document.getElementById("cartTotalPrice").innerText = formatVND(totalPrice);
+        const countBadge = document.getElementById("cartCountBadge");
+        if (countBadge) countBadge.innerText = totalQty;
+        const priceEl = document.getElementById("cartTotalPrice");
+        if (priceEl) priceEl.innerText = formatVND(totalPrice);
+
+        const btnViewText = document.getElementById("cartBtnViewText");
+        const tapDetailsText = document.getElementById("cartTapDetailsText");
+        if (IS_PREORDER) {
+          if (btnViewText) btnViewText.innerText = "Xong & Xác Nhận";
+          if (tapDetailsText) tapDetailsText.innerText = "Chạm để nhập thông tin đặt bàn";
+        } else {
+          if (btnViewText) btnViewText.innerText = t("cart_view");
+          if (tapDetailsText) tapDetailsText.innerText = t("cart_tap_details");
+        }
       } else {
         cartBar.classList.add("translate-y-full");
       }
@@ -1654,6 +1730,7 @@
       if (cart.length === 0) return;
 
       if (IS_PREORDER) {
+        closeCartModal();
         openPreorderModal();
         return;
       }
@@ -1782,12 +1859,14 @@
 
         const data = await res.json();
         if (res.ok) {
-          alert(`🎉 ĐẶT MÓN TRƯỚC VÀ ĐẶT BÀN THÀNH CÔNG!\n\nCảm ơn Quý khách ${name}.\nPiPo Garden sẽ liên hệ xác nhận qua số ${phone} và đón tiếp chu đáo nhất.`);
+          closePreorderModal();
+          closeCartModal();
           cart = [];
           localStorage.removeItem("pipo_cart_" + TABLE_INFO.id);
           updateCartUI();
-          closePreorderModal();
-          closeCartModal();
+          setTimeout(() => {
+            alert(`🎉 ĐẶT MÓN TRƯỚC VÀ ĐẶT BÀN THÀNH CÔNG!\n\nCảm ơn Quý khách ${name}.\nPiPo Garden sẽ liên hệ xác nhận qua số ${phone} và đón tiếp chu đáo nhất.`);
+          }, 80);
         } else {
           alert("Lỗi: " + (data.detail || "Không thể gửi yêu cầu"));
         }
