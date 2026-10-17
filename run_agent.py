@@ -9,4 +9,4 @@ import os
 
 if __name__ == "__main__":
     agent_path = os.path.join(os.path.dirname(__file__), "print_agent", "agent.py")
-    sys.exit(subprocess.call([sys.executable, agent_path]))
+    sys.exit(subprocess.call([sys.executable, "-u", agent_path]))
