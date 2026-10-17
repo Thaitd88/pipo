@@ -74,6 +74,9 @@
       <button onclick="openPosPreordersModal()" id="btnPosPreorders" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-900 text-xs font-black flex-shrink-0 flex items-center gap-1.5 shadow-sm transition whitespace-nowrap">
         <i class="fa-solid fa-bell text-rose-800"></i> Đơn Gọi Trước / Đặt Bàn <span id="posPreorderBadge" class="bg-rose-600 text-white text-[10px] px-1.5 py-0.2 rounded-full hidden">0</span>
       </button>
+      <button onclick="openAdminBillsModal()" id="btnAdminBills" class="px-3 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold flex-shrink-0 flex items-center gap-1.5 shadow-sm transition whitespace-nowrap">
+        <i class="fa-solid fa-user-shield"></i> Tổng Hợp Bill Admin
+      </button>
 
       <a href="/pickleball" target="_blank" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex-shrink-0 flex items-center gap-1.5 shadow-sm transition whitespace-nowrap" title="Xem lịch đặt sân Pickleball">
         <i class="fa-solid fa-table-tennis-paddle-ball text-amber-300"></i> Sân Pickleball ↗
@@ -510,6 +513,58 @@
 
     <div class="flex-1 overflow-y-auto p-4 space-y-4" id="drawerItemsContainer"></div>
 
+    <!-- CÀI ĐẶT GIẢM GIÁ & ĐỐI TƯỢNG THANH TOÁN -->
+    <div class="p-3.5 bg-stone-100/90 border-t border-stone-200 space-y-2.5 text-xs">
+      <!-- 1. Giảm giá tổng bill -->
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="font-bold text-stone-700 flex items-center gap-1">
+            <span>🏷️ Giảm giá tổng bill:</span>
+          </label>
+          <div class="flex items-center gap-1">
+            <button type="button" onclick="setDiscountType('VND')" id="btnDiscTypeVND" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-700 text-white">VNĐ</button>
+            <button type="button" onclick="setDiscountType('PCT')" id="btnDiscTypePCT" class="px-2 py-0.5 rounded text-[10px] font-bold bg-white text-stone-600 border border-stone-300">%</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-12 gap-1.5">
+          <div class="col-span-6 relative">
+            <input type="number" id="drawerDiscountVal" min="0" value="0" placeholder="0" oninput="calculateDrawerTotal()" class="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 font-bold text-rose-600 text-xs focus:outline-emerald-600">
+            <span id="drawerDiscountUnit" class="absolute right-2 top-1.5 text-stone-400 font-bold text-[10px]">đ</span>
+          </div>
+          <div class="col-span-6">
+            <select id="drawerDiscountReason" onchange="onDiscountReasonChange()" class="w-full bg-white border border-stone-300 rounded-lg px-2 py-1.5 font-semibold text-stone-700 text-xs focus:outline-emerald-600">
+              <option value="">Lý do giảm giá...</option>
+              <option value="Nội bộ">🏢 Nội bộ</option>
+              <option value="Thử bếp">🍳 Thử bếp</option>
+              <option value="Khác">📝 Khác</option>
+            </select>
+          </div>
+        </div>
+        <input type="text" id="drawerDiscountCustomReason" placeholder="Ghi chú lý do giảm giá khác..." class="w-full mt-1.5 bg-white border border-stone-300 rounded-lg px-2.5 py-1 text-stone-700 text-xs focus:outline-emerald-600 hidden">
+      </div>
+
+      <!-- 2. Đối tượng thanh toán / Nội dung -->
+      <div>
+        <label class="block font-bold text-stone-700 mb-1">💳 Nội dung thanh toán:</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-stone-300 cursor-pointer font-semibold text-stone-800 hover:border-emerald-500 transition">
+            <input type="radio" name="billTargetRadio" value="CUSTOMER" checked onchange="toggleBillTarget()" class="text-emerald-700">
+            <span>Thu tiền khách</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-stone-300 cursor-pointer font-semibold text-stone-800 hover:border-rose-500 transition">
+            <input type="radio" name="billTargetRadio" value="ADMIN" onchange="toggleBillTarget()" class="text-rose-700">
+            <span>Tính bill với Admin</span>
+          </label>
+        </div>
+        <div id="adminSelectContainer" class="hidden mt-2 p-2 bg-rose-50 border border-rose-200 rounded-xl">
+          <label class="block text-[11px] font-bold text-rose-800 mb-1">Chọn Quản trị viên chịu bill:</label>
+          <select id="drawerAdminSelect" class="w-full bg-white border border-rose-300 rounded-lg px-2.5 py-1.5 font-bold text-rose-900 text-xs focus:outline-rose-600">
+            <!-- Render danh sách Admin -->
+          </select>
+        </div>
+      </div>
+    </div>
+
     <div class="p-4 bg-stone-50 border-t border-stone-200 space-y-3">
       <div class="flex items-center justify-between text-base">
         <span class="text-stone-600 font-medium">Tổng cộng thanh toán:</span>
@@ -675,6 +730,72 @@
     </div>
   </div>
 
+  <!-- MODAL TỔNG HỢP BILL TÍNH VỚI ADMIN -->
+  <div id="adminBillsModal" class="fixed inset-0 z-60 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-4xl w-full p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-200">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center text-xl font-bold">
+            👨‍💼
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-stone-900 leading-tight">Tổng Hợp Bill Tính Với Admin</h3>
+            <p class="text-xs text-stone-500">Danh sách các hóa đơn tiếp khách, nội bộ tính về tài khoản Admin</p>
+          </div>
+        </div>
+        <button onclick="closeAdminBillsModal()" class="text-stone-400 hover:text-stone-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Thống kê & Bộ lọc -->
+      <div class="py-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="bg-purple-50 p-3 rounded-2xl border border-purple-200">
+          <div class="text-[11px] font-semibold text-purple-700">Tổng số hóa đơn Admin:</div>
+          <div class="text-xl font-black text-purple-900 mt-0.5" id="admSummaryCount">0 bill</div>
+        </div>
+        <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-200">
+          <div class="text-[11px] font-semibold text-emerald-700">Tổng tiền tích lũy:</div>
+          <div class="text-xl font-black text-emerald-900 mt-0.5" id="admSummaryAmount">0 đ</div>
+        </div>
+        <div class="bg-stone-50 p-3 rounded-2xl border border-stone-200 flex flex-col justify-center">
+          <label class="text-[11px] font-semibold text-stone-600 mb-1">Lọc theo Admin:</label>
+          <select id="admBillsFilterSelect" onchange="filterAdminBills()" class="w-full bg-white border border-stone-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-stone-800">
+            <option value="ALL">-- Tất cả Admin --</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Bảng danh sách bill -->
+      <div class="flex-1 overflow-y-auto border border-stone-200 rounded-2xl mt-1">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-stone-100 text-stone-700 uppercase text-[10px] font-bold sticky top-0">
+            <tr>
+              <th class="py-2.5 px-3">Bàn / Khu Vực</th>
+              <th class="py-2.5 px-3">Thời Gian</th>
+              <th class="py-2.5 px-3">Admin Chịu Bill</th>
+              <th class="py-2.5 px-3">Lý do / Ghi chú</th>
+              <th class="py-2.5 px-3 text-right">Tổng Tiền</th>
+              <th class="py-2.5 px-3 text-center">Chi Tiết Món</th>
+            </tr>
+          </thead>
+          <tbody id="adminBillsTableBody" class="divide-y divide-stone-100">
+            <tr><td colspan="6" class="py-8 text-center text-stone-400">Đang tải dữ liệu...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-stone-200 flex items-center justify-between">
+        <button onclick="loadAdminBillsData()" class="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-arrows-rotate"></i> Làm mới
+        </button>
+        <button onclick="closeAdminBillsModal()" class="px-5 py-2 rounded-xl bg-stone-800 hover:bg-stone-900 text-white text-xs font-bold transition">
+          Đóng lại
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let allTables = [];
     let currentArea = 'ALL';
@@ -682,6 +803,9 @@
     let currentBillData = null;
     let currentUser = null;
     let currentDetailPeriod = 'DAY';
+    let posAdmins = [];
+    let posDiscountType = 'VND';
+    let posAdminBillsData = [];
 
     let chartDaysInstance = null;
     let chartMonthsInstance = null;
@@ -691,6 +815,7 @@
       checkAuthStatus();
       fetchTablesOverview();
       fetchPosPreorders();
+      loadAdminsList();
       connectPosWebSocket();
       setInterval(() => {
         fetchTablesOverview();
@@ -1035,6 +1160,115 @@
       fetchTablesOverview();
     }
 
+    async function loadAdminsList() {
+      try {
+        const res = await fetch("/api/pos/admins");
+        if (!res.ok) return;
+        posAdmins = await res.json();
+
+        // Populate drawerAdminSelect
+        const drawerSelect = document.getElementById("drawerAdminSelect");
+        if (drawerSelect) {
+          drawerSelect.innerHTML = posAdmins.map(adm => `
+            <option value="${adm.id}" data-name="${adm.full_name}">${adm.full_name} (${adm.username})</option>
+          `).join('');
+        }
+
+        // Populate admBillsFilterSelect
+        const filterSelect = document.getElementById("admBillsFilterSelect");
+        if (filterSelect) {
+          filterSelect.innerHTML = `<option value="ALL">-- Tất cả Admin --</option>` + posAdmins.map(adm => `
+            <option value="${adm.id}">${adm.full_name} (${adm.username})</option>
+          `).join('');
+        }
+      } catch (e) {
+        console.warn("loadAdminsList error:", e);
+      }
+    }
+
+    function setDiscountType(type) {
+      posDiscountType = type;
+      const btnVND = document.getElementById("btnDiscTypeVND");
+      const btnPCT = document.getElementById("btnDiscTypePCT");
+      const unit = document.getElementById("drawerDiscountUnit");
+      const input = document.getElementById("drawerDiscountVal");
+
+      if (type === 'PCT') {
+        if (btnPCT) btnPCT.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-700 text-white";
+        if (btnVND) btnVND.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-white text-stone-600 border border-stone-300";
+        if (unit) unit.innerText = "%";
+        if (input) input.max = 100;
+      } else {
+        if (btnVND) btnVND.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-700 text-white";
+        if (btnPCT) btnPCT.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-white text-stone-600 border border-stone-300";
+        if (unit) unit.innerText = "đ";
+        if (input) input.removeAttribute("max");
+      }
+      calculateDrawerTotal();
+    }
+
+    function calculateCalculatedDiscount() {
+      if (!currentBillData || !currentBillData.grand_total) return 0;
+      const rawVal = parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0;
+      if (rawVal <= 0) return 0;
+      const subtotal = currentBillData.grand_total;
+      if (posDiscountType === 'PCT') {
+        const pct = Math.min(100, Math.max(0, rawVal));
+        return Math.round(subtotal * pct / 100);
+      } else {
+        return Math.min(subtotal, Math.max(0, rawVal));
+      }
+    }
+
+    function calculateDrawerTotal() {
+      if (!currentBillData) return;
+      const subtotal = currentBillData.grand_total || 0;
+      const discount = calculateCalculatedDiscount();
+      const finalTotal = Math.max(0, subtotal - discount);
+      const totalEl = document.getElementById("drawerGrandTotal");
+      if (totalEl) {
+        if (discount > 0) {
+          totalEl.innerHTML = `${formatVND(finalTotal)} <span class="text-xs text-rose-500 font-medium block">(-${formatVND(discount)})</span>`;
+        } else {
+          totalEl.innerText = formatVND(finalTotal);
+        }
+      }
+    }
+
+    function onDiscountReasonChange() {
+      const select = document.getElementById("drawerDiscountReason");
+      const customInput = document.getElementById("drawerDiscountCustomReason");
+      if (select && customInput) {
+        if (select.value === 'Khác') {
+          customInput.classList.remove("hidden");
+          customInput.focus();
+        } else {
+          customInput.classList.add("hidden");
+          customInput.value = "";
+        }
+      }
+    }
+
+    function toggleBillTarget() {
+      const radios = document.getElementsByName("billTargetRadio");
+      let selectedVal = "CUSTOMER";
+      for (const r of radios) {
+        if (r.checked) {
+          selectedVal = r.value;
+          break;
+        }
+      }
+      const container = document.getElementById("adminSelectContainer");
+      if (container) {
+        if (selectedVal === "ADMIN") {
+          container.classList.remove("hidden");
+          if (posAdmins.length === 0) loadAdminsList();
+        } else {
+          container.classList.add("hidden");
+        }
+      }
+    }
+
     async function openTableDetails(tableId) {
       const table = allTables.find(t => t.id === tableId);
       if (!table) return;
@@ -1048,6 +1282,19 @@
       currentBillData = await res.json();
 
       document.getElementById("drawerGrandTotal").innerText = formatVND(currentBillData.grand_total);
+
+      // Reset controls giảm giá & đối tượng thanh toán
+      setDiscountType('VND');
+      if (document.getElementById("drawerDiscountVal")) document.getElementById("drawerDiscountVal").value = 0;
+      if (document.getElementById("drawerDiscountReason")) document.getElementById("drawerDiscountReason").value = "";
+      if (document.getElementById("drawerDiscountCustomReason")) {
+        document.getElementById("drawerDiscountCustomReason").value = "";
+        document.getElementById("drawerDiscountCustomReason").classList.add("hidden");
+      }
+      const billTargetRadios = document.getElementsByName("billTargetRadio");
+      billTargetRadios.forEach(r => r.checked = (r.value === "CUSTOMER"));
+      toggleBillTarget();
+      calculateDrawerTotal();
 
       const itemsContainer = document.getElementById("drawerItemsContainer");
       if (currentBillData.items.length === 0) {
@@ -1113,11 +1360,11 @@
               <td class="py-1.5 pr-2 align-top">
                 <div class="font-bold text-stone-800 leading-tight">${it.item_name}</div>
                 <div class="text-[10px] text-stone-600 font-mono mt-0.5">
-                  ${it.quantity} × ${formatVND(uPrice)} = ${it.status === 'CANCELLED' ? 'Hủy' : formatVND(it.total_price)}
+                  ${it.quantity} × ${formatVND(uPrice)}
                 </div>
                 ${it.note ? `<div class="text-[10px] text-amber-700 italic">(${it.note})</div>` : ''}
               </td>
-              <td class="py-1.5 text-right font-bold text-stone-900 align-top whitespace-nowrap">
+              <td class="py-1.5 text-right font-bold text-stone-900 align-bottom whitespace-nowrap">
                 ${it.status === 'CANCELLED' ? 'Hủy' : formatVND(it.total_price)}
               </td>
             </tr>
@@ -1125,10 +1372,17 @@
         }).join('');
       }
 
-      document.getElementById("receiptGrandTotal").innerText = formatVND(currentBillData.grand_total);
+      const disc = calculateCalculatedDiscount();
+      const finalTotal = Math.max(0, currentBillData.grand_total - disc);
+      document.getElementById("receiptGrandTotal").innerText = formatVND(finalTotal);
 
-      if (currentBillData.vietqr_url && currentBillData.grand_total > 0) {
-        document.getElementById("receiptQRImg").src = currentBillData.vietqr_url;
+      let qrUrl = currentBillData.vietqr_url;
+      if (disc > 0 && currentBillData.grand_total > 0) {
+        qrUrl = `https://img.vietqr.io/image/MB-075624456-compact.png?amount=${finalTotal}&addInfo=${encodeURIComponent(currentBillData.transfer_note || '')}`;
+      }
+
+      if (qrUrl && finalTotal > 0) {
+        document.getElementById("receiptQRImg").src = qrUrl;
         document.getElementById("receiptQRContainer").classList.remove("hidden");
       } else {
         document.getElementById("receiptQRContainer").classList.add("hidden");
@@ -1141,7 +1395,18 @@
       document.getElementById("printBillModal").classList.add("hidden");
     }
 
-    function executePrintReceipt() {
+    async function executePrintReceipt() {
+      if (!selectedTable) return;
+      try {
+        const res = await fetch(`/api/printer/table/${selectedTable.id}/print-bill`, { method: "POST" });
+        if (res.ok) {
+          closePrintBillModal();
+          alert(`✅ Đã in hóa đơn bàn ${selectedTable.name} ra Máy in Thu ngân (192.168.31.252)!`);
+          return;
+        }
+      } catch (e) {
+        console.warn("Không kết nối được máy in LAN trực tiếp:", e);
+      }
       window.print();
     }
 
@@ -1150,9 +1415,15 @@
         alert("Bàn chưa có hóa đơn cần thanh toán!");
         return;
       }
-      document.getElementById("vietqrImage").src = currentBillData.vietqr_url;
+      const disc = calculateCalculatedDiscount();
+      const finalTotal = Math.max(0, currentBillData.grand_total - disc);
+      let qrUrl = currentBillData.vietqr_url;
+      if (disc > 0) {
+        qrUrl = `https://img.vietqr.io/image/MB-075624456-compact.png?amount=${finalTotal}&addInfo=${encodeURIComponent(currentBillData.transfer_note || '')}`;
+      }
+      document.getElementById("vietqrImage").src = qrUrl;
       document.getElementById("qrModalDesc").innerText = `${selectedTable.name} • ${selectedTable.area}`;
-      document.getElementById("qrModalAmount").innerText = formatVND(currentBillData.grand_total);
+      document.getElementById("qrModalAmount").innerText = formatVND(finalTotal);
       document.getElementById("vietqrModal").classList.remove("hidden");
     }
 
@@ -1162,17 +1433,152 @@
 
     async function confirmCheckoutTable() {
       if (!selectedTable) return;
-      if (!confirm(`Xác nhận thanh toán và mở lại bàn ${selectedTable.name}?`)) return;
+
+      const discountAmount = calculateCalculatedDiscount();
+      let discountReason = document.getElementById("drawerDiscountReason")?.value || "";
+      if (discountReason === "Khác") {
+        discountReason = document.getElementById("drawerDiscountCustomReason")?.value?.trim() || "Khác";
+      }
+
+      let billTarget = "CUSTOMER";
+      const radios = document.getElementsByName("billTargetRadio");
+      for (const r of radios) {
+        if (r.checked) {
+          billTarget = r.value;
+          break;
+        }
+      }
+
+      let billedAdminId = null;
+      let billedAdminName = "";
+      if (billTarget === "ADMIN") {
+        const adminSelect = document.getElementById("drawerAdminSelect");
+        if (adminSelect && adminSelect.value) {
+          billedAdminId = parseInt(adminSelect.value);
+          const opt = adminSelect.options[adminSelect.selectedIndex];
+          billedAdminName = opt ? (opt.getAttribute("data-name") || opt.text) : "";
+        }
+        if (!billedAdminId) {
+          alert("Vui lòng chọn Quản trị viên (Admin) chịu bill!");
+          return;
+        }
+      }
+
+      let confirmMsg = `Xác nhận thanh toán và mở lại bàn ${selectedTable.name}?`;
+      if (billTarget === "ADMIN") {
+        confirmMsg += `\n(Hình thức: Tính bill với Admin "${billedAdminName}")`;
+      }
+      if (discountAmount > 0) {
+        confirmMsg += `\n(Giảm giá: ${formatVND(discountAmount)} - Lý do: ${discountReason || 'Không có'})`;
+      }
+
+      if (!confirm(confirmMsg)) return;
 
       try {
-        const res = await fetch(`/api/pos/table/${selectedTable.id}/checkout`, { method: "POST" });
+        const payload = {
+          discount_amount: discountAmount,
+          discount_reason: discountReason,
+          bill_target: billTarget,
+          billed_admin_id: billedAdminId,
+          billed_admin_name: billedAdminName
+        };
+
+        const res = await fetch(`/api/pos/table/${selectedTable.id}/checkout`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
         if (res.ok) {
           closeBillDrawer();
           fetchTablesOverview();
+        } else {
+          const err = await res.json().catch(() => ({}));
+          alert("Lỗi khi thanh toán: " + (err.detail || "Không xác định"));
         }
       } catch (e) {
-        alert("Lỗi khi thanh toán!");
+        alert("Lỗi kết nối khi thanh toán!");
       }
+    }
+
+    // ==========================================
+    // TỔNG HỢP BILL TÍNH VỚI ADMIN
+    // ==========================================
+    async function openAdminBillsModal() {
+      document.getElementById("adminBillsModal").classList.remove("hidden");
+      if (posAdmins.length === 0) await loadAdminsList();
+      await loadAdminBillsData();
+    }
+
+    function closeAdminBillsModal() {
+      document.getElementById("adminBillsModal").classList.add("hidden");
+    }
+
+    async function loadAdminBillsData(adminId = null) {
+      const tbody = document.getElementById("adminBillsTableBody");
+      if (!tbody) return;
+      tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-stone-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu hóa đơn Admin...</td></tr>`;
+
+      try {
+        let url = "/api/pos/admin-bills";
+        if (adminId && adminId !== 'ALL') {
+          url += `?admin_id=${adminId}`;
+        }
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Lỗi tải hóa đơn");
+        const data = await res.json();
+        posAdminBillsData = data.bills || [];
+
+        document.getElementById("admSummaryCount").innerText = `${data.total_count} bill`;
+        document.getElementById("admSummaryAmount").innerText = formatVND(data.total_amount);
+
+        if (posAdminBillsData.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-stone-400 text-xs italic">Chưa có hóa đơn nào tính với Quản trị viên (Admin).</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = posAdminBillsData.map(b => {
+          const itemsSummary = (b.items || []).map(it => `${it.item_name} <span class="font-bold text-stone-700">×${it.quantity}</span>`).join(', ');
+          const dateStr = b.created_at ? new Date(b.created_at).toLocaleString('vi-VN', {
+            hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
+          }) : 'N/A';
+
+          return `
+            <tr class="hover:bg-purple-50/50 transition border-b border-stone-100">
+              <td class="py-2.5 px-3">
+                <div class="font-bold text-stone-900">${b.table_name}</div>
+                <div class="text-[10px] text-stone-500">${b.area || ''} • #${b.table_code}</div>
+              </td>
+              <td class="py-2.5 px-3 whitespace-nowrap text-[11px] text-stone-600">
+                ${dateStr}
+              </td>
+              <td class="py-2.5 px-3">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px]">
+                  <i class="fa-solid fa-user-shield text-[10px]"></i> ${b.billed_admin_name || 'Admin'}
+                </span>
+              </td>
+              <td class="py-2.5 px-3 text-[11px] text-stone-600">
+                ${b.discount_reason ? `<span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-[10px] font-semibold">${b.discount_reason}</span>` : '<span class="text-stone-400 italic">Không có</span>'}
+              </td>
+              <td class="py-2.5 px-3 text-right font-black text-emerald-700 whitespace-nowrap">
+                ${formatVND(b.total)}
+                ${b.discount > 0 ? `<div class="text-[10px] text-rose-500 font-normal">Giảm: -${formatVND(b.discount)}</div>` : ''}
+              </td>
+              <td class="py-2.5 px-3 text-stone-600 text-[11px] max-w-xs truncate" title="${itemsSummary.replace(/<[^>]*>?/gm, '')}">
+                ${itemsSummary || '<span class="text-stone-400 italic">Không có món</span>'}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-500">Lỗi khi tải danh sách: ${e.message}</td></tr>`;
+      }
+    }
+
+    function filterAdminBills() {
+      const select = document.getElementById("admBillsFilterSelect");
+      const val = select ? select.value : 'ALL';
+      loadAdminBillsData(val);
     }
 
     // ==========================================

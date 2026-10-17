@@ -191,6 +191,34 @@ def init_db():
     except Exception:
         pass
 
+    try:
+        cursor.execute("ALTER TABLE menu_items ADD COLUMN discount_percent INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE order_items ADD COLUMN discount_percent INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE order_items ADD COLUMN original_price INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
+    # Migrate các cột hỗ trợ Giảm giá tổng bill & Tính bill với Admin
+    order_billing_cols = [
+        ("discount_reason", "TEXT"),
+        ("bill_target", "TEXT DEFAULT 'CUSTOMER'"),
+        ("billed_admin_id", "INTEGER"),
+        ("billed_admin_name", "TEXT"),
+    ]
+    for col_name, col_type in order_billing_cols:
+        try:
+            cursor.execute(f"ALTER TABLE orders ADD COLUMN {col_name} {col_type}")
+        except Exception:
+            pass
+
     # 7. Print Jobs (KOT)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS print_jobs (
@@ -397,10 +425,10 @@ def init_db():
     if cursor.fetchone()["count"] == 0:
         seed_inventory_and_bom(conn)
 
-    # Seed sample historical revenue data if orders count is low
-    cursor.execute("SELECT COUNT(*) as count FROM orders WHERE payment_status = 'PAID'")
-    if cursor.fetchone()["count"] < 10:
-        seed_historical_revenue(conn)
+    # Bỏ seed dữ liệu chạy thử giả lập để đảm bảo dữ liệu đơn hàng sạch sẽ theo yêu cầu
+    # cursor.execute("SELECT COUNT(*) as count FROM orders WHERE payment_status = 'PAID'")
+    # if cursor.fetchone()["count"] < 10:
+    #     seed_historical_revenue(conn)
 
     # Tự động đồng bộ và di chuyển sang 6 nhóm danh mục chuẩn
     ensure_six_categories(conn)
@@ -423,7 +451,58 @@ def init_db():
     # Đảm bảo định lượng món đơn giản, chuẩn xác cho bếp nhìn trực quan
     ensure_simple_dish_portions(conn)
 
+    # Đảm bảo cấu hình mặc định cho 2 máy in LAN (Bếp 192.168.31.251 và Thu ngân 192.168.31.252)
+    ensure_printer_settings(conn)
+
     conn.close()
+
+def ensure_printer_settings(conn):
+    """Đảm bảo cấu hình mặc định cho 2 máy in nhiệt mạng LAN (Bếp 251 và Thu ngân 252)."""
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS system_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+    """)
+    defaults = {
+        "printer_kitchen_ip": "192.168.31.251",
+        "printer_kitchen_port": "9100",
+        "printer_kitchen_enabled": "1",
+        "printer_cashier_ip": "192.168.31.252",
+        "printer_cashier_port": "9100",
+        "printer_cashier_enabled": "1",
+        "printer_auto_kitchen": "1",
+        "printer_auto_cashier": "1",
+    }
+    for k, v in defaults.items():
+        cursor.execute("INSERT OR IGNORE INTO system_settings (key, value) VALUES (?, ?)", (k, v))
+    conn.commit()
+
+def clear_all_test_data(conn=None):
+    """Xóa sạch 100% dữ liệu chạy thử nghiệm để hệ thống bắt đầu mới hoàn toàn."""
+    should_close = False
+    if conn is None:
+        conn = get_db()
+        should_close = True
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM order_items")
+    cursor.execute("DELETE FROM orders")
+    cursor.execute("DELETE FROM print_jobs")
+    cursor.execute("DELETE FROM service_calls")
+    cursor.execute("DELETE FROM table_sessions")
+    cursor.execute("DELETE FROM inventory_transactions")
+    cursor.execute("DELETE FROM reservations")
+    cursor.execute("DELETE FROM pickleball_bookings")
+    cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL")
+    try:
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name IN ('orders', 'order_items', 'print_jobs', 'service_calls', 'table_sessions', 'inventory_transactions', 'reservations', 'pickleball_bookings')")
+    except Exception:
+        pass
+    conn.commit()
+    if should_close:
+        conn.close()
+
 
 def ensure_fixed_dish_images(conn):
     """Đảm bảo các món đồ uống, bia và món đặc sản luôn có đường dẫn ảnh chuẩn.

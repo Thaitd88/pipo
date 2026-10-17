@@ -239,6 +239,14 @@
           </div>
 
           <div>
+            <label class="block text-stone-700 font-semibold mb-1">🏷️ Giảm giá món (%) <span class="text-emerald-700 font-bold">(0 - 100%)</span></label>
+            <div class="relative">
+              <input type="number" id="dishDiscountPercent" min="0" max="100" value="0" placeholder="0" class="w-full bg-white border border-stone-300 rounded-xl px-3.5 py-2.5 text-amber-700 font-black focus:outline-none focus:border-amber-600 pr-8">
+              <span class="absolute right-3 top-2.5 text-stone-400 font-bold">%</span>
+            </div>
+          </div>
+
+          <div>
             <label class="block text-stone-700 font-semibold mb-1">⚖️ Định lượng món (cho bếp)</label>
             <input type="text" id="dishPortion" placeholder="Ví dụ: Ốc hương 250g, Đậu phụ 3 bìa..." class="w-full bg-white border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none focus:border-amber-600 font-semibold">
           </div>
@@ -847,11 +855,18 @@
         if (mainTypes.includes('LUNCH')) menuBadges += `<span class="bg-blue-100 text-blue-900 border border-blue-300 px-1.5 py-0.2 rounded text-[9px] font-bold">🍚 Cơm Trưa</span> `;
         if (mainTypes.includes('CAFE')) menuBadges += `<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 px-1.5 py-0.2 rounded text-[9px] font-bold">☕ Cafe</span> `;
 
+        const discPct = item.discount_percent || 0;
+        const hasDisc = discPct > 0 && discPct <= 100;
+        const effectivePrice = hasDisc ? Math.round(item.price * (100 - discPct) / 100) : item.price;
+
         return `
         <div class="bg-white border ${isOutOfIngredients ? 'border-amber-400 bg-amber-50/20 shadow-sm' : 'border-stone-200'} rounded-2xl p-4 flex flex-col justify-between hover:shadow-md transition space-y-3">
           <div class="flex items-start gap-3">
             <div class="relative flex-shrink-0">
               <img src="${item.image_url || '/static/logo.png'}" onerror="this.onerror=null; this.src='/static/logo.png';" class="w-16 h-16 rounded-xl object-cover bg-stone-50 border border-stone-200 p-0.5">
+              ${hasDisc ? `
+                <span class="absolute top-0.5 left-0.5 bg-rose-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow">-${discPct}%</span>
+              ` : ''}
               ${isOutOfIngredients ? `
                 <div class="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center p-1 text-center">
                   <span class="text-[9px] text-amber-300 font-black leading-tight">HẾT<br>NVL</span>
@@ -869,7 +884,15 @@
               <p class="text-[11px] text-stone-500 truncate">${item.description || ''}</p>
               
               <div class="flex items-center justify-between mt-1">
-                <div class="text-xs text-emerald-700 font-bold">${formatVND(item.price)}</div>
+                ${hasDisc ? `
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs text-rose-600 font-bold">${formatVND(effectivePrice)}</span>
+                    <span class="text-[10px] text-stone-400 line-through">${formatVND(item.price)}</span>
+                    <span class="text-[9px] font-black bg-rose-100 text-rose-700 px-1 py-0.2 rounded">Giảm ${discPct}%</span>
+                  </div>
+                ` : `
+                  <div class="text-xs text-emerald-700 font-bold">${formatVND(item.price)}</div>
+                `}
                 <div class="text-[10px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">🔥 ${item.calories || 0} kcal</div>
               </div>
 
@@ -1152,6 +1175,7 @@
         document.getElementById("dishEditId").value = "";
         document.getElementById("dishNameVi").value = "";
         document.getElementById("dishPrice").value = "";
+        document.getElementById("dishDiscountPercent").value = "0";
         document.getElementById("dishStation").value = "HOT_KITCHEN";
         document.getElementById("dishImageUrl").value = "";
         document.getElementById("dishDescVi").value = "";
@@ -1183,6 +1207,7 @@
         document.getElementById("dishNameVi").value = dish.name;
         document.getElementById("dishCategoryId").value = dish.category_id;
         document.getElementById("dishPrice").value = dish.price;
+        document.getElementById("dishDiscountPercent").value = dish.discount_percent || 0;
         document.getElementById("dishPortion").value = dish.portion || "";
         document.getElementById("dishStation").value = dish.station || "HOT_KITCHEN";
         document.getElementById("dishImageUrl").value = dish.image_url || "";
@@ -1365,6 +1390,7 @@
       const outOfIngredients = document.getElementById("chkOutOfIngredients").checked ? 1 : 0;
       const calories = parseInt(document.getElementById("dishCalories").value) || 0;
       const portion = (document.getElementById("dishPortion").value || "").trim();
+      const discountPercent = Math.max(0, Math.min(100, parseInt(document.getElementById("dishDiscountPercent").value) || 0));
 
       const transObj = {};
       ['en', 'zh', 'ko', 'ru'].forEach(l => {
@@ -1381,6 +1407,7 @@
         name: name,
         description: desc,
         price: price,
+        discount_percent: discountPercent,
         image_url: img,
         station: station,
         portion: portion,

@@ -126,6 +126,12 @@ async def ws_listener(url: str, label: str, config: dict):
 
                             # Gửi máy in LAN vật lý nếu được bật
                             printer_cfg = printers.get(station)
+                            if not printer_cfg:
+                                if station in ["BAR", "CASHIER"]:
+                                    printer_cfg = printers.get("BAR") or printers.get("CASHIER")
+                                else:
+                                    printer_cfg = printers.get("HOT_KITCHEN")
+
                             if printer_cfg and printer_cfg.get("enabled"):
                                 host = printer_cfg.get("host")
                                 port = printer_cfg.get("port", 9100)

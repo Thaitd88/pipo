@@ -4,7 +4,8 @@ import json
 import base64
 from datetime import datetime
 from ..database import get_db, deduct_inventory_for_order_item, restore_inventory_for_order_item
-from ..escpos import format_kitchen_ticket_text, build_escpos_bytes
+from ..escpos import format_kitchen_ticket_text, build_escpos_kitchen_bytes, build_escpos_bytes
+from ..printer_service import get_printer_config, send_escpos_to_printer
 from .auth import get_current_user_from_request, require_api_auth
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
@@ -77,15 +78,24 @@ async def create_order(payload: dict):
         if not menu_row:
             continue
 
-        item_price = menu_row["price"]
-        line_total = item_price * qty
+        orig_price = menu_row["price"]
+        disc_pct = menu_row["discount_percent"] if "discount_percent" in menu_row.keys() and menu_row["discount_percent"] else 0
+        if 0 < disc_pct <= 100:
+            effective_price = int(round(orig_price * (100 - disc_pct) / 100))
+        else:
+            disc_pct = 0
+            effective_price = orig_price
+
+        line_total = effective_price * qty
         subtotal += line_total
 
         detailed_items.append({
             "item_id": item_id,
             "item_name": menu_row["name"],
             "quantity": qty,
-            "unit_price": item_price,
+            "unit_price": effective_price,
+            "original_price": orig_price,
+            "discount_percent": disc_pct,
             "total_price": line_total,
             "station": menu_row["station"],
             "note": note,
@@ -109,10 +119,10 @@ async def create_order(payload: dict):
     order_items_to_broadcast = []
     for dit in detailed_items:
         cursor.execute("""
-            INSERT INTO order_items (order_id, item_id, item_name, quantity, unit_price, total_price, station, note, modifiers_json, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'QUEUED')
+            INSERT INTO order_items (order_id, item_id, item_name, quantity, unit_price, total_price, station, note, modifiers_json, status, discount_percent, original_price)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'QUEUED', ?, ?)
         """, (order_id, dit["item_id"], dit["item_name"], dit["quantity"], dit["unit_price"], dit["total_price"], 
-              dit["station"], dit["note"], json.dumps(dit["modifiers"])))
+              dit["station"], dit["note"], json.dumps(dit["modifiers"]), dit["discount_percent"], dit["original_price"]))
         order_item_id = cursor.lastrowid
         order_items_to_broadcast.append({**dit, "id": order_item_id, "status": "QUEUED"})
 
@@ -138,8 +148,8 @@ async def create_order(payload: dict):
         # Định dạng text phiếu in
         ticket_text = format_kitchen_ticket_text(order_info, st_items, station)
         
-        # Biên dịch mã byte ESC/POS nhị phân
-        escpos_bytes = build_escpos_bytes(ticket_text, beep=True)
+        # Biên dịch mã byte ESC/POS nhị phân chuẩn 80mm T80W
+        escpos_bytes = build_escpos_kitchen_bytes(order_info, st_items, station=station, beep=True)
         escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
 
         cursor.execute("""
@@ -155,6 +165,18 @@ async def create_order(payload: dict):
             "escpos_b64": escpos_b64,
             "table_name": table["name"]
         })
+
+        # Bắn lệnh in trực tiếp qua mạng LAN tới máy in tương ứng (Bếp 251 hoặc Bar 252)
+        try:
+            p_cfg = get_printer_config()
+            if p_cfg.get("auto_kitchen"):
+                dest_ip = p_cfg["cashier_ip"] if station == "BAR" else p_cfg["kitchen_ip"]
+                dest_port = p_cfg["cashier_port"] if station == "BAR" else p_cfg["kitchen_port"]
+                import asyncio
+                loop = asyncio.get_event_loop()
+                loop.run_in_executor(None, send_escpos_to_printer, dest_ip, dest_port, escpos_bytes)
+        except Exception:
+            pass
 
     conn.commit()
     conn.close()

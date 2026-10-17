@@ -103,10 +103,10 @@
           <i class="fa-solid fa-chevron-down text-[9px] text-emerald-300"></i>
         </button>
 
-        <!-- Tên Bàn -->
+        <!-- Tên Bàn / Chế Độ Đặt Trước -->
         <div class="bg-emerald-950/80 border border-emerald-600/50 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span id="headerTableName">{{ table.name }}</span>
+          <span class="w-2 h-2 rounded-full {{ 'bg-amber-400' if is_preorder else 'bg-emerald-400' }} animate-pulse"></span>
+          <span id="headerTableName">{{ 'Đặt Món Trước & Đặt Bàn' if is_preorder else table.name }}</span>
         </div>
       </div>
     </div>
@@ -189,6 +189,7 @@
   </section>
 
   <!-- Nút Tiện Ích Gọi Phục Vụ Nhanh (Fixed Bottom Above Cart) -->
+  {% if not is_preorder %}
   <div class="max-w-md mx-auto px-4 mt-6 mb-4">
     <div class="grid grid-cols-4 gap-2 text-center text-xs">
       <button onclick="callService('ICE')" class="bg-white border border-stone-200 py-2 rounded-xl shadow-xs active:bg-stone-50 transition flex flex-col items-center">
@@ -209,6 +210,7 @@
       </button>
     </div>
   </div>
+  {% endif %}
 
   <!-- Thanh Giỏ Hàng Nổi (Bottom Bar) -->
   <div id="cartBar" class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200 p-3 shadow-lg transform translate-y-full transition-transform duration-300">
@@ -407,6 +409,83 @@
     </div>
   </div>
 
+  <!-- MODAL ĐẶT MÓN TRƯỚC & GIỮ BÀN (DÀNH CHO /menu ONLINE) -->
+  <div id="preorderModal" class="fixed inset-0 z-60 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl flex flex-col max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg font-black">
+            📅
+          </div>
+          <div>
+            <h3 class="font-black text-base text-stone-900 leading-tight">Đặt Món Trước & Đặt Bàn</h3>
+            <p class="text-[11px] text-stone-500">PiPo Garden sẽ chuẩn bị bàn và đón tiếp chu đáo</p>
+          </div>
+        </div>
+        <button onclick="closePreorderModal()" class="text-stone-400 hover:text-stone-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="mt-4 space-y-3.5 text-xs">
+        <div>
+          <label class="block text-stone-700 font-bold mb-1">Tên Anh/Chị: <span class="text-rose-500">*</span></label>
+          <input type="text" id="preorderGuestName" placeholder="Ví dụ: Anh Tuấn, Chị Mai..." class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 font-bold focus:outline-none focus:border-amber-600">
+        </div>
+
+        <div>
+          <label class="block text-stone-700 font-bold mb-1">Số điện thoại liên hệ: <span class="text-rose-500">*</span></label>
+          <input type="tel" id="preorderPhone" placeholder="Ví dụ: 0912345678" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 font-bold focus:outline-none focus:border-amber-600">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-stone-700 font-bold mb-1">Số lượng khách: <span class="text-rose-500">*</span></label>
+            <input type="number" id="preorderGuestCount" min="1" max="100" value="2" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 font-bold focus:outline-none focus:border-amber-600">
+          </div>
+          <div>
+            <label class="block text-stone-700 font-bold mb-1">Khu vực ưu tiên:</label>
+            <select id="preorderArea" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3 py-2.5 text-stone-900 font-semibold focus:outline-none focus:border-amber-600">
+              <option value="Hồ Bơi">🏊 Khu Hồ Bơi</option>
+              <option value="Sân Vườn">🌿 Khu Sân Vườn</option>
+              <option value="Máy Lạnh">❄️ Phòng Máy Lạnh</option>
+              <option value="Sảnh Chính">🍽️ Sảnh Nhà Hàng</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-stone-700 font-bold mb-1">Ngày đến: <span class="text-rose-500">*</span></label>
+            <input type="date" id="preorderDate" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2 text-stone-900 font-semibold focus:outline-none focus:border-amber-600">
+          </div>
+          <div>
+            <label class="block text-stone-700 font-bold mb-1">Giờ đến: <span class="text-rose-500">*</span></label>
+            <input type="time" id="preorderTime" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2 text-stone-900 font-semibold focus:outline-none focus:border-amber-600">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-stone-700 font-bold mb-1">Yêu cầu / Ghi chú thêm:</label>
+          <textarea id="preorderNote" rows="2" placeholder="Ví dụ: Cần ghế trẻ em, bàn nhìn ra hồ bơi..." class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2 text-stone-900 focus:outline-none focus:border-amber-600"></textarea>
+        </div>
+
+        <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] text-amber-800 font-medium">Tạm tính các món đã chọn:</div>
+            <div class="text-xs text-stone-500" id="preorderItemSummary">0 món</div>
+          </div>
+          <div class="font-black text-base text-amber-950" id="preorderTotalEst">0 đ</div>
+        </div>
+
+        <button onclick="confirmSubmitPreorder()" id="btnConfirmPreorder" class="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-stone-950 font-black text-sm shadow-md transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-check"></i>
+          <span>XÁC NHẬN ĐẶT MÓN & ĐẶT BÀN</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST THÔNG BÁO -->
   <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-stone-900/90 text-white text-xs px-4 py-2.5 rounded-full shadow-lg opacity-0 transition-opacity pointer-events-none flex items-center gap-2">
     <i class="fa-solid fa-check text-emerald-400"></i>
@@ -414,6 +493,7 @@
   </div>
 
   <script>
+    const IS_PREORDER = {{ 'true' if is_preorder else 'false' }};
     const TABLE_INFO = {
       id: {{ table.id }},
       code: "{{ table.table_code }}",
@@ -1149,12 +1229,18 @@
               const parsed = parsePortionAndDesc(itemDesc);
               const isOutOfIngredients = (item.out_of_ingredients === 1);
               const isAvailable = (item.is_available === 1 && !isOutOfIngredients);
+              const discPct = item.discount_percent || 0;
+              const hasDisc = discPct > 0 && discPct <= 100;
+              const effectivePrice = hasDisc ? Math.round(item.price * (100 - discPct) / 100) : item.price;
 
               return `
               <div onclick="openItemModal(${item.id})" class="cursor-pointer bg-white rounded-2xl p-3 shadow-xs hover:shadow-md ${theme.borderHover} border border-stone-200/80 flex gap-3 items-center active:scale-[0.99] transition ${!isAvailable ? 'opacity-70 bg-stone-50/70' : ''}">
                 <!-- Ảnh món -->
                 <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden flex-shrink-0 bg-stone-50 border border-stone-100 group/thumb">
                   <img src="${item.image_url || '/static/logo.png'}" alt="${itemName}" loading="lazy" onerror="this.onerror=null; this.src='/static/logo.png';" class="w-full h-full object-cover transition duration-300 group-hover/thumb:scale-110 ${!isAvailable ? 'grayscale-[40%]' : ''}">
+                  ${hasDisc ? `
+                    <span class="absolute top-1 left-1 bg-rose-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-lg shadow-sm">-${discPct}%</span>
+                  ` : ''}
                   <div class="absolute inset-0 bg-black/25 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white">
                     <i class="fa-solid fa-magnifying-glass-plus text-xs"></i>
                   </div>
@@ -1173,7 +1259,14 @@
                     </div>
                   ` : ''}
                   <div class="mt-1.5 flex items-center justify-between">
-                    <span class="font-black ${theme.priceColor} text-sm">${formatVND(item.price)}</span>
+                    ${hasDisc ? `
+                      <div class="flex items-center gap-1.5">
+                        <span class="font-black text-rose-600 text-sm">${formatVND(effectivePrice)}</span>
+                        <span class="text-[11px] text-stone-400 line-through">${formatVND(item.price)}</span>
+                      </div>
+                    ` : `
+                      <span class="font-black ${theme.priceColor} text-sm">${formatVND(item.price)}</span>
+                    `}
                     ${isOutOfIngredients ? `
                       <span class="text-[10px] font-black text-rose-800 bg-rose-50 border border-rose-300 px-2.5 py-1 rounded-xl flex items-center gap-1 shadow-2xs">
                         <i class="fa-solid fa-triangle-exclamation text-rose-600 text-[10px]"></i>
@@ -1260,7 +1353,21 @@
       if (modalImg) modalImg.src = item.image_url || "/static/logo.png";
 
       document.getElementById("modalItemName").innerText = localizedName;
-      document.getElementById("modalItemPrice").innerText = formatVND(item.price);
+      const discPct = item.discount_percent || 0;
+      const hasDisc = discPct > 0 && discPct <= 100;
+      const effectivePrice = hasDisc ? Math.round(item.price * (100 - discPct) / 100) : item.price;
+
+      if (hasDisc) {
+        document.getElementById("modalItemPrice").innerHTML = `
+          <div class="flex items-center gap-1.5">
+            <span class="text-rose-600 font-black text-base">${formatVND(effectivePrice)}</span>
+            <span class="text-xs text-stone-400 line-through">${formatVND(item.price)}</span>
+            <span class="bg-rose-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-lg shadow-2xs">-${discPct}%</span>
+          </div>
+        `;
+      } else {
+        document.getElementById("modalItemPrice").innerText = formatVND(item.price);
+      }
       
       const modalBadge = document.getElementById("modalItemBadge");
       if (modalBadge) {
@@ -1281,7 +1388,7 @@
       if (qtyInp) qtyInp.value = modalQty;
       
       const priceBtnEl = document.getElementById("modalAddToCartBtnPrice");
-      if (priceBtnEl) priceBtnEl.innerText = formatVND(item.price * modalQty);
+      if (priceBtnEl) priceBtnEl.innerText = formatVND(effectivePrice * modalQty);
 
       document.getElementById("modalItemNote").value = "";
 
@@ -1315,7 +1422,7 @@
             addBtn.disabled = !item.is_available;
             if (item.is_available) {
               addBtn.className = "flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-between text-sm";
-              addBtn.innerHTML = `<span id="modalAddToCartBtnText">${t('btn_add_to_cart')}</span><span id="modalAddToCartBtnPrice" class="font-extrabold bg-emerald-700/60 px-2.5 py-0.5 rounded-lg text-xs">${formatVND(item.price * modalQty)}</span>`;
+              addBtn.innerHTML = `<span id="modalAddToCartBtnText">${t('btn_add_to_cart')}</span><span id="modalAddToCartBtnPrice" class="font-extrabold bg-emerald-700/60 px-2.5 py-0.5 rounded-lg text-xs">${formatVND(effectivePrice * modalQty)}</span>`;
             } else {
               addBtn.className = "flex-1 bg-stone-200 text-stone-500 font-bold py-2.5 px-4 rounded-xl cursor-not-allowed flex items-center justify-center text-xs";
               addBtn.innerHTML = `<span>Hết hàng</span>`;
@@ -1361,8 +1468,10 @@
       modalQty = Math.max(1, Math.min(999, currentVal + delta));
       if (input) input.value = modalQty;
       if (currentModalItem) {
+        const discPct = currentModalItem.discount_percent || 0;
+        const eff = (discPct > 0 && discPct <= 100) ? Math.round(currentModalItem.price * (100 - discPct) / 100) : currentModalItem.price;
         const priceBtnEl = document.getElementById("modalAddToCartBtnPrice");
-        if (priceBtnEl) priceBtnEl.innerText = formatVND(currentModalItem.price * modalQty);
+        if (priceBtnEl) priceBtnEl.innerText = formatVND(eff * modalQty);
       }
     }
 
@@ -1374,8 +1483,10 @@
         modalQty = Math.min(999, val);
       }
       if (currentModalItem) {
+        const discPct = currentModalItem.discount_percent || 0;
+        const eff = (discPct > 0 && discPct <= 100) ? Math.round(currentModalItem.price * (100 - discPct) / 100) : currentModalItem.price;
         const priceBtnEl = document.getElementById("modalAddToCartBtnPrice");
-        if (priceBtnEl) priceBtnEl.innerText = formatVND(currentModalItem.price * modalQty);
+        if (priceBtnEl) priceBtnEl.innerText = formatVND(eff * modalQty);
       }
     }
 
@@ -1407,6 +1518,7 @@
         closePhotoLightbox();
         closeItemModal();
         closeCartModal();
+        closePreorderModal();
       }
     });
 
@@ -1415,11 +1527,17 @@
       const note = document.getElementById("modalItemNote").value.trim();
       const modArray = Object.keys(selectedOptions).map(k => ({ name: k, value: selectedOptions[k] }));
 
+      const discPct = currentModalItem.discount_percent || 0;
+      const hasDisc = discPct > 0 && discPct <= 100;
+      const effectivePrice = hasDisc ? Math.round(currentModalItem.price * (100 - discPct) / 100) : currentModalItem.price;
+
       // Thêm vào giỏ
       cart.push({
         item_id: currentModalItem.id,
         raw_item: currentModalItem,
-        price: currentModalItem.price,
+        price: effectivePrice,
+        original_price: currentModalItem.price,
+        discount_percent: discPct,
         quantity: modalQty,
         note: note,
         modifiers: modArray
@@ -1483,6 +1601,16 @@
 
       const totalPrice = cart.reduce((sum, it) => sum + (it.price * it.quantity), 0);
       document.getElementById("modalCartTotal").innerText = formatVND(totalPrice);
+
+      if (IS_PREORDER) {
+        const titleEl = document.getElementById("modalCartHeaderTitle");
+        const subEl = document.getElementById("modalCartHeaderSub");
+        const btnText = document.getElementById("btnSubmitOrderText");
+        if (titleEl) titleEl.innerText = "Giỏ Món Đặt Trước Của Quý Khách";
+        if (subEl) subEl.innerText = "Kiểm tra món ăn đã chọn trước khi xác nhận đặt bàn";
+        if (btnText) btnText.innerText = "ĐẶT MÓN TRƯỚC & GIỮ BÀN";
+      }
+
       document.getElementById("cartModal").classList.remove("hidden");
     }
 
@@ -1521,9 +1649,14 @@
       openCartModal();
     }
 
-    // 7. GỬI ĐƠN HÀNG VÀO BẾP (Bếp sẽ tự in phiếu KOT)
+    // 7. GỬI ĐƠN HÀNG VÀO BẾP (Bếp sẽ tự in phiếu KOT) HOẶC MỞ MODAL ĐẶT TRƯỚC
     async function submitOrderToKitchen() {
       if (cart.length === 0) return;
+
+      if (IS_PREORDER) {
+        openPreorderModal();
+        return;
+      }
 
       const btn = document.getElementById("btnSubmitOrder");
       btn.disabled = true;
@@ -1571,6 +1704,98 @@
       } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-paper-plane text-xs"></i> <span>${t('btn_submit_order')}</span>`;
+      }
+    }
+
+    // 8. ĐẶT MÓN TRƯỚC & GIỮ BÀN TRỰC TUYẾN (/menu)
+    function openPreorderModal() {
+      if (cart.length === 0) {
+        alert("Quý khách vui lòng chọn ít nhất 1 món ăn hoặc đồ uống vào giỏ hàng!");
+        return;
+      }
+      const count = cart.reduce((sum, it) => sum + it.quantity, 0);
+      const total = cart.reduce((sum, it) => sum + (it.price * it.quantity), 0);
+      
+      const summaryEl = document.getElementById("preorderItemSummary");
+      if (summaryEl) {
+        summaryEl.innerText = `${count} món (${cart.map(i => `${i.name || getItemName(i.raw_item)} x${i.quantity}`).slice(0, 3).join(', ')}${cart.length > 3 ? '...' : ''})`;
+      }
+      const totalEl = document.getElementById("preorderTotalEst");
+      if (totalEl) totalEl.innerText = formatVND(total);
+
+      // Default date to today, time to current + 1 hour
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+      const dateInp = document.getElementById("preorderDate");
+      if (dateInp) dateInp.value = todayStr;
+      
+      now.setHours(now.getHours() + 1);
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(Math.ceil(now.getMinutes() / 15) * 15 % 60).padStart(2, '0');
+      const timeInp = document.getElementById("preorderTime");
+      if (timeInp) timeInp.value = `${hh}:${mm}`;
+
+      document.getElementById("preorderModal").classList.remove("hidden");
+    }
+
+    function closePreorderModal() {
+      document.getElementById("preorderModal").classList.add("hidden");
+    }
+
+    async function confirmSubmitPreorder() {
+      const name = document.getElementById("preorderGuestName").value.trim();
+      const phone = document.getElementById("preorderPhone").value.trim();
+      const guestCount = parseInt(document.getElementById("preorderGuestCount").value) || 2;
+      const area = document.getElementById("preorderArea").value;
+      const bookingDate = document.getElementById("preorderDate").value;
+      const bookingTime = document.getElementById("preorderTime").value;
+      const note = document.getElementById("preorderNote").value.trim();
+
+      if (!name) { alert("Vui lòng nhập Tên Anh/Chị"); return; }
+      if (!phone || phone.length < 8) { alert("Vui lòng nhập số điện thoại liên hệ chính xác"); return; }
+      if (!bookingDate || !bookingTime) { alert("Vui lòng chọn ngày và giờ dự kiến đến"); return; }
+
+      const totalEst = cart.reduce((sum, it) => sum + (it.price * it.quantity), 0);
+      const btn = document.getElementById("btnConfirmPreorder");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đang gửi thông tin...`;
+
+      try {
+        const payload = {
+          guest_name: name,
+          phone: phone,
+          booking_date: bookingDate,
+          booking_time: bookingTime,
+          guest_count: guestCount,
+          service_type: "DINING",
+          area: area,
+          preorder_items_json: JSON.stringify(cart),
+          total_estimated: totalEst,
+          note: note
+        };
+
+        const res = await fetch("/api/reservations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert(`🎉 ĐẶT MÓN TRƯỚC VÀ ĐẶT BÀN THÀNH CÔNG!\n\nCảm ơn Quý khách ${name}.\nPiPo Garden sẽ liên hệ xác nhận qua số ${phone} và đón tiếp chu đáo nhất.`);
+          cart = [];
+          localStorage.removeItem("pipo_cart_" + TABLE_INFO.id);
+          updateCartUI();
+          closePreorderModal();
+          closeCartModal();
+        } else {
+          alert("Lỗi: " + (data.detail || "Không thể gửi yêu cầu"));
+        }
+      } catch (e) {
+        alert("Lỗi kết nối máy chủ! Vui lòng thử lại hoặc gọi hotline 0838.993.316.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> <span>XÁC NHẬN ĐẶT MÓN & ĐẶT BÀN</span>`;
       }
     }
 

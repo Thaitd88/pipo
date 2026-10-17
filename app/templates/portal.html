@@ -54,19 +54,14 @@
         </div>
       </div>
 
-      <!-- Quick test QR order link -->
-      <div class="relative z-10 pt-5 border-t border-emerald-700/50 mt-6 space-y-2">
-        <div class="text-[11px] font-bold text-emerald-300 uppercase tracking-wider mb-1">
-          <i class="fa-solid fa-mobile-screen-button mr-1"></i> Trải nghiệm Menu QR tại bàn:
+      <!-- Thông tin liên hệ nội bộ -->
+      <div class="relative z-10 pt-5 border-t border-emerald-700/50 mt-6 space-y-1 text-xs text-emerald-200">
+        <div class="font-bold text-white uppercase text-[11px] tracking-wider mb-1">
+          <i class="fa-solid fa-headset mr-1"></i> Hỗ trợ vận hành:
         </div>
-        <a href="/table/{{ nh_table.qr_token if nh_table else 'NH01' }}" target="_blank" class="flex items-center justify-between text-xs text-white font-semibold bg-emerald-600/80 hover:bg-emerald-500 px-3.5 py-2.5 rounded-xl transition shadow-sm border border-emerald-400/30">
-          <span>🍽️ Menu Nhà Hàng ({{ nh_table.name if nh_table else 'Bàn Nhà Hàng 01' }})</span>
-          <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-80"></i>
-        </a>
-        <a href="/table/{{ cf_table.qr_token if cf_table else 'CF01' }}" target="_blank" class="flex items-center justify-between text-xs text-amber-100 hover:text-white font-semibold bg-amber-600/40 hover:bg-amber-600/70 px-3.5 py-2.5 rounded-xl transition border border-amber-400/30">
-          <span>☕ Menu Cafe / Ăn Sáng ({{ cf_table.name if cf_table else 'Bàn Cafe 01' }})</span>
-          <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-80"></i>
-        </a>
+        <div>Hotline: <span class="font-bold text-white">0838.993.316</span></div>
+        <div>Địa chỉ: Sonasea, Bãi Trường, Phú Quốc</div>
+        <div>Website: <span class="text-white font-semibold">www.PiPoGarden.com</span></div>
       </div>
 
       <div class="absolute -bottom-10 -right-10 text-9xl opacity-5 select-none pointer-events-none">🍲</div>
@@ -112,46 +107,6 @@
           </button>
         </form>
 
-        <!-- Nút Đăng Nhập Nhanh Theo Nhóm (1-Click Quick Login Demo) -->
-        <div class="mt-8 pt-6 border-t border-stone-200">
-          <div class="text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-3">
-            Hoặc chọn nhóm để đăng nhập nhanh:
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <button onclick="quickLogin('admin', 'admin123')" class="p-2.5 rounded-xl border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-left transition flex items-center gap-2">
-              <span class="text-base">👨‍💼</span>
-              <div>
-                <div class="font-bold text-rose-900 leading-tight">Quản Trị Viên</div>
-                <div class="text-[10px] text-rose-600">Vào Quản Trị & Báo Cáo</div>
-              </div>
-            </button>
-
-            <button onclick="quickLogin('thungan', '123456')" class="p-2.5 rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100 text-left transition flex items-center gap-2">
-              <span class="text-base">💵</span>
-              <div>
-                <div class="font-bold text-blue-900 leading-tight">Thu Ngân</div>
-                <div class="text-[10px] text-blue-600">Vào Sơ Đồ Bàn POS</div>
-              </div>
-            </button>
-
-            <button onclick="quickLogin('bep', '123456')" class="p-2.5 rounded-xl border border-amber-200 bg-amber-50/60 hover:bg-amber-100 text-left transition flex items-center gap-2">
-              <span class="text-base">👨‍🍳</span>
-              <div>
-                <div class="font-bold text-amber-900 leading-tight">Đầu Bếp</div>
-                <div class="text-[10px] text-amber-600">Vào Không Gian Bếp & BOM</div>
-              </div>
-            </button>
-
-            <button onclick="quickLogin('phucvu', '123456')" class="p-2.5 rounded-xl border border-purple-200 bg-purple-50/60 hover:bg-purple-100 text-left transition flex items-center gap-2">
-              <span class="text-base">🏃</span>
-              <div>
-                <div class="font-bold text-purple-900 leading-tight">Phục Vụ</div>
-                <div class="text-[10px] text-purple-600">Xem Bàn & Bưng Món</div>
-              </div>
-            </button>
-          </div>
-        </div>
       </div>
 
       <div class="pt-6 text-center text-[11px] text-stone-400">
@@ -165,12 +120,6 @@
       e.preventDefault();
       const username = document.getElementById("usernameInput").value.trim();
       const password = document.getElementById("passwordInput").value;
-      await executeLogin(username, password);
-    }
-
-    async function quickLogin(username, password) {
-      document.getElementById("usernameInput").value = username;
-      document.getElementById("passwordInput").value = password;
       await executeLogin(username, password);
     }
 

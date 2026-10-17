@@ -41,6 +41,7 @@ class MenuItemCreate(BaseModel):
     out_of_ingredients: Optional[int] = 0
     main_menu_type: Optional[str] = "RESTAURANT,LUNCH,CAFE"
     portion: Optional[str] = ""
+    discount_percent: Optional[int] = 0
 
 class MenuItemUpdate(BaseModel):
     category_id: Optional[int] = None
@@ -57,6 +58,7 @@ class MenuItemUpdate(BaseModel):
     out_of_ingredients: Optional[int] = None
     main_menu_type: Optional[str] = None
     portion: Optional[str] = None
+    discount_percent: Optional[int] = None
 
 class BulkMenuImportRequest(BaseModel):
     raw_text: Optional[str] = ""
@@ -343,8 +345,8 @@ def create_menu_item(item: MenuItemCreate):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO menu_items (category_id, name, description, price, image_url, station, options_json, translations_json, is_available, calories, out_of_ingredients, main_menu_type, portion)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO menu_items (category_id, name, description, price, image_url, station, options_json, translations_json, is_available, calories, out_of_ingredients, main_menu_type, portion, discount_percent)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         item.category_id,
         item.name.strip(),
@@ -358,7 +360,8 @@ def create_menu_item(item: MenuItemCreate):
         item.calories or 0,
         item.out_of_ingredients or 0,
         item.main_menu_type or "RESTAURANT,LUNCH,CAFE",
-        (item.portion or "").strip()
+        (item.portion or "").strip(),
+        max(0, min(100, item.discount_percent or 0))
     ))
     new_id = cursor.lastrowid
     conn.commit()
@@ -399,6 +402,7 @@ def update_menu_item(item_id: int, item: MenuItemUpdate):
     out_of_ingredients = item.out_of_ingredients if item.out_of_ingredients is not None else existing_dict.get("out_of_ingredients", 0)
     main_menu_type = item.main_menu_type if item.main_menu_type is not None else existing_dict.get("main_menu_type", "RESTAURANT,LUNCH,CAFE")
     portion = item.portion.strip() if item.portion is not None else existing_dict.get("portion", "")
+    discount_percent = max(0, min(100, item.discount_percent)) if item.discount_percent is not None else existing_dict.get("discount_percent", 0)
 
     translations_str = item.translations_json
     if item.translations is not None and not translations_str:
@@ -413,9 +417,9 @@ def update_menu_item(item_id: int, item: MenuItemUpdate):
 
     cursor.execute("""
         UPDATE menu_items
-        SET category_id = ?, name = ?, description = ?, price = ?, image_url = ?, station = ?, options_json = ?, translations_json = ?, is_available = ?, calories = ?, out_of_ingredients = ?, main_menu_type = ?, portion = ?
+        SET category_id = ?, name = ?, description = ?, price = ?, image_url = ?, station = ?, options_json = ?, translations_json = ?, is_available = ?, calories = ?, out_of_ingredients = ?, main_menu_type = ?, portion = ?, discount_percent = ?
         WHERE id = ?
-    """, (category_id, name, description, price, image_url, station, options_json, translations_str, is_available, calories, out_of_ingredients, main_menu_type, portion, item_id))
+    """, (category_id, name, description, price, image_url, station, options_json, translations_str, is_available, calories, out_of_ingredients, main_menu_type, portion, discount_percent, item_id))
     conn.commit()
 
     cursor.execute("SELECT * FROM menu_items WHERE id = ?", (item_id,))

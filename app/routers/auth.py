@@ -80,7 +80,7 @@ def check_page_access(request: Request, allowed_roles: Optional[List[str]] = Non
     if not user:
         target_path = request.url.path
         return RedirectResponse(
-            url=f"/?error=unauthorized&redirect={target_path}",
+            url=f"/login?error=unauthorized&redirect={target_path}",
             status_code=303
         )
 

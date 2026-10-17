@@ -16,7 +16,7 @@ import json
 from typing import Dict, List, Set
 
 from .database import init_db, get_db
-from .routers import tables, menu, orders, pos, auth, reports, inventory, sync, reservations, homepage_cms, pickleball
+from .routers import tables, menu, orders, pos, auth, reports, inventory, sync, reservations, homepage_cms, pickleball, printer
 from .routers.auth import check_page_access, get_current_user_from_request
 
 # Connection Broadcaster
@@ -161,6 +161,7 @@ app.include_router(sync.router)
 app.include_router(reservations.router)
 app.include_router(homepage_cms.router)
 app.include_router(pickleball.router)
+app.include_router(printer.router)
 
 # PWA Progressive Web App Endpoints
 @app.get("/manifest.json")
@@ -321,16 +322,43 @@ def pickleball_page(request: Request):
 
 @app.get("/menu", response_class=HTMLResponse)
 def menu_shortcut_page(request: Request):
-    """Đường dẫn tắt /menu?table=HB01 hoặc /menu để mở nhanh giao diện gọi món."""
+    """Đường dẫn thực đơn demo trên website pipogarden.com/menu: Tách khỏi bàn ăn, chế độ đặt món trước & giữ bàn."""
     table_param = request.query_params.get("table")
-    if not table_param:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT table_code FROM tables ORDER BY id ASC LIMIT 1")
-        row = cursor.fetchone()
-        conn.close()
-        table_param = row["table_code"] if row else "HB01"
-    return customer_page(request, table_param)
+    if table_param:
+        return customer_page(request, table_param)
+
+    conn = get_db()
+    menu.ensure_system_settings_table(conn)
+    cursor = conn.cursor()
+    cursor.execute("SELECT key, value FROM system_settings")
+    settings_rows = {r["key"]: r["value"] for r in cursor.fetchall()}
+    conn.close()
+
+    menu_settings = {
+        "morning_start_hour": int(settings_rows.get("morning_start_hour", 6)),
+        "morning_end_hour": int(settings_rows.get("morning_end_hour", 11)),
+        "routing_mode": settings_rows.get("routing_mode", "TIME_AND_BRANCH")
+    }
+
+    dummy_table = {
+        "id": 0,
+        "name": "Thực Đơn Trực Tuyến",
+        "table_code": "ONLINE",
+        "area": "Đặt Món Trước & Giữ Bàn",
+        "branch_type": "RESTAURANT",
+        "qr_token": "ONLINE"
+    }
+
+    return templates.TemplateResponse(
+        request=request,
+        name="customer.html",
+        context={
+            "table": dummy_table,
+            "qr_token": "ONLINE",
+            "menu_settings": menu_settings,
+            "is_preorder": True
+        }
+    )
 
 @app.get("/table/{qr_token}", response_class=HTMLResponse)
 def customer_page(request: Request, qr_token: str):
@@ -372,7 +400,8 @@ def customer_page(request: Request, qr_token: str):
         context={
             "table": table_dict,
             "qr_token": actual_qr_token,
-            "menu_settings": menu_settings
+            "menu_settings": menu_settings,
+            "is_preorder": False
         }
     )
 
