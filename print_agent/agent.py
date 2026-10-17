@@ -44,8 +44,8 @@ def load_config():
             return json.load(f)
     return {
         "server_ws_url": "ws://127.0.0.1:8000/ws/printer",
-        "cloud_ws_url": "wss://pipo.n2.tinhgon.xyz/ws/printer",
-        "cloud_api_url": "https://pipo.n2.tinhgon.xyz",
+        "cloud_ws_url": "wss://pipogarden.com/ws/printer",
+        "cloud_api_url": "https://pipogarden.com",
         "local_api_url": "http://127.0.0.1:8000",
         "sync_interval_sec": 20,
         "reconnect_interval_sec": 3,

@@ -1,11 +1,13 @@
-# Reservations & Pre-order router for PiPo Garden website
 import json
 import uuid
+import base64
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from ..database import get_db
+from ..escpos import format_kitchen_ticket_text, build_escpos_kitchen_bytes
+from ..printer_service import get_printer_config, send_escpos_to_printer
 
 router = APIRouter(prefix="/api/reservations", tags=["Reservations"])
 
@@ -233,6 +235,7 @@ async def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
     # Nếu có danh sách món gọi trước và có yêu cầu kích hoạt đơn:
     # Mở phiên bàn active và tạo đơn hàng sẵn sàng cho bếp
     created_order_id = None
+    print_jobs_created = []
     if req.activate_order:
         preorder_items = []
         try:
@@ -270,6 +273,7 @@ async def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
             created_order_id = cursor.lastrowid
 
             # 3. Thêm các món vào order_items (đảm bảo tên món chính xác)
+            items_by_station = {}
             for item in preorder_items:
                 qty = item.get("quantity", 1)
                 price = item.get("price", 0)
@@ -294,6 +298,54 @@ async def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'QUEUED')
                 """, (created_order_id, item_id, item_name, qty, price, qty * price, station, item.get("note", "")))
 
+                if station not in items_by_station:
+                    items_by_station[station] = []
+                items_by_station[station].append({
+                    "name": item_name,
+                    "item_name": item_name,
+                    "quantity": qty,
+                    "note": item.get("note", "")
+                })
+
+            # 4. Tạo lệnh in KOT cho đơn đặt trước chuyển vào bếp
+            for stn, st_items in items_by_station.items():
+                order_info = {
+                    "order_id": created_order_id,
+                    "table_name": table_dict["name"],
+                    "round_number": 1,
+                    "time_str": datetime.now().strftime("%H:%M:%S"),
+                    "note": f"Khách đặt trước: {res_dict['guest_name']} ({res_dict['phone']})"
+                }
+                ticket_text = format_kitchen_ticket_text(order_info, st_items, station=stn)
+                escpos_bytes = build_escpos_kitchen_bytes(order_info, st_items, station=stn, beep=True)
+                escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
+
+                cursor.execute("""
+                    INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+                    VALUES (?, ?, 'KOT', 'PENDING', ?)
+                """, (created_order_id, stn, ticket_text))
+                job_id = cursor.lastrowid
+
+                print_jobs_created.append({
+                    "job_id": job_id,
+                    "station": stn,
+                    "ticket_text": ticket_text,
+                    "escpos_b64": escpos_b64,
+                    "table_name": table_dict["name"]
+                })
+
+                # In LAN trực tiếp nếu server đang chạy nội bộ
+                try:
+                    p_cfg = get_printer_config()
+                    if p_cfg.get("auto_kitchen"):
+                        dest_ip = p_cfg["cashier_ip"] if stn == "BAR" else p_cfg["kitchen_ip"]
+                        dest_port = p_cfg["cashier_port"] if stn == "BAR" else p_cfg["kitchen_port"]
+                        import asyncio
+                        loop = asyncio.get_event_loop()
+                        loop.run_in_executor(None, send_escpos_to_printer, dest_ip, dest_port, escpos_bytes)
+                except Exception:
+                    pass
+
     conn.commit()
 
     cursor.execute("SELECT * FROM reservations WHERE id = ?", (res_id,))
@@ -303,6 +355,13 @@ async def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
     # Bắn WebSocket cập nhật thời gian thực
     if ws_broadcaster:
         try:
+            # Gửi lệnh in xuống Print Agent
+            for pjob in print_jobs_created:
+                await ws_broadcaster.send_to_printers({
+                    "event": "PRINT_JOB",
+                    **pjob
+                })
+
             await ws_broadcaster.send_to_pos({
                 "event": "RESERVATION_UPDATED",
                 "reservation": updated_res
