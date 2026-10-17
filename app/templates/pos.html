@@ -1585,10 +1585,24 @@
       document.getElementById("drawerTableArea").innerText = `${table.area} • Mã: ${table.table_code}`;
       document.getElementById("drawerCustomerLink").href = `/table/${table.qr_token}`;
 
-      const res = await fetch(`/api/pos/table/${tableId}/bill`);
-      currentBillData = await res.json();
+      let billRes;
+      try {
+        billRes = await fetch(`/api/pos/table/${tableId}/bill`);
+        if (!billRes.ok) {
+          showPosToast("⚠️ Lỗi kết nối khi tải hóa đơn của bàn!");
+          return;
+        }
+        currentBillData = await billRes.json();
+      } catch (err) {
+        console.error("Lỗi tải hóa đơn:", err);
+        showPosToast("⚠️ Không thể kết nối tới máy chủ!");
+        return;
+      }
 
-      document.getElementById("drawerGrandTotal").innerText = formatVND(currentBillData.grand_total);
+      if (!currentBillData) currentBillData = { items: [], grand_total: 0 };
+      if (!Array.isArray(currentBillData.items)) currentBillData.items = [];
+
+      document.getElementById("drawerGrandTotal").innerText = formatVND(currentBillData.grand_total || 0);
 
       // Reset controls giảm giá & đối tượng thanh toán
       setDiscountType('VND');
@@ -1622,7 +1636,7 @@
         itemsContainer.innerHTML = headerActions + currentBillData.items.map(it => {
           const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
           let itemAction = '';
-          const safeName = (it.item_name || '').replace(/'/g, "\\'");
+          const safeName = (it.item_name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
           if (it.status === 'CANCELLED') {
             itemAction = '<span class="text-rose-500 text-[10px] font-semibold bg-rose-50 px-1.5 py-0.5 rounded">Đã hủy</span>';
           } else if (it.status === 'CANCEL_PENDING') {

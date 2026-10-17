@@ -110,15 +110,19 @@ def get_table_bill(table_id: int):
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM tables WHERE id = ?", (table_id,))
-    table = cursor.fetchone()
-    if not table:
+    row = cursor.fetchone()
+    if not row:
         conn.close()
         raise HTTPException(status_code=404, detail="Bàn không tồn tại")
 
-    # Nếu bàn đang trống hoặc chưa có phiên hoạt động -> Trả về hóa đơn rỗng
-    if table["status"] == "AVAILABLE" or not table.get("current_session_id"):
+    table = dict(row)
+    session_id = table.get("current_session_id")
+
+    # Nếu bàn đang trống VÀ không có phiên hoạt động -> Trả về hóa đơn rỗng
+    if table["status"] == "AVAILABLE" and not session_id:
         conn.close()
         return {
+            "table": table,
             "table_id": table_id,
             "table_name": table["name"],
             "table_code": table["table_code"],
@@ -132,12 +136,19 @@ def get_table_bill(table_id: int):
             "qr_code_url": ""
         }
 
-    # Bàn đang có khách: Chỉ lấy các đơn hàng của đúng phiên hiện tại (current_session_id)
-    cursor.execute("""
-        SELECT * FROM orders 
-        WHERE table_id = ? AND (session_id = ? OR session_id IS NULL) AND payment_status = 'UNPAID'
-        ORDER BY round_number ASC
-    """, (table_id, table["current_session_id"]))
+    # Bàn đang có khách: Chỉ lấy các đơn hàng của đúng phiên hiện tại nếu có session_id
+    if session_id:
+        cursor.execute("""
+            SELECT * FROM orders 
+            WHERE table_id = ? AND (session_id = ? OR session_id IS NULL) AND payment_status = 'UNPAID'
+            ORDER BY round_number ASC
+        """, (table_id, session_id))
+    else:
+        cursor.execute("""
+            SELECT * FROM orders 
+            WHERE table_id = ? AND payment_status = 'UNPAID'
+            ORDER BY round_number ASC
+        """, (table_id,))
     orders = [dict(o) for o in cursor.fetchall()]
 
     all_items = []
@@ -180,6 +191,11 @@ def get_table_bill(table_id: int):
 
     return {
         "table": dict(table),
+        "table_id": table_id,
+        "table_name": table["name"],
+        "table_code": table["table_code"],
+        "area": table["area"],
+        "status": table["status"],
         "orders_count": len(orders),
         "grand_total": grand_total,
         "items": all_items,
