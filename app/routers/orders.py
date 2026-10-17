@@ -1,4 +1,5 @@
 # Orders and Kitchen Dispatch router for PiPo Garden
+import os
 from fastapi import APIRouter, HTTPException, Request
 import json
 import base64
