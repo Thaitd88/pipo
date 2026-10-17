@@ -510,8 +510,26 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
 
     current_status = item["status"]
 
-    # TRƯỜNG HỢP 1: Bếp chưa ra món (QUEUED hoặc COOKING) -> HỦY LUÔN KHÔNG CẦN BẾP DUYỆT
-    if current_status in ["QUEUED", "COOKING"]:
+    # Kiểm tra quyền Admin (qua session đăng nhập hoặc mật khẩu Admin truyền kèm)
+    is_admin = (user.get("role") == "ADMIN")
+    admin_name = user.get("full_name", "Admin") if is_admin else None
+
+    if not is_admin and payload.get("admin_password"):
+        from .auth import verify_password
+        cursor.execute("SELECT id, full_name, password_hash FROM users WHERE role = 'ADMIN'")
+        admins = cursor.fetchall()
+        for adm in admins:
+            if verify_password(payload["admin_password"], adm["password_hash"]):
+                is_admin = True
+                admin_name = adm["full_name"]
+                break
+        if not is_admin:
+            conn.close()
+            raise HTTPException(status_code=403, detail="Mật khẩu Quản lý (Admin) không chính xác!")
+
+    # TRƯỜNG HỢP 1: Món chưa ra bàn (QUEUED, COOKING, READY) HOẶC đã có Admin xác nhận duyệt trả
+    if current_status in ["QUEUED", "COOKING", "READY"] or is_admin:
+        canceller_display = f"{admin_name} (Admin duyệt trả)" if is_admin else f"{user['full_name']} ({user['role']})"
         cursor.execute("""
             UPDATE order_items
             SET status = 'CANCELLED',
@@ -520,9 +538,9 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
                 cancelled_at = CURRENT_TIMESTAMP,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        """, (reason, f"{user['full_name']} ({user['role']})", target_item_id))
+        """, (reason, canceller_display, target_item_id))
 
-        # Nếu đã trừ kho (đang COOKING), tự động hoàn lại NVL vào kho
+        # Nếu đã trừ kho (đang COOKING hoặc SERVED), tự động hoàn lại NVL vào kho
         if item["inventory_deducted"] == 1:
             try:
                 restore_inventory_for_order_item(conn, target_item_id, reason=reason)
@@ -549,21 +567,21 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
                 "table_id": item["table_id"],
                 "table_name": item["table_name"],
                 "cancel_reason": reason,
-                "cancelled_by": f"{user['full_name']} ({user['role']})",
+                "cancelled_by": canceller_display,
                 "order_id": item["order_id"]
             }
             await ws_broadcaster.send_to_kds(event_data)
             await ws_broadcaster.send_to_pos(event_data)
             await ws_broadcaster.send_to_customer(item["table_id"], event_data)
 
+        succ_msg = f"Đã duyệt trả món '{item['item_name']} x{cancelled_quantity}' thành công và giảm tiền trên hóa đơn bàn!" if is_admin and current_status == "SERVED" else f"Đã hủy món '{item['item_name']} x{cancelled_quantity}' thành công và cập nhật lại hóa đơn!"
         return {
             "status": "CANCELLED_IMMEDIATELY",
-            "message": f"Bếp chưa ra món. Đã hủy món '{item['item_name']} x{cancelled_quantity}' thành công và cập nhật lại hóa đơn!",
+            "message": succ_msg,
             "order_item_id": target_item_id
         }
 
-    # TRƯỜNG HỢP 2: Món đã nấu xong (READY) hoặc đã bưng ra bàn (SERVED)
-    # -> Cần chuyển trạng thái CANCEL_PENDING để Bếp xác nhận thu hồi món
+    # TRƯỜNG HỢP 2: Món đã ra bàn (SERVED) nhưng chưa có Admin duyệt -> Chuyển CANCEL_PENDING để Admin xác nhận
     cursor.execute("""
         UPDATE order_items
         SET status = 'CANCEL_PENDING',
@@ -595,24 +613,44 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
 
     return {
         "status": "CANCEL_PENDING",
-        "message": f"Món '{item['item_name']} x{cancelled_quantity}' đã {'bưng ra bàn' if current_status == 'SERVED' else 'nấu xong'}. Đã chuyển yêu cầu tới Bếp xác nhận thu hồi món!",
+        "message": f"Món '{item['item_name']} x{cancelled_quantity}' đã ra bàn. Đã gửi yêu cầu tới Quản trị viên (Admin) để xác nhận duyệt trả món!",
         "order_item_id": target_item_id
     }
 
 @router.post("/item/{order_item_id}/kitchen-confirm-cancel")
 async def kitchen_confirm_cancel(order_item_id: int, payload: dict, request: Request):
     """
-    Bếp duyệt yêu cầu thu hồi món:
-    - action: 'APPROVE' (Đã thu hồi về bếp) -> Chuyển CANCELLED, trừ tiền bill, hoàn kho nếu chọn.
-    - action: 'REJECT' (Từ chối thu hồi) -> Khôi phục trạng thái SERVED/READY.
+    Admin hoặc Bếp duyệt yêu cầu thu hồi / trả món:
+    - action: 'APPROVE' (Duyệt trả món) -> Chuyển CANCELLED, trừ tiền bill, hoàn kho nếu chọn.
+    - action: 'REJECT' (Từ chối trả món) -> Khôi phục trạng thái SERVED/READY.
     """
-    user = require_api_auth(request, allowed_roles=["ADMIN", "CHEF"])
+    user = require_api_auth(request, allowed_roles=["ADMIN", "CHEF", "CASHIER", "WAITER"])
     action = payload.get("action", "APPROVE").upper() # APPROVE or REJECT
     rejection_note = (payload.get("rejection_reason") or payload.get("note") or "").strip()
     restore_stock = payload.get("restore_inventory", True)
 
     conn = get_db()
     cursor = conn.cursor()
+
+    is_admin = (user.get("role") == "ADMIN")
+    admin_name = user.get("full_name") if is_admin else None
+
+    if action == "APPROVE" and not is_admin and payload.get("admin_password"):
+        from .auth import verify_password
+        cursor.execute("SELECT id, full_name, password_hash FROM users WHERE role = 'ADMIN'")
+        admins = cursor.fetchall()
+        for adm in admins:
+            if verify_password(payload["admin_password"], adm["password_hash"]):
+                is_admin = True
+                admin_name = adm["full_name"]
+                break
+        if not is_admin:
+            conn.close()
+            raise HTTPException(status_code=403, detail="Mật khẩu Quản lý (Admin) không chính xác!")
+
+    if action == "APPROVE" and not is_admin:
+        conn.close()
+        raise HTTPException(status_code=403, detail="Chỉ Quản lý (Admin) mới có quyền duyệt trả lại món đã ra bàn!")
 
     cursor.execute("""
         SELECT oi.*, o.table_id, o.id as order_id, o.subtotal, o.discount, o.total, t.name as table_name
@@ -638,12 +676,12 @@ async def kitchen_confirm_cancel(order_item_id: int, payload: dict, request: Req
                 cancelled_at = CURRENT_TIMESTAMP,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        """, (f"{user['full_name']} (Bếp xác nhận thu hồi)", order_item_id))
+        """, (f"{admin_name or user['full_name']} (Admin duyệt trả món)", order_item_id))
 
         # Hoàn lại nguyên vật liệu vào kho nếu được chọn
         if restore_stock and item["inventory_deducted"] == 1:
             try:
-                restore_inventory_for_order_item(conn, order_item_id, reason=f"Bếp thu hồi món: {item['cancel_reason']}")
+                restore_inventory_for_order_item(conn, order_item_id, reason=f"Admin duyệt trả món: {item['cancel_reason']}")
             except Exception as e:
                 print(f"[Inventory Restore Error]: {e}")
 

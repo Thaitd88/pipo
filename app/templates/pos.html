@@ -627,6 +627,82 @@
   </div>
 
   <!-- ======================================================== -->
+  <!-- MODAL: TRẢ MÓN / HỦY MÓN BÀN (THU NGÂN & QUẢN LÝ) -->
+  <!-- ======================================================== -->
+  <div id="posCancelDishModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-lg shadow-xs">
+            <i class="fa-solid fa-rotate-left"></i>
+          </div>
+          <div>
+            <h3 id="posCancelModalTitle" class="font-extrabold text-stone-900 text-base">Trả lại món ăn</h3>
+            <p id="posCancelModalSubtitle" class="text-xs text-stone-500">Bàn đang chọn</p>
+          </div>
+        </div>
+        <button onclick="closePosCancelModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="py-4 space-y-3.5 text-xs">
+        <!-- Item status alert -->
+        <div id="posCancelItemStatusAlert" class="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 leading-relaxed">
+          <!-- Populated by JS -->
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Số lượng trả / hủy:</label>
+          <div class="flex items-center gap-2">
+            <input type="number" id="posCancelQuantity" min="1" max="1" value="1" class="w-24 p-2.5 text-center font-black text-sm rounded-xl border border-stone-200 focus:outline-none focus:border-rose-500 bg-stone-50">
+            <span id="posCancelMaxQtyLabel" class="text-stone-500 text-xs">/ tối đa 1 phần</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Lý do trả / hủy món:</label>
+          <select id="posCancelReasonSelect" class="w-full p-2.5 rounded-xl border border-stone-200 focus:outline-none focus:border-rose-500 bg-stone-50 font-medium">
+            <option value="Khách đổi ý / không dùng nữa">Khách đổi ý / không dùng nữa</option>
+            <option value="Món ra quá chậm">Món ra quá chậm</option>
+            <option value="Khách chê món / món bị lỗi">Khách chê món / món bị lỗi</option>
+            <option value="Bàn gọi nhầm món">Bàn gọi nhầm món</option>
+            <option value="Hết nguyên vật liệu">Hết nguyên vật liệu</option>
+            <option value="Khác">Lý do khác...</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Ghi chú chi tiết (nếu có):</label>
+          <input type="text" id="posCancelNote" placeholder="Ví dụ: Khách vội về, món chưa dùng đến..." class="w-full p-2.5 rounded-xl border border-stone-200 focus:outline-none focus:border-rose-500 bg-stone-50">
+        </div>
+
+        <!-- Admin authorization box (shown if item status is SERVED and user not admin) -->
+        <div id="posCancelAdminAuthBox" class="p-3 rounded-2xl bg-rose-50 border border-rose-200 space-y-2">
+          <div class="flex items-center gap-2 text-rose-900 font-bold">
+            <i class="fa-solid fa-shield-halved text-rose-600"></i>
+            <span>Yêu cầu Quản lý (Admin) xác nhận</span>
+          </div>
+          <p class="text-[11px] text-rose-700">Món đã phục vụ ra bàn. Vui lòng nhập mật khẩu Admin để duyệt trừ tiền hóa đơn và nhập lại kho ngay lập tức.</p>
+          <input type="password" id="posCancelAdminPassword" placeholder="Nhập mật khẩu Admin..." class="w-full p-2.5 rounded-xl border border-rose-300 focus:outline-none focus:border-rose-600 bg-white text-xs">
+        </div>
+
+        <div id="posCancelError" class="p-2.5 rounded-xl bg-rose-100 text-rose-800 text-xs font-semibold hidden"></div>
+      </div>
+
+      <div class="flex items-center gap-2 pt-2 border-t border-stone-100">
+        <button type="button" onclick="closePosCancelModal()" class="flex-1 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition">
+          Hủy bỏ
+        </button>
+        <button type="button" id="posCancelSubmitBtn" onclick="submitPosCancelDish()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-check"></i>
+          <span>Xác nhận trả món</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
   <!-- MODAL: ĐĂNG NHẬP NHÂN VIÊN -->
   <!-- ======================================================== -->
   <div id="loginModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
@@ -1546,12 +1622,35 @@
         itemsContainer.innerHTML = headerActions + currentBillData.items.map(it => {
           const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
           let itemAction = '';
+          const safeName = (it.item_name || '').replace(/'/g, "\\'");
           if (it.status === 'CANCELLED') {
             itemAction = '<span class="text-rose-500 text-[10px] font-semibold bg-rose-50 px-1.5 py-0.5 rounded">Đã hủy</span>';
+          } else if (it.status === 'CANCEL_PENDING') {
+            itemAction = `
+              <div class="flex items-center gap-1 flex-wrap justify-end">
+                <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 text-[10px] font-bold">⏳ Chờ Admin duyệt</span>
+                <button onclick="posConfirmCancelItem(${it.id}, 'APPROVE')" class="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px]" title="Admin duyệt trả món">✓ Duyệt</button>
+                <button onclick="posConfirmCancelItem(${it.id}, 'REJECT')" class="px-1.5 py-0.5 rounded bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-[10px]" title="Từ chối">✕</button>
+              </div>
+            `;
           } else if (it.status === 'SERVED') {
-            itemAction = '<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">✅ Đã ra món</span>';
+            itemAction = `
+              <div class="flex items-center gap-1.5 justify-end">
+                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">✅ Đã ra món</span>
+                <button onclick="openPosCancelModal(${it.id}, '${safeName}', ${it.quantity}, 'SERVED')" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-semibold flex items-center gap-1 transition" title="Trả lại món ăn này">
+                  <i class="fa-solid fa-rotate-left text-[10px]"></i> Trả món
+                </button>
+              </div>
+            `;
           } else {
-            itemAction = `<button onclick="posMarkItemServed(${it.id})" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center gap-1 transition"><i class="fa-solid fa-check text-[10px]"></i> Ra món</button>`;
+            itemAction = `
+              <div class="flex items-center gap-1.5 justify-end">
+                <button onclick="posMarkItemServed(${it.id})" class="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center gap-1 transition"><i class="fa-solid fa-check text-[10px]"></i> Ra món</button>
+                <button onclick="openPosCancelModal(${it.id}, '${safeName}', ${it.quantity}, '${it.status}')" class="px-2 py-1 rounded-lg bg-stone-100 hover:bg-rose-50 text-stone-600 hover:text-rose-700 border border-stone-200 text-[11px] font-semibold flex items-center gap-1 transition" title="Hủy món chưa ra">
+                  <i class="fa-solid fa-xmark text-[10px]"></i> Hủy
+                </button>
+              </div>
+            `;
           }
 
           return `
@@ -1617,6 +1716,178 @@
 
     function closeBillDrawer() {
       document.getElementById("billDrawer").classList.add("translate-x-full");
+    }
+
+    let posActiveCancelItem = null;
+
+    function openPosCancelModal(itemId, itemName, maxQty, status) {
+      posActiveCancelItem = { id: itemId, name: itemName, maxQty: maxQty, status: status };
+      const isServed = (status === 'SERVED');
+      const isAdmin = (currentUser && currentUser.role === 'ADMIN');
+
+      document.getElementById("posCancelModalTitle").innerText = isServed ? "Trả lại món ăn" : "Hủy món ăn";
+      document.getElementById("posCancelModalSubtitle").innerText = `${selectedTable ? selectedTable.name : 'Bàn'} • ${itemName}`;
+      
+      const qtyInput = document.getElementById("posCancelQuantity");
+      qtyInput.max = maxQty;
+      qtyInput.value = maxQty;
+      document.getElementById("posCancelMaxQtyLabel").innerText = `/ tối đa ${maxQty} phần`;
+
+      const alertBox = document.getElementById("posCancelItemStatusAlert");
+      const authBox = document.getElementById("posCancelAdminAuthBox");
+      const pwdInput = document.getElementById("posCancelAdminPassword");
+      const errBox = document.getElementById("posCancelError");
+      errBox.classList.add("hidden");
+      pwdInput.value = "";
+
+      if (isServed) {
+        if (isAdmin) {
+          alertBox.innerHTML = `
+            <div class="flex items-center gap-2 font-bold text-emerald-800">
+              <i class="fa-solid fa-crown text-emerald-600"></i>
+              <span>Quản lý (Admin) duyệt trả món</span>
+            </div>
+            <div class="mt-1 text-emerald-700">Món này đã ra bàn. Bạn đang đăng nhập quyền Quản lý, thao tác trả món sẽ được duyệt và trừ bill ngay lập tức.</div>
+          `;
+          alertBox.className = "p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 leading-relaxed";
+          authBox.classList.add("hidden");
+        } else {
+          alertBox.innerHTML = `
+            <div class="flex items-center gap-2 font-bold text-amber-900">
+              <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+              <span>Món ăn đã được phục vụ ra bàn!</span>
+            </div>
+            <div class="mt-1 text-amber-800">Để tránh thất thoát, món đã ra bàn cần có Quản lý (Admin) xác nhận. Nhập mật khẩu Admin bên dưới để duyệt ngay, hoặc để trống để gửi yêu cầu chờ Admin duyệt.</div>
+          `;
+          alertBox.className = "p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 leading-relaxed";
+          authBox.classList.remove("hidden");
+        }
+      } else {
+        alertBox.innerHTML = `
+          <div class="flex items-center gap-2 font-bold text-blue-900">
+            <i class="fa-solid fa-circle-info text-blue-600"></i>
+            <span>Món chưa phục vụ ra bàn</span>
+          </div>
+          <div class="mt-1 text-blue-800">Món đang được chế biến hoặc chờ bếp. Khi hủy sẽ được trừ tiền ngay trên hóa đơn và thông báo tới bếp.</div>
+        `;
+        alertBox.className = "p-3 rounded-2xl bg-blue-50 border border-blue-200 text-blue-900 leading-relaxed";
+        authBox.classList.add("hidden");
+      }
+
+      document.getElementById("posCancelNote").value = "";
+      document.getElementById("posCancelDishModal").classList.remove("hidden");
+    }
+
+    function closePosCancelModal() {
+      posActiveCancelItem = null;
+      document.getElementById("posCancelDishModal").classList.add("hidden");
+    }
+
+    async function submitPosCancelDish() {
+      if (!posActiveCancelItem) return;
+      const itemId = posActiveCancelItem.id;
+      const qty = parseInt(document.getElementById("posCancelQuantity").value) || 1;
+      const reason = document.getElementById("posCancelReasonSelect").value;
+      const note = document.getElementById("posCancelNote").value.trim();
+      const adminPwd = document.getElementById("posCancelAdminPassword").value;
+      const errBox = document.getElementById("posCancelError");
+      const btn = document.getElementById("posCancelSubmitBtn");
+
+      errBox.classList.add("hidden");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...`;
+
+      try {
+        const payload = {
+          cancel_quantity: qty,
+          reason: reason,
+          note: note,
+          admin_password: adminPwd || undefined
+        };
+
+        const res = await fetch(`/api/orders/item/${itemId}/cancel-request`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          closePosCancelModal();
+          showPosToast(data.message || "Thao tác thành công!");
+          if (selectedTable) {
+            await openTableDetails(selectedTable.id);
+            await fetchTablesOverview();
+          }
+        } else {
+          errBox.innerText = data.detail || "Không thể thực hiện yêu cầu trả món";
+          errBox.classList.remove("hidden");
+        }
+      } catch (err) {
+        errBox.innerText = "Lỗi kết nối máy chủ!";
+        errBox.classList.remove("hidden");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> <span>Xác nhận trả món</span>`;
+      }
+    }
+
+    async function posConfirmCancelItem(itemId, action) {
+      if (action === 'REJECT') {
+        if (!confirm("Bạn có chắc chắn muốn TỪ CHỐI yêu cầu trả món này?")) return;
+        try {
+          const res = await fetch(`/api/orders/item/${itemId}/kitchen-confirm-cancel`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: 'REJECT' })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            showPosToast("Đã từ chối yêu cầu trả món");
+            if (selectedTable) {
+              await openTableDetails(selectedTable.id);
+              await fetchTablesOverview();
+            }
+          } else {
+            alert(data.detail || "Không thể từ chối");
+          }
+        } catch (e) {
+          alert("Lỗi kết nối máy chủ");
+        }
+        return;
+      }
+
+      // APPROVE
+      let adminPassword = "";
+      const isAdmin = (currentUser && currentUser.role === 'ADMIN');
+      if (!isAdmin) {
+        adminPassword = prompt("Nhập mật khẩu Quản lý (Admin) để duyệt trả món này:");
+        if (adminPassword === null) return; // cancel
+        if (!adminPassword.trim()) {
+          alert("Vui lòng nhập mật khẩu Admin!");
+          return;
+        }
+      }
+
+      try {
+        const res = await fetch(`/api/orders/item/${itemId}/kitchen-confirm-cancel`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: 'APPROVE', admin_password: adminPassword })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showPosToast(data.message || "Đã duyệt trả món thành công!");
+          if (selectedTable) {
+            await openTableDetails(selectedTable.id);
+            await fetchTablesOverview();
+          }
+        } else {
+          alert(data.detail || "Không thể duyệt trả món");
+        }
+      } catch (e) {
+        alert("Lỗi kết nối máy chủ");
+      }
     }
 
     function openPrintBillModal() {

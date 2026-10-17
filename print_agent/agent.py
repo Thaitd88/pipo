@@ -241,7 +241,7 @@ async def sync_worker(config: dict):
 async def main():
     config = load_config()
     server_ws_url = config.get("server_ws_url", "ws://127.0.0.1:8000/ws/printer")
-    cloud_ws_url = config.get("cloud_ws_url", "wss://pipo.n2.tinhgon.xyz/ws/printer")
+    cloud_ws_url = config.get("cloud_ws_url", "wss://pipogarden.com/ws/printer")
 
     print("==================================================================")
     print("🌿 PIPO GARDEN - HYBRID PRINT & DUAL SYNC AGENT")
@@ -256,7 +256,6 @@ async def main():
     tasks = [
         asyncio.create_task(ws_listener(cloud_ws_url, "CLOUD (4G Khách)", config)),
         asyncio.create_task(ws_listener(server_ws_url, "LOCAL (Mạng LAN)", config)),
-        asyncio.create_task(sync_worker(config))
     ]
 
     await asyncio.gather(*tasks)

@@ -115,11 +115,29 @@ def get_table_bill(table_id: int):
         conn.close()
         raise HTTPException(status_code=404, detail="Bàn không tồn tại")
 
+    # Nếu bàn đang trống hoặc chưa có phiên hoạt động -> Trả về hóa đơn rỗng
+    if table["status"] == "AVAILABLE" or not table.get("current_session_id"):
+        conn.close()
+        return {
+            "table_id": table_id,
+            "table_name": table["name"],
+            "table_code": table["table_code"],
+            "area": table["area"],
+            "status": "AVAILABLE",
+            "orders": [],
+            "items": [],
+            "grand_total": 0,
+            "subtotal": 0,
+            "discount": 0,
+            "qr_code_url": ""
+        }
+
+    # Bàn đang có khách: Chỉ lấy các đơn hàng của đúng phiên hiện tại (current_session_id)
     cursor.execute("""
         SELECT * FROM orders 
-        WHERE table_id = ? AND payment_status = 'UNPAID'
+        WHERE table_id = ? AND (session_id = ? OR session_id IS NULL) AND payment_status = 'UNPAID'
         ORDER BY round_number ASC
-    """, (table_id,))
+    """, (table_id, table["current_session_id"]))
     orders = [dict(o) for o in cursor.fetchall()]
 
     all_items = []
@@ -254,7 +272,7 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
         receipt_bytes = build_escpos_receipt_bytes(dict(table), checkout_items, totals_info=totals_info)
         receipt_b64 = base64.b64encode(receipt_bytes).decode("ascii")
 
-        first_order_id = orders_to_checkout[0]["id"] if orders_to_checkout else 0
+        first_order_id = checkout_orders[0]["id"] if checkout_orders else 0
         conn_p = get_db()
         cur_p = conn_p.cursor()
         cur_p.execute("""
