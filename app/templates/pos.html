@@ -134,10 +134,11 @@
     <main class="max-w-7xl mx-auto p-6 flex-1 w-full">
       <!-- Bộ lọc 2 Nhánh Bàn Lớn: Bàn Nhà Hàng & Bàn Cafe -->
       <div class="flex items-center justify-between mb-4">
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
           <button onclick="filterArea('ALL')" class="area-btn px-3.5 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold shadow-xs">Tất cả bàn</button>
           <button onclick="filterArea('Bàn Nhà Hàng')" class="area-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🍽️ Bàn Nhà Hàng</button>
           <button onclick="filterArea('Bàn Cafe')" class="area-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">☕ Bàn Cafe / Ăn Sáng</button>
+          <button onclick="filterArea('Sân Pickle')" class="area-btn px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🏓 Sân Pickle</button>
         </div>
         <div class="flex items-center gap-3 text-xs">
           <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-stone-200 border border-stone-300"></span> Bàn trống</span>
@@ -1080,7 +1081,13 @@
 
     function renderTablesGrid() {
       const container = document.getElementById("tablesGrid");
-      const filtered = currentArea === 'ALL' ? allTables : allTables.filter(t => t.area === currentArea);
+      const filtered = currentArea === 'ALL' ? allTables : allTables.filter(t => {
+        if (t.area === currentArea) return true;
+        if (currentArea === 'Bàn Nhà Hàng') return t.area !== 'Bàn Cafe' && !(t.area || '').toLowerCase().includes('cafe') && !(t.area || '').toLowerCase().includes('pickle');
+        if (currentArea === 'Bàn Cafe') return t.area === 'Bàn Cafe' || (t.area || '').toLowerCase().includes('cafe');
+        if (currentArea === 'Sân Pickle') return (t.area || '').toLowerCase().includes('pickle');
+        return false;
+      });
 
       container.innerHTML = filtered.map(t => {
         let statusBadge = "";

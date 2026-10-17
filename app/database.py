@@ -439,7 +439,7 @@ def init_db():
     # Tự động tính toán và đồng bộ chỉ số Calo theo định lượng NVL (BOM)
     sync_dish_calories(conn)
 
-    # Tự động chuẩn hóa 27 bàn theo 3 phân khu chuẩn (Hồ bơi 12, Sảnh 1: 5, Sảnh 2: 10)
+    # Tự động chuẩn hóa 31 bàn theo 4 phân khu chuẩn (Hồ bơi 12, Sảnh 1: 5, Sảnh 2: 10, Sân Pickle: 4)
     ensure_standard_27_tables(conn)
 
     # Đảm bảo toàn bộ danh mục và món ăn đều có dữ liệu đa ngôn ngữ
@@ -1196,18 +1196,20 @@ def seed_homepage_cms(conn):
 
 def ensure_standard_27_tables(conn):
     """
-    Chuẩn hóa cấu trúc 27 bàn ăn nhà hàng PiPo Garden theo 3 phân khu chuẩn:
+    Chuẩn hóa cấu trúc 31 bàn ăn nhà hàng PiPo Garden theo 4 phân khu chuẩn:
     - Khu hồ bơi: 12 bàn (HB01 -> HB12)
     - Sảnh 1 (Chính Giữa): 5 bàn (S1-01 -> S1-05)
     - Sảnh 2 (Cạnh Sân Pickleball): 10 bàn (S2-01 -> S2-10)
+    - Sân Pickle: 4 bàn (PK-01 -> PK-04)
     """
     cursor = conn.cursor()
 
-    # 1. Cập nhật 3 khu vực chuẩn trong restaurant_areas
+    # 1. Cập nhật 4 khu vực chuẩn trong restaurant_areas
     standard_areas = [
         ("Khu Hồ Bơi", "🏊", 1),
         ("Sảnh 1 (Chính Giữa)", "✨", 2),
-        ("Sảnh 2 (Cạnh Sân Pickleball)", "🎾", 3)
+        ("Sảnh 2 (Cạnh Sân Pickleball)", "🎾", 3),
+        ("Sân Pickle", "🏓", 4)
     ]
     for name, icon, order in standard_areas:
         cursor.execute("SELECT id FROM restaurant_areas WHERE name = ?", (name,))
@@ -1216,11 +1218,11 @@ def ensure_standard_27_tables(conn):
         else:
             cursor.execute("UPDATE restaurant_areas SET icon = ?, display_order = ? WHERE name = ?", (icon, order, name))
 
-    # Xóa các khu vực cũ không còn dùng
-    cursor.execute("DELETE FROM restaurant_areas WHERE name NOT IN ('Khu Hồ Bơi', 'Sảnh 1 (Chính Giữa)', 'Sảnh 2 (Cạnh Sân Pickleball)')")
+    # Xóa các khu vực cũ không còn dùng (bảo lưu 4 khu vực chuẩn)
+    cursor.execute("DELETE FROM restaurant_areas WHERE name NOT IN ('Khu Hồ Bơi', 'Sảnh 1 (Chính Giữa)', 'Sảnh 2 (Cạnh Sân Pickleball)', 'Sân Pickle')")
 
-    # 2. Định nghĩa danh sách 27 bàn chuẩn
-    STANDARD_27_TABLES = [
+    # 2. Định nghĩa danh sách 31 bàn chuẩn
+    STANDARD_31_TABLES = [
         # Khu hồ bơi: 12 bàn (HB01 - HB12)
         ("HB01", "Bàn Hồ Bơi 01", "Khu Hồ Bơi", 4),
         ("HB02", "Bàn Hồ Bơi 02", "Khu Hồ Bơi", 4),
@@ -1253,40 +1255,32 @@ def ensure_standard_27_tables(conn):
         ("S2-08", "Sảnh 2 - Bàn 08", "Sảnh 2 (Cạnh Sân Pickleball)", 6),
         ("S2-09", "Sảnh 2 - Bàn 09", "Sảnh 2 (Cạnh Sân Pickleball)", 8),
         ("S2-10", "Sảnh 2 - Bàn 10", "Sảnh 2 (Cạnh Sân Pickleball)", 10),
+
+        # Sân Pickle: 4 bàn (PK-01 - PK-04)
+        ("PK-01", "Sân Pickle - Bàn 01", "Sân Pickle", 4),
+        ("PK-02", "Sân Pickle - Bàn 02", "Sân Pickle", 4),
+        ("PK-03", "Sân Pickle - Bàn 03", "Sân Pickle", 4),
+        ("PK-04", "Sân Pickle - Bàn 04", "Sân Pickle", 4),
     ]
 
-    cursor.execute("SELECT id, table_code FROM tables ORDER BY id ASC")
-    existing_tables = cursor.fetchall()
-
-    if len(existing_tables) >= 27:
-        # Cập nhật thông tin từng bàn để bảo toàn quan hệ đơn hàng
-        for idx, (code, name, area, cap) in enumerate(STANDARD_27_TABLES):
-            t_id = existing_tables[idx]["id"]
+    # Cập nhật hoặc thêm mới từng bàn dựa theo table_code
+    valid_codes = set()
+    for code, name, area, cap in STANDARD_31_TABLES:
+        valid_codes.add(code)
+        cursor.execute("SELECT id FROM tables WHERE table_code = ?", (code,))
+        row = cursor.fetchone()
+        if row:
             cursor.execute("""
                 UPDATE tables 
-                SET table_code = ?, name = ?, area = ?, capacity = ?
+                SET name = ?, area = ?, capacity = ?
                 WHERE id = ?
-            """, (code, name, area, cap, t_id))
-        
-        # Nếu có bàn vượt quá 27 bàn, dọn dẹp các bàn thừa
-        for extra in existing_tables[27:]:
-            cursor.execute("SELECT COUNT(*) as cnt FROM orders WHERE table_id = ?", (extra["id"],))
-            cnt = cursor.fetchone()["cnt"]
-            if cnt == 0:
-                cursor.execute("DELETE FROM tables WHERE id = ?", (extra["id"],))
-            else:
-                cursor.execute("UPDATE orders SET table_id = 1 WHERE table_id = ?", (extra["id"],))
-                cursor.execute("DELETE FROM tables WHERE id = ?", (extra["id"],))
-    else:
-        # Nếu thiếu bàn, bổ sung thêm cho đủ 27 bàn
-        for code, name, area, cap in STANDARD_27_TABLES:
-            cursor.execute("SELECT id FROM tables WHERE table_code = ?", (code,))
-            if not cursor.fetchone():
-                token = generate_qr_token(code)
-                cursor.execute(
-                    "INSERT INTO tables (table_code, name, area, capacity, qr_token, status) VALUES (?, ?, ?, ?, ?, 'AVAILABLE')",
-                    (code, name, area, cap, token)
-                )
+            """, (name, area, cap, row["id"]))
+        else:
+            token = generate_qr_token(code)
+            cursor.execute(
+                "INSERT INTO tables (table_code, name, area, capacity, qr_token, status) VALUES (?, ?, ?, ?, ?, 'AVAILABLE')",
+                (code, name, area, cap, token)
+            )
 
     conn.commit()
 

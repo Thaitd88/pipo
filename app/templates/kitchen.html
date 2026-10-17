@@ -123,6 +123,9 @@
       <button onclick="setKitchenMainMenuFilter('CAFE')" id="kMainMenu-CAFE" class="k-mainmenu-tab px-4 py-2 rounded-xl text-xs font-bold bg-white border border-stone-300 text-stone-700 hover:bg-stone-50">
         ☕ Menu Cafe / Ăn Sáng
       </button>
+      <button onclick="setKitchenMainMenuFilter('PICKLE')" id="kMainMenu-PICKLE" class="k-mainmenu-tab px-4 py-2 rounded-xl text-xs font-bold bg-white border border-stone-300 text-stone-700 hover:bg-stone-50">
+        🏓 Sân Pick
+      </button>
     </div>
 
     <!-- 6 Nhóm danh mục chi tiết -->
@@ -301,6 +304,10 @@
               <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-stone-300 hover:border-teal-500 transition">
                 <input type="checkbox" id="chkMenuCafe" class="w-4 h-4 text-teal-600 rounded">
                 <span>☕ Menu Cafe / Ăn Sáng</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-stone-300 hover:border-indigo-500 transition">
+                <input type="checkbox" id="chkMenuPickle" class="w-4 h-4 text-indigo-600 rounded">
+                <span>🏓 Sân Pick</span>
               </label>
             </div>
           </div>
@@ -854,6 +861,7 @@
         if (mainTypes.includes('RESTAURANT')) menuBadges += `<span class="bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.2 rounded text-[9px] font-bold">🍽️ Nhà Hàng</span> `;
         if (mainTypes.includes('LUNCH')) menuBadges += `<span class="bg-blue-100 text-blue-900 border border-blue-300 px-1.5 py-0.2 rounded text-[9px] font-bold">🍚 Cơm Trưa</span> `;
         if (mainTypes.includes('CAFE')) menuBadges += `<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 px-1.5 py-0.2 rounded text-[9px] font-bold">☕ Cafe</span> `;
+        if (mainTypes.includes('PICKLE')) menuBadges += `<span class="bg-indigo-100 text-indigo-900 border border-indigo-300 px-1.5 py-0.2 rounded text-[9px] font-bold">🏓 Sân Pick</span> `;
 
         const discPct = item.discount_percent || 0;
         const hasDisc = discPct > 0 && discPct <= 100;
@@ -1181,10 +1189,11 @@
         document.getElementById("dishDescVi").value = "";
         document.getElementById("dishPortion").value = "";
 
-        // Default 3 Main Menus & Out of Ingredients
+        // Default 4 Main Menus & Out of Ingredients
         document.getElementById("chkMenuRestaurant").checked = true;
         document.getElementById("chkMenuLunch").checked = false;
         document.getElementById("chkMenuCafe").checked = false;
+        document.getElementById("chkMenuPickle").checked = false;
         document.getElementById("chkOutOfIngredients").checked = false;
         document.getElementById("dishCalories").value = "0";
 
@@ -1219,6 +1228,7 @@
         document.getElementById("chkMenuRestaurant").checked = mainTypes.includes('RESTAURANT');
         document.getElementById("chkMenuLunch").checked = mainTypes.includes('LUNCH');
         document.getElementById("chkMenuCafe").checked = mainTypes.includes('CAFE');
+        document.getElementById("chkMenuPickle").checked = mainTypes.includes('PICKLE');
 
         // Out of Ingredients Checkbox
         document.getElementById("chkOutOfIngredients").checked = (dish.out_of_ingredients === 1);
@@ -1378,11 +1388,12 @@
       if (isNaN(price) || price < 0) { alert("Vui lòng nhập giá bán hợp lệ"); return; }
       if (!catId) { alert("Vui lòng chọn danh mục thực đơn"); return; }
 
-      // 3 Main Menus
+      // 4 Main Menus
       const menus = [];
       if (document.getElementById("chkMenuRestaurant").checked) menus.push("RESTAURANT");
       if (document.getElementById("chkMenuLunch").checked) menus.push("LUNCH");
       if (document.getElementById("chkMenuCafe").checked) menus.push("CAFE");
+      if (document.getElementById("chkMenuPickle") && document.getElementById("chkMenuPickle").checked) menus.push("PICKLE");
       if (menus.length === 0) menus.push("RESTAURANT");
       const mainMenuType = menus.join(",");
 

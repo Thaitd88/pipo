@@ -1123,6 +1123,10 @@
               <input type="checkbox" id="itemFormMenuCafe" class="w-4 h-4 text-teal-600 rounded">
               <span>☕ Menu Cafe / Ăn Sáng</span>
             </label>
+            <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-stone-300 hover:border-indigo-500 transition shadow-2xs">
+              <input type="checkbox" id="itemFormMenuPickle" class="w-4 h-4 text-indigo-600 rounded">
+              <span>🏓 Sân Pick</span>
+            </label>
           </div>
         </div>
 
@@ -2317,10 +2321,11 @@
         document.getElementById("itemTransKoName").value = "";
         document.getElementById("itemTransRuName").value = "";
 
-        // Checkboxes 3 Menu lớn
+        // Checkboxes 4 Menu lớn
         document.getElementById("itemFormMenuRestaurant").checked = true;
         document.getElementById("itemFormMenuLunch").checked = false;
         document.getElementById("itemFormMenuCafe").checked = false;
+        document.getElementById("itemFormMenuPickle").checked = false;
         document.getElementById("itemFormCalories").value = "0";
         document.getElementById("itemFormPortion").value = "";
 
@@ -2337,11 +2342,12 @@
         document.getElementById("itemFormImage").value = item.image_url || "";
         document.getElementById("itemFormAvailable").checked = Boolean(item.is_available);
 
-        // Checkboxes 3 Menu lớn & Calo
+        // Checkboxes 4 Menu lớn & Calo
         const mainTypes = (item.main_menu_type || 'RESTAURANT').split(',').map(s => s.trim());
         document.getElementById("itemFormMenuRestaurant").checked = mainTypes.includes('RESTAURANT');
         document.getElementById("itemFormMenuLunch").checked = mainTypes.includes('LUNCH');
         document.getElementById("itemFormMenuCafe").checked = mainTypes.includes('CAFE');
+        document.getElementById("itemFormMenuPickle").checked = mainTypes.includes('PICKLE');
         document.getElementById("itemFormCalories").value = item.calories || 0;
         document.getElementById("itemFormPortion").value = item.portion || "";
 
@@ -2475,11 +2481,12 @@
       const image = document.getElementById("itemFormImage").value.trim();
       const isAvailable = document.getElementById("itemFormAvailable").checked ? 1 : 0;
 
-      // 3 Main Menus
+      // 4 Main Menus
       const menus = [];
       if (document.getElementById("itemFormMenuRestaurant").checked) menus.push("RESTAURANT");
       if (document.getElementById("itemFormMenuLunch").checked) menus.push("LUNCH");
       if (document.getElementById("itemFormMenuCafe").checked) menus.push("CAFE");
+      if (document.getElementById("itemFormMenuPickle") && document.getElementById("itemFormMenuPickle").checked) menus.push("PICKLE");
       if (menus.length === 0) menus.push("RESTAURANT");
       const mainMenuType = menus.join(",");
 

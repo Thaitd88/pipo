@@ -385,6 +385,8 @@ def customer_page(request: Request, qr_token: str):
     name_str = (table_dict.get("name") or "").lower()
     if "cafe" in area_str or "sáng" in area_str or code_str.startswith("CF") or "cafe" in name_str:
         table_dict["branch_type"] = "CAFE"
+    elif "pickle" in area_str or code_str.startswith("PK") or "pickle" in name_str:
+        table_dict["branch_type"] = "PICKLE"
     else:
         table_dict["branch_type"] = "RESTAURANT"
 
