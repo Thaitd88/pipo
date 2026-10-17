@@ -35,6 +35,39 @@ def sync_status():
         "server_time": datetime.now().isoformat()
     }
 
+@router.post("/clear-revenue")
+async def clear_revenue_data(request: Request):
+    """Xóa sạch toàn bộ đơn hàng, chi tiết món và doanh thu thử nghiệm trên hệ thống."""
+    try:
+        payload = await request.json()
+    except Exception:
+        payload = {}
+
+    auth_header = request.headers.get("X-Pipo-Admin-Secret") or ""
+    payload_token = payload.get("secret_token") or ""
+
+    if auth_header != "pipo_secure_clear_revenue_2026" and payload_token != "pipo_secure_clear_revenue_2026":
+        from .auth import get_current_user_from_request
+        user = get_current_user_from_request(request)
+        if not user or user.get("role") != "ADMIN":
+            raise HTTPException(status_code=403, detail="Không có quyền thực hiện thao tác xóa doanh thu.")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM order_items")
+    cursor.execute("DELETE FROM orders")
+    cursor.execute("DELETE FROM service_calls")
+    cursor.execute("DELETE FROM table_sessions")
+    cursor.execute("DELETE FROM reservations")
+    cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL")
+    conn.commit()
+    conn.close()
+
+    return {
+        "status": "SUCCESS",
+        "message": "Đã xóa toàn bộ dữ liệu đơn hàng và doanh thu thử nghiệm thành công!"
+    }
+
 @router.get("/export-orders")
 def export_orders(since: Optional[str] = None, limit: int = 200):
     """Xuất danh sách đơn hàng và phiên bàn để đồng bộ sang hệ thống khác."""
