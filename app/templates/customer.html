@@ -413,10 +413,10 @@
   </div>
 
   <!-- MODAL ĐẶT MÓN TRƯỚC & GIỮ BÀN (DÀNH CHO /menu ONLINE) -->
-  <div id="preorderModal" onclick="if(event.target === this) closePreorderModal()" class="fixed inset-0 z-60 overflow-y-auto bg-black/80 backdrop-blur-sm px-4 flex items-start justify-center hidden" style="padding-top: max(env(safe-area-inset-top, 0px) + 30px, 70px); padding-bottom: max(env(safe-area-inset-bottom, 0px) + 40px, 80px); -webkit-overflow-scrolling: touch;">
-    <div id="preorderModalBox" class="relative w-full max-w-md bg-white rounded-3xl text-left shadow-2xl overflow-hidden border border-stone-200 flex flex-col animate-in zoom-in-95 duration-200">
+  <div id="preorderModal" onclick="if(event.target === this) closePreorderModal()" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden" style="z-index: 99999;">
+    <div id="preorderModalBox" class="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl max-h-[92dvh] sm:max-h-[88vh] flex flex-col shadow-2xl overflow-hidden border border-stone-200 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
       
-      <!-- Header modal -->
+      <!-- Header modal (Cố định trên cùng của hộp modal, không bao giờ bị che) -->
       <div class="px-5 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 flex items-center justify-between shrink-0 shadow-xs">
         <div class="flex items-center gap-2.5">
           <span class="text-xl">📅</span>
@@ -430,10 +430,10 @@
         </button>
       </div>
 
-      <!-- Form Body -->
-      <div class="p-4 sm:p-5 space-y-3.5 text-xs">
+      <!-- Form Body cuộn bên trong khung (Header & Nút xác nhận luôn cố định 2 đầu) -->
+      <div id="preorderScrollBody" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs" style="-webkit-overflow-scrolling: touch;">
         <!-- 1. Tên khách hàng (Ô NỔI BẬT ĐẦU TIÊN) -->
-        <div class="bg-amber-50/80 p-3 rounded-2xl border-2 border-amber-300 shadow-2xs">
+        <div class="bg-amber-50 p-3.5 rounded-2xl border-2 border-amber-400 shadow-2xs">
           <label for="preorderGuestName" class="block text-amber-950 font-black mb-1.5 text-xs flex items-center gap-1.5">
             <span class="text-base">👤</span>
             <span>Tên Anh / Chị:</span>
@@ -514,9 +514,11 @@
             </button>
           </div>
         </div>
+      </div>
 
-        <!-- 7. Nút xác nhận -->
-        <button onclick="confirmSubmitPreorder()" id="btnConfirmPreorder" class="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-stone-950 font-black text-sm shadow-md transition flex items-center justify-center gap-2 mt-2">
+      <!-- Sticky Footer: Nút xác nhận luôn thấy ở đáy modal -->
+      <div class="p-3 sm:p-4 border-t border-stone-200 bg-stone-50 shrink-0">
+        <button onclick="confirmSubmitPreorder()" id="btnConfirmPreorder" class="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-stone-950 font-black text-sm shadow-md transition flex items-center justify-center gap-2">
           <i class="fa-solid fa-check text-base"></i>
           <span>XÁC NHẬN ĐẶT MÓN & ĐẶT BÀN</span>
         </button>
@@ -1852,8 +1854,8 @@
 
       const modal = document.getElementById("preorderModal");
       modal.classList.remove("hidden");
-      modal.scrollTop = 0;
-      try { window.scrollTo(0, 0); } catch(e) {}
+      const scrollBody = document.getElementById("preorderScrollBody");
+      if (scrollBody) scrollBody.scrollTop = 0;
     }
 
     function closePreorderModal() {
@@ -1905,6 +1907,8 @@
           cart = [];
           localStorage.removeItem("pipo_cart_" + TABLE_INFO.id);
           updateCartUI();
+          const cartBar = document.getElementById("cartBar");
+          if (cartBar) cartBar.classList.add("translate-y-full");
           setTimeout(() => {
             alert(`🎉 ĐẶT MÓN TRƯỚC VÀ ĐẶT BÀN THÀNH CÔNG!\n\nCảm ơn Quý khách ${name}.\nPiPo Garden sẽ liên hệ xác nhận qua số ${phone} và đón tiếp chu đáo nhất.`);
           }, 80);
