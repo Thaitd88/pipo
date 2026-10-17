@@ -410,45 +410,58 @@
   </div>
 
   <!-- MODAL ĐẶT MÓN TRƯỚC & GIỮ BÀN (DÀNH CHO /menu ONLINE) -->
-  <div id="preorderModal" class="fixed inset-0 z-60 bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden overflow-hidden">
-    <div id="preorderModalBox" class="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-200">
+  <div id="preorderModal" onclick="if(event.target === this) closePreorderModal()" class="fixed inset-0 z-60 overflow-y-auto bg-black/75 backdrop-blur-xs p-3 sm:p-6 flex items-start justify-center hidden" style="-webkit-overflow-scrolling: touch;">
+    <div id="preorderModalBox" class="relative w-full max-w-md bg-white rounded-3xl text-left shadow-2xl my-2 sm:my-6 overflow-hidden border border-stone-200 flex flex-col animate-in zoom-in-95 duration-200">
       
-      <!-- Sticky Header -->
-      <div class="px-5 py-4 border-b border-stone-100 flex items-center justify-between shrink-0 bg-white">
+      <!-- Header modal -->
+      <div class="px-5 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 flex items-center justify-between shrink-0 shadow-xs">
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-base font-black shrink-0">
-            📅
-          </div>
+          <span class="text-xl">📅</span>
           <div>
-            <h3 class="font-black text-sm sm:text-base text-stone-900 leading-tight">Đặt Món Trước & Đặt Bàn</h3>
-            <p class="text-[11px] text-stone-500">PiPo Garden sẽ chuẩn bị bàn và đón tiếp chu đáo</p>
+            <h3 class="font-black text-sm sm:text-base text-stone-950 leading-tight">Đặt Món Trước & Đặt Bàn</h3>
+            <p class="text-[10px] sm:text-[11px] text-amber-950/80 font-semibold">PiPo Garden sẽ chuẩn bị bàn và đón tiếp chu đáo</p>
           </div>
         </div>
-        <button type="button" onclick="closePreorderModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center transition">
-          <i class="fa-solid fa-xmark text-sm"></i>
+        <button type="button" onclick="closePreorderModal()" class="w-8 h-8 rounded-full bg-black/10 hover:bg-black/20 text-stone-950 flex items-center justify-center transition active:scale-95" title="Đóng">
+          <i class="fa-solid fa-xmark text-base"></i>
         </button>
       </div>
 
-      <!-- Scrollable Form Body -->
-      <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
-        <div>
-          <label class="block text-stone-700 font-bold mb-1">Tên Anh/Chị: <span class="text-rose-500">*</span></label>
-          <input type="text" id="preorderGuestName" placeholder="Ví dụ: Anh Tuấn, Chị Mai..." class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 font-bold focus:outline-none focus:border-amber-600 focus:bg-white text-sm">
+      <!-- Form Body -->
+      <div class="p-4 sm:p-5 space-y-3.5 text-xs">
+        <!-- 1. Tên khách hàng (Ô NỔI BẬT ĐẦU TIÊN) -->
+        <div class="bg-amber-50/80 p-3 rounded-2xl border-2 border-amber-300 shadow-2xs">
+          <label for="preorderGuestName" class="block text-amber-950 font-black mb-1.5 text-xs flex items-center gap-1.5">
+            <span class="text-base">👤</span>
+            <span>Tên Anh / Chị:</span>
+            <span class="text-rose-600 font-extrabold">*</span>
+          </label>
+          <input type="text" id="preorderGuestName" placeholder="Nhập tên của bạn (Ví dụ: Anh Tuấn, Chị Mai...)" class="w-full bg-white border border-amber-300 rounded-xl px-3.5 py-2.5 text-stone-900 font-bold focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-400 text-sm placeholder:text-stone-400">
         </div>
 
+        <!-- 2. SĐT liên hệ -->
         <div>
-          <label class="block text-stone-700 font-bold mb-1">Số điện thoại liên hệ: <span class="text-rose-500">*</span></label>
+          <label for="preorderPhone" class="block text-stone-700 font-bold mb-1 flex items-center gap-1.5">
+            <span>📞</span>
+            <span>Số điện thoại liên hệ:</span>
+            <span class="text-rose-500">*</span>
+          </label>
           <input type="tel" id="preorderPhone" placeholder="Ví dụ: 0912345678" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 font-bold focus:outline-none focus:border-amber-600 focus:bg-white text-sm">
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <!-- 3. Số khách & Khu vực -->
+        <div class="grid grid-cols-2 gap-2.5">
           <div>
-            <label class="block text-stone-700 font-bold mb-1">Số lượng khách: <span class="text-rose-500">*</span></label>
-            <input type="number" id="preorderGuestCount" min="1" max="100" value="2" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2 text-stone-900 font-bold focus:outline-none focus:border-amber-600 focus:bg-white">
+            <label for="preorderGuestCount" class="block text-stone-700 font-bold mb-1 flex items-center gap-1">
+              <span>👥</span> <span>Số khách:</span> <span class="text-rose-500">*</span>
+            </label>
+            <input type="number" id="preorderGuestCount" min="1" max="100" value="2" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2 text-stone-900 font-bold focus:outline-none focus:border-amber-600 focus:bg-white text-sm">
           </div>
           <div>
-            <label class="block text-stone-700 font-bold mb-1">Khu vực ưu tiên:</label>
-            <select id="preorderArea" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3 py-2 text-stone-900 font-semibold focus:outline-none focus:border-amber-600 focus:bg-white">
+            <label for="preorderArea" class="block text-stone-700 font-bold mb-1 flex items-center gap-1">
+              <span>📍</span> <span>Khu vực:</span>
+            </label>
+            <select id="preorderArea" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-2.5 py-2 text-stone-900 font-semibold focus:outline-none focus:border-amber-600 focus:bg-white text-xs">
               <option value="Hồ Bơi">🏊 Khu Hồ Bơi</option>
               <option value="Sân Vườn">🌿 Khu Sân Vườn</option>
               <option value="Sân Pickle">🏓 Sân Pickle</option>
@@ -458,23 +471,32 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <!-- 4. Ngày đến & Giờ đến -->
+        <div class="grid grid-cols-2 gap-2.5">
           <div>
-            <label class="block text-stone-700 font-bold mb-1">Ngày đến: <span class="text-rose-500">*</span></label>
-            <input type="date" id="preorderDate" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2 text-stone-900 font-semibold focus:outline-none focus:border-amber-600 focus:bg-white">
+            <label for="preorderDate" class="block text-stone-700 font-bold mb-1 flex items-center gap-1">
+              <span>📅</span> <span>Ngày đến:</span> <span class="text-rose-500">*</span>
+            </label>
+            <input type="date" id="preorderDate" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3 py-2 text-stone-900 font-semibold focus:outline-none focus:border-amber-600 focus:bg-white text-xs">
           </div>
           <div>
-            <label class="block text-stone-700 font-bold mb-1">Giờ đến: <span class="text-rose-500">*</span></label>
-            <input type="time" id="preorderTime" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2 text-stone-900 font-semibold focus:outline-none focus:border-amber-600 focus:bg-white">
+            <label for="preorderTime" class="block text-stone-700 font-bold mb-1 flex items-center gap-1">
+              <span>⏰</span> <span>Giờ đến:</span> <span class="text-rose-500">*</span>
+            </label>
+            <input type="time" id="preorderTime" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3 py-2 text-stone-900 font-semibold focus:outline-none focus:border-amber-600 focus:bg-white text-xs">
           </div>
         </div>
 
+        <!-- 5. Yêu cầu / Ghi chú -->
         <div>
-          <label class="block text-stone-700 font-bold mb-1">Yêu cầu / Ghi chú thêm:</label>
-          <textarea id="preorderNote" rows="2" placeholder="Ví dụ: Cần ghế trẻ em, bàn gần sân Pickle..." class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2 text-stone-900 focus:outline-none focus:border-amber-600 focus:bg-white"></textarea>
+          <label for="preorderNote" class="block text-stone-700 font-bold mb-1 flex items-center gap-1">
+            <span>📝</span> <span>Ghi chú thêm:</span>
+          </label>
+          <textarea id="preorderNote" rows="2" placeholder="Ví dụ: Cần ghế trẻ em, bàn gần sân Pickle..." class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2 text-stone-900 focus:outline-none focus:border-amber-600 focus:bg-white text-xs"></textarea>
         </div>
 
-        <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
+        <!-- 6. Tạm tính món đã chọn -->
+        <div class="p-3 bg-amber-50/80 rounded-2xl border border-amber-200 space-y-1.5">
           <div class="flex items-center justify-between">
             <div>
               <div class="text-[11px] text-amber-800 font-medium">Tạm tính các món đã chọn:</div>
@@ -489,12 +511,10 @@
             </button>
           </div>
         </div>
-      </div>
 
-      <!-- Sticky Footer -->
-      <div class="p-4 border-t border-stone-100 bg-stone-50 shrink-0">
-        <button onclick="confirmSubmitPreorder()" id="btnConfirmPreorder" class="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-stone-950 font-black text-sm shadow-md transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-check"></i>
+        <!-- 7. Nút xác nhận -->
+        <button onclick="confirmSubmitPreorder()" id="btnConfirmPreorder" class="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-stone-950 font-black text-sm shadow-md transition flex items-center justify-center gap-2 mt-2">
+          <i class="fa-solid fa-check text-base"></i>
           <span>XÁC NHẬN ĐẶT MÓN & ĐẶT BÀN</span>
         </button>
       </div>
@@ -1822,15 +1842,10 @@
       const timeInp = document.getElementById("preorderTime");
       if (timeInp) timeInp.value = `${hh}:${mm}`;
 
-      document.getElementById("preorderModal").classList.remove("hidden");
-      const box = document.getElementById("preorderModalBox");
-      if (box) box.scrollTop = 0;
-      setTimeout(() => {
-        const inp = document.getElementById("preorderGuestName");
-        if (inp) {
-          inp.focus();
-        }
-      }, 150);
+      const modal = document.getElementById("preorderModal");
+      modal.classList.remove("hidden");
+      modal.scrollTop = 0;
+      try { window.scrollTo(0, 0); } catch(e) {}
     }
 
     function closePreorderModal() {
