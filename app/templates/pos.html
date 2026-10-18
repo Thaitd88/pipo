@@ -7,6 +7,7 @@
   <link rel="icon" type="image/png" href="/static/logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -743,78 +744,97 @@
 
   <!-- DRAWER CHI TIẾT BÀN & HÓA ĐƠN -->
   <div id="billDrawer" class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
-    <div class="p-4 bg-emerald-900 text-white flex items-center justify-between">
+    <div class="p-3.5 sm:p-4 bg-emerald-900 text-white flex items-center justify-between">
       <div>
         <h3 class="font-bold text-base" id="drawerTableName">Chi Tiết Bàn</h3>
         <p class="text-xs text-emerald-200" id="drawerTableArea">Khu Vực</p>
       </div>
-      <button onclick="closeBillDrawer()" class="text-emerald-300 hover:text-white p-1 text-lg">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="openPosOrderModal()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-sm" title="Gọi món hoặc gọi thêm cho bàn này">
+          <i class="fa-solid fa-plus-circle"></i>
+          <span>Gọi Món</span>
+        </button>
+        <button onclick="closeBillDrawer()" class="text-emerald-300 hover:text-white p-1 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
     </div>
 
     <div class="flex-1 overflow-y-auto p-4 space-y-4" id="drawerItemsContainer"></div>
 
-    <!-- CÀI ĐẶT GIẢM GIÁ & ĐỐI TƯỢNG THANH TOÁN -->
-    <div class="p-3.5 bg-stone-100/90 border-t border-stone-200 space-y-2.5 text-xs">
-      <!-- 1. Giảm giá tổng bill theo % -->
-      <div>
-        <div class="flex items-center justify-between mb-1">
-          <label class="font-bold text-stone-700 flex items-center gap-1">
-            <span>🏷️ Giảm giá theo %:</span>
-          </label>
-          <span id="drawerDiscountCalculatedPill" class="text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 hidden">
-            -0 đ
-          </span>
-        </div>
-        <div class="grid grid-cols-12 gap-1.5">
-          <div class="col-span-5 relative">
-            <input type="number" id="drawerDiscountVal" min="0" max="100" value="0" placeholder="0" oninput="calculateDrawerTotal()" class="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 font-black text-rose-600 text-sm focus:outline-emerald-600 pr-7 text-center">
-            <span class="absolute right-2.5 top-1.5 text-stone-500 font-black text-xs">%</span>
+    <!-- CÀI ĐẶT GIẢM GIÁ & ĐỐI TƯỢNG THANH TOÁN (THU GỌN / MỞ RỘNG) -->
+    <div class="border-t border-stone-200 bg-stone-100/70">
+      <button type="button" onclick="toggleBillOptions()" class="w-full px-4 py-2.5 flex items-center justify-between text-xs font-bold text-stone-600 hover:text-stone-900 hover:bg-stone-200/60 transition">
+        <span class="flex items-center gap-1.5">
+          <i class="fa-solid fa-sliders text-emerald-700"></i>
+          <span>Tùy chọn thêm (Giảm giá %, Ký nợ Admin...)</span>
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span id="billOptionsSummaryBadge" class="hidden text-[10px] bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-bold"></span>
+          <i id="billOptionsChevron" class="fa-solid fa-chevron-down text-stone-400 text-xs transition-transform duration-200"></i>
+        </span>
+      </button>
+
+      <div id="billOptionsBody" class="hidden p-3.5 border-t border-stone-200 space-y-2.5 text-xs bg-stone-50">
+        <!-- 1. Giảm giá tổng bill theo % -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="font-bold text-stone-700 flex items-center gap-1">
+              <span>🏷️ Giảm giá theo %:</span>
+            </label>
+            <span id="drawerDiscountCalculatedPill" class="text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 hidden">
+              -0 đ
+            </span>
           </div>
-          <div class="col-span-7">
-            <select id="drawerDiscountReason" onchange="onDiscountReasonChange()" class="w-full bg-white border border-stone-300 rounded-lg px-2 py-1.5 font-semibold text-stone-700 text-xs focus:outline-emerald-600">
-              <option value="">Lý do giảm giá...</option>
-              <option value="Nội bộ">🏢 Nội bộ</option>
-              <option value="Khách quen">🌟 Khách quen</option>
-              <option value="Thử bếp">🍳 Thử bếp</option>
-              <option value="Khác">📝 Khác</option>
+          <div class="grid grid-cols-12 gap-1.5">
+            <div class="col-span-5 relative">
+              <input type="number" id="drawerDiscountVal" min="0" max="100" value="0" placeholder="0" oninput="calculateDrawerTotal()" class="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 font-black text-rose-600 text-sm focus:outline-emerald-600 pr-7 text-center">
+              <span class="absolute right-2.5 top-1.5 text-stone-500 font-black text-xs">%</span>
+            </div>
+            <div class="col-span-7">
+              <select id="drawerDiscountReason" onchange="onDiscountReasonChange()" class="w-full bg-white border border-stone-300 rounded-lg px-2 py-1.5 font-semibold text-stone-700 text-xs focus:outline-emerald-600">
+                <option value="">Lý do giảm giá...</option>
+                <option value="Nội bộ">🏢 Nội bộ</option>
+                <option value="Khách quen">🌟 Khách quen</option>
+                <option value="Thử bếp">🍳 Thử bếp</option>
+                <option value="Khác">📝 Khác</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quick discount percentage chips -->
+          <div class="flex items-center gap-1 mt-1.5 flex-wrap">
+            <button type="button" onclick="setQuickDiscountPct(0)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-stone-200 border border-stone-300 text-stone-600 transition">0%</button>
+            <button type="button" onclick="setQuickDiscountPct(5)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">5%</button>
+            <button type="button" onclick="setQuickDiscountPct(10)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">10%</button>
+            <button type="button" onclick="setQuickDiscountPct(15)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">15%</button>
+            <button type="button" onclick="setQuickDiscountPct(20)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">20%</button>
+            <button type="button" onclick="setQuickDiscountPct(50)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">50%</button>
+            <button type="button" onclick="setQuickDiscountPct(100)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">100%</button>
+          </div>
+
+          <input type="text" id="drawerDiscountCustomReason" placeholder="Ghi chú lý do giảm giá khác..." class="w-full mt-1.5 bg-white border border-stone-300 rounded-lg px-2.5 py-1 text-stone-700 text-xs focus:outline-emerald-600 hidden">
+        </div>
+
+        <!-- 2. Đối tượng thanh toán / Nội dung -->
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">💳 Nội dung thanh toán:</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-stone-300 cursor-pointer font-semibold text-stone-800 hover:border-emerald-500 transition">
+              <input type="radio" name="billTargetRadio" value="CUSTOMER" checked onchange="toggleBillTarget()" class="text-emerald-700">
+              <span>Thu tiền khách</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-stone-300 cursor-pointer font-semibold text-stone-800 hover:border-rose-500 transition">
+              <input type="radio" name="billTargetRadio" value="ADMIN" onchange="toggleBillTarget()" class="text-rose-700">
+              <span>Tính bill với Admin</span>
+            </label>
+          </div>
+          <div id="adminSelectContainer" class="hidden mt-2 p-2 bg-rose-50 border border-rose-200 rounded-xl">
+            <label class="block text-[11px] font-bold text-rose-800 mb-1">Chọn Quản trị viên chịu bill:</label>
+            <select id="drawerAdminSelect" class="w-full bg-white border border-rose-300 rounded-lg px-2.5 py-1.5 font-bold text-rose-900 text-xs focus:outline-rose-600">
+              <!-- Render danh sách Admin -->
             </select>
           </div>
-        </div>
-
-        <!-- Quick discount percentage chips -->
-        <div class="flex items-center gap-1 mt-1.5 flex-wrap">
-          <button type="button" onclick="setQuickDiscountPct(0)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-stone-200 border border-stone-300 text-stone-600 transition">0%</button>
-          <button type="button" onclick="setQuickDiscountPct(5)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">5%</button>
-          <button type="button" onclick="setQuickDiscountPct(10)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">10%</button>
-          <button type="button" onclick="setQuickDiscountPct(15)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">15%</button>
-          <button type="button" onclick="setQuickDiscountPct(20)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">20%</button>
-          <button type="button" onclick="setQuickDiscountPct(50)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">50%</button>
-          <button type="button" onclick="setQuickDiscountPct(100)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-rose-50 hover:text-rose-700 border border-stone-300 transition">100%</button>
-        </div>
-
-        <input type="text" id="drawerDiscountCustomReason" placeholder="Ghi chú lý do giảm giá khác..." class="w-full mt-1.5 bg-white border border-stone-300 rounded-lg px-2.5 py-1 text-stone-700 text-xs focus:outline-emerald-600 hidden">
-      </div>
-
-      <!-- 2. Đối tượng thanh toán / Nội dung -->
-      <div>
-        <label class="block font-bold text-stone-700 mb-1">💳 Nội dung thanh toán:</label>
-        <div class="grid grid-cols-2 gap-2">
-          <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-stone-300 cursor-pointer font-semibold text-stone-800 hover:border-emerald-500 transition">
-            <input type="radio" name="billTargetRadio" value="CUSTOMER" checked onchange="toggleBillTarget()" class="text-emerald-700">
-            <span>Thu tiền khách</span>
-          </label>
-          <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-stone-300 cursor-pointer font-semibold text-stone-800 hover:border-rose-500 transition">
-            <input type="radio" name="billTargetRadio" value="ADMIN" onchange="toggleBillTarget()" class="text-rose-700">
-            <span>Tính bill với Admin</span>
-          </label>
-        </div>
-        <div id="adminSelectContainer" class="hidden mt-2 p-2 bg-rose-50 border border-rose-200 rounded-xl">
-          <label class="block text-[11px] font-bold text-rose-800 mb-1">Chọn Quản trị viên chịu bill:</label>
-          <select id="drawerAdminSelect" class="w-full bg-white border border-rose-300 rounded-lg px-2.5 py-1.5 font-bold text-rose-900 text-xs focus:outline-rose-600">
-            <!-- Render danh sách Admin -->
-          </select>
         </div>
       </div>
     </div>
@@ -847,13 +867,14 @@
         </button>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button onclick="printProvisionalBill()" class="flex-1 bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-xs" title="In trực tiếp ra Máy in Thu ngân 80mm">
-          <i class="fa-solid fa-print"></i>
-          <span>In Phiếu Tính Tiền (Tạm Tính)</span>
-        </button>
-        <button onclick="openPrintBillModal()" class="px-3 py-2.5 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs transition" title="Xem trước mẫu phiếu in">
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="openPrintBillModal()" class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs" title="Xem trước mẫu hóa đơn & lưu ảnh gửi khách">
           <i class="fa-solid fa-eye"></i>
+          <span>Xem Bill & Tải Ảnh</span>
+        </button>
+        <button onclick="printProvisionalBill()" class="bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs" title="In trực tiếp ra Máy in Thu ngân 80mm">
+          <i class="fa-solid fa-print"></i>
+          <span>In Phiếu Tạm Tính</span>
         </button>
       </div>
 
@@ -938,7 +959,7 @@
 
           <!-- QR thanh toán nếu có -->
           <div id="receiptQRContainer" class="mt-3 pt-3 border-t border-dashed border-stone-300 text-center">
-            <img id="receiptQRImg" src="" alt="VietQR" class="w-32 h-32 mx-auto rounded-lg border border-stone-200 bg-white p-1">
+            <img id="receiptQRImg" src="" alt="VietQR" crossorigin="anonymous" class="w-32 h-32 mx-auto rounded-lg border border-stone-200 bg-white p-1">
             <div class="text-[10px] text-stone-500 mt-1">Quét mã VietQR để thanh toán nhanh</div>
           </div>
 
@@ -948,14 +969,18 @@
         </div>
       </div>
 
-      <!-- Nút in & Đóng -->
+      <!-- Nút in & Tải ảnh & Đóng -->
       <div class="pt-3 border-t border-stone-100 flex items-center gap-2">
-        <button onclick="closePrintBillModal()" class="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 font-bold text-xs hover:bg-stone-50 transition">
+        <button onclick="closePrintBillModal()" class="px-3.5 py-2.5 rounded-xl border border-stone-300 text-stone-700 font-bold text-xs hover:bg-stone-50 transition">
           Đóng
+        </button>
+        <button onclick="downloadReceiptImage()" class="flex-1 py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition" title="Tải ảnh hóa đơn chất lượng cao về máy để gửi khách">
+          <i class="fa-solid fa-camera"></i>
+          <span>Lưu / Tải Ảnh Bill</span>
         </button>
         <button onclick="printProvisionalBill()" class="flex-1 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition">
           <i class="fa-solid fa-print"></i>
-          <span>In Ra Máy In (80mm)</span>
+          <span>In Ra Máy In</span>
         </button>
       </div>
     </div>
@@ -1089,6 +1114,94 @@
         <button onclick="closeAdminBillsModal()" class="px-5 py-2 rounded-xl bg-stone-800 hover:bg-stone-900 text-white text-xs font-bold transition">
           Đóng lại
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL GỌI MÓN / GỌI THÊM MÓN TRỰC TIẾP TẠI POS -->
+  <div id="posOrderModal" class="fixed inset-0 z-70 bg-black/75 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-5xl w-full h-[94vh] max-h-[880px] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-stone-200">
+      
+      <!-- Header Modal -->
+      <div class="p-3.5 sm:p-4 bg-emerald-900 text-white flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-2.5 sm:gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-800 text-white flex items-center justify-center text-xl shadow-inner">
+            🍽️
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-sm sm:text-base leading-tight" id="posOrderModalTitle">Gọi Món Cho Bàn</h3>
+              <span id="posOrderRoundBadge" class="text-[10px] bg-emerald-700 text-emerald-100 font-bold px-2 py-0.5 rounded-full">Đợt Mới</span>
+            </div>
+            <p class="text-xs text-emerald-200" id="posOrderModalSubtitle">Chọn món để in phiếu bếp & gửi trực tiếp xuống nhà bếp</p>
+          </div>
+        </div>
+        <button onclick="closePosOrderModal()" class="text-emerald-200 hover:text-white p-1 text-xl">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Thân Modal: 2 Cột (Thực đơn & Giỏ món chọn) -->
+      <div class="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
+        
+        <!-- Cột Trái: Thực đơn & Tìm kiếm (60-65%) -->
+        <div class="w-full md:w-7/12 lg:w-3/5 flex flex-col border-r border-stone-200 bg-stone-50 min-h-0">
+          
+          <!-- Search & Category Filters -->
+          <div class="p-3 bg-white border-b border-stone-200 space-y-2 flex-shrink-0">
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-stone-400 text-xs"></i>
+              <input type="text" id="posOrderSearchInput" oninput="filterPosOrderDishes()" placeholder="Tìm món nhanh theo tên, mã món..." class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 focus:outline-emerald-600 bg-stone-50">
+            </div>
+
+            <!-- Categories pills horizontal scroll -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs" id="posOrderCategoryPills">
+              <!-- Render category pills -->
+            </div>
+          </div>
+
+          <!-- Dishes Grid Container -->
+          <div class="flex-1 overflow-y-auto p-3 min-h-0" id="posOrderDishesGrid">
+            <!-- Render danh sách món -->
+          </div>
+        </div>
+
+        <!-- Cột Phải: Giỏ món chuẩn bị gửi bếp (35-40%) -->
+        <div class="w-full md:w-5/12 lg:w-2/5 flex flex-col bg-white min-h-0">
+          <div class="p-3 bg-stone-100/70 border-b border-stone-200 flex items-center justify-between flex-shrink-0">
+            <span class="font-bold text-xs text-stone-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-list-check text-emerald-700"></i>
+              <span>Món Chuẩn Bị Gửi Bếp</span>
+            </span>
+            <span class="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200" id="posOrderCartBadge">0 món</span>
+          </div>
+
+          <!-- List các món đã chọn -->
+          <div class="flex-1 overflow-y-auto p-3 space-y-2 min-h-0" id="posOrderCartItems">
+            <div class="text-center py-16 text-stone-400 text-xs">
+              <i class="fa-solid fa-hand-pointer text-2xl text-stone-300 mb-2"></i>
+              <p>Chưa có món nào được chọn.</p>
+              <p class="text-[11px] text-stone-400 mt-0.5">Nhấp vào món ở cột thực đơn bên trái để thêm vào đây.</p>
+            </div>
+          </div>
+
+          <!-- Footer Giỏ món & Nút Gửi Bếp -->
+          <div class="p-3.5 bg-stone-50 border-t border-stone-200 space-y-2.5 flex-shrink-0">
+            <div>
+              <input type="text" id="posOrderGeneralNote" placeholder="Ghi chú chung cho toàn bộ đợt gọi này..." class="w-full px-2.5 py-1.5 bg-white border border-stone-300 rounded-xl text-xs text-stone-800 focus:outline-emerald-600">
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-xs text-stone-600 font-semibold">Tổng tiền đợt gọi này:</span>
+              <span class="text-base font-black text-emerald-800" id="posOrderCartTotal">0 đ</span>
+            </div>
+
+            <button type="button" id="btnSubmitPosOrder" onclick="submitPosOrder()" class="w-full py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>GỬI BẾP & IN PHIẾU NGAY</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1470,8 +1583,11 @@
             </div>
 
             <div class="pt-3 border-t border-stone-100 flex items-center justify-between text-xs">
-              <div>${subText}</div>
-              <i class="fa-solid fa-chevron-right text-stone-300 text-[10px]"></i>
+              <div class="truncate mr-2">${subText}</div>
+              <button onclick="event.stopPropagation(); openPosOrderModal(${t.id})" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-700 text-emerald-800 hover:text-white font-bold text-[11px] transition flex items-center gap-1 shadow-xs border border-emerald-200/80 hover:border-transparent flex-shrink-0" title="Gọi món hoặc thêm món cho bàn này">
+                <i class="fa-solid fa-plus text-[10px]"></i>
+                <span>Gọi món</span>
+              </button>
             </div>
           </div>
         `;
@@ -1565,6 +1681,49 @@
       return Math.round(subtotal * pct / 100);
     }
 
+    function toggleBillOptions(forceState = null) {
+      const body = document.getElementById("billOptionsBody");
+      const chevron = document.getElementById("billOptionsChevron");
+      if (!body) return;
+      const willOpen = (forceState !== null) ? forceState : body.classList.contains("hidden");
+      if (willOpen) {
+        body.classList.remove("hidden");
+        if (chevron) chevron.classList.add("rotate-180");
+      } else {
+        body.classList.add("hidden");
+        if (chevron) chevron.classList.remove("rotate-180");
+      }
+    }
+
+    function updateBillOptionsBadge() {
+      const badge = document.getElementById("billOptionsSummaryBadge");
+      if (!badge) return;
+      const rawVal = parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0;
+      const pct = Math.min(100, Math.max(0, rawVal));
+      
+      let isAdmin = false;
+      const radios = document.getElementsByName("billTargetRadio");
+      for (const r of radios) {
+        if (r.checked && r.value === "ADMIN") {
+          isAdmin = true;
+          break;
+        }
+      }
+
+      if (pct > 0 && isAdmin) {
+        badge.innerText = `Giảm ${pct}% • Ký Admin`;
+        badge.classList.remove("hidden");
+      } else if (pct > 0) {
+        badge.innerText = `Giảm ${pct}%`;
+        badge.classList.remove("hidden");
+      } else if (isAdmin) {
+        badge.innerText = `Ký nợ Admin`;
+        badge.classList.remove("hidden");
+      } else {
+        badge.classList.add("hidden");
+      }
+    }
+
     function calculateDrawerTotal() {
       if (!currentBillData) return;
       const subtotal = currentBillData.grand_total || 0;
@@ -1602,6 +1761,7 @@
         if (subRow) subRow.classList.add("hidden");
         if (discRow) discRow.classList.add("hidden");
       }
+      updateBillOptionsBadge();
     }
 
     function onDiscountReasonChange() {
@@ -1616,6 +1776,7 @@
           customInput.value = "";
         }
       }
+      updateBillOptionsBadge();
     }
 
     function toggleBillTarget() {
@@ -1636,6 +1797,7 @@
           container.classList.add("hidden");
         }
       }
+      updateBillOptionsBadge();
     }
 
     async function openTableDetails(tableId) {
@@ -1676,16 +1838,36 @@
       const billTargetRadios = document.getElementsByName("billTargetRadio");
       billTargetRadios.forEach(r => r.checked = (r.value === "CUSTOMER"));
       toggleBillTarget();
+      toggleBillOptions(false); // Mặc định thu gọn các tùy chọn giảm giá / admin
       calculateDrawerTotal();
 
       const itemsContainer = document.getElementById("drawerItemsContainer");
       if (currentBillData.items.length === 0) {
-        itemsContainer.innerHTML = `<div class="text-center py-12 text-stone-400 text-xs">Bàn hiện chưa có món nào được gọi.</div>`;
+        itemsContainer.innerHTML = `
+          <div class="text-center py-10 px-4 bg-stone-50 rounded-2xl border border-dashed border-stone-200">
+            <div class="w-14 h-14 mx-auto rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl mb-3 shadow-xs">
+              🍽️
+            </div>
+            <h4 class="font-bold text-stone-800 text-sm">Bàn hiện chưa có món nào</h4>
+            <p class="text-xs text-stone-400 mt-1 mb-4">Khách vừa vào bàn? Bấm nút bên dưới để chọn món và gửi thẳng vào bếp:</p>
+            <button type="button" onclick="openPosOrderModal()" class="w-full py-3 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-utensils"></i>
+              <span>Mở Bàn & Chọn Món Vào Bếp</span>
+            </button>
+          </div>
+        `;
       } else {
         const hasUnserved = currentBillData.items.some(it => it.status !== 'SERVED' && it.status !== 'CANCELLED');
-        let headerActions = '';
+        let headerActions = `
+          <div class="mb-3">
+            <button type="button" onclick="openPosOrderModal()" class="w-full py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs">
+              <i class="fa-solid fa-plus-circle text-emerald-700"></i>
+              <span>Gọi Thêm Món Cho Bàn Này (Đợt Mới)</span>
+            </button>
+          </div>
+        `;
         if (hasUnserved) {
-          headerActions = `
+          headerActions += `
             <div class="flex items-center justify-between pb-2 mb-2 border-b border-stone-200">
               <span class="text-xs font-bold text-stone-700">Món ăn của bàn (${currentBillData.items.length}):</span>
               <button onclick="posMarkAllItemsServed(${tableId})" class="text-xs text-emerald-700 hover:text-emerald-800 font-bold hover:underline flex items-center gap-1">
@@ -2033,7 +2215,11 @@
       }
 
       if (qrUrl && finalTotal > 0) {
-        document.getElementById("receiptQRImg").src = qrUrl;
+        const qrEl = document.getElementById("receiptQRImg");
+        if (qrEl) {
+          qrEl.crossOrigin = "anonymous";
+          qrEl.src = qrUrl;
+        }
         document.getElementById("receiptQRContainer").classList.remove("hidden");
       } else {
         document.getElementById("receiptQRContainer").classList.add("hidden");
@@ -2044,6 +2230,57 @@
 
     function closePrintBillModal() {
       document.getElementById("printBillModal").classList.add("hidden");
+    }
+
+    async function downloadReceiptImage() {
+      const receiptEl = document.getElementById("printableReceipt");
+      if (!receiptEl) return;
+
+      const btn = event ? event.currentTarget : null;
+      let originalHtml = "";
+      if (btn) {
+        originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xuất ảnh...`;
+      }
+
+      try {
+        showPosToast("📸 Đang tạo ảnh hóa đơn sắc nét...");
+        if (typeof html2canvas === 'undefined') {
+          throw new Error("Thư viện html2canvas chưa sẵn sàng. Vui lòng thử lại sau giây lát.");
+        }
+
+        const canvas = await html2canvas(receiptEl, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#ffffff",
+          logging: false
+        });
+
+        const tblName = selectedTable ? (selectedTable.name || `Ban_${selectedTable.id}`).replace(/[^a-zA-Z0-9\u00C0-\u024F\u1EA0-\u1EF9]/g, '_') : 'HoaDon';
+        const d = new Date();
+        const timeStamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
+        const fileName = `Bill_${tblName}_${timeStamp}.png`;
+
+        const imgUri = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = imgUri;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        showPosToast(`✅ Đã lưu ảnh hóa đơn: ${fileName}`);
+      } catch (err) {
+        console.error("Lỗi xuất ảnh hóa đơn:", err);
+        alert("Không thể xuất ảnh hóa đơn: " + (err.message || err));
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+        }
+      }
     }
 
     async function printProvisionalBill() {
@@ -2837,6 +3074,362 @@
       setTimeout(() => {
         toast.classList.add("translate-y-20", "opacity-0", "pointer-events-none");
       }, 5000);
+    }
+
+    // ==========================================
+    // 5.5 GỌI MÓN & GỌI THÊM MÓN TRỰC TIẾP TẠI POS
+    // ==========================================
+    let posMenuCategories = [];
+    let posOrderCart = [];
+    let posOrderTargetTable = null;
+    let posSelectedCategory = 'ALL';
+
+    async function loadPosMenuData() {
+      try {
+        const res = await fetch("/api/menu");
+        if (!res.ok) throw new Error("Không thể tải danh sách thực đơn");
+        posMenuCategories = await res.json();
+      } catch (err) {
+        console.error("Lỗi tải thực đơn POS:", err);
+        showPosToast("⚠️ Không thể tải danh sách thực đơn món ăn!");
+      }
+    }
+
+    async function openPosOrderModal(tableId = null) {
+      let target = null;
+      if (tableId) {
+        target = allTables.find(t => t.id == tableId) || { id: tableId, name: `Bàn ${tableId}`, area: '' };
+      } else if (selectedTable) {
+        target = selectedTable;
+      }
+
+      if (!target) {
+        alert("Vui lòng chọn một bàn để gọi món!");
+        return;
+      }
+
+      posOrderTargetTable = target;
+
+      const titleEl = document.getElementById("posOrderModalTitle");
+      if (titleEl) titleEl.innerText = `Gọi Món Cho ${target.name}`;
+
+      const hasItems = (target.total_items > 0) || (currentBillData && currentBillData.items && currentBillData.items.length > 0 && selectedTable && selectedTable.id === target.id);
+      const roundBadge = document.getElementById("posOrderRoundBadge");
+      if (roundBadge) {
+        roundBadge.innerText = hasItems ? "Đợt Gọi Thêm" : "Mở Bàn / Đợt 1";
+        roundBadge.className = hasItems 
+          ? "text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full" 
+          : "text-[10px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full";
+      }
+
+      const subEl = document.getElementById("posOrderModalSubtitle");
+      if (subEl) {
+        subEl.innerText = `${target.area || 'Khu vực'} • #${target.table_code || target.id} - Chọn món gửi xuống Bếp & Quầy Bar`;
+      }
+
+      posOrderCart = [];
+      const searchInput = document.getElementById("posOrderSearchInput");
+      if (searchInput) searchInput.value = "";
+      const noteInput = document.getElementById("posOrderGeneralNote");
+      if (noteInput) noteInput.value = "";
+      posSelectedCategory = 'ALL';
+
+      document.getElementById("posOrderModal").classList.remove("hidden");
+
+      if (posMenuCategories.length === 0) {
+        const dishesGrid = document.getElementById("posOrderDishesGrid");
+        if (dishesGrid) {
+          dishesGrid.innerHTML = `
+            <div class="py-16 text-center text-stone-400 text-xs">
+              <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 text-emerald-600"></i>
+              <p>Đang tải danh mục thực đơn...</p>
+            </div>
+          `;
+        }
+        await loadPosMenuData();
+      }
+
+      renderPosOrderCategoryPills();
+      filterPosOrderDishes();
+      renderPosOrderCart();
+    }
+
+    function closePosOrderModal() {
+      document.getElementById("posOrderModal").classList.add("hidden");
+      posOrderTargetTable = null;
+      posOrderCart = [];
+    }
+
+    function renderPosOrderCategoryPills() {
+      const container = document.getElementById("posOrderCategoryPills");
+      if (!container) return;
+
+      let totalDishes = 0;
+      posMenuCategories.forEach(cat => {
+        totalDishes += (cat.items || []).length;
+      });
+
+      let html = `
+        <button type="button" onclick="selectPosOrderCategory('ALL')" class="px-3 py-1 rounded-full text-xs font-bold transition whitespace-nowrap flex-shrink-0 ${posSelectedCategory === 'ALL' ? 'bg-emerald-800 text-white shadow-xs' : 'bg-stone-200 hover:bg-stone-300 text-stone-700'}">
+          Tất cả (${totalDishes})
+        </button>
+      `;
+
+      posMenuCategories.forEach(cat => {
+        const count = (cat.items || []).length;
+        const isSel = posSelectedCategory == cat.id;
+        html += `
+          <button type="button" onclick="selectPosOrderCategory(${cat.id})" class="px-3 py-1 rounded-full text-xs font-bold transition whitespace-nowrap flex-shrink-0 ${isSel ? 'bg-emerald-800 text-white shadow-xs' : 'bg-stone-200 hover:bg-stone-300 text-stone-700'}">
+            ${cat.name} (${count})
+          </button>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function selectPosOrderCategory(catId) {
+      posSelectedCategory = catId;
+      renderPosOrderCategoryPills();
+      filterPosOrderDishes();
+    }
+
+    function filterPosOrderDishes() {
+      const grid = document.getElementById("posOrderDishesGrid");
+      if (!grid) return;
+
+      const searchVal = (document.getElementById("posOrderSearchInput")?.value || "").trim().toLowerCase();
+
+      let matchedDishes = [];
+      posMenuCategories.forEach(cat => {
+        if (posSelectedCategory !== 'ALL' && cat.id != posSelectedCategory) return;
+        (cat.items || []).forEach(it => {
+          const matchName = it.name.toLowerCase().includes(searchVal);
+          const matchCode = it.id.toString().includes(searchVal);
+          if (searchVal === "" || matchName || matchCode) {
+            matchedDishes.push({ ...it, category_name: cat.name });
+          }
+        });
+      });
+
+      if (matchedDishes.length === 0) {
+        grid.innerHTML = `
+          <div class="py-16 text-center text-stone-400 text-xs">
+            <i class="fa-solid fa-bowl-food text-3xl mb-2 text-stone-300"></i>
+            <p>Không tìm thấy món ăn phù hợp</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = `
+        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          ${matchedDishes.map(it => {
+            const cartItem = posOrderCart.find(ci => ci.item_id === it.id);
+            const cartQty = cartItem ? cartItem.quantity : 0;
+            const isUnavailable = it.is_available === 0 || it.out_of_ingredients === 1;
+
+            return `
+              <div onclick="${isUnavailable ? '' : `addDishToPosCart(${it.id})`}" 
+                   class="relative bg-white rounded-2xl p-2.5 border transition cursor-pointer flex flex-col justify-between group shadow-xs ${isUnavailable ? 'opacity-50 cursor-not-allowed border-stone-200' : cartQty > 0 ? 'border-emerald-600 bg-emerald-50/40 ring-1 ring-emerald-600' : 'border-stone-200 hover:border-emerald-500 hover:shadow-md'}">
+                
+                ${cartQty > 0 ? `
+                  <span class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-md animate-in zoom-in-75">
+                    ${cartQty}
+                  </span>
+                ` : ''}
+
+                <div>
+                  <div class="flex items-start justify-between gap-1">
+                    <span class="font-bold text-xs text-stone-900 group-hover:text-emerald-800 line-clamp-2 leading-tight">${it.name}</span>
+                  </div>
+                  <div class="text-[10px] text-stone-400 mt-0.5 line-clamp-1">${it.category_name}</div>
+                </div>
+
+                <div class="mt-2.5 pt-2 border-t border-stone-100 flex items-center justify-between">
+                  <span class="font-bold text-xs text-emerald-700">${formatVND(it.price)}</span>
+                  ${isUnavailable ? `
+                    <span class="text-[10px] font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded">Hết</span>
+                  ` : `
+                    <button type="button" class="w-6 h-6 rounded-lg bg-emerald-100 group-hover:bg-emerald-600 text-emerald-800 group-hover:text-white flex items-center justify-center text-xs font-bold transition">
+                      <i class="fa-solid fa-plus text-[10px]"></i>
+                    </button>
+                  `}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function addDishToPosCart(itemId) {
+      let targetItem = null;
+      for (const cat of posMenuCategories) {
+        const found = (cat.items || []).find(it => it.id === itemId);
+        if (found) {
+          targetItem = found;
+          break;
+        }
+      }
+      if (!targetItem) return;
+
+      const existing = posOrderCart.find(ci => ci.item_id === itemId);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        posOrderCart.push({
+          item_id: targetItem.id,
+          name: targetItem.name,
+          price: targetItem.price,
+          quantity: 1,
+          note: ""
+        });
+      }
+
+      renderPosOrderCart();
+      filterPosOrderDishes();
+    }
+
+    function updatePosCartQty(itemId, delta) {
+      const existing = posOrderCart.find(ci => ci.item_id === itemId);
+      if (!existing) return;
+      existing.quantity += delta;
+      if (existing.quantity <= 0) {
+        posOrderCart = posOrderCart.filter(ci => ci.item_id !== itemId);
+      }
+      renderPosOrderCart();
+      filterPosOrderDishes();
+    }
+
+    function removeDishFromPosCart(itemId) {
+      posOrderCart = posOrderCart.filter(ci => ci.item_id !== itemId);
+      renderPosOrderCart();
+      filterPosOrderDishes();
+    }
+
+    function updatePosCartNote(itemId, note) {
+      const existing = posOrderCart.find(ci => ci.item_id === itemId);
+      if (existing) {
+        existing.note = note.trim();
+      }
+    }
+
+    function renderPosOrderCart() {
+      const container = document.getElementById("posOrderCartItems");
+      const badge = document.getElementById("posOrderCartBadge");
+      const totalEl = document.getElementById("posOrderCartTotal");
+      const submitBtn = document.getElementById("btnSubmitPosOrder");
+
+      const totalQty = posOrderCart.reduce((sum, it) => sum + it.quantity, 0);
+      const totalPrice = posOrderCart.reduce((sum, it) => sum + (it.price * it.quantity), 0);
+
+      if (badge) badge.innerText = `${totalQty} món`;
+      if (totalEl) totalEl.innerText = formatVND(totalPrice);
+      if (submitBtn) submitBtn.disabled = posOrderCart.length === 0;
+
+      if (!container) return;
+
+      if (posOrderCart.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-16 text-stone-400 text-xs">
+            <i class="fa-solid fa-hand-pointer text-2xl text-stone-300 mb-2"></i>
+            <p>Chưa có món nào được chọn.</p>
+            <p class="text-[11px] text-stone-400 mt-0.5">Nhấp vào món ở cột thực đơn bên trái để thêm vào đây.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = posOrderCart.map(it => `
+        <div class="bg-stone-50 rounded-2xl p-2.5 border border-stone-200 text-xs space-y-2">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <div class="font-bold text-stone-900 leading-tight">${it.name}</div>
+              <div class="text-[11px] text-stone-500 font-mono mt-0.5">${formatVND(it.price)}</div>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <div class="font-black text-emerald-800 text-xs">${formatVND(it.price * it.quantity)}</div>
+              <button type="button" onclick="removeDishFromPosCart(${it.item_id})" class="text-[11px] text-rose-500 hover:text-rose-700 hover:underline">
+                Xóa
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 pt-1 border-t border-stone-200/70">
+            <div class="flex items-center bg-white border border-stone-300 rounded-lg overflow-hidden flex-shrink-0">
+              <button type="button" onclick="updatePosCartQty(${it.item_id}, -1)" class="w-6 h-6 flex items-center justify-center text-stone-600 hover:bg-stone-100 font-bold text-xs">
+                -
+              </button>
+              <span class="w-7 text-center font-bold text-xs text-stone-900">${it.quantity}</span>
+              <button type="button" onclick="updatePosCartQty(${it.item_id}, 1)" class="w-6 h-6 flex items-center justify-center text-stone-600 hover:bg-stone-100 font-bold text-xs">
+                +
+              </button>
+            </div>
+            <input type="text" value="${it.note || ''}" onchange="updatePosCartNote(${it.item_id}, this.value)" placeholder="Ghi chú món (ít cay, không đường...)" class="flex-1 px-2 py-1 bg-white border border-stone-200 rounded-lg text-[11px] text-stone-700 focus:outline-emerald-600">
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function submitPosOrder() {
+      if (!posOrderTargetTable) {
+        alert("Vui lòng chọn bàn cần gọi món!");
+        return;
+      }
+      if (posOrderCart.length === 0) {
+        alert("Vui lòng chọn ít nhất 1 món ăn trước khi gửi bếp!");
+        return;
+      }
+
+      const btn = document.getElementById("btnSubmitPosOrder");
+      const origHtml = btn ? btn.innerHTML : "";
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang gửi bếp & in phiếu...`;
+      }
+
+      const generalNote = (document.getElementById("posOrderGeneralNote")?.value || "").trim();
+
+      const payload = {
+        table_id: posOrderTargetTable.id,
+        order_type: "DINE_IN",
+        customer_note: generalNote,
+        items: posOrderCart.map(it => ({
+          item_id: it.item_id,
+          quantity: it.quantity,
+          note: it.note || null
+        }))
+      };
+
+      try {
+        const res = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Không thể gửi đơn đặt món");
+        }
+
+        const orderedTableName = posOrderTargetTable.name;
+        const orderedTableId = posOrderTargetTable.id;
+
+        closePosOrderModal();
+        showPosToast(`✅ Đã gửi đợt món mới cho ${orderedTableName} xuống Bếp & In phiếu thành công!`);
+
+        await fetchTablesOverview();
+        await openTableDetails(orderedTableId);
+      } catch (err) {
+        console.error("Lỗi gửi món POS:", err);
+        alert("Lỗi khi gửi đơn món: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+        }
+      }
     }
 
     // ==========================================
