@@ -1316,7 +1316,7 @@
 
               return `
               <div onclick="openItemModal(${item.id})" class="cursor-pointer bg-white rounded-2xl p-3 shadow-xs hover:shadow-md ${theme.borderHover} border border-stone-200/80 flex flex-col justify-between active:scale-[0.99] transition ${!isAvailable ? 'opacity-70 bg-stone-50/70' : ''}">
-                <div class="flex gap-3 items-start">
+                <div class="flex gap-3 items-start flex-1">
                   <!-- Ảnh món -->
                   <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden flex-shrink-0 bg-stone-50 border border-stone-100 group/thumb">
                     <img src="${item.image_url || '/static/logo.png'}" alt="${itemName}" loading="lazy" onerror="this.onerror=null; this.src='/static/logo.png';" class="w-full h-full object-cover transition duration-300 group-hover/thumb:scale-110 ${!isAvailable ? 'grayscale-[40%]' : ''}">
@@ -1331,24 +1331,28 @@
                     </span>
                   </div>
 
-                  <!-- Thông tin món (Nguyên liệu chính) -->
-                  <div class="flex-1 min-w-0">
-                    <h4 class="font-bold text-sm text-stone-900 truncate hover:text-emerald-800 transition">${itemName}</h4>
-                    <div class="flex flex-wrap gap-1 mt-1">
-                      ${(item.portion && item.portion !== '1 phần') ? `
-                        <div class="flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/80">
-                          <i class="fa-solid fa-scale-balanced text-[9px] text-amber-700"></i>
-                          <span>${item.portion}</span>
-                        </div>
-                      ` : ''}
-                      ${(item.calories !== undefined && item.calories !== null && item.calories > 0) ? `
-                        <div class="flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/80">
-                          <span class="text-[10px] text-orange-500">🔥</span>
-                          <span>${item.calories} kcal</span>
-                        </div>
-                      ` : ''}
+                  <!-- Thông tin món: Tên món + Các vị ngay sau tên (nhiều thì xuống dòng) -->
+                  <div class="flex-1 min-w-0 flex flex-col justify-between self-stretch">
+                    <div>
+                      <div class="flex flex-wrap items-center gap-1.5" onclick="event.stopPropagation()">
+                        <h4 class="font-bold text-sm text-stone-900 hover:text-emerald-800 transition mr-0.5 leading-snug inline-block">${itemName}</h4>
+                        ${(hasFlavors && isAvailable) ? item.options[0].options.map(fl => {
+                          const safeFl = fl.replace(/'/g, "\\'");
+                          const safeGroup = optGroupName.replace(/'/g, "\\'");
+                          return `
+                            <button type="button" 
+                              onclick="event.stopPropagation(); addDishFlavorDirectly(${item.id}, '${safeGroup}', '${safeFl}')" 
+                              class="px-2 py-0.5 text-[11px] font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-300 hover:border-emerald-600 transition active:scale-95 shadow-2xs inline-flex items-center gap-1 leading-tight flex-shrink-0">
+                              <i class="fa-solid fa-plus text-[8px] text-emerald-600"></i>
+                              <span>${fl}</span>
+                            </button>
+                          `;
+                        }).join('') : ''}
+                      </div>
                     </div>
-                    <div class="mt-2 flex items-center justify-between">
+
+                    <!-- Giá tiền được đẩy lui xuống dưới -->
+                    <div class="mt-2.5 pt-1 flex items-center justify-between">
                       ${hasDisc ? `
                         <div class="flex items-center gap-1.5">
                           <span class="font-black text-rose-600 text-sm">${formatVND(effectivePrice)}</span>
@@ -1375,30 +1379,6 @@
                     </div>
                   </div>
                 </div>
-
-                ${(hasFlavors && isAvailable) ? `
-                  <!-- Danh sách các vị hiển thị trực tiếp để khách bấm 1 chạm thêm ngay -->
-                  <div class="mt-2.5 pt-2 border-t border-stone-100 flex flex-col gap-1.5" onclick="event.stopPropagation()">
-                    <div class="text-[10px] font-bold text-stone-500 flex items-center gap-1">
-                      <i class="fa-solid fa-wand-magic-sparkles text-emerald-600"></i>
-                      <span>Chọn vị chế biến để thêm:</span>
-                    </div>
-                    <div class="flex flex-wrap gap-1.5">
-                      ${item.options[0].options.map(fl => {
-                        const safeFl = fl.replace(/'/g, "\\'");
-                        const safeGroup = optGroupName.replace(/'/g, "\\'");
-                        return `
-                          <button type="button" 
-                            onclick="event.stopPropagation(); addDishFlavorDirectly(${item.id}, '${safeGroup}', '${safeFl}')" 
-                            class="px-2.5 py-1 text-xs font-semibold rounded-xl bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-300 hover:border-emerald-600 transition active:scale-95 shadow-2xs flex items-center gap-1">
-                            <i class="fa-solid fa-plus text-[9px] text-emerald-600"></i>
-                            <span>${fl}</span>
-                          </button>
-                        `;
-                      }).join('')}
-                    </div>
-                  </div>
-                ` : ''}
               </div>
             `}).join('')}
           </div>
