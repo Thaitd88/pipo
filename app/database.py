@@ -22,8 +22,11 @@ if not os.path.exists(DB_PATH) and os.path.exists(OLD_DB_PATH):
 SECRET_SALT = "PiPoGarden_Secret_Salt_2026_xYz"
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode = WAL;")
+    conn.execute("PRAGMA synchronous = NORMAL;")
+    conn.execute("PRAGMA busy_timeout = 5000;")
     return conn
 
 def hash_password(password: str) -> str:
@@ -493,8 +496,16 @@ def init_db():
     # Xóa vĩnh viễn các món con thừa/ẩn, xóa NVL phụ trong kho/BOM, clear món Sân Pickle
     clean_redundant_dishes_and_secondary_bom(conn)
 
-    # Đảm bảo cấu hình mặc định cho 2 máy in LAN (Bếp 192.168.31.251 và Thu ngân 192.168.31.252)
-    ensure_printer_settings(conn)
+    # Tối ưu hóa hiệu năng truy vấn CSDL (Database Performance Indexes)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_menu_items_cat_avail ON menu_items(category_id, is_available);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_orders_table_status ON orders(table_id, status, payment_status);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id, status);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_service_calls_status ON service_calls(status, table_id);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_recipe_bom_menu_item ON recipe_bom(menu_item_id, ingredient_id);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_reservations_date_status ON reservations(booking_date, status);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_print_jobs_status ON print_jobs(status, station);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_tables_status ON tables(status, area);")
+    conn.commit()
 
     conn.close()
 
@@ -689,6 +700,13 @@ def consolidate_menu_items_with_options(conn):
     8. Đậu hũ (Chiên giòn, Tẩm hành)
     """
     cursor = conn.cursor()
+
+    # Kiểm tra an toàn: Nếu các món chính đã có tùy chọn vị (options_json) thì không ghi đè lại,
+    # bảo vệ 100% các chỉnh sửa thủ công của chủ quán trên giao diện Admin.
+    cursor.execute("SELECT COUNT(*) FROM menu_items WHERE options_json IS NOT NULL AND options_json != '[]' AND options_json != ''")
+    has_options = cursor.fetchone()[0]
+    if has_options > 0:
+        return
 
     CONSOLIDATIONS = [
         {
@@ -973,8 +991,14 @@ def clean_redundant_dishes_and_secondary_bom(conn):
     """
     cursor = conn.cursor()
 
-    # 1. Xóa các món con thừa (các món đã gom vào món chính với tùy chọn vị)
+    # Kiểm tra an toàn: Nếu các món con thừa đã được dọn sạch thì không chạy lại,
+    # tránh reset lại phân loại món Sân Pickle người dùng đã tick thủ công.
     DELETED_CHILD_DISH_IDS = [141, 149, 151, 152, 155, 156, 158, 165, 166, 168, 170, 171, 173, 174, 175, 177]
+    cursor.execute(f"SELECT COUNT(*) FROM menu_items WHERE id IN ({','.join(['?']*len(DELETED_CHILD_DISH_IDS))})", DELETED_CHILD_DISH_IDS)
+    if cursor.fetchone()[0] == 0:
+        return
+
+    # 1. Xóa các món con thừa (các món đã gom vào món chính với tùy chọn vị)
     cursor.execute(f"DELETE FROM recipe_bom WHERE menu_item_id IN ({','.join(['?']*len(DELETED_CHILD_DISH_IDS))})", DELETED_CHILD_DISH_IDS)
     cursor.execute(f"DELETE FROM menu_items WHERE id IN ({','.join(['?']*len(DELETED_CHILD_DISH_IDS))})", DELETED_CHILD_DISH_IDS)
 

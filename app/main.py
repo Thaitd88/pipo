@@ -10,6 +10,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.gzip import GZipMiddleware
 from contextlib import asynccontextmanager
 import os
 import json
@@ -140,6 +141,7 @@ async def lifespan(app: FastAPI):
     print("[PiPo Garden] Server dang tat.")
 
 app = FastAPI(title="PiPo Garden Restaurant System", lifespan=lifespan)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Mount static và templates
 BASE_DIR = os.path.dirname(__file__)

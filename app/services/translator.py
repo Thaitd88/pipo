@@ -463,7 +463,42 @@ OFFLINE_FOOD_DICT = {
         "zh": "鲜蟹肉黄金炒饭",
         "ko": "신선한 게살 볶음밥",
         "ru": "Жареный рис с мясом краба"
-    }
+    },
+    # 28 Vị chế biến món ăn PiPo Garden (Preparation Styles / Flavors)
+    "Nướng muối ớt": { "en": "Chili Salt BBQ", "zh": "椒盐炭烤", "ko": "칠리 솔트 숯불구이", "ru": "На гриле с солью и чили" },
+    "Chiên mắm": { "en": "Crispy Fish Sauce Glaze", "zh": "金牌鱼露脆炸", "ko": "단짠 피시소스 튀김", "ru": "В карамельном рыбном соусе" },
+    "Hấp mắm nhĩ": { "en": "Steamed with Premium Fish Sauce", "zh": "原汁鱼露清蒸", "ko": "피시소스 찜", "ru": "На пару с рыбным соусом" },
+    "Hấp hành": { "en": "Steamed with Fresh Scallions", "zh": "鲜葱清蒸", "ko": "대파 찜", "ru": "На пару со свежим луком" },
+    "Hấp hành gừng": { "en": "Steamed with Ginger & Scallions", "zh": "葱姜清蒸", "ko": "생강 대파 찜", "ru": "На пару с имбирем и луком" },
+    "Nướng Tây Bắc": { "en": "Northwest Pepper Herb BBQ", "zh": "西北野胡椒炭烤", "ko": "서북 허브 숯불구이", "ru": "С северо-западными травами" },
+    "Lẩu thuốc bắc": { "en": "Herbal Medicine Hotpot", "zh": "秘制滋补药膳锅", "ko": "한방 약선 전골", "ru": "Травяной целебный суп" },
+    "Nướng riềng mẻ": { "en": "Galangal & Fermented Rice BBQ", "zh": "南姜香糟炭烤", "ko": "생강 발효 숯불구이", "ru": "На гриле с галангалом и рисом" },
+    "Sốt BBQ": { "en": "Garden BBQ Sauce", "zh": "特色烤肉BBQ酱", "ko": "가든 BBQ 소스", "ru": "Фирменный соус BBQ" },
+    "Sốt BBQ cay ngọt": { "en": "Sweet & Spicy BBQ Sauce", "zh": "秘制甜辣BBQ酱", "ko": "스위트 스파이시 BBQ", "ru": "Сладко-острый соус BBQ" },
+    "Sốt BBQ cay nhẹ": { "en": "Mild Spicy BBQ Sauce", "zh": "温和微辣BBQ酱", "ko": "마일드 스파이시 BBQ", "ru": "Мягкий соус BBQ" },
+    "Sốt tiêu đen": { "en": "Black Pepper Sauce", "zh": "秘制黑椒浓汁", "ko": "블랙페퍼 소스", "ru": "С соусом из черного перца" },
+    "Ướp mật ong thảo mộc": { "en": "Wild Honey & Herbs", "zh": "野生蜂蜜香草", "ko": "야생꿀 & 허브 양념", "ru": "С диким медом и травами" },
+    "Phô mai tan chảy": { "en": "Melted Mozzarella Cheese", "zh": "浓郁拉丝芝士", "ko": "치즈 토핑", "ru": "С расплавленным сыром" },
+    "Mỡ hành tóp mỡ": { "en": "Scallion Oil & Crispy Pork Rind", "zh": "葱油香脆猪油渣", "ko": "대파 기름 & 돼지껍데기", "ru": "Луковое масло со шкварками" },
+    "Trứng cút sốt cay BBQ": { "en": "Quail Egg & Spicy BBQ", "zh": "鹌鹑蛋甜辣酱", "ko": "메추리알 매콤 BBQ", "ru": "Перепелиное яйцо с острым BBQ" },
+    "Sốt bơ tỏi": { "en": "Garlic Butter Glaze", "zh": "蒜香黄油浓汁", "ko": "갈릭 버터 소스", "ru": "В чесночно-сливочном соусе" },
+    "Muối ớt Tây Bắc": { "en": "Northwest Salt & Pepper", "zh": "西北特色椒盐", "ko": "북서부 허브 소금", "ru": "Северо-западная соль с чили" },
+    "Cháy tỏi": { "en": "Crispy Garlic Tossed", "zh": "金蒜香炒", "ko": "바삭한 마늘 볶음", "ru": "С хрустящим чесноком" },
+    "Sốt trứng muối (kèm bánh mì)": { "en": "Salted Egg Lava Sauce (+ Baguette)", "zh": "金沙咸蛋黄酱 (配法棍)", "ko": "솔티드 에그 소스 (+ 바게트)", "ru": "В соусе из соленого желтка (+ багет)" },
+    "Hấp sả": { "en": "Steamed with Lemongrass", "zh": "清香香茅蒸", "ko": "레몬그라스 찜", "ru": "На пару с лемонграссом" },
+    "Hấp Thái": { "en": "Thai Spicy Lemongrass Steamed", "zh": "泰式冬阴酸辣蒸", "ko": "태국식 매콤 똠얌 찜", "ru": "По-тайски с лемонграссом" },
+    "Hấp nước dừa / sả": { "en": "Steamed with Coconut & Lemongrass", "zh": "椰汁香茅原味蒸", "ko": "코코넛 워터 & 레몬그라스 찜", "ru": "На пару в кокосовом молоке с лемонграссом" },
+    "Nướng mỡ hành": { "en": "Grilled with Scallion Oil & Peanuts", "zh": "葱油花生炭烤", "ko": "파기름 & 땅콩 숯불구이", "ru": "На гриле с зеленым луком и арахисом" },
+    "Xào rau muống": { "en": "Stir-Fried with Morning Glory", "zh": "蒜香空心菜炒", "ko": "모닝글로리(공심채) 볶음", "ru": "С водяным шпинатом" },
+    "Xào cay": { "en": "Spicy Sautéed", "zh": "川香香辣炒", "ko": "매콤 양념 볶음", "ru": "В остром соусе" },
+    "Xào tỏi": { "en": "Stir-Fried with Garlic", "zh": "金蒜清炒", "ko": "마늘 볶음", "ru": "Обжаренный с чесноком" },
+    "Luộc": { "en": "Boiled / Poached", "zh": "原汁白灼", "ko": "데침 / 숙회", "ru": "Отварной" },
+    "Sốt dầu hào": { "en": "Oyster Sauce Glazed", "zh": "蚝油生抽鲜炒", "ko": "굴소스 볶음", "ru": "В устричном соусе" },
+    "Chiên giòn": { "en": "Golden Crispy", "zh": "香脆酥炸", "ko": "황금 바삭 튀김", "ru": "Хрустящий жареный" },
+    "Tẩm hành": { "en": "Tossed with Scallion Oil", "zh": "传统葱油浸香", "ko": "고소한 파기름 양념", "ru": "С зеленым луком в масле" },
+    "Bò": { "en": "Tender Beef", "zh": "鲜嫩牛肉", "ko": "소고기", "ru": "С говядиной" },
+    "Ghẹ": { "en": "Fresh Flower Crab", "zh": "鲜甜花蟹肉", "ko": "꽃게살", "ru": "С мясом краба" },
+    "Hải sản": { "en": "Mixed Seafood", "zh": "极品海鲜", "ko": "모듬 해산물", "ru": "С морепродуктами" }
 }
 
 def translate_single_text(text: str, target_lang: str) -> str:
