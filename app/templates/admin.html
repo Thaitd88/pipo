@@ -1238,9 +1238,14 @@
           <label for="itemFormAvailable" class="font-bold text-stone-700">Món đang còn hàng (Hiển thị cho khách gọi)</label>
         </div>
 
-        <div class="pt-3 flex justify-end gap-2 border-t border-stone-100">
-          <button type="button" onclick="closeMenuItemModal()" class="px-4 py-2 rounded-xl border border-stone-300 text-stone-600 font-semibold">Hủy</button>
-          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-xs">Lưu Món Ăn & Định Lượng</button>
+        <div class="pt-3 flex items-center justify-between gap-2 border-t border-stone-100">
+          <button type="button" id="btnDeleteCurrentDish" onclick="deleteCurrentDishFromModal()" class="px-4 py-2 rounded-xl border border-rose-300 text-rose-600 hover:bg-rose-50 font-bold text-xs flex items-center gap-1.5 hidden transition" title="Xóa món này khỏi thực đơn">
+            <i class="fa-solid fa-trash"></i> <span>Xóa Món Này</span>
+          </button>
+          <div class="flex items-center gap-2 ml-auto">
+            <button type="button" onclick="closeMenuItemModal()" class="px-4 py-2 rounded-xl border border-stone-300 text-stone-600 font-semibold text-xs">Hủy</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs">Lưu Món Ăn & Định Lượng</button>
+          </div>
         </div>
       </form>
     </div>
@@ -2130,7 +2135,8 @@
         3: { active: 'bg-rose-600 text-white shadow-xs', inactive: 'bg-rose-50 text-rose-950 border border-rose-200 hover:bg-rose-100', pillActive: 'bg-white/20 text-white', pillInactive: 'bg-rose-200 text-rose-950' },
         4: { active: 'bg-sky-600 text-white shadow-xs', inactive: 'bg-sky-50 text-sky-950 border border-sky-200 hover:bg-sky-100', pillActive: 'bg-white/20 text-white', pillInactive: 'bg-sky-200 text-sky-950' },
         5: { active: 'bg-purple-600 text-white shadow-xs', inactive: 'bg-purple-50 text-purple-950 border border-purple-200 hover:bg-purple-100', pillActive: 'bg-white/20 text-white', pillInactive: 'bg-purple-200 text-purple-950' },
-        6: { active: 'bg-teal-600 text-white shadow-xs', inactive: 'bg-teal-50 text-teal-950 border border-teal-200 hover:bg-teal-100', pillActive: 'bg-white/20 text-white', pillInactive: 'bg-teal-200 text-teal-950' }
+        6: { active: 'bg-teal-600 text-white shadow-xs', inactive: 'bg-teal-50 text-teal-950 border border-teal-200 hover:bg-teal-100', pillActive: 'bg-white/20 text-white', pillInactive: 'bg-teal-200 text-teal-950' },
+        7: { active: 'bg-orange-600 text-white shadow-xs', inactive: 'bg-orange-50 text-orange-950 border border-orange-200 hover:bg-orange-100', pillActive: 'bg-white/20 text-white', pillInactive: 'bg-orange-200 text-orange-950' }
       };
 
       let html = `
@@ -2216,9 +2222,14 @@
                 <input type="checkbox" onchange="toggleItemAvailability(${item.id}, this.checked)" ${item.is_available ? 'checked' : ''} class="rounded text-emerald-600">
                 <span>Còn hàng</span>
               </label>
-              <button onclick="editMenuItem(${JSON.stringify(item).replace(/"/g, '&quot;')})" class="text-xs text-blue-600 hover:text-blue-800 font-bold">
-                <i class="fa-solid fa-pen-to-square"></i> Sửa & Dịch
-              </button>
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="deleteAdminDish(${item.id}, '${item.name.replace(/'/g, "\\'")}')" class="text-xs text-rose-600 hover:text-rose-800 font-bold flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-rose-50 transition border border-rose-200" title="Xóa món này khỏi thực đơn">
+                  <i class="fa-solid fa-trash text-[11px]"></i> <span>Xóa</span>
+                </button>
+                <button type="button" onclick="editMenuItem(${JSON.stringify(item).replace(/"/g, '&quot;')})" class="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-blue-50 transition border border-blue-200">
+                  <i class="fa-solid fa-pen-to-square text-[11px]"></i> <span>Sửa & Dịch</span>
+                </button>
+              </div>
             </div>
           </div>
         `;
@@ -2353,12 +2364,12 @@
               </select>
             </td>
             <td class="py-1.5 px-3">
-              <input type="number" step="0.01" min="0.001" value="${row.quantity}" oninput="updateAdminBomQuantity(${idx}, this.value)" class="w-full bg-white border border-stone-300 rounded-lg p-1.5 text-xs font-bold text-stone-800 text-right focus:outline-none focus:border-amber-600">
+              <input type="number" step="any" min="0" value="${row.quantity}" oninput="updateAdminBomQuantity(${idx}, this.value)" class="w-full bg-white border border-stone-300 rounded-lg p-1.5 text-xs font-bold text-stone-800 text-right focus:outline-none focus:border-amber-600">
             </td>
             <td class="py-1.5 px-2">
               <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-stone-100 text-stone-700 border border-stone-200">${unit}</span>
             </td>
-            <td class="py-1.5 px-2 text-right font-mono font-bold text-emerald-700">
+            <td class="py-1.5 px-2 text-right font-mono font-bold text-emerald-700" id="adminBomLineCost_${idx}">
               ${formatVND(lineCost)}
             </td>
             <td class="py-1.5 px-2 text-center">
@@ -2369,6 +2380,40 @@
           </tr>
         `;
       }).join('');
+
+      totalGrams = Math.round(totalGrams * 10) / 10;
+      if (totalGramsEl) totalGramsEl.innerText = `${totalGrams} g`;
+      if (costEl) costEl.innerText = formatVND(totalCost);
+
+      if (calInput && (!calInput.value || parseInt(calInput.value) === 0) && totalGrams > 0) {
+        calInput.value = Math.round(totalGrams * 1.25);
+      }
+    }
+
+    function updateAdminBomTotals() {
+      const totalGramsEl = document.getElementById("adminBomTotalGrams");
+      const costEl = document.getElementById("adminBomCost");
+      const calInput = document.getElementById("itemFormCalories");
+
+      let totalCost = 0;
+      let totalGrams = 0;
+
+      adminBomRows.forEach((row, idx) => {
+        const ing = adminInventoryItems.find(x => x.id === row.ingredient_id) || {};
+        const unit = ing.unit || row.unit || 'kg';
+        const costPrice = ing.cost_price || row.cost_price || 0;
+        const qty = parseFloat(row.quantity) || 0;
+        const lineCost = qty * costPrice;
+        totalCost += lineCost;
+
+        const factor = getAdminGramConversion(unit);
+        totalGrams += qty * factor;
+
+        const lineCostEl = document.getElementById(`adminBomLineCost_${idx}`);
+        if (lineCostEl) {
+          lineCostEl.innerText = formatVND(lineCost);
+        }
+      });
 
       totalGrams = Math.round(totalGrams * 10) / 10;
       if (totalGramsEl) totalGramsEl.innerText = `${totalGrams} g`;
@@ -2411,11 +2456,12 @@
     }
 
     function updateAdminBomQuantity(idx, val) {
-      const qty = parseFloat(val) || 0;
+      if (typeof val === 'string') val = val.replace(',', '.');
+      const qty = parseFloat(val);
       if (adminBomRows[idx]) {
-        adminBomRows[idx].quantity = qty;
+        adminBomRows[idx].quantity = isNaN(qty) ? 0 : qty;
       }
-      renderAdminBomTable();
+      updateAdminBomTotals();
     }
 
     async function saveAdminBomForDish(dishId) {
@@ -2473,9 +2519,23 @@
         adminBomRows = [];
         renderAdminBomTable();
 
+        const delBtn = document.getElementById("btnDeleteCurrentDish");
+        if (delBtn) {
+          delBtn.classList.add("hidden");
+          delBtn.dataset.dishId = "";
+          delBtn.dataset.dishName = "";
+        }
+
         adminDishFlavors = [];
         renderAdminDishFlavors();
       } else {
+        const delBtn = document.getElementById("btnDeleteCurrentDish");
+        if (delBtn) {
+          delBtn.classList.remove("hidden");
+          delBtn.dataset.dishId = item.id;
+          delBtn.dataset.dishName = item.name;
+        }
+
         document.getElementById("itemModalTitle").innerText = `Chỉnh Sửa Món: ${item.name}`;
         document.getElementById("itemFormId").value = item.id;
         document.getElementById("itemFormCategory").value = item.category_id;
@@ -2545,6 +2605,37 @@
       }
 
       document.getElementById("menuItemModal").classList.remove("hidden");
+    }
+
+    function deleteCurrentDishFromModal() {
+      const btn = document.getElementById("btnDeleteCurrentDish");
+      const dishId = btn ? btn.dataset.dishId : null;
+      const dishName = btn ? btn.dataset.dishName : "";
+      if (dishId) {
+        closeMenuItemModal();
+        deleteAdminDish(dishId, dishName);
+      }
+    }
+
+    async function deleteAdminDish(id, name) {
+      if (!confirm(`Bạn có chắc chắn muốn XÓA món "${name}" khỏi thực đơn không?\n\nLưu ý: Món và toàn bộ định lượng nguyên vật liệu liên quan sẽ bị xóa vĩnh viễn.`)) {
+        return;
+      }
+      try {
+        const res = await fetch(`/api/menu/items/${id}`, {
+          method: "DELETE"
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAdminToast(`Đã xóa món "${name}" thành công!`);
+          await loadAdminMenuItems();
+        } else {
+          alert(data.detail || "Không thể xóa món ăn này.");
+        }
+      } catch (err) {
+        console.error("Lỗi khi xóa món:", err);
+        alert("Lỗi kết nối khi xóa món ăn!");
+      }
     }
 
     async function uploadMenuItemImage(input) {

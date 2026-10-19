@@ -456,6 +456,7 @@ def delete_menu_item(item_id: int):
         conn.close()
         raise HTTPException(status_code=400, detail=f"Không thể xóa món này vì đang có {active_count} đơn hàng chờ chế biến trong bếp!")
 
+    cursor.execute("DELETE FROM recipe_bom WHERE menu_item_id = ?", (item_id,))
     cursor.execute("DELETE FROM menu_items WHERE id = ?", (item_id,))
     conn.commit()
     conn.close()

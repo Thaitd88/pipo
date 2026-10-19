@@ -456,6 +456,9 @@ def init_db():
     # Tự động đồng bộ và di chuyển sang 6 nhóm danh mục chuẩn
     ensure_six_categories(conn)
 
+    # Đảm bảo danh mục Hot BBQ đứng đầu và 5 món BBQ sân vườn chuẩn vị kèm vị & BOM
+    ensure_bbq_category_and_dishes(conn)
+
     # Tự động phân loại 3 Nhóm Thực Đơn Lớn (Nhà Hàng, Cơm Trưa, Cafe / Ăn Sáng)
     ensure_main_menu_classification(conn)
 
@@ -982,6 +985,236 @@ def clean_redundant_dishes_and_secondary_bom(conn):
         SET main_menu_type = 'RESTAURANT'
         WHERE main_menu_type LIKE '%PICKLE%'
     """)
+
+def ensure_bbq_category_and_dishes(conn):
+    """
+    Đảm bảo danh mục 'Hot BBQ' đứng đầu tiên trên thực đơn (display_order = 0)
+    và thêm 5 món BBQ nướng sân vườn đặc sắc kèm tùy chọn vị và định lượng BOM.
+    """
+    cursor = conn.cursor()
+
+    # 1. Tạo hoặc cập nhật Category Hot BBQ
+    cursor.execute("SELECT id, display_order FROM categories WHERE name = 'Hot BBQ'")
+    bbq_cat = cursor.fetchone()
+
+    bbq_translations = {
+        "en": "Garden Hot BBQ",
+        "zh": "炭火热烤 (花园BBQ)",
+        "ko": "가든 숯불 핫 BBQ",
+        "ru": "Горячее барбекю в саду"
+    }
+
+    if bbq_cat:
+        bbq_cat_id = bbq_cat["id"]
+        cursor.execute("""
+            UPDATE categories 
+            SET display_order = 0, icon = '🔥', is_active = 1, translations_json = ? 
+            WHERE id = ?
+        """, (json.dumps(bbq_translations, ensure_ascii=False), bbq_cat_id))
+    else:
+        cursor.execute("""
+            INSERT INTO categories (id, name, icon, display_order, is_active, translations_json)
+            VALUES (7, 'Hot BBQ', '🔥', 0, 1, ?)
+        """, (json.dumps(bbq_translations, ensure_ascii=False),))
+        bbq_cat_id = cursor.lastrowid or 7
+
+    # Đảm bảo các danh mục khác có thứ tự từ 1..6
+    OTHER_ORDERS = {
+        "Khai Vị": 1,
+        "Gà - Vịt": 2,
+        "Heo - Bò": 3,
+        "Hải Sản": 4,
+        "Cơm - Mì": 5,
+        "Đồ Uống": 6
+    }
+    for cname, corder in OTHER_ORDERS.items():
+        cursor.execute("UPDATE categories SET display_order = ? WHERE name = ?", (corder, cname))
+
+    # 2. Thêm 5 món Garden BBQ chuẩn phong cách sân vườn PiPo Garden
+    BBQ_DISHES = [
+        {
+            "name": "Dẻ sườn bò Mỹ nướng sốt BBQ",
+            "price": 225000,
+            "portion": "Dẻ sườn bò 350g",
+            "description": "Dẻ sườn bò Mỹ vân mỡ đều nướng thơm xì xèo trên than hoa ngoài trời, thịt mềm ngọt đậm đà, ăn kèm rau củ nướng.",
+            "image_url": "/static/dishes/bo_xuyen_tieu.jpg",
+            "options": [
+                {"name": "Chọn vị sốt nướng", "options": ["Sốt BBQ cay ngọt", "Nướng muối ớt", "Sốt tiêu đen"]}
+            ],
+            "translations": {
+                "en": {
+                    "name": "Grilled US Beef Ribs (Choose Sauce)",
+                    "description": "Tender grilled US beef ribs on open flame garden BBQ, served with choice of Sweet Spicy BBQ sauce, Chili Salt, or Black Pepper sauce."
+                },
+                "zh": {
+                    "name": "炭烤美式牛肋条 (选风味酱汁)",
+                    "description": "精选美式牛肋条，炭火慢烤香嫩多汁，可选甜辣BBQ酱、椒盐香烤或黑椒浓汁。"
+                },
+                "ko": {
+                    "name": "미국산 소갈비살 숯불구이 (소스 선택)",
+                    "description": "숯불에 직접 구워 풍미 가득한 소갈비살. 스위트 스파이시 BBQ, 칠리 솔트, 블랙페퍼 소스 중 선택."
+                },
+                "ru": {
+                    "name": "Говяжьи ребрышки на гриле (выберите соус)",
+                    "description": "Нежные говяжьи ребрышки на открытом огне барбекю: сладкий BBQ, острый с солью и чили или черный перец."
+                }
+            },
+            "bom": [("NVL10", 0.35)]
+        },
+        {
+            "name": "Sườn heo que nướng mật ong thảo mộc",
+            "price": 165000,
+            "portion": "Sườn heo que 400g",
+            "description": "Từng dẻ sườn que nướng than hoa vàng rộm, mọng nước, dậy hương thơm mật ong hoa rừng và thảo mộc Phú Quốc.",
+            "image_url": "/static/dishes/suon_heo_nuong_muoi_ot.jpg",
+            "options": [
+                {"name": "Chọn vị sốt nướng", "options": ["Ướp mật ong thảo mộc", "Nướng muối ớt", "Sốt BBQ cay nhẹ"]}
+            ],
+            "translations": {
+                "en": {
+                    "name": "Honey Herb Grilled Pork Ribs (Choose Flavor)",
+                    "description": "Juicy grilled pork ribs with crispy golden crust, wild honey and island herbs. Choose Honey Herb, Chili Salt, or Mild BBQ sauce."
+                },
+                "zh": {
+                    "name": "秘制蜜汁香草烤猪排 (选风味)",
+                    "description": "炭火烤制猪排骨，外焦里嫩，可选野生蜂蜜香草、招牌椒盐或温和BBQ酱。"
+                },
+                "ko": {
+                    "name": "허브 꿀 양념 돼지등갈비 구이 (맛 선택)",
+                    "description": "천연 꿀과 허브로 숯불에 노릇하게 구워낸 등갈비. 허니 허브, 칠리 솔트, 마일드 BBQ 중 선택."
+                },
+                "ru": {
+                    "name": "Свиные ребрышки с медом и травами (выберите вкус)",
+                    "description": "Сочные свиные ребрышки на гриле: с диким медом и травами, с солью и чили или с мягким соусом BBQ."
+                }
+            },
+            "bom": [("NVL11", 0.4)]
+        },
+        {
+            "name": "Bò cuộn nấm kim châm nướng sốt BBQ",
+            "price": 145000,
+            "portion": "Bò cuộn nấm 250g (6 cuộn)",
+            "description": "Thịt bò thăn thái lát cuộn nấm kim châm tươi giòn ngọt, quết đẫm sốt BBQ nướng than hoa xì xèo đậm đà.",
+            "image_url": "/static/dishes/bo_xuyen_tieu.jpg",
+            "options": [
+                {"name": "Chọn vị sốt nướng", "options": ["Sốt BBQ cay ngọt", "Sốt tiêu đen", "Nướng muối ớt"]}
+            ],
+            "translations": {
+                "en": {
+                    "name": "Grilled Beef Rolls with Enoki Mushrooms",
+                    "description": "Thinly sliced tender beef rolled with crisp enoki mushrooms, glazed with rich BBQ sauce on charcoal grill."
+                },
+                "zh": {
+                    "name": "肥牛金针菇卷炭火烤 (选酱汁)",
+                    "description": "鲜嫩牛肉片包裹爽脆金针菇，刷上秘制烤肉酱炭火炙烤。"
+                },
+                "ko": {
+                    "name": "팽이버섯 소고기말이 숯불구이",
+                    "description": "부드러운 소고기로 감싼 아삭한 팽이버섯 숯불구이. 스위트 BBQ, 블랙페퍼, 칠리 솔트 중 선택."
+                },
+                "ru": {
+                    "name": "Рулетики из говядины с грибами эноки на гриле",
+                    "description": "Тонкие ломтики говядины с грибами эноки на гриле, глазированные соусом BBQ."
+                }
+            },
+            "bom": [("NVL10", 0.25)]
+        },
+        {
+            "name": "Xiên nướng tổng hợp PiPo Garden",
+            "price": 135000,
+            "portion": "Xiên nướng 4 xiên lớn (300g)",
+            "description": "Xiên nướng tổng hợp gồm thịt heo, bò, ớt chuông và hành tây nướng than hoa thơm lừng chuẩn phong cách BBQ dã ngoại.",
+            "image_url": "/static/dishes/suon_heo_nuong_muoi_ot.jpg",
+            "options": [
+                {"name": "Chọn vị sốt nướng", "options": ["Sốt BBQ cay ngọt", "Muối ớt Tây Bắc", "Sốt bơ tỏi"]}
+            ],
+            "translations": {
+                "en": {
+                    "name": "PiPo Garden Mixed BBQ Skewers (4 Skewers)",
+                    "description": "Mixed outdoor skewers with marinated pork, beef, bell peppers and onions grilled over hot charcoal."
+                },
+                "zh": {
+                    "name": "PiPo花园特色综合烤串 (4大串)",
+                    "description": "花园露营风味综合肉串，包含猪肉、牛肉、甜椒与洋葱，炭香浓郁。"
+                },
+                "ko": {
+                    "name": "피포 가든 모듬 꼬치구이 (4꼬치)",
+                    "description": "돼지고기, 소고기, 파프리카, 양파를 숯불에 구워낸 야외 바베큐 스타일 모듬 꼬치."
+                },
+                "ru": {
+                    "name": "Ассорти шашлычков PiPo Garden (4 шпажки)",
+                    "description": "Шашлычки из свинины, говядины, болгарского перца и лука на гриле в стиле садового барбекю."
+                }
+            },
+            "bom": [("NVL11", 0.15), ("NVL10", 0.15)]
+        },
+        {
+            "name": "Hàu nướng chén sốt BBQ",
+            "price": 119000,
+            "portion": "Hàu sữa 5 chén",
+            "description": "Hàu sữa đại dương béo múp nướng trong từng chén nhôm trên bếp than hoa, sốt phô mai thơm ngậy hoặc mỡ hành tóp mỡ giòn tan.",
+            "image_url": "/static/dishes/hau_nuong_pho_mai.jpg",
+            "options": [
+                {"name": "Chọn vị nướng", "options": ["Phô mai tan chảy", "Mỡ hành tóp mỡ", "Trứng cút sốt cay BBQ"]}
+            ],
+            "translations": {
+                "en": {
+                    "name": "Grilled Cup Oysters (5 Cups - Choose Flavor)",
+                    "description": "Plump ocean oysters grilled in foil cups over charcoal flame. Choice of Melted Cheese, Scallion Oil & Crispy Pork Rind, or Quail Egg Spicy BBQ."
+                },
+                "zh": {
+                    "name": "锡纸炭烤生蚝小盅 (5盅 - 选口味)",
+                    "description": "肥美海生蚝置于锡纸盅炭烤，可选浓郁拉丝芝士、香脆葱油猪油渣或鹌鹑蛋甜辣酱。"
+                },
+                "ko": {
+                    "name": "은박컵 숯불 생굴구이 (5개 - 토핑 선택)",
+                    "description": "숯불 위 은박컵에서 지글지글 익어가는 신선한 굴. 녹아내리는 치즈, 대파 기름 & 돼지껍데기, 메추리알 매콤 BBQ 중 선택."
+                },
+                "ru": {
+                    "name": "Запеченные устрицы в чашечках (5 шт)",
+                    "description": "Свежие устрицы на углях в чашечках: с расплавленным сыром, луковым маслом со шкварками или острым BBQ с перепелиным яйцом."
+                }
+            },
+            "bom": [("NVL04", 5.0)]
+        }
+    ]
+
+    for dish in BBQ_DISHES:
+        cursor.execute("SELECT id FROM menu_items WHERE name = ?", (dish["name"],))
+        existing_dish = cursor.fetchone()
+        opts_str = json.dumps(dish["options"], ensure_ascii=False)
+        trans_str = json.dumps(dish["translations"], ensure_ascii=False)
+
+        if existing_dish:
+            dish_id = existing_dish["id"]
+            cursor.execute("""
+                UPDATE menu_items
+                SET category_id = ?, price = ?, portion = ?, description = ?, 
+                    image_url = ?, options_json = ?, translations_json = ?,
+                    station = 'HOT_KITCHEN', is_available = 1, out_of_ingredients = 0,
+                    main_menu_type = 'RESTAURANT'
+                WHERE id = ?
+            """, (bbq_cat_id, dish["price"], dish["portion"], dish["description"], dish["image_url"], opts_str, trans_str, dish_id))
+        else:
+            cursor.execute("""
+                INSERT INTO menu_items (
+                    category_id, name, price, portion, description, image_url,
+                    station, options_json, translations_json, is_available,
+                    out_of_ingredients, main_menu_type
+                ) VALUES (?, ?, ?, ?, ?, ?, 'HOT_KITCHEN', ?, ?, 1, 0, 'RESTAURANT')
+            """, (bbq_cat_id, dish["name"], dish["price"], dish["portion"], dish["description"], dish["image_url"], opts_str, trans_str))
+            dish_id = cursor.lastrowid
+
+        # Gán định lượng NVL cốt lõi (BOM)
+        for ing_code, qty in dish["bom"]:
+            cursor.execute("SELECT id FROM inventory_items WHERE code = ?", (ing_code,))
+            ing_row = cursor.fetchone()
+            if ing_row:
+                ing_id = ing_row["id"]
+                cursor.execute("""
+                    INSERT OR REPLACE INTO recipe_bom (menu_item_id, ingredient_id, quantity)
+                    VALUES (?, ?, ?)
+                """, (dish_id, ing_id, qty))
 
     conn.commit()
 
