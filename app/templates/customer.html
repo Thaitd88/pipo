@@ -588,6 +588,7 @@
         btn_submitting: "Đang gửi vào bếp...",
         btn_add_to_cart: "Thêm vào giỏ",
         btn_add_short: "Thêm",
+        btn_choose_flavor: "Chọn vị",
         modal_tap_zoom: "Xem ảnh to",
         modal_detail_title: "Chi tiết & Mô tả món:",
         order_progress_title: "Tiến độ làm món của bàn",
@@ -639,6 +640,7 @@
         btn_submitting: "Sending to kitchen...",
         btn_add_to_cart: "Add to Cart",
         btn_add_short: "Add",
+        btn_choose_flavor: "Select Flavor",
         modal_tap_zoom: "Tap to enlarge photo",
         modal_detail_title: "Details & Description:",
         order_progress_title: "Order preparation status",
@@ -690,6 +692,7 @@
         btn_submitting: "正在提交至厨房...",
         btn_add_to_cart: "加入购物车",
         btn_add_short: "加入",
+        btn_choose_flavor: "选择口味",
         modal_tap_zoom: "点击放大",
         modal_detail_title: "菜品详情与描述：",
         order_progress_title: "整桌上菜制作进度",
@@ -741,6 +744,7 @@
         btn_submitting: "주문 전송 중...",
         btn_add_to_cart: "장바구니 담기",
         btn_add_short: "담기",
+        btn_choose_flavor: "맛 선택",
         modal_tap_zoom: "큰 사진 보기",
         modal_detail_title: "메뉴 상세 및 설명:",
         order_progress_title: "주문 메뉴 조리 현황",
@@ -792,6 +796,7 @@
         btn_submitting: "Отправка на кухню...",
         btn_add_to_cart: "В корзину",
         btn_add_short: "Выбрать",
+        btn_choose_flavor: "Выбрать вкус",
         modal_tap_zoom: "Увеличить фото",
         modal_detail_title: "Детали và описание:",
         order_progress_title: "Статус приготовления блюд",
@@ -1317,12 +1322,20 @@
                 <!-- Thông tin món -->
                 <div class="flex-1 min-w-0">
                   <h4 class="font-bold text-sm text-stone-900 truncate hover:text-emerald-800 transition">${itemName}</h4>
-                  ${(item.calories !== undefined && item.calories !== null) ? `
-                    <div class="mt-1 flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/80 w-fit">
-                      <span class="text-[10px] text-orange-500">🔥</span>
-                      <span>${item.calories} kcal</span>
-                    </div>
-                  ` : ''}
+                  <div class="flex flex-wrap gap-1 mt-1">
+                    ${(item.options && item.options.length > 0 && item.options[0].options) ? `
+                      <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
+                        <i class="fa-solid fa-layer-group text-emerald-600 text-[9px]"></i>
+                        <span>${item.options[0].options.length} vị</span>
+                      </div>
+                    ` : ''}
+                    ${(item.calories !== undefined && item.calories !== null && item.calories > 0) ? `
+                      <div class="flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/80">
+                        <span class="text-[10px] text-orange-500">🔥</span>
+                        <span>${item.calories} kcal</span>
+                      </div>
+                    ` : ''}
+                  </div>
                   <div class="mt-1.5 flex items-center justify-between">
                     ${hasDisc ? `
                       <div class="flex items-center gap-1.5">
@@ -1338,8 +1351,8 @@
                         <span>${t('dish_out_of_ingredients_badge')}</span>
                       </span>
                     ` : (isAvailable ? `
-                      <button type="button" onclick="event.stopPropagation(); quickAddToCart(${item.id})" class="${theme.btnAction} font-bold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 shadow-xs active:scale-95" title="Thêm ngay vào giỏ">
-                        <span>${t('btn_add_short')}</span>
+                      <button type="button" onclick="event.stopPropagation(); quickAddToCart(${item.id})" class="${theme.btnAction} font-bold text-xs px-3 py-1.5 rounded-xl transition flex items-center gap-1 shadow-xs active:scale-95" title="${(item.options && item.options.length > 0) ? t('btn_choose_flavor') : t('btn_add_to_cart')}">
+                        <span>${(item.options && item.options.length > 0) ? t('btn_choose_flavor') : t('btn_add_short')}</span>
                         <i class="fa-solid fa-plus text-[10px]"></i>
                       </button>
                     ` : `
@@ -1603,6 +1616,12 @@
         return;
       }
 
+      // Nếu món có nhiều tùy chọn / vị chế biến, mở modal để khách chọn đúng vị mong muốn
+      if (item.options && item.options.length > 0) {
+        openItemModal(itemId);
+        return;
+      }
+
       const discPct = item.discount_percent || 0;
       const hasDisc = discPct > 0 && discPct <= 100;
       const effectivePrice = hasDisc ? Math.round(item.price * (100 - discPct) / 100) : item.price;
@@ -1655,20 +1674,26 @@
       const hasDisc = discPct > 0 && discPct <= 100;
       const effectivePrice = hasDisc ? Math.round(currentModalItem.price * (100 - discPct) / 100) : currentModalItem.price;
 
-      // Thêm vào giỏ
-      cart.push({
-        item_id: currentModalItem.id,
-        id: currentModalItem.id,
-        name: currentModalItem.name,
-        station: currentModalItem.station || "HOT_KITCHEN",
-        raw_item: currentModalItem,
-        price: effectivePrice,
-        original_price: currentModalItem.price,
-        discount_percent: discPct,
-        quantity: modalQty,
-        note: note,
-        modifiers: modArray
-      });
+      // Kiểm tra món cùng vị và ghi chú đã có trong giỏ chưa
+      const modKey = JSON.stringify(modArray);
+      const existing = cart.find(it => it.item_id === currentModalItem.id && (it.note || "") === note && JSON.stringify(it.modifiers || []) === modKey);
+      if (existing) {
+        existing.quantity += modalQty;
+      } else {
+        cart.push({
+          item_id: currentModalItem.id,
+          id: currentModalItem.id,
+          name: currentModalItem.name,
+          station: currentModalItem.station || "HOT_KITCHEN",
+          raw_item: currentModalItem,
+          price: effectivePrice,
+          original_price: currentModalItem.price,
+          discount_percent: discPct,
+          quantity: modalQty,
+          note: note,
+          modifiers: modArray
+        });
+      }
 
       localStorage.setItem("pipo_cart_" + TABLE_INFO.id, JSON.stringify(cart));
 

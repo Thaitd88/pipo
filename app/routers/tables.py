@@ -81,7 +81,7 @@ def export_all_tables_qr_zip(request: Request, base_url: str = None):
                 version=1,
                 error_correction=qrcode.constants.ERROR_CORRECT_H,
                 box_size=12,
-                border=4,
+                border=2,
             )
             qr.add_data(order_url)
             qr.make(fit=True)
@@ -390,16 +390,16 @@ def get_table_qr_image(table_code: str, request: Request, base_url: str = None):
     # URL mà điện thoại khách sẽ mở khi quét QR
     order_url = f"{base_url}/table/{table['qr_token']}"
     
-    # Tạo hình ảnh QR Code
+    # Tạo hình ảnh QR Code nét căng, viền gọn để mã QR to tối đa
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_M,
-        box_size=10,
-        border=3,
+        box_size=12,
+        border=2,
     )
     qr.add_data(order_url)
     qr.make(fit=True)
-    img = qr.make_image(fill_color="#1e3a1e", back_color="#ffffff")
+    img = qr.make_image(fill_color="#064e3b", back_color="#ffffff")
     
     buf = io.BytesIO()
     img.save(buf, format="PNG")

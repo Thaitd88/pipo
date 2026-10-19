@@ -1102,6 +1102,23 @@
     </div>
   </div>
 
+  <!-- MODAL CHỌN VỊ CHẾ BIẾN (POS) -->
+  <div id="posFlavorModal" class="fixed inset-0 z-70 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-stone-200 animate-in zoom-in-95 duration-150">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-100 mb-3">
+        <div>
+          <h4 class="font-bold text-stone-900 text-sm" id="posFlavorModalTitle">Chọn Vị Chế Biến</h4>
+          <p class="text-[11px] text-emerald-800 font-bold mt-0.5" id="posFlavorModalPrice"></p>
+        </div>
+        <button type="button" onclick="closePosFlavorModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+      <div class="text-xs text-stone-500 mb-2 font-medium" id="posFlavorModalPrompt">Vui lòng chọn 1 kiểu chế biến cho món:</div>
+      <div id="posFlavorChoicesList" class="space-y-2 max-h-[60vh] overflow-y-auto"></div>
+    </div>
+  </div>
+
   <!-- MODAL TỔNG HỢP BILL TÍNH VỚI ADMIN -->
   <div id="adminBillsModal" class="fixed inset-0 z-60 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
     <div class="bg-white rounded-3xl max-w-4xl w-full p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
@@ -1758,29 +1775,34 @@
         <div class="bg-white rounded-2xl p-4 border border-stone-200 text-center shadow-xs flex flex-col items-center justify-between max-w-[280px] mx-auto">
           <div class="w-full text-center flex flex-col items-center mb-1">
             <div class="flex items-center justify-center gap-1.5">
-              <img src="/static/logo.png" alt="PiPo Garden" class="w-6 h-6 rounded-full object-contain">
-              <span class="text-[11px] font-black tracking-widest text-emerald-900 uppercase">PIPO GARDEN</span>
+              <img src="/static/logo.png" alt="PiPo Garden" class="w-5 h-5 rounded-full object-contain">
+              <span class="text-[12px] font-black tracking-widest text-emerald-950 uppercase leading-none">PIPO GARDEN</span>
             </div>
-            <div class="text-base font-black text-stone-900 tracking-tight mt-0.5 uppercase">${t.name}</div>
+            <div class="text-[8px] font-bold text-emerald-700 tracking-wider uppercase mt-0.5 leading-tight">
+              Restaurant • Cafe • Pickleball
+            </div>
+            <div class="text-[15px] font-black text-stone-900 tracking-tight mt-0.5 uppercase leading-none">${t.name}</div>
           </div>
 
-          <div class="w-full bg-emerald-800 text-white py-1 px-2 rounded-xl text-center shadow-xs my-1">
-            <div class="text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1.5">
-              <i class="fa-solid fa-qrcode text-amber-300 text-xs"></i>
-              <span>QUÉT MÃ ĐẶT MÓN</span>
+          <div class="w-full bg-emerald-800 text-white py-1 px-2 rounded-lg text-center shadow-xs my-1">
+            <div class="text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1.5 leading-tight">
+              <i class="fa-solid fa-qrcode text-amber-300 text-[10px]"></i>
+              <span>QUÉT MÃ ĐẶT MÓN • SCAN TO ORDER</span>
             </div>
-            <div class="text-[8.5px] font-extrabold text-emerald-200 tracking-wider uppercase">SCAN TO VIEW MENU & ORDER</div>
+            <div class="text-[7.5px] font-extrabold text-emerald-200 tracking-wider uppercase leading-none mt-0.5">XEM THỰC ĐƠN & GỌI MÓN TRỰC TIẾP TẠI BÀN</div>
           </div>
 
-          <div class="p-1.5 bg-white rounded-xl border border-stone-200 my-1">
-            <img src="/api/tables/${t.table_code}/qr-image?base_url=${origin}" alt="QR Code" class="w-36 h-36 object-contain">
+          <div class="p-1 bg-white rounded-xl border border-stone-200 shadow-2xs my-1">
+            <img src="/api/tables/${t.table_code}/qr-image?base_url=${origin}" alt="QR Code" class="w-48 h-48 object-contain">
           </div>
 
-          <div class="w-full text-center pt-1.5 border-t border-stone-100">
-            <div class="text-[10px] font-bold text-stone-800">
-              📶 Wi-Fi: <strong class="text-emerald-900">PiPo - Garden</strong> • Pass: <strong class="text-emerald-900">88888888</strong>
+          <div class="w-full text-center pt-1.5 border-t border-stone-100 flex flex-col items-center">
+            <div class="w-full bg-stone-50 py-1 px-2 rounded-lg border border-stone-200 text-stone-900 flex items-center justify-center gap-2 leading-tight">
+              <span class="text-xs font-black text-stone-800">📶 Wi-Fi: <strong class="text-emerald-900 text-sm font-black">PiPo - Garden</strong></span>
+              <span class="text-stone-300 font-bold">|</span>
+              <span class="text-xs font-black text-stone-800">Pass: <strong class="text-emerald-900 text-sm font-black tracking-wider">88888888</strong></span>
             </div>
-            <div class="text-[8px] text-stone-400 mt-0.5">Dùng Camera hoặc Zalo để quét / Open Camera or Zalo</div>
+            <div class="text-[7.5px] text-stone-400 font-medium mt-0.5 leading-none">Mở Camera hoặc Zalo để quét / Open Camera or Zalo to scan</div>
           </div>
         </div>
       `).join('');
@@ -2251,6 +2273,12 @@
             <div class="flex items-center justify-between text-xs py-2.5 border-b border-stone-100 ${it.status === 'CANCELLED' ? 'opacity-50 line-through' : ''}">
               <div class="pr-2">
                 <div class="font-bold text-stone-800 leading-tight">${it.item_name}</div>
+                ${(it.modifiers && it.modifiers.length > 0) ? `
+                  <div class="text-[10.5px] text-emerald-800 font-bold mt-0.5 flex items-center gap-1">
+                    <i class="fa-solid fa-tag text-[9px] text-emerald-600"></i>
+                    <span>Vị: ${it.modifiers.map(m => m.value || m.name).join(', ')}</span>
+                  </div>
+                ` : ''}
                 <div class="text-[11px] text-stone-500 font-medium mt-0.5 flex items-center gap-1 flex-wrap">
                   <span class="font-bold text-stone-900">${it.quantity}</span>
                   <span class="text-stone-400 text-[10px]">×</span>
@@ -2512,6 +2540,11 @@
             <tr class="py-1.5 ${it.status === 'CANCELLED' ? 'line-through text-stone-400' : ''}">
               <td class="py-1.5 pr-2 align-top">
                 <div class="font-bold text-stone-800 leading-tight">${it.item_name}</div>
+                ${(it.modifiers && it.modifiers.length > 0) ? `
+                  <div class="text-[10px] text-emerald-900 font-bold font-sans">
+                    * Vị: ${it.modifiers.map(m => m.value || m.name).join(', ')}
+                  </div>
+                ` : ''}
                 <div class="text-[10px] text-stone-600 font-mono mt-0.5">
                   ${it.quantity} × ${formatVND(uPrice)}
                 </div>
@@ -3599,9 +3632,9 @@
       grid.innerHTML = `
         <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
           ${matchedDishes.map(it => {
-            const cartItem = posOrderCart.find(ci => ci.item_id === it.id);
-            const cartQty = cartItem ? cartItem.quantity : 0;
+            const cartQty = posOrderCart.filter(ci => ci.item_id === it.id).reduce((sum, c) => sum + c.quantity, 0);
             const isUnavailable = it.is_available === 0 || it.out_of_ingredients === 1;
+            const hasOptions = it.options && it.options.length > 0 && it.options[0].options && it.options[0].options.length > 0;
 
             return `
               <div onclick="${isUnavailable ? '' : `addDishToPosCart(${it.id})`}" 
@@ -3617,7 +3650,14 @@
                   <div class="flex items-start justify-between gap-1">
                     <span class="font-bold text-xs text-stone-900 group-hover:text-emerald-800 line-clamp-2 leading-tight">${it.name}</span>
                   </div>
-                  <div class="text-[10px] text-stone-400 mt-0.5 line-clamp-1">${it.category_name}</div>
+                  <div class="text-[10px] text-stone-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                    <span class="line-clamp-1">${it.category_name}</span>
+                    ${hasOptions ? `
+                      <span class="text-[9px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                        ${it.options[0].options.length} vị
+                      </span>
+                    ` : ''}
+                  </div>
                 </div>
 
                 <div class="mt-2.5 pt-2 border-t border-stone-100 flex items-center justify-between">
@@ -3625,8 +3665,8 @@
                   ${isUnavailable ? `
                     <span class="text-[10px] font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded">Hết</span>
                   ` : `
-                    <button type="button" class="w-6 h-6 rounded-lg bg-emerald-100 group-hover:bg-emerald-600 text-emerald-800 group-hover:text-white flex items-center justify-center text-xs font-bold transition">
-                      <i class="fa-solid fa-plus text-[10px]"></i>
+                    <button type="button" class="px-2 py-1 rounded-lg bg-emerald-100 group-hover:bg-emerald-600 text-emerald-800 group-hover:text-white flex items-center gap-1 text-[11px] font-bold transition">
+                      <span>${hasOptions ? 'Chọn vị' : '+'}</span>
                     </button>
                   `}
                 </div>
@@ -3635,6 +3675,67 @@
           }).join('')}
         </div>
       `;
+    }
+
+    let posPendingFlavorItem = null;
+
+    function openPosFlavorModal(item) {
+      posPendingFlavorItem = item;
+      const titleEl = document.getElementById("posFlavorModalTitle");
+      if (titleEl) titleEl.innerText = item.name;
+      const priceEl = document.getElementById("posFlavorModalPrice");
+      if (priceEl) priceEl.innerText = formatVND(item.price);
+
+      const promptEl = document.getElementById("posFlavorModalPrompt");
+      if (promptEl) promptEl.innerText = `Chọn cách chế biến cho ${item.name}:`;
+
+      const container = document.getElementById("posFlavorChoicesList");
+      const optGroup = (item.options && item.options.length > 0) ? item.options[0] : { name: "Chọn vị", options: [] };
+
+      if (container) {
+        container.innerHTML = (optGroup.options || []).map((choice, idx) => `
+          <button type="button" onclick="selectPosFlavor('${optGroup.name}', '${choice.replace(/'/g, "\\'")}')" class="w-full p-3 rounded-2xl border border-stone-200 hover:border-emerald-600 hover:bg-emerald-50 text-left font-bold text-xs text-stone-800 hover:text-emerald-950 transition flex items-center justify-between group shadow-2xs">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-stone-100 group-hover:bg-emerald-600 group-hover:text-white text-stone-600 flex items-center justify-center text-[11px] font-bold transition">
+                ${idx + 1}
+              </span>
+              <span>${choice}</span>
+            </div>
+            <i class="fa-solid fa-plus text-stone-400 group-hover:text-emerald-600 text-xs transition"></i>
+          </button>
+        `).join('');
+      }
+
+      document.getElementById("posFlavorModal")?.classList.remove("hidden");
+    }
+
+    function closePosFlavorModal() {
+      document.getElementById("posFlavorModal")?.classList.add("hidden");
+      posPendingFlavorItem = null;
+    }
+
+    function selectPosFlavor(optName, choice) {
+      if (!posPendingFlavorItem) return;
+      const targetItem = posPendingFlavorItem;
+
+      const existing = posOrderCart.find(ci => ci.item_id === targetItem.id && ci.selected_flavor === choice);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        posOrderCart.push({
+          item_id: targetItem.id,
+          name: targetItem.name,
+          price: targetItem.price,
+          quantity: 1,
+          selected_flavor: choice,
+          note: choice,
+          modifiers: [{ name: optName, value: choice }]
+        });
+      }
+
+      closePosFlavorModal();
+      renderPosOrderCart();
+      filterPosOrderDishes();
     }
 
     function addDishToPosCart(itemId) {
@@ -3648,7 +3749,13 @@
       }
       if (!targetItem) return;
 
-      const existing = posOrderCart.find(ci => ci.item_id === itemId);
+      // Nếu món có nhiều vị lựa chọn, bật popup chọn vị cho nhân viên
+      if (targetItem.options && targetItem.options.length > 0 && targetItem.options[0].options && targetItem.options[0].options.length > 0) {
+        openPosFlavorModal(targetItem);
+        return;
+      }
+
+      const existing = posOrderCart.find(ci => ci.item_id === itemId && !ci.selected_flavor);
       if (existing) {
         existing.quantity += 1;
       } else {
@@ -3657,7 +3764,8 @@
           name: targetItem.name,
           price: targetItem.price,
           quantity: 1,
-          note: ""
+          note: "",
+          modifiers: []
         });
       }
 
@@ -3665,27 +3773,26 @@
       filterPosOrderDishes();
     }
 
-    function updatePosCartQty(itemId, delta) {
-      const existing = posOrderCart.find(ci => ci.item_id === itemId);
-      if (!existing) return;
-      existing.quantity += delta;
-      if (existing.quantity <= 0) {
-        posOrderCart = posOrderCart.filter(ci => ci.item_id !== itemId);
+    function updatePosCartQty(idx, delta) {
+      if (!posOrderCart[idx]) return;
+      posOrderCart[idx].quantity += delta;
+      if (posOrderCart[idx].quantity <= 0) {
+        posOrderCart.splice(idx, 1);
       }
       renderPosOrderCart();
       filterPosOrderDishes();
     }
 
-    function removeDishFromPosCart(itemId) {
-      posOrderCart = posOrderCart.filter(ci => ci.item_id !== itemId);
+    function removeDishFromPosCart(idx) {
+      if (!posOrderCart[idx]) return;
+      posOrderCart.splice(idx, 1);
       renderPosOrderCart();
       filterPosOrderDishes();
     }
 
-    function updatePosCartNote(itemId, note) {
-      const existing = posOrderCart.find(ci => ci.item_id === itemId);
-      if (existing) {
-        existing.note = note.trim();
+    function updatePosCartNote(idx, note) {
+      if (posOrderCart[idx]) {
+        posOrderCart[idx].note = note.trim();
       }
     }
 
@@ -3732,16 +3839,22 @@
         return;
       }
 
-      container.innerHTML = posOrderCart.map(it => `
+      container.innerHTML = posOrderCart.map((it, idx) => `
         <div class="bg-stone-50 rounded-2xl p-2.5 border border-stone-200 text-xs space-y-2">
           <div class="flex items-start justify-between gap-2">
             <div class="min-w-0">
               <div class="font-bold text-stone-900 leading-tight">${it.name}</div>
+              ${(it.modifiers && it.modifiers.length > 0) ? `
+                <div class="text-[10.5px] text-emerald-800 font-bold mt-0.5 flex items-center gap-1">
+                  <i class="fa-solid fa-tag text-[9px] text-emerald-600"></i>
+                  <span>Vị: ${it.modifiers.map(m => m.value || m.name).join(', ')}</span>
+                </div>
+              ` : ''}
               <div class="text-[11px] text-stone-500 font-mono mt-0.5">${formatVND(it.price)}</div>
             </div>
             <div class="text-right flex-shrink-0">
               <div class="font-black text-emerald-800 text-xs">${formatVND(it.price * it.quantity)}</div>
-              <button type="button" onclick="removeDishFromPosCart(${it.item_id})" class="text-[11px] text-rose-500 hover:text-rose-700 hover:underline">
+              <button type="button" onclick="removeDishFromPosCart(${idx})" class="text-[11px] text-rose-500 hover:text-rose-700 hover:underline">
                 Xóa
               </button>
             </div>
@@ -3749,15 +3862,15 @@
 
           <div class="flex items-center gap-2 pt-1 border-t border-stone-200/70">
             <div class="flex items-center bg-white border border-stone-300 rounded-lg overflow-hidden flex-shrink-0">
-              <button type="button" onclick="updatePosCartQty(${it.item_id}, -1)" class="w-6 h-6 flex items-center justify-center text-stone-600 hover:bg-stone-100 font-bold text-xs">
+              <button type="button" onclick="updatePosCartQty(${idx}, -1)" class="w-6 h-6 flex items-center justify-center text-stone-600 hover:bg-stone-100 font-bold text-xs">
                 -
               </button>
               <span class="w-7 text-center font-bold text-xs text-stone-900">${it.quantity}</span>
-              <button type="button" onclick="updatePosCartQty(${it.item_id}, 1)" class="w-6 h-6 flex items-center justify-center text-stone-600 hover:bg-stone-100 font-bold text-xs">
+              <button type="button" onclick="updatePosCartQty(${idx}, 1)" class="w-6 h-6 flex items-center justify-center text-stone-600 hover:bg-stone-100 font-bold text-xs">
                 +
               </button>
             </div>
-            <input type="text" value="${it.note || ''}" onchange="updatePosCartNote(${it.item_id}, this.value)" placeholder="Ghi chú món (ít cay, không đường...)" class="flex-1 px-2 py-1 bg-white border border-stone-200 rounded-lg text-[11px] text-stone-700 focus:outline-emerald-600">
+            <input type="text" value="${it.note || ''}" onchange="updatePosCartNote(${idx}, this.value)" placeholder="Ghi chú món (ít cay, không đường...)" class="flex-1 px-2 py-1 bg-white border border-stone-200 rounded-lg text-[11px] text-stone-700 focus:outline-emerald-600">
           </div>
         </div>
       `).join('');
@@ -3789,7 +3902,8 @@
         items: posOrderCart.map(it => ({
           item_id: it.item_id,
           quantity: it.quantity,
-          note: it.note || null
+          note: it.note || null,
+          modifiers: it.modifiers || []
         }))
       };
 

@@ -206,9 +206,17 @@ def format_receipt_ticket_text(table_info: dict, items: list, totals_info: dict 
             spacing = 1
         lines.append(f"{left_col}{' ' * spacing}{right_col}")
 
+        # Tùy chọn / Vị chế biến nếu có
+        modifiers = it.get("modifiers")
+        mod_str = ""
+        if modifiers and isinstance(modifiers, list):
+            mod_str = ", ".join([f"{m.get('value', m.get('name'))}" for m in modifiers if isinstance(m, dict)])
+            if mod_str:
+                lines.append(f"       * Vi: {mod_str}")
+
         # Ghi chú nếu có
         note = it.get("note", "")
-        if note:
+        if note and note != mod_str:
             lines.append(f"       >>> {note}")
 
         idx += 1
@@ -491,9 +499,19 @@ def build_escpos_receipt_bytes(table_info: dict, items: list, totals_info: dict 
         line_2 = f"{left_col}{' ' * spacing}{right_col}\n"
         buf.extend(line_2.encode("ascii"))
 
+        # Tùy chọn / Vị chế biến nếu có
+        modifiers = it.get("modifiers")
+        mod_ascii = ""
+        if modifiers and isinstance(modifiers, list):
+            mod_ascii = ", ".join([f"{remove_vietnamese_accents(str(m.get('value', m.get('name'))))}" for m in modifiers if isinstance(m, dict)])
+            if mod_ascii:
+                buf.extend(ESC + b'E\x01')
+                buf.extend(f"       * Vi: {mod_ascii}\n".encode("ascii"))
+                buf.extend(ESC + b'E\x00')
+
         # Ghi chú nếu có
         note = remove_vietnamese_accents(it.get("note", ""))
-        if note:
+        if note and note != mod_ascii:
             buf.extend(f"       >>> {note}\n".encode("ascii"))
 
         idx += 1

@@ -474,6 +474,9 @@ def init_db():
     # Đảm bảo định lượng món đơn giản, chuẩn xác cho bếp nhìn trực quan
     ensure_simple_dish_portions(conn)
 
+    # Gom món theo loại nguyên liệu và tạo tùy chọn vị chế biến
+    consolidate_menu_items_with_options(conn)
+
     # Đảm bảo cấu hình mặc định cho 2 máy in LAN (Bếp 192.168.31.251 và Thu ngân 192.168.31.252)
     ensure_printer_settings(conn)
 
@@ -655,6 +658,295 @@ def ensure_simple_dish_portions(conn):
     for name, portion in PORTIONS.items():
         cursor.execute("UPDATE menu_items SET portion = ? WHERE name = ? AND (portion IS NULL OR portion = '')", (portion, name))
     conn.commit()
+
+
+def consolidate_menu_items_with_options(conn):
+    """
+    Gom các món ăn cùng loại nguyên liệu thành một món chính kèm tùy chọn vị chế biến (options_json):
+    1. Ốc hương (Sốt trứng muối, Cháy tỏi, Hấp sả)
+    2. Ốc móng tay (Cháy tỏi, Nướng mỡ hành, Xào rau muống)
+    3. Bạch tuộc (Nướng muối ớt, Xào cay, Hấp hành gừng)
+    4. Tôm sú (Hấp nước dừa / sả, Nướng muối ớt, Sốt bơ tỏi)
+    5. Nghêu (Hấp sả, Hấp Thái)
+    6. Gà ta nguyên con + Lòng mề xào (Nướng muối ớt, Hấp mắm nhĩ, Chiên mắm, Hấp hành, Nướng Tây Bắc)
+    7. Cánh gà (Nướng muối ớt, Chiên mắm, Nướng Tây Bắc)
+    8. Đậu hũ (Chiên giòn, Tẩm hành)
+    """
+    cursor = conn.cursor()
+
+    CONSOLIDATIONS = [
+        {
+            "parent_id": 169,
+            "name": "Ốc hương",
+            "price": 150000,
+            "portion": "Ốc hương 250g",
+            "description": "Ốc hương tươi sống Phú Quốc giòn ngọt đậm đà, tùy chọn xào sốt trứng muối béo ngậy kèm bánh mì, cháy tỏi thơm lừng hoặc hấp sả thanh ngọt.",
+            "options": [
+                {
+                    "name": "Chọn vị chế biến",
+                    "options": ["Sốt trứng muối (kèm bánh mì)", "Cháy tỏi", "Hấp sả"]
+                }
+            ],
+            "translations": {
+                "en": {
+                    "name": "Sweet Snails (Choose Preparation/Flavor)",
+                    "description": "Fresh sweet snails with choice of rich salted egg sauce & baguette, fragrant crispy garlic, or steamed with lemongrass."
+                },
+                "zh": {
+                    "name": "香螺 (选择口味/做法)",
+                    "description": "新鲜香螺，可选金沙咸蛋黄酱配法棍、金蒜爆炒或原味清蒸香茅。"
+                },
+                "ko": {
+                    "name": "골뱅이 / 향고둥 (조리 방식/맛 선택)",
+                    "description": "신선한 골뱅이 요리. 솔티드 에그 소스(바게트 포함), 마늘 볶음, 레몬그라스 찜 중 선택."
+                },
+                "ru": {
+                    "name": "Морские улитки (выберите вкус)",
+                    "description": "Свежие улитки на выбор: в соусе из соленого желтка с багетом, с хрустящим чесноком или на пару с лемонграссом."
+                }
+            },
+            "deactivate_ids": [170, 171]
+        },
+        {
+            "parent_id": 172,
+            "name": "Ốc móng tay",
+            "price": 99000,
+            "portion": "Ốc móng tay 300g",
+            "description": "Ốc móng tay tươi dày thịt giòn ngọt, tùy chọn cháy tỏi thơm nức, nướng mỡ hành đậu phộng hoặc xào rau muống giòn ngon.",
+            "options": [
+                {
+                    "name": "Chọn vị chế biến",
+                    "options": ["Cháy tỏi", "Nướng mỡ hành", "Xào rau muống"]
+                }
+            ],
+            "translations": {
+                "en": {
+                    "name": "Razor Clams (Choose Preparation/Flavor)",
+                    "description": "Tender razor clams with choice of crispy garlic, grilled scallion oil & peanuts, or stir-fried with morning glory."
+                },
+                "zh": {
+                    "name": "竹蛏 (选择口味/做法)",
+                    "description": "鲜嫩竹蛏，可选金蒜爆炒、葱油炭烤配花生或蒜炒空心菜。"
+                },
+                "ko": {
+                    "name": "맛조개 요리 (조리 방식/맛 선택)",
+                    "description": "쫄깃한 맛조개 요리. 마늘 볶음, 파기름 숯불구이, 모닝글로리 볶음 중 선택."
+                },
+                "ru": {
+                    "name": "Морские черенки (выберите вкус)",
+                    "description": "Нежные морские черенки: с чесноком, на гриле с зеленым луком и арахисом или с водяным шпинатом."
+                }
+            },
+            "deactivate_ids": [173, 174]
+        },
+        {
+            "parent_id": 176,
+            "name": "Bạch tuộc",
+            "price": 150000,
+            "portion": "Bạch tuộc 300g",
+            "description": "Bạch tuộc tươi giòn sần sật, tùy chọn nướng muối ớt than hoa cay giòn, xào cay đậm vị hoặc hấp hành gừng thơm lừng.",
+            "options": [
+                {
+                    "name": "Chọn vị chế biến",
+                    "options": ["Nướng muối ớt", "Xào cay", "Hấp hành gừng"]
+                }
+            ],
+            "translations": {
+                "en": {
+                    "name": "Fresh Octopus (Choose Preparation/Flavor)",
+                    "description": "Crisp and succulent octopus with choice of chili salt BBQ, spicy stir-fry, or steamed with ginger & scallions."
+                },
+                "zh": {
+                    "name": "鲜章鱼 (选择口味/做法)",
+                    "description": "鲜嫩弹牙章鱼，可选椒盐炭烤、香辣爆炒或葱姜清蒸。"
+                },
+                "ko": {
+                    "name": "문어 요리 (조리 방식/맛 선택)",
+                    "description": "쫄깃한 생문어 요리. 칠리 솔트 숯불구이, 매콤 볶음, 생강파 찜 중 선택."
+                },
+                "ru": {
+                    "name": "Свежий осьминог (выберите вкус)",
+                    "description": "Хрустящий осьминог на выбор: на гриле с чили и солью, острый вок или на пару с имбирем и луком."
+                }
+            },
+            "deactivate_ids": [175, 177]
+        },
+        {
+            "parent_id": 167,
+            "name": "Tôm sú",
+            "price": 179000,
+            "portion": "Tôm sú 250g",
+            "description": "Tôm sú tươi sống chắc thịt ngọt nước, tùy chọn hấp nước dừa sả thanh mát, nướng than hoa muối ớt cay giòn hoặc sốt bơ tỏi thơm ngậy.",
+            "options": [
+                {
+                    "name": "Chọn vị chế biến",
+                    "options": ["Hấp nước dừa / sả", "Nướng muối ớt", "Sốt bơ tỏi"]
+                }
+            ],
+            "translations": {
+                "en": {
+                    "name": "Tiger Prawns (Choose Preparation/Flavor)",
+                    "description": "Fresh juicy tiger prawns with choice of coconut & lemongrass steam, charcoal chili salt BBQ, or rich garlic butter sauce."
+                },
+                "zh": {
+                    "name": "黑虎虾 (选择口味/做法)",
+                    "description": "紧致鲜甜黑虎虾，可选椰汁香茅清蒸、椒盐炭烤或浓香蒜蓉黄油炒。"
+                },
+                "ko": {
+                    "name": "블랙 타이거 새우 (조리 방식/맛 선택)",
+                    "description": "통통하고 달콤한 새우 요리. 코코넛 레몬그라스 찜, 칠리 솔트 숯불구이, 갈릭버터 소스 중 선택."
+                },
+                "ru": {
+                    "name": "Тигровые креветки (выберите вкус)",
+                    "description": "Свежие сочные креветки на выбор: на пару с кокосом и лемонграссом, на гриле с чили или в чесночно-сливочном соусе."
+                }
+            },
+            "deactivate_ids": [166, 168]
+        },
+        {
+            "parent_id": 164,
+            "name": "Nghêu",
+            "price": 79000,
+            "portion": "Nghêu 500g",
+            "description": "Nghêu tươi sống béo ngọt, tùy chọn hấp sả thơm thanh ngọt nước hoặc hấp Thái chua cay đậm đà ấm nồng.",
+            "options": [
+                {
+                    "name": "Chọn vị chế biến",
+                    "options": ["Hấp sả", "Hấp Thái"]
+                }
+            ],
+            "translations": {
+                "en": {
+                    "name": "Fresh Clams (Choose Preparation/Flavor)",
+                    "description": "Fresh sweet clams with choice of fragrant lemongrass steam or spicy sour Tom Yum Thai style."
+                },
+                "zh": {
+                    "name": "鲜蛤蜊 (选择口味/做法)",
+                    "description": "鲜美饱满蛤蜊，可选原味香茅清蒸或酸辣开胃泰式冬阴风味。"
+                },
+                "ko": {
+                    "name": "조개 요리 (조리 방식/맛 선택)",
+                    "description": "신선한 조개 요리. 향긋한 레몬그라스 맑은 찜 또는 칼칼한 똠얌 태국식 찜 중 선택."
+                },
+                "ru": {
+                    "name": "Свежие моллюски (выберите вкус)",
+                    "description": "Свежие моллюски на выбор: на пару с ароматным лемонграссом или в остро-кислом тайском бульоне."
+                }
+            },
+            "deactivate_ids": [165]
+        },
+        {
+            "parent_id": 150,
+            "name": "Gà ta nguyên con + Lòng mề xào",
+            "price": 350000,
+            "portion": "Gà ta 1 con (1.3kg) + lòng mề",
+            "description": "Gà ta thả vườn Phú Quốc nguyên con thịt chắc ngọt da giòn kèm đĩa lòng mề xào mướp thơm nức. Tùy chọn 5 kiểu chế biến thượng hạng.",
+            "options": [
+                {
+                    "name": "Chọn vị chế biến",
+                    "options": ["Nướng muối ớt", "Hấp mắm nhĩ", "Chiên mắm", "Hấp hành", "Nướng Tây Bắc"]
+                }
+            ],
+            "translations": {
+                "en": {
+                    "name": "Whole Free-Range Chicken + Sautéed Giblets (Choose Cooking Style)",
+                    "description": "Whole free-range chicken (~1.3kg) + sautéed giblets. Choice of Chili Salt BBQ, Phú Quốc Fish Sauce Steam, Crispy Fish Sauce Fried, Steamed with Scallions, or Northwest Herb Grilled."
+                },
+                "zh": {
+                    "name": "整只走地土鸡 + 爆炒鸡杂 (选择做法)",
+                    "description": "整只散养土鸡（约1.3公斤）搭配爆炒鸡杂。可选椒盐炭烤、鱼露原汁蒸、香脆鱼露炸、鲜葱清蒸或西北香草风味炭烤。"
+                },
+                "ko": {
+                    "name": "토종 통닭 요리 + 닭똥집 볶음 (조리 방식 선택)",
+                    "description": "토종 통닭 한 마리(~1.3kg)와 닭똥집 볶음 세트. 칠리 솔트 숯불구이, 피시소스 찜, 바삭한 피시소스 튀김, 파 찜, 서북 허브 숯불구이 중 선택."
+                },
+                "ru": {
+                    "name": "Целая домашняя курица + потроха (выберите способ приготовления)",
+                    "description": "Целая домашняя курица (~1.3 кг) с жареными потрошками. На выбор: на гриле с солью и чили, на пару с рыбным соусом, хрустящая жареная, на пару с луком или пряная по-северозападному."
+                }
+            },
+            "deactivate_ids": [149, 151, 152, 155]
+        },
+        {
+            "parent_id": 157,
+            "name": "Cánh gà",
+            "price": 99000,
+            "portion": "Cánh gà 3 cái",
+            "description": "Cánh gà tươi giòn rụm bên ngoài mọng nước bên trong, tùy chọn nướng muối ớt than hoa cay nhẹ, chiên nước mắm mặn ngọt đậm đà hoặc nướng Tây Bắc mắc khén thơm nồng.",
+            "options": [
+                {
+                    "name": "Chọn vị chế biến",
+                    "options": ["Nướng muối ớt", "Chiên mắm", "Nướng Tây Bắc"]
+                }
+            ],
+            "translations": {
+                "en": {
+                    "name": "Chicken Wings (Choose Preparation/Flavor)",
+                    "description": "Crispy juicy chicken wings with choice of Chili Salt BBQ, Glazed Fish Sauce, or Aromatic Northwest Pepper BBQ."
+                },
+                "zh": {
+                    "name": "鸡翅 (选择口味/做法)",
+                    "description": "外酥里嫩鸡翅，可选椒盐炭烤、金牌鱼露酱炒或西北特色野胡椒风味。"
+                },
+                "ko": {
+                    "name": "닭날개 요리 (조리 방식/맛 선택)",
+                    "description": "겉바속촉 닭날개 요리. 칠리 솔트 숯불구이, 단짠 피시소스 튀김, 향긋한 서북 허브 구이 중 선택."
+                },
+                "ru": {
+                    "name": "Куриные крылышки (выберите вкус)",
+                    "description": "Сочные крылышки с хрустящей корочкой: на гриле с чили и солью, в карамельном рыбном соусе или с пряными травами."
+                }
+            },
+            "deactivate_ids": [156, 158]
+        },
+        {
+            "parent_id": 146,
+            "name": "Đậu hũ",
+            "price": 79000,
+            "portion": "Đậu phụ 4 bìa",
+            "description": "Đậu hũ non vàng ươm thanh đạm, ngoài giòn rụm trong mềm mịn tan chảy, tùy chọn chiên giòn chấm mắm tôm/nước tương hoặc nhúng mỡ hành béo thơm kiểu truyền thống.",
+            "options": [
+                {
+                    "name": "Chọn vị chế biến",
+                    "options": ["Chiên giòn", "Tẩm hành"]
+                }
+            ],
+            "translations": {
+                "en": {
+                    "name": "Fresh Tofu (Choose Style)",
+                    "description": "Crispy golden exterior, silky melt-in-mouth tofu. Choose classic Golden Crispy or Tossed with Scallion Oil."
+                },
+                "zh": {
+                    "name": "鲜豆腐 (选择做法)",
+                    "description": "外脆里嫩手工鲜豆腐，可选金黄脆炸或传统葱油浸香做法。"
+                },
+                "ko": {
+                    "name": "두부 요리 (조리 방식 선택)",
+                    "description": "겉은 바삭하고 속은 부드러운 두부 요리. 바삭한 황금 튀김 또는 고소한 파기름 양념 중 선택."
+                },
+                "ru": {
+                    "name": "Тофу (выберите стиль)",
+                    "description": "Нежный тофу с хрустящей золотистой корочкой. На выбор: хрустящий жареный или с зеленым луком в масле."
+                }
+            },
+            "deactivate_ids": [141]
+        }
+    ]
+
+    for item in CONSOLIDATIONS:
+        opts_str = json.dumps(item["options"], ensure_ascii=False)
+        trans_str = json.dumps(item["translations"], ensure_ascii=False)
+        cursor.execute("""
+            UPDATE menu_items
+            SET name = ?, price = ?, portion = ?, description = ?, options_json = ?, translations_json = ?, is_available = 1
+            WHERE id = ?
+        """, (item["name"], item["price"], item["portion"], item["description"], opts_str, trans_str, item["parent_id"]))
+
+        for did in item["deactivate_ids"]:
+            cursor.execute("UPDATE menu_items SET is_available = 0 WHERE id = ?", (did,))
+
+    conn.commit()
+
 
 def sync_dish_calories(conn):
     """Tính toán và đồng bộ chỉ số Calo cho toàn bộ món ăn dựa theo định lượng NVL (BOM)."""
