@@ -1198,42 +1198,37 @@ def ensure_bbq_category_and_dishes(conn):
         }
     ]
 
-    for dish in BBQ_DISHES:
-        cursor.execute("SELECT id FROM menu_items WHERE name = ?", (dish["name"],))
-        existing_dish = cursor.fetchone()
-        opts_str = json.dumps(dish["options"], ensure_ascii=False)
-        trans_str = json.dumps(dish["translations"], ensure_ascii=False)
+    cursor.execute("SELECT COUNT(*) as cnt FROM menu_items WHERE category_id = ?", (bbq_cat_id,))
+    existing_bbq_count = cursor.fetchone()["cnt"]
 
-        if existing_dish:
-            dish_id = existing_dish["id"]
-            cursor.execute("""
-                UPDATE menu_items
-                SET category_id = ?, price = ?, portion = ?, description = ?, 
-                    image_url = ?, options_json = ?, translations_json = ?,
-                    station = 'HOT_KITCHEN', is_available = 1, out_of_ingredients = 0,
-                    main_menu_type = 'RESTAURANT'
-                WHERE id = ?
-            """, (bbq_cat_id, dish["price"], dish["portion"], dish["description"], dish["image_url"], opts_str, trans_str, dish_id))
-        else:
-            cursor.execute("""
-                INSERT INTO menu_items (
-                    category_id, name, price, portion, description, image_url,
-                    station, options_json, translations_json, is_available,
-                    out_of_ingredients, main_menu_type
-                ) VALUES (?, ?, ?, ?, ?, ?, 'HOT_KITCHEN', ?, ?, 1, 0, 'RESTAURANT')
-            """, (bbq_cat_id, dish["name"], dish["price"], dish["portion"], dish["description"], dish["image_url"], opts_str, trans_str))
-            dish_id = cursor.lastrowid
+    # Chỉ khởi tạo các món BBQ mẫu nếu nhóm Hot BBQ hoàn toàn chưa có món nào
+    if existing_bbq_count == 0:
+        for dish in BBQ_DISHES:
+            cursor.execute("SELECT id FROM menu_items WHERE name = ?", (dish["name"],))
+            existing_dish = cursor.fetchone()
+            opts_str = json.dumps(dish["options"], ensure_ascii=False)
+            trans_str = json.dumps(dish["translations"], ensure_ascii=False)
 
-        # Gán định lượng NVL cốt lõi (BOM)
-        for ing_code, qty in dish["bom"]:
-            cursor.execute("SELECT id FROM inventory_items WHERE code = ?", (ing_code,))
-            ing_row = cursor.fetchone()
-            if ing_row:
-                ing_id = ing_row["id"]
+            if not existing_dish:
                 cursor.execute("""
-                    INSERT OR REPLACE INTO recipe_bom (menu_item_id, ingredient_id, quantity)
-                    VALUES (?, ?, ?)
-                """, (dish_id, ing_id, qty))
+                    INSERT INTO menu_items (
+                        category_id, name, price, portion, description, image_url,
+                        station, options_json, translations_json, is_available,
+                        out_of_ingredients, main_menu_type
+                    ) VALUES (?, ?, ?, ?, ?, ?, 'HOT_KITCHEN', ?, ?, 1, 0, 'RESTAURANT')
+                """, (bbq_cat_id, dish["name"], dish["price"], dish["portion"], dish["description"], dish["image_url"], opts_str, trans_str))
+                dish_id = cursor.lastrowid
+
+                # Gán định lượng NVL cốt lõi (BOM)
+                for ing_code, qty in dish["bom"]:
+                    cursor.execute("SELECT id FROM inventory_items WHERE code = ?", (ing_code,))
+                    ing_row = cursor.fetchone()
+                    if ing_row:
+                        ing_id = ing_row["id"]
+                        cursor.execute("""
+                            INSERT OR REPLACE INTO recipe_bom (menu_item_id, ingredient_id, quantity)
+                            VALUES (?, ?, ?)
+                        """, (dish_id, ing_id, qty))
 
     conn.commit()
 
