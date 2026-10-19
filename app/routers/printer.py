@@ -120,9 +120,9 @@ async def api_print_table_bill(table_id: int, request: Request):
         all_items.extend(items)
         subtotal += sum(it["total_price"] for it in items if it.get("status") != "CANCELLED")
 
-    if not all_items:
+    if not all_items and service_fee <= 0:
         conn.close()
-        raise HTTPException(status_code=400, detail="Bàn chưa có món nào để in hóa đơn")
+        raise HTTPException(status_code=400, detail="Bàn chưa có món nào hoặc phí dịch vụ để in hóa đơn")
 
     if discount_percent > 0:
         discount_amount = int(round(subtotal * discount_percent / 100))

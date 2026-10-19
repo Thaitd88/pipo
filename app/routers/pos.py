@@ -259,22 +259,73 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
         cursor.execute("SELECT * FROM order_items WHERE order_id = ? ORDER BY id ASC", (co["id"],))
         checkout_items.extend([dict(it) for it in cursor.fetchall()])
 
-    # 1. Đánh dấu tất cả đơn của bàn là PAID, cập nhật giảm giá, phí phục vụ & phương thức thanh toán
-    cursor.execute("""
-        UPDATE orders 
-        SET payment_status = 'PAID', 
-            status = 'COMPLETED',
-            completed_at = CURRENT_TIMESTAMP,
-            discount = ?,
-            discount_reason = ?,
-            service_fee = ?,
-            payment_method = ?,
-            bill_target = ?,
-            billed_admin_id = ?,
-            billed_admin_name = ?,
-            total = MAX(0, subtotal - ? + ?)
-        WHERE table_id = ? AND payment_status = 'UNPAID'
-    """, (discount_amount, discount_reason, service_fee, payment_method, bill_target, billed_admin_id, billed_admin_name, discount_amount, service_fee, table_id))
+    now_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # 1. Đánh dấu đơn là PAID hoặc TẠO MỚI nếu bàn chỉ kê phí phục vụ / tiền sân không gọi món
+    if not checkout_orders:
+        session_id = table.get("current_session_id")
+        if not session_id:
+            import uuid
+            sess_token = f"sess_{uuid.uuid4().hex[:12]}"
+            cursor.execute("""
+                INSERT INTO table_sessions (table_id, session_token, guest_count, status, opened_at, closed_at)
+                VALUES (?, ?, 1, 'CLOSED', ?, ?)
+            """, (table_id, sess_token, now_ts, now_ts))
+            session_id = cursor.lastrowid
+
+        subtotal = 0
+        total = max(0, subtotal - discount_amount + service_fee)
+        cursor.execute("""
+            INSERT INTO orders (
+                session_id, table_id, round_number, subtotal, discount, discount_reason,
+                service_fee, total, status, payment_status, payment_method,
+                bill_target, billed_admin_id, billed_admin_name, customer_note,
+                created_at, completed_at
+            ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, 'COMPLETED', 'PAID', ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            session_id, table_id, subtotal, discount_amount, discount_reason,
+            service_fee, total, payment_method, bill_target, billed_admin_id, billed_admin_name,
+            "Phiếu thu phí dịch vụ / phụ thu", now_ts, now_ts
+        ))
+        new_order_id = cursor.lastrowid
+        checkout_orders = [{"id": new_order_id, "subtotal": subtotal, "total": total}]
+    else:
+        # Nếu có đơn hàng unpaid: Đơn đầu tiên nhận toàn bộ discount & service_fee của hóa đơn
+        first_order = checkout_orders[0]
+        first_total = max(0, first_order["subtotal"] - discount_amount + service_fee)
+        cursor.execute("""
+            UPDATE orders 
+            SET payment_status = 'PAID', 
+                status = 'COMPLETED',
+                completed_at = ?,
+                discount = ?,
+                discount_reason = ?,
+                service_fee = ?,
+                payment_method = ?,
+                bill_target = ?,
+                billed_admin_id = ?,
+                billed_admin_name = ?,
+                total = ?
+            WHERE id = ?
+        """, (now_ts, discount_amount, discount_reason, service_fee, payment_method, bill_target, billed_admin_id, billed_admin_name, first_total, first_order["id"]))
+
+        # Các đơn tiếp theo nếu có (round 2, 3...)
+        for other_order in checkout_orders[1:]:
+            cursor.execute("""
+                UPDATE orders 
+                SET payment_status = 'PAID', 
+                    status = 'COMPLETED',
+                    completed_at = ?,
+                    discount = 0,
+                    discount_reason = '',
+                    service_fee = 0,
+                    payment_method = ?,
+                    bill_target = ?,
+                    billed_admin_id = ?,
+                    billed_admin_name = ?,
+                    total = subtotal
+                WHERE id = ?
+            """, (now_ts, payment_method, bill_target, billed_admin_id, billed_admin_name, other_order["id"]))
 
     # 2. Đánh dấu tất cả món của các đơn bàn này là SERVED (đã phục vụ xong)
     cursor.execute("""

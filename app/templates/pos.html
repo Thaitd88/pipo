@@ -2656,8 +2656,13 @@
       });
 
       const tbody = document.getElementById("receiptItemsBody");
+      const serviceFee = Math.max(0, parseInt(document.getElementById("drawerServiceFee")?.value) || 0);
       if (!currentBillData.items || currentBillData.items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="2" class="py-4 text-center text-stone-400 italic">Chưa có món nào</td></tr>`;
+        if (serviceFee > 0) {
+          tbody.innerHTML = `<tr><td colspan="2" class="py-3 text-center text-emerald-800 font-semibold bg-emerald-50 rounded-xl">🛎️ Phiếu thu phí dịch vụ / phụ thu</td></tr>`;
+        } else {
+          tbody.innerHTML = `<tr><td colspan="2" class="py-4 text-center text-stone-400 italic">Chưa có món nào</td></tr>`;
+        }
       } else {
         tbody.innerHTML = currentBillData.items.map(it => {
           const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
@@ -2685,8 +2690,7 @@
 
       const disc = calculateCalculatedDiscount();
       const discPct = Math.min(100, Math.max(0, parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0));
-      const serviceFee = Math.max(0, parseInt(document.getElementById("drawerServiceFee")?.value) || 0);
-      const finalTotal = Math.max(0, currentBillData.grand_total - disc + serviceFee);
+      const finalTotal = Math.max(0, (currentBillData?.grand_total || 0) - disc + serviceFee);
 
       const receiptSubtotalRow = document.getElementById("receiptSubtotalRow");
       const receiptDiscountRow = document.getElementById("receiptDiscountRow");
@@ -2695,7 +2699,7 @@
       if (disc > 0 || serviceFee > 0) {
         if (receiptSubtotalRow) {
           receiptSubtotalRow.classList.remove("hidden");
-          document.getElementById("receiptSubtotalVal").innerText = formatVND(currentBillData.grand_total);
+          document.getElementById("receiptSubtotalVal").innerText = formatVND(currentBillData?.grand_total || 0);
         }
       } else {
         if (receiptSubtotalRow) receiptSubtotalRow.classList.add("hidden");
@@ -2722,9 +2726,11 @@
 
       document.getElementById("receiptGrandTotal").innerText = formatVND(finalTotal);
 
-      let qrUrl = currentBillData.vietqr_url;
-      if ((disc > 0 || serviceFee > 0) && currentBillData.grand_total > 0) {
-        qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${finalTotal}&addInfo=${encodeURIComponent(currentBillData.transfer_note || '')}&accountName=PIPO%20GARDEN`;
+      let qrUrl = currentBillData?.vietqr_url;
+      if (finalTotal > 0) {
+        const rawCode = (selectedTable?.table_code || selectedTable?.name || "01").toUpperCase().replace("BAN ", "").replace(/[^a-zA-Z0-9]/g, "") || "01";
+        const transferNote = currentBillData?.transfer_note || `TT PiPo Ban ${rawCode}`;
+        qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${finalTotal}&addInfo=${encodeURIComponent(transferNote)}&accountName=PIPO%20GARDEN`;
       }
 
       if (qrUrl && finalTotal > 0) {
@@ -2798,7 +2804,7 @@
 
     async function printProvisionalBill() {
       if (!selectedTable || !currentBillData) {
-        alert("Vui lòng chọn bàn có đơn hàng để in phiếu tạm tính!");
+        alert("Vui lòng chọn bàn để in phiếu tạm tính!");
         return;
       }
       const discPct = Math.min(100, Math.max(0, parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0));
@@ -2808,6 +2814,12 @@
       }
       const discAmount = calculateCalculatedDiscount();
       const serviceFee = Math.max(0, parseInt(document.getElementById("drawerServiceFee")?.value) || 0);
+
+      if ((!currentBillData.items || currentBillData.items.length === 0) && serviceFee <= 0) {
+        alert("Bàn chưa có món ăn hoặc phí dịch vụ để in phiếu tạm tính!");
+        return;
+      }
+
       const payMethod = document.querySelector('input[name="billTargetRadio"]:checked')?.value || "CASH";
       let billedAdminName = "";
       if (payMethod === "INTERNAL") {
@@ -2853,22 +2865,25 @@
     }
 
     function openVietQRModal() {
-      if (!currentBillData || currentBillData.grand_total === 0) {
-        alert("Bàn chưa có hóa đơn cần thanh toán!");
-        return;
-      }
       const disc = calculateCalculatedDiscount();
       const serviceFee = Math.max(0, parseInt(document.getElementById("drawerServiceFee")?.value) || 0);
-      const finalTotal = Math.max(0, currentBillData.grand_total - disc + serviceFee);
-      let qrUrl = currentBillData.vietqr_url;
-      if ((disc > 0 || serviceFee > 0) && currentBillData.grand_total > 0) {
-        qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${finalTotal}&addInfo=${encodeURIComponent(currentBillData.transfer_note || '')}&accountName=PIPO%20GARDEN`;
+      const grandTot = currentBillData ? (currentBillData.grand_total || 0) : 0;
+      const finalTotal = Math.max(0, grandTot - disc + serviceFee);
+
+      if (finalTotal <= 0) {
+        alert("Bàn chưa có số tiền cần thanh toán!");
+        return;
       }
+
+      const rawCode = (selectedTable?.table_code || selectedTable?.name || "01").toUpperCase().replace("BAN ", "").replace(/[^a-zA-Z0-9]/g, "") || "01";
+      const transferNote = currentBillData?.transfer_note || `TT PiPo Ban ${rawCode}`;
+      const qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${finalTotal}&addInfo=${encodeURIComponent(transferNote)}&accountName=PIPO%20GARDEN`;
+
       document.getElementById("vietqrImage").src = qrUrl;
       document.getElementById("qrModalDesc").innerText = `${selectedTable.name} • ${selectedTable.area}`;
       document.getElementById("qrModalAmount").innerText = formatVND(finalTotal);
       if (document.getElementById("qrModalNote")) {
-        document.getElementById("qrModalNote").innerText = currentBillData.transfer_note || `TT PiPo Ban ${selectedTable.name}`;
+        document.getElementById("qrModalNote").innerText = transferNote;
       }
       document.getElementById("vietqrModal").classList.remove("hidden");
     }
@@ -2912,6 +2927,12 @@
       if (payMethod === "TRANSFER") methodLabel = "Chuyển khoản (VietQR)";
       else if (payMethod === "INTERNAL") methodLabel = `Tính tiền nội bộ (${billedAdminName || 'Nội bộ'})`;
 
+      const finalPay = Math.max(0, (currentBillData?.grand_total || 0) - discountAmount + serviceFee);
+      if (finalPay <= 0 && serviceFee <= 0) {
+        alert("Bàn chưa có món ăn hoặc phí dịch vụ để thu tiền!");
+        return;
+      }
+
       let confirmMsg = `Xác nhận thanh toán và mở lại bàn ${selectedTable.name}?\n• Hình thức thanh toán: ${methodLabel}`;
       if (serviceFee > 0) {
         confirmMsg += `\n• Phí phục vụ / phụ thu: +${formatVND(serviceFee)}`;
@@ -2919,7 +2940,6 @@
       if (discountAmount > 0) {
         confirmMsg += `\n• Giảm giá ${discountPercent}%: -${formatVND(discountAmount)} (${discountReason || 'Không có'})`;
       }
-      const finalPay = Math.max(0, (currentBillData.grand_total || 0) - discountAmount + serviceFee);
       confirmMsg += `\n• Tổng thanh toán: ${formatVND(finalPay)}`;
 
       if (!confirm(confirmMsg)) return;
@@ -3012,7 +3032,7 @@
                 <div class="text-[10px] text-stone-400">${b.area} • ${b.table_code}</div>
               </td>
               <td class="py-3 px-4 text-stone-600 whitespace-nowrap">${b.paid_at || '--'}</td>
-              <td class="py-3 px-4 text-stone-700 font-semibold">${itemsCount} món</td>
+              <td class="py-3 px-4 text-stone-700 font-semibold">${itemsCount > 0 ? `${itemsCount} món` : '<span class="text-emerald-700 text-xs italic font-semibold">🛎️ Phí dịch vụ</span>'}</td>
               <td class="py-3 px-4 text-right font-black text-emerald-700 text-sm whitespace-nowrap">
                 <div>${formatVND(b.total)}</div>
                 ${b.service_fee > 0 ? `<div class="text-[10px] text-emerald-600 font-normal mt-0.5">+Phí: ${formatVND(b.service_fee)}</div>` : ''}
@@ -3056,17 +3076,21 @@
       }
 
       const itemsList = document.getElementById("modalBillItemsList");
-      itemsList.innerHTML = (bill.items || []).map(it => `
-        <tr class="hover:bg-stone-50 transition">
-          <td class="py-2 px-3 font-semibold text-stone-900">
-            ${it.item_name}
-            ${it.note ? `<div class="text-[10px] text-amber-700">(${it.note})</div>` : ''}
-          </td>
-          <td class="py-2 px-2 text-center font-bold text-stone-800">${it.quantity}</td>
-          <td class="py-2 px-3 text-right text-stone-600">${formatVND(it.unit_price)}</td>
-          <td class="py-2 px-3 text-right font-bold text-stone-900">${formatVND(it.total_price)}</td>
-        </tr>
-      `).join("");
+      if (!bill.items || bill.items.length === 0) {
+        itemsList.innerHTML = `<tr><td colspan="4" class="py-4 text-center italic text-emerald-800 font-semibold bg-emerald-50/50">🛎️ Hóa đơn thu phí phục vụ / dịch vụ (không có món ăn)</td></tr>`;
+      } else {
+        itemsList.innerHTML = (bill.items || []).map(it => `
+          <tr class="hover:bg-stone-50 transition">
+            <td class="py-2 px-3 font-semibold text-stone-900">
+              ${it.item_name}
+              ${it.note ? `<div class="text-[10px] text-amber-700">(${it.note})</div>` : ''}
+            </td>
+            <td class="py-2 px-2 text-center font-bold text-stone-800">${it.quantity}</td>
+            <td class="py-2 px-3 text-right text-stone-600">${formatVND(it.unit_price)}</td>
+            <td class="py-2 px-3 text-right font-bold text-stone-900">${formatVND(it.total_price)}</td>
+          </tr>
+        `).join("");
+      }
 
       document.getElementById("modalBillSubtotal").innerText = formatVND(bill.subtotal);
       const discRow = document.getElementById("modalBillDiscountRow");
@@ -3471,7 +3495,9 @@
               </td>
               <td class="py-3 px-4 max-w-xs">
                 <div class="space-y-0.5">
-                  ${o.items.map(it => {
+                  ${(!o.items || o.items.length === 0) ? `
+                    <div class="text-[11px] text-emerald-700 italic font-medium">🛎️ Phiếu thu phí dịch vụ / phụ thu</div>
+                  ` : o.items.map(it => {
                     const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
                     return `
                       <div class="text-[11px] text-stone-700">

@@ -1831,7 +1831,9 @@
               </td>
               <td class="py-3 px-4 max-w-xs">
                 <div class="space-y-0.5">
-                  ${o.items.map(it => {
+                  ${(!o.items || o.items.length === 0) ? `
+                    <div class="text-[11px] text-emerald-700 italic font-medium">🛎️ Phiếu thu phí dịch vụ / phụ thu</div>
+                  ` : o.items.map(it => {
                     const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
                     return `
                       <div class="text-[11px] text-stone-700">

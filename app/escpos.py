@@ -185,10 +185,12 @@ def format_receipt_ticket_text(table_info: dict, items: list, totals_info: dict 
 
     subtotal = 0
     idx = 1
+    has_active_items = False
     for it in items:
         if it.get("status") == "CANCELLED":
             continue
 
+        has_active_items = True
         name = it.get("item_name") or it.get("name", "")
         qty = int(it.get("quantity", 1))
         price = int(it.get("unit_price") or it.get("price", 0))
@@ -220,6 +222,9 @@ def format_receipt_ticket_text(table_info: dict, items: list, totals_info: dict 
             lines.append(f"       >>> {note}")
 
         idx += 1
+
+    if not has_active_items:
+        lines.append("   (Phieu thu phi dich vu / phu thu san)")
 
     discount = int(totals_info.get("discount", 0))
     service_fee = int(totals_info.get("service_fee", 0))
@@ -489,10 +494,12 @@ def build_escpos_receipt_bytes(table_info: dict, items: list, totals_info: dict 
 
     subtotal = 0
     idx = 1
+    has_active_items = False
     for it in items:
         if it.get("status") == "CANCELLED":
             continue
 
+        has_active_items = True
         name = remove_vietnamese_accents(it.get("item_name") or it.get("name", ""))
         qty = int(it.get("quantity", 1))
         price = int(it.get("unit_price") or it.get("price", 0))
@@ -527,6 +534,9 @@ def build_escpos_receipt_bytes(table_info: dict, items: list, totals_info: dict 
             buf.extend(f"       >>> {note}\n".encode("ascii"))
 
         idx += 1
+
+    if not has_active_items:
+        buf.extend(b'   (Phieu thu phi dich vu / phu thu san)\n')
 
     discount = int(totals_info.get("discount", 0))
     service_fee = int(totals_info.get("service_fee", 0))
