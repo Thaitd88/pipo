@@ -25,7 +25,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      border: 1.5px dashed #94a3b8;
+      border: 1.5px dashed #475569;
       border-radius: 12px;
       background: #ffffff;
       page-break-inside: avoid;
@@ -34,34 +34,52 @@
       position: relative;
     }
 
-    /* Định dạng in chuẩn khổ A4: 2 cột 90mm đặt vừa vặn 210mm */
+    /* Định dạng in chuẩn khổ A4: 2 cột 90mm đặt vừa vặn 210mm với lề an toàn chống mất viền */
     @page {
       size: A4 portrait;
-      margin: 8mm 12mm;
+      margin: 6mm 4mm;
     }
 
     @media print {
-      body {
+      html, body {
         background-color: #ffffff !important;
         padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       .no-print {
         display: none !important;
       }
+      main {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        display: block !important;
+      }
       .print-grid {
         display: grid !important;
         grid-template-columns: repeat(2, 90mm) !important;
-        gap: 6mm 10mm !important;
+        column-gap: 4mm !important;
+        row-gap: 6mm !important;
         justify-content: center !important;
+        align-content: start !important;
         padding: 0 !important;
         margin: 0 auto !important;
         width: 100% !important;
       }
       .qr-card-9x10 {
+        width: 90mm !important;
+        height: 100mm !important;
+        box-sizing: border-box !important;
         box-shadow: none !important;
-        border: 1px dashed #64748b !important;
+        border: 1.5px dashed #334155 !important;
+        border-radius: 10px !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
+        overflow: visible !important;
         margin: 0 !important;
       }
     }
@@ -80,6 +98,7 @@
             <span id="totalBadge" class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-bold">31 bàn</span>
           </h1>
           <p class="text-xs text-stone-500 mt-0.5">Mã QR to tối đa, Wi-Fi bôi đậm rõ ràng, song ngữ Anh - Việt, có thương hiệu Restaurant • Cafe • Pickleball.</p>
+          <p class="text-[11px] text-emerald-800 font-semibold mt-1 flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-600"></i><span>Khổ A4 vừa vặn 2 cột, lề an toàn chống mất viền đứt khi xuất PDF / In Decal mica.</span></p>
         </div>
       </div>
 
