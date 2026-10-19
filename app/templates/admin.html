@@ -286,6 +286,10 @@
                 <div class="text-[10px] text-emerald-200 font-bold uppercase">🏢 Tính Nội Bộ</div>
                 <div class="text-base font-black mt-0.5" id="detailInternalRev">0 đ</div>
               </div>
+              <div class="bg-white/10 px-3.5 py-2 rounded-xl backdrop-blur-xs">
+                <div class="text-[10px] text-emerald-200 font-bold uppercase">🛎️ Phí Phục Vụ</div>
+                <div class="text-base font-black mt-0.5" id="detailServiceFeeTotal">0 đ</div>
+              </div>
               <div class="bg-white/10 px-3 py-2 rounded-xl backdrop-blur-xs">
                 <div class="text-[10px] text-emerald-200 font-bold uppercase">Số đơn</div>
                 <div class="text-base font-bold mt-0.5" id="detailTotalOrders">0</div>
@@ -1787,6 +1791,9 @@
         }
         if (document.getElementById("detailInternalRev")) {
           document.getElementById("detailInternalRev").innerText = formatVND(data.summary.internal_revenue || 0);
+        }
+        if (document.getElementById("detailServiceFeeTotal")) {
+          document.getElementById("detailServiceFeeTotal").innerText = formatVND(data.summary.total_service_fee || 0);
         }
         document.getElementById("detailTotalOrders").innerText = data.summary.total_orders;
         document.getElementById("detailTotalDishes").innerText = data.summary.total_dishes_count;

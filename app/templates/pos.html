@@ -389,6 +389,10 @@
                 <div class="text-[10px] text-emerald-200 font-bold uppercase">🏢 Tính Nội Bộ</div>
                 <div class="text-base font-black mt-0.5" id="detailInternalRev">0 đ</div>
               </div>
+              <div class="bg-white/10 px-3.5 py-2 rounded-xl backdrop-blur-xs">
+                <div class="text-[10px] text-emerald-200 font-bold uppercase">🛎️ Phí Phục Vụ</div>
+                <div class="text-base font-black mt-0.5" id="detailServiceFeeTotal">0 đ</div>
+              </div>
               <div class="bg-white/10 px-3 py-2 rounded-xl backdrop-blur-xs">
                 <div class="text-[10px] text-emerald-200 font-bold uppercase">Số đơn</div>
                 <div class="text-base font-bold mt-0.5" id="detailTotalOrders">0</div>
@@ -661,6 +665,10 @@
           <div class="flex justify-between text-rose-600" id="modalBillDiscountRow">
             <span>Giảm giá:</span>
             <span id="modalBillDiscount">-0 đ</span>
+          </div>
+          <div class="flex justify-between text-emerald-700 hidden" id="modalBillServiceFeeRow">
+            <span>Phí phục vụ:</span>
+            <span id="modalBillServiceFee" class="font-bold">+0 đ</span>
           </div>
           <div class="flex justify-between text-stone-900 font-black text-sm pt-2 border-t border-stone-200">
             <span>TỔNG CỘNG:</span>
@@ -3005,7 +3013,10 @@
               </td>
               <td class="py-3 px-4 text-stone-600 whitespace-nowrap">${b.paid_at || '--'}</td>
               <td class="py-3 px-4 text-stone-700 font-semibold">${itemsCount} món</td>
-              <td class="py-3 px-4 text-right font-black text-emerald-700 text-sm whitespace-nowrap">${formatVND(b.total)}</td>
+              <td class="py-3 px-4 text-right font-black text-emerald-700 text-sm whitespace-nowrap">
+                <div>${formatVND(b.total)}</div>
+                ${b.service_fee > 0 ? `<div class="text-[10px] text-emerald-600 font-normal mt-0.5">+Phí: ${formatVND(b.service_fee)}</div>` : ''}
+              </td>
               <td class="py-3 px-4">${methodBadge}</td>
               <td class="py-3 px-4 text-center">
                 <div class="flex items-center justify-center gap-1.5">
@@ -3065,6 +3076,15 @@
       } else {
         discRow.classList.add("hidden");
       }
+
+      const feeRow = document.getElementById("modalBillServiceFeeRow");
+      if (bill.service_fee > 0) {
+        feeRow.classList.remove("hidden");
+        document.getElementById("modalBillServiceFee").innerText = `+${formatVND(bill.service_fee)}`;
+      } else {
+        feeRow.classList.add("hidden");
+      }
+
       document.getElementById("modalBillGrandTotal").innerText = formatVND(bill.total);
 
       document.getElementById("posBillDetailModal").classList.remove("hidden");
@@ -3411,6 +3431,9 @@
         }
         if (document.getElementById("detailInternalRev")) {
           document.getElementById("detailInternalRev").innerText = formatVND(data.summary.internal_revenue || 0);
+        }
+        if (document.getElementById("detailServiceFeeTotal")) {
+          document.getElementById("detailServiceFeeTotal").innerText = formatVND(data.summary.total_service_fee || 0);
         }
         document.getElementById("detailTotalOrders").innerText = data.summary.total_orders;
         document.getElementById("detailTotalDishes").innerText = data.summary.total_dishes_count;
