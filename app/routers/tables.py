@@ -55,6 +55,53 @@ def list_tables(status: Optional[str] = None):
     conn.close()
     return tables
 
+@router.get("/export-all-zip")
+def export_all_tables_qr_zip(request: Request, base_url: str = None):
+    """Xuất file nén ZIP chứa toàn bộ ảnh QR code độ nét cao của tất cả các bàn để gửi xưởng in ấn."""
+    import zipfile
+    import re
+    import os
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM tables ORDER BY area, table_code")
+    tables = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+
+    if not base_url:
+        env_base = os.getenv("BASE_URL")
+        base_url = env_base if env_base else str(request.base_url).rstrip("/")
+    base_url = base_url.rstrip("/")
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for t in tables:
+            order_url = f"{base_url}/table/{t['qr_token']}"
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_H,
+                box_size=12,
+                border=4,
+            )
+            qr.add_data(order_url)
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="#064e3b", back_color="#ffffff")
+            
+            img_buf = io.BytesIO()
+            img.save(img_buf, format="PNG")
+            
+            clean_area = re.sub(r'[^\w\-]', '_', t.get('area', 'Chung')).strip('_')
+            clean_name = re.sub(r'[^\w\-]', '_', t.get('name', t['table_code'])).strip('_')
+            filename = f"{clean_area}/{t['table_code']}_{clean_name}.png"
+            zip_file.writestr(filename, img_buf.getvalue())
+
+    zip_buffer.seek(0)
+    return Response(
+        content=zip_buffer.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=PiPoGarden_QR_All_Tables.zip"}
+    )
+
 @router.get("/areas")
 def list_areas():
     """Lấy danh sách các khu vực bàn kèm số lượng bàn."""
@@ -359,3 +406,4 @@ def get_table_qr_image(table_code: str, request: Request, base_url: str = None):
     buf.seek(0)
     
     return Response(content=buf.getvalue(), media_type="image/png")
+

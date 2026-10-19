@@ -753,8 +753,8 @@ async def create_service_call(payload: dict):
     call_type = payload.get("call_type", "WAITER") # ICE, TISSUE, WAITER, BILL
 
     call_labels = {
-        "ICE": "🧊 Xin thêm đá lạnh",
-        "TISSUE": "🥢 Xin thêm khăn ướt & bát đũa",
+        "ICE": "🍺🧊 Lên bia + đá",
+        "TISSUE": "🥢🥂 Chén + ly",
         "WAITER": "🔔 Cần gặp nhân viên hỗ trợ",
         "BILL": "💳 Khách yêu cầu thanh toán hóa đơn"
     }

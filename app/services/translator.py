@@ -24,6 +24,24 @@ GOOGLE_LANG_MAP = {
 
 # Từ điển ẩm thực dự phòng chuyên sâu cho PiPo Garden (Offline Fallback Dictionary)
 OFFLINE_FOOD_DICT = {
+    "Cá Mú 2 Món": {
+        "en": "Grouper Prepared Two Ways (Sashimi & Hotpot/Steamed)",
+        "zh": "石斑鱼两吃 (清蒸/刺身与鱼汤)",
+        "ko": "다금바리(그루퍼) 2코스 요리 (회 & 전골/찜)",
+        "ru": "Морской окунь (групер) двумя способами (сашими и суп/на пару)"
+    },
+    "Cá Sòng nướng": {
+        "en": "Chili Salt Grilled Scad Fish",
+        "zh": "炭烤竹荚鱼",
+        "ko": "숯불 전갱이 생선구이",
+        "ru": "Ставрида на гриле с чили"
+    },
+    "Bia Hơi Hà Nội": {
+        "en": "Hanoi Fresh Draft Beer",
+        "zh": "河内特色生啤酒 (扎啤)",
+        "ko": "하노이 생맥주 (비아호이)",
+        "ru": "Ханойское разливное свежее пиво (Bia Hoi)"
+    },
     "Bò Xuyên Tiêu": {
         "en": "Phu Quoc Stir-fried Beef with Green Peppercorns",
         "zh": "富国岛青花椒炒牛肉",
@@ -449,33 +467,75 @@ OFFLINE_FOOD_DICT = {
 }
 
 def translate_single_text(text: str, target_lang: str) -> str:
-    """Dịch một đoạn văn bản từ Tiếng Việt sang ngôn ngữ đích."""
+    """Dịch một đoạn văn bản từ Tiếng Việt sang ngôn ngữ đích với nhiều tầng dự phòng bền vững."""
     if not text or not text.strip():
         return ""
     
     clean_text = text.strip()
     
-    # Kiểm tra trong từ điển offline trước
+    # Tầng 1: Kiểm tra trong từ điển ẩm thực offline chuyên sâu trước
     if clean_text in OFFLINE_FOOD_DICT and target_lang in OFFLINE_FOOD_DICT[clean_text]:
         return OFFLINE_FOOD_DICT[clean_text][target_lang]
     
+    # Kiểm tra case-insensitive trong từ điển offline
+    for k, v in OFFLINE_FOOD_DICT.items():
+        if k.lower() == clean_text.lower() and target_lang in v:
+            return v[target_lang]
+            
     tl = GOOGLE_LANG_MAP.get(target_lang, target_lang)
     q = urllib.parse.quote(clean_text)
-    url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=vi&tl={tl}&dt=t&q={q}"
-    req = urllib.request.Request(
-        url,
-        headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
-    )
+    
+    # Tầng 2: Google Dict Chrome Extension API (Không bị 429, cực nhanh & chuẩn xác)
     try:
+        url = f"https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=vi&tl={tl}&q={q}"
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            }
+        )
         with urllib.request.urlopen(req, timeout=4) as response:
             data = json.loads(response.read().decode("utf-8"))
-            result = "".join(seg[0] for seg in data[0] if seg and seg[0])
-            return result if result else clean_text
+            if isinstance(data, list) and len(data) > 0 and isinstance(data[0], str) and data[0].strip():
+                return data[0].strip()
+            elif isinstance(data, str) and data.strip():
+                return data.strip()
     except Exception:
-        # Dự phòng nếu không có mạng: trả về văn bản gốc
-        return clean_text
+        pass
+
+    # Tầng 3: MyMemory Translation API dự phòng
+    try:
+        mymemory_tl = "zh-CN" if target_lang == "zh" else target_lang
+        url = f"https://api.mymemory.translated.net/get?q={q}&langpair=vi|{mymemory_tl}"
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+        )
+        with urllib.request.urlopen(req, timeout=4) as response:
+            data = json.loads(response.read().decode("utf-8"))
+            trans_res = (data.get("responseData") or {}).get("translatedText")
+            if trans_res and trans_res.strip() and not trans_res.startswith("MYMEMORY WARNING"):
+                return trans_res.strip()
+    except Exception:
+        pass
+
+    # Tầng 4: Google GTX API
+    try:
+        url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=vi&tl={tl}&dt=t&q={q}"
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+        )
+        with urllib.request.urlopen(req, timeout=3) as response:
+            data = json.loads(response.read().decode("utf-8"))
+            result = "".join(seg[0] for seg in data[0] if seg and seg[0])
+            if result and result.strip():
+                return result.strip()
+    except Exception:
+        pass
+
+    # Dự phòng cuối cùng: trả về văn bản gốc
+    return clean_text
 
 def translate_dish(name: str, description: str = "") -> Dict[str, Dict[str, str]]:
     """

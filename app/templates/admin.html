@@ -311,8 +311,14 @@
           <h2 class="font-bold text-base text-stone-900">Sơ Đồ Bàn & Phân Chia Khu Vực</h2>
           <p class="text-xs text-stone-500">Quản lý danh sách bàn, trạng thái phục vụ và in mã QR gọi món cho từng bàn.</p>
         </div>
-        <div class="flex items-center gap-2.5">
-          <button onclick="openAreaManagerModal()" class="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center gap-1.5 transition border border-stone-300">
+        <div class="flex flex-wrap items-center gap-2">
+          <a href="/api/tables/export-all-zip" download class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-xs" title="Tải trọn bộ file ảnh QR 31 bàn dạng ZIP">
+            <i class="fa-solid fa-file-zipper"></i> Tải ZIP Ảnh QR
+          </a>
+          <a href="/print-qrcodes" target="_blank" class="px-3.5 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-xs" title="Mở trang in toàn bộ mã QR khổ A4 có đường cắt viền">
+            <i class="fa-solid fa-print"></i> In QR Toàn Bộ Bàn
+          </a>
+          <button onclick="openAreaManagerModal()" class="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center gap-1.5 transition border border-stone-300">
             <i class="fa-solid fa-shapes text-emerald-700"></i> Quản Lý Khu Vực
           </button>
           <button onclick="openTableModal()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-xs">
@@ -1082,8 +1088,8 @@
             <span class="font-bold text-emerald-900 flex items-center gap-1.5">
               🌐 Bản Dịch Đa Ngôn Ngữ (EN, ZH, KO, RU)
             </span>
-            <button type="button" onclick="autoTranslateMenuItem()" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold flex items-center gap-1.5 shadow-xs transition">
-              <i class="fa-solid fa-robot"></i> 🤖 Dịch Tự Động
+            <button type="button" id="btnAutoTranslateItem" onclick="autoTranslateMenuItem()" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold flex items-center gap-1.5 shadow-xs transition">
+              <i class="fa-solid fa-robot"></i> <span>🤖 Dịch Tự Động</span>
             </button>
           </div>
 
@@ -2447,8 +2453,18 @@
       const desc = document.getElementById("itemFormDesc").value.trim();
 
       if (!name) {
-        alert("Vui lòng nhập tên món tiếng Việt trước khi bấm dịch tự động!");
+        showAdminToast("⚠️ Vui lòng nhập tên món tiếng Việt trước khi bấm dịch tự động!");
+        document.getElementById("itemFormName").focus();
         return;
+      }
+
+      const btn = document.getElementById("btnAutoTranslateItem") || (window.event && window.event.target);
+      const originalHtml = btn ? btn.innerHTML : `<i class="fa-solid fa-robot"></i> <span>🤖 Dịch Tự Động</span>`;
+
+      if (btn) {
+        btn.disabled = true;
+        btn.classList.add("opacity-75", "cursor-not-allowed");
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang dịch 4 thứ tiếng...</span>`;
       }
 
       try {
@@ -2460,13 +2476,36 @@
         const data = await res.json();
         if (data.status === "SUCCESS") {
           const trans = data.translations;
-          document.getElementById("itemTransEnName").value = trans.en.name;
-          document.getElementById("itemTransZhName").value = trans.zh.name;
-          document.getElementById("itemTransKoName").value = trans.ko.name;
-          document.getElementById("itemTransRuName").value = trans.ru.name;
+          const fields = [
+            { el: document.getElementById("itemTransEnName"), val: trans.en?.name || name },
+            { el: document.getElementById("itemTransZhName"), val: trans.zh?.name || name },
+            { el: document.getElementById("itemTransKoName"), val: trans.ko?.name || name },
+            { el: document.getElementById("itemTransRuName"), val: trans.ru?.name || name }
+          ];
+
+          fields.forEach(f => {
+            if (f.el) {
+              f.el.value = f.val;
+              f.el.classList.add("ring-2", "ring-emerald-500", "bg-emerald-50/50");
+              setTimeout(() => {
+                f.el.classList.remove("ring-2", "ring-emerald-500", "bg-emerald-50/50");
+              }, 2000);
+            }
+          });
+
+          showAdminToast(`✅ Đã dịch thành công sang 4 thứ tiếng (EN, ZH, KO, RU)!`);
+        } else {
+          showAdminToast(`⚠️ ${data.detail || "Không thể dịch tự động lúc này."}`);
         }
       } catch (e) {
-        alert("Lỗi dịch tự động");
+        console.error("Translation error:", e);
+        showAdminToast("❌ Lỗi kết nối dịch tự động. Vui lòng thử lại!");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove("opacity-75", "cursor-not-allowed");
+          btn.innerHTML = originalHtml;
+        }
       }
     }
 

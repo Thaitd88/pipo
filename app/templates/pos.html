@@ -160,11 +160,11 @@
           </div>
 
           <!-- 2. Lọc theo Khu Vực Bàn -->
-          <div class="flex flex-wrap items-center gap-1.5">
-            <button onclick="filterArea('ALL')" class="area-btn px-3 py-1.5 rounded-xl bg-stone-800 text-white text-xs font-bold shadow-xs">Mọi khu</button>
-            <button onclick="filterArea('Bàn Nhà Hàng')" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🍽️ Nhà Hàng</button>
-            <button onclick="filterArea('Bàn Cafe')" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">☕ Cafe</button>
-            <button onclick="filterArea('Sân Pickle')" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🏓 Sân Pickle</button>
+          <div class="flex flex-wrap items-center gap-1.5" id="areaFilterContainer">
+            <button onclick="filterArea('ALL')" id="areaBtn-ALL" class="area-btn px-3 py-1.5 rounded-xl bg-stone-800 text-white text-xs font-bold shadow-xs">Mọi khu (<span id="countAreaAll">0</span>)</button>
+            <button onclick="filterArea('Bàn Nhà Hàng')" id="areaBtn-Bàn Nhà Hàng" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🍽️ Nhà Hàng (<span id="countAreaRestaurant">0</span>)</button>
+            <button onclick="filterArea('Khu Hồ Bơi')" id="areaBtn-Khu Hồ Bơi" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🏊 Hồ Bơi (<span id="countAreaPool">0</span>)</button>
+            <button onclick="filterArea('Sân Pickle')" id="areaBtn-Sân Pickle" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🏓 Sân Pickle (<span id="countAreaPickle">0</span>)</button>
           </div>
         </div>
 
@@ -502,15 +502,24 @@
   <!-- ======================================================== -->
   <div id="tabContent-qrcodes" class="tab-panel flex-1 flex flex-col hidden">
     <main class="max-w-7xl mx-auto p-6 flex-1 w-full">
-      <div class="bg-white rounded-2xl p-6 shadow-sm border border-stone-200 mb-6 flex items-center justify-between">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-stone-200 mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 class="font-bold text-base text-stone-900">Mã QR Để Bàn Dành Cho Khách Quét Món</h2>
-          <p class="text-xs text-stone-500 mt-0.5">In ra thẻ Mica hoặc dán cố định tại từng bàn. Khách chỉ cần dùng Camera điện thoại để quét.</p>
+          <h2 class="font-bold text-base text-stone-900 flex items-center gap-2">
+            <span>Mã QR Để Bàn Dành Cho Khách Quét Món (31 Bàn)</span>
+            <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-bold">Chất lượng cao</span>
+          </h2>
+          <p class="text-xs text-stone-500 mt-0.5">Tải file ZIP trọn bộ ảnh QR hoặc mở trang in chuẩn A4 có viền cắt mica đem ra xưởng in.</p>
         </div>
-        <button onclick="window.print()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2">
-          <i class="fa-solid fa-print"></i>
-          <span>IN TOÀN BỘ MÃ QR BÀN</span>
-        </button>
+        <div class="flex flex-wrap items-center gap-2">
+          <a href="/api/tables/export-all-zip" download class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition flex items-center gap-2" title="Tải về file ZIP chứa ảnh PNG nét căng của 31 bàn">
+            <i class="fa-solid fa-file-zipper"></i>
+            <span>TẢI TẤT CẢ FILE ẢNH (.ZIP)</span>
+          </a>
+          <a href="/print-qrcodes" target="_blank" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2" title="Mở trang in khổ A4 có đường cắt viền kéo sẵn sàng mang in">
+            <i class="fa-solid fa-print"></i>
+            <span>MỞ TRANG IN TOÀN BỘ (CHUẨN A4)</span>
+          </a>
+        </div>
       </div>
 
       <div id="qrPrintSection" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
@@ -1586,19 +1595,33 @@
       document.querySelectorAll(".area-btn").forEach(b => {
         b.className = "area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50";
       });
-      event.target.className = "area-btn px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold shadow-xs";
+      const targetBtn = document.getElementById(`areaBtn-${area}`);
+      if (targetBtn) {
+        targetBtn.className = "area-btn px-3 py-1.5 rounded-xl bg-stone-800 text-white text-xs font-bold shadow-xs";
+      } else if (window.event && window.event.target) {
+        window.event.target.className = "area-btn px-3 py-1.5 rounded-xl bg-stone-800 text-white text-xs font-bold shadow-xs";
+      }
       renderTablesGrid();
     }
 
     function renderTablesGrid() {
       const container = document.getElementById("tablesGrid");
 
-      // Cập nhật số lượng bàn hiển thị lên các nút lọc
+      // Cập nhật số lượng bàn hiển thị lên các nút lọc trạng thái
       const occupiedCount = allTables.filter(t => t.status === 'OCCUPIED' || t.status === 'BILLING' || (t.current_bill_total || 0) > 0).length;
       const availableCount = allTables.length - occupiedCount;
       if (document.getElementById("countTblAll")) document.getElementById("countTblAll").innerText = allTables.length;
       if (document.getElementById("countTblOccupied")) document.getElementById("countTblOccupied").innerText = occupiedCount;
       if (document.getElementById("countTblAvailable")) document.getElementById("countTblAvailable").innerText = availableCount;
+
+      // Cập nhật số lượng bàn hiển thị lên các nút lọc khu vực
+      const countPickle = allTables.filter(t => t.area === 'Sân Pickle').length;
+      const countPool = allTables.filter(t => t.area === 'Khu Hồ Bơi').length;
+      const countRestaurant = allTables.filter(t => t.area !== 'Sân Pickle' && t.area !== 'Khu Hồ Bơi').length;
+      if (document.getElementById("countAreaAll")) document.getElementById("countAreaAll").innerText = allTables.length;
+      if (document.getElementById("countAreaRestaurant")) document.getElementById("countAreaRestaurant").innerText = countRestaurant;
+      if (document.getElementById("countAreaPool")) document.getElementById("countAreaPool").innerText = countPool;
+      if (document.getElementById("countAreaPickle")) document.getElementById("countAreaPickle").innerText = countPickle;
 
       // SẮP XẾP: Bàn đang có khách (BILLING -> OCCUPIED) tự động hiển thị LÊN ĐẦU TIÊN!
       const sortedTables = [...allTables].sort((a, b) => {
@@ -1613,12 +1636,19 @@
       });
 
       const filtered = sortedTables.filter(t => {
-        // 1. Lọc theo khu vực
+        // 1. Lọc theo khu vực chuẩn xác
         if (currentArea !== 'ALL') {
-          if (currentArea === 'Bàn Nhà Hàng' && (t.area === 'Bàn Cafe' || (t.area || '').toLowerCase().includes('cafe') || (t.area || '').toLowerCase().includes('pickle'))) return false;
-          if (currentArea === 'Bàn Cafe' && !(t.area === 'Bàn Cafe' || (t.area || '').toLowerCase().includes('cafe'))) return false;
-          if (currentArea === 'Sân Pickle' && !(t.area || '').toLowerCase().includes('pickle')) return false;
-          if (currentArea !== 'Bàn Nhà Hàng' && currentArea !== 'Bàn Cafe' && currentArea !== 'Sân Pickle' && t.area !== currentArea) return false;
+          if (currentArea === 'Sân Pickle') {
+            // Chỉ đúng các bàn thuộc Sân Pickle (4 bàn PK-01 -> PK-04), tuyệt đối không chứa bàn Sảnh 2 Cạnh Sân Pickleball
+            if (t.area !== 'Sân Pickle') return false;
+          } else if (currentArea === 'Khu Hồ Bơi') {
+            if (t.area !== 'Khu Hồ Bơi') return false;
+          } else if (currentArea === 'Bàn Nhà Hàng') {
+            // Nhà Hàng bao gồm Sảnh 1 và Sảnh 2 (Cạnh Sân Pickleball), loại trừ Sân Pickle và Hồ Bơi
+            if (t.area === 'Sân Pickle' || t.area === 'Khu Hồ Bơi') return false;
+          } else {
+            if (t.area !== currentArea) return false;
+          }
         }
         // 2. Lọc theo trạng thái bàn
         const isOccupied = (t.status === 'OCCUPIED' || t.status === 'BILLING' || (t.current_bill_total || 0) > 0);
@@ -1710,15 +1740,15 @@
         isBill: true
       },
       'ICE': {
-        name: 'Xin thêm đá lạnh',
-        shortName: 'Xin đá',
-        icon: 'fa-solid fa-cube',
+        name: 'Lên bia + đá lạnh',
+        shortName: 'Bia + đá',
+        icon: 'fa-solid fa-beer-mug-empty',
         isBill: false
       },
       'TISSUE': {
-        name: 'Xin thêm khăn lạnh',
-        shortName: 'Xin khăn',
-        icon: 'fa-solid fa-toilet-paper',
+        name: 'Xin thêm chén + ly',
+        shortName: 'Chén + ly',
+        icon: 'fa-solid fa-wine-glass',
         isBill: false
       },
       'WAITER': {

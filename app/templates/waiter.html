@@ -103,6 +103,13 @@
       }
     }
 
+    const WAITER_CALL_LABELS = {
+      'ICE': '🍺 Lên bia + đá',
+      'TISSUE': '🥢 Chén + ly',
+      'BILL': '💳 Yêu cầu thanh toán',
+      'WAITER': '🔔 Cần phục vụ'
+    };
+
     function renderServiceCalls(calls) {
       const container = document.getElementById("waiterServiceCalls");
       if (calls.length === 0) {
@@ -111,7 +118,7 @@
       }
       container.innerHTML = calls.map(c => `
         <div class="flex items-center gap-2 bg-amber-50 border border-amber-300 text-amber-900 px-3 py-1 rounded-xl text-xs font-semibold animate-pulse">
-          <span>🔔 <strong>${c.table_name}:</strong> ${c.call_type}</span>
+          <span><strong>${c.table_name}:</strong> ${WAITER_CALL_LABELS[c.call_type] || c.call_type}</span>
           <button onclick="dismissCall(${c.id})" class="text-xs bg-amber-200 hover:bg-amber-300 text-amber-900 px-2 py-0.5 rounded-lg ml-1 font-bold">
             Đã xử lý ✓
           </button>

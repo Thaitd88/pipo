@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>In Toàn Bộ Mã QR Bàn - PiPo Garden</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+
+    /* Định dạng in chuẩn A4 */
+    @page {
+      size: A4 portrait;
+      margin: 8mm 6mm;
+    }
+
+    @media print {
+      body {
+        background-color: #ffffff !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12mm !important;
+        padding: 0 !important;
+        width: 100% !important;
+      }
+      .qr-card {
+        box-shadow: none !important;
+        border: 1.5px dashed #64748b !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-bottom: 0 !important;
+      }
+    }
+
+    .qr-card {
+      transition: all 0.2s ease;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+  </style>
+</head>
+<body class="p-4 sm:p-6 min-h-screen flex flex-col">
+
+  <!-- Thanh công cụ điều khiển (Chỉ hiện trên màn hình, ẩn khi in) -->
+  <header class="no-print bg-white rounded-2xl border border-stone-200 shadow-sm p-4 mb-6 max-w-6xl mx-auto w-full sticky top-3 z-50">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <img src="/static/logo.png" alt="PiPo Garden" class="w-11 h-11 rounded-full object-contain bg-emerald-50 p-1 border border-emerald-200">
+        <div>
+          <h1 class="text-base font-black text-stone-900 flex items-center gap-2">
+            <span>Trang In Toàn Bộ Mã QR Bàn</span>
+            <span id="totalBadge" class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-bold">31 bàn</span>
+          </h1>
+          <p class="text-xs text-stone-500 mt-0.5">Định dạng chuẩn A4 có khung cắt viền. Sẵn sàng in màu hoặc ép plastic để bàn.</p>
+        </div>
+      </div>
+
+      <!-- Nút hành động -->
+      <div class="flex flex-wrap items-center gap-2">
+        <a href="/api/tables/export-all-zip" download class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5" title="Tải trọn bộ 31 ảnh QR độ phân giải cao">
+          <i class="fa-solid fa-file-zipper"></i>
+          <span>Tải file ZIP ảnh</span>
+        </a>
+
+        <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow transition flex items-center gap-1.5">
+          <i class="fa-solid fa-print"></i>
+          <span>In Toàn Bộ (Ctrl+P / Lưu PDF)</span>
+        </button>
+
+        <a href="/pos" class="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition flex items-center gap-1">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Về POS</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Thanh lọc khu vực -->
+    <div class="mt-4 pt-3 border-t border-stone-100 flex flex-wrap items-center justify-between gap-2">
+      <div class="text-xs font-bold text-stone-500">Lọc theo khu vực:</div>
+      <div class="flex flex-wrap items-center gap-1.5">
+        <button onclick="filterPrintArea('ALL')" id="filterBtn-ALL" class="print-filter-btn px-3 py-1.5 rounded-xl bg-stone-800 text-white text-xs font-bold shadow-xs">Tất cả bàn (<span id="countAll">0</span>)</button>
+        <button onclick="filterPrintArea('Bàn Nhà Hàng')" id="filterBtn-Bàn Nhà Hàng" class="print-filter-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🍽️ Nhà Hàng (<span id="countRestaurant">0</span>)</button>
+        <button onclick="filterPrintArea('Khu Hồ Bơi')" id="filterBtn-Khu Hồ Bơi" class="print-filter-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🏊 Hồ Bơi (<span id="countPool">0</span>)</button>
+        <button onclick="filterPrintArea('Sân Pickle')" id="filterBtn-Sân Pickle" class="print-filter-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🏓 Sân Pickle (<span id="countPickle">0</span>)</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Danh sách thẻ QR Bàn (Grid A4) -->
+  <main class="max-w-6xl mx-auto w-full flex-1">
+    <div id="printCardsContainer" class="print-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="col-span-full py-20 text-center text-stone-400">
+        <i class="fa-solid fa-spinner fa-spin text-3xl mb-2 text-emerald-600"></i>
+        <p class="text-xs font-semibold">Đang chuẩn bị dữ liệu mã QR bàn...</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let allTables = [];
+    let currentArea = 'ALL';
+
+    async function loadTables() {
+      try {
+        const res = await fetch("/api/tables");
+        allTables = await res.json();
+        
+        // Sắp xếp bàn theo khu vực và mã bàn
+        allTables.sort((a, b) => {
+          const areaCompare = (a.area || '').localeCompare(b.area || '');
+          if (areaCompare !== 0) return areaCompare;
+          return (a.table_code || '').localeCompare(b.table_code || '');
+        });
+
+        // Cập nhật số lượng
+        const countPickle = allTables.filter(t => t.area === 'Sân Pickle').length;
+        const countPool = allTables.filter(t => t.area === 'Khu Hồ Bơi').length;
+        const countRestaurant = allTables.filter(t => t.area !== 'Sân Pickle' && t.area !== 'Khu Hồ Bơi').length;
+
+        document.getElementById("totalBadge").innerText = `${allTables.length} bàn`;
+        document.getElementById("countAll").innerText = allTables.length;
+        document.getElementById("countRestaurant").innerText = countRestaurant;
+        document.getElementById("countPool").innerText = countPool;
+        document.getElementById("countPickle").innerText = countPickle;
+
+        renderCards();
+      } catch (e) {
+        console.error(e);
+        document.getElementById("printCardsContainer").innerHTML = `
+          <div class="col-span-full py-10 text-center text-rose-500 font-bold text-sm">
+            Lỗi nạp dữ liệu bàn. Vui lòng tải lại trang.
+          </div>
+        `;
+      }
+    }
+
+    function filterPrintArea(area) {
+      currentArea = area;
+      document.querySelectorAll(".print-filter-btn").forEach(b => {
+        b.className = "print-filter-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50";
+      });
+      const target = document.getElementById(`filterBtn-${area}`);
+      if (target) target.className = "print-filter-btn px-3 py-1.5 rounded-xl bg-stone-800 text-white text-xs font-bold shadow-xs";
+      renderCards();
+    }
+
+    function renderCards() {
+      const container = document.getElementById("printCardsContainer");
+      const origin = window.location.origin;
+
+      const filtered = allTables.filter(t => {
+        if (currentArea === 'ALL') return true;
+        if (currentArea === 'Sân Pickle') return t.area === 'Sân Pickle';
+        if (currentArea === 'Khu Hồ Bơi') return t.area === 'Khu Hồ Bơi';
+        if (currentArea === 'Bàn Nhà Hàng') return (t.area !== 'Sân Pickle' && t.area !== 'Khu Hồ Bơi');
+        return t.area === currentArea;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-16 text-center text-stone-400 bg-white rounded-2xl border border-stone-200">
+            <p class="text-xs font-semibold">Không có bàn nào trong khu vực đã chọn.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(t => {
+        const qrUrl = `/api/tables/${t.table_code}/qr-image?base_url=${origin}`;
+        return `
+          <div class="qr-card bg-white rounded-3xl p-6 border-2 border-dashed border-stone-300 text-center flex flex-col items-center justify-between shadow-xs">
+            <!-- Header thẻ -->
+            <div class="flex flex-col items-center mb-2">
+              <div class="flex items-center gap-2 mb-1">
+                <img src="/static/logo.png" alt="PiPo Garden" class="w-8 h-8 rounded-full object-contain">
+                <span class="text-xs font-black tracking-widest text-emerald-900 uppercase">PIPO GARDEN</span>
+              </div>
+              <div class="text-xl font-black text-stone-900 tracking-tight">${t.name}</div>
+              <div class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full mt-1 border border-emerald-200/60">
+                ${t.area}
+              </div>
+            </div>
+
+            <!-- Mã QR trung tâm nét căng -->
+            <div class="p-2.5 bg-white rounded-2xl border border-stone-200 shadow-2xs my-3 flex items-center justify-center">
+              <img src="${qrUrl}" alt="QR Code ${t.name}" class="w-48 h-48 object-contain">
+            </div>
+
+            <!-- Hướng dẫn & tiện ích -->
+            <div class="text-center w-full pt-2 border-t border-stone-100 space-y-1">
+              <div class="text-xs font-bold text-stone-800 flex items-center justify-center gap-1">
+                <i class="fa-solid fa-qrcode text-emerald-600"></i>
+                <span>Quét mã xem menu & gọi món</span>
+              </div>
+              <p class="text-[10px] text-stone-400">Dùng Camera iPhone / Android hoặc Zalo để quét</p>
+              <div class="text-[10px] font-medium text-stone-500 pt-1">
+                📶 Wi-Fi: <strong>PIPO GARDEN</strong> • Pass: <strong>pipogarden</strong>
+              </div>
+              <div class="text-[9px] text-stone-300 tracking-wider uppercase font-mono mt-0.5">
+                MÃ BÀN: ${t.table_code}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.addEventListener("DOMContentLoaded", loadTables);
+  </script>
+</body>
+</html>
