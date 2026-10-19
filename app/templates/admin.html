@@ -1136,6 +1136,47 @@
           </div>
         </div>
 
+        <!-- Section: Quản Lý Các Vị Chế Biến / Tùy Chọn Món (Options / Flavors) -->
+        <div class="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-emerald-200">
+            <div>
+              <div class="font-bold text-emerald-950 text-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-wand-magic-sparkles text-emerald-700"></i>
+                <span>🌶️ Quản Lý Các Vị Chế Biến / Tùy Chọn Món (1-Click Flavors)</span>
+                <span id="adminDishFlavorCountBadge" class="text-[10px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full font-bold">0 vị</span>
+              </div>
+              <p class="text-[11px] text-stone-500 mt-0.5">Khách & POS bấm chọn nhanh vị để gọi món (Ví dụ: Cháy tỏi, Sốt trứng muối, Nướng muối ớt, Hấp sả...).</p>
+            </div>
+          </div>
+
+          <!-- Ô nhập thêm vị mới -->
+          <div class="flex items-center gap-2">
+            <input type="text" id="adminNewFlavorInput" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); addAdminDishFlavor(); }" placeholder="Nhập tên vị mới (ví dụ: Nướng mọi, Chiên mắm...)" class="flex-1 bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-emerald-600 shadow-2xs">
+            <button type="button" onclick="addAdminDishFlavor()" class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 flex-shrink-0">
+              <i class="fa-solid fa-plus text-[10px]"></i> Thêm Vị
+            </button>
+          </div>
+
+          <!-- Gợi ý nhanh các vị phổ biến -->
+          <div class="flex flex-wrap items-center gap-1 text-[11px] text-stone-500">
+            <span class="font-bold text-[10px] text-stone-400">Gợi ý nhanh:</span>
+            <button type="button" onclick="addAdminDishFlavor('Cháy tỏi')" class="px-2 py-0.5 rounded-lg bg-white border border-stone-200 hover:border-emerald-500 hover:bg-emerald-50 text-stone-700 font-medium text-[10px] transition">+ Cháy tỏi</button>
+            <button type="button" onclick="addAdminDishFlavor('Sốt trứng muối')" class="px-2 py-0.5 rounded-lg bg-white border border-stone-200 hover:border-emerald-500 hover:bg-emerald-50 text-stone-700 font-medium text-[10px] transition">+ Sốt trứng muối</button>
+            <button type="button" onclick="addAdminDishFlavor('Nướng muối ớt')" class="px-2 py-0.5 rounded-lg bg-white border border-stone-200 hover:border-emerald-500 hover:bg-emerald-50 text-stone-700 font-medium text-[10px] transition">+ Nướng muối ớt</button>
+            <button type="button" onclick="addAdminDishFlavor('Chiên mắm')" class="px-2 py-0.5 rounded-lg bg-white border border-stone-200 hover:border-emerald-500 hover:bg-emerald-50 text-stone-700 font-medium text-[10px] transition">+ Chiên mắm</button>
+            <button type="button" onclick="addAdminDishFlavor('Hấp sả')" class="px-2 py-0.5 rounded-lg bg-white border border-stone-200 hover:border-emerald-500 hover:bg-emerald-50 text-stone-700 font-medium text-[10px] transition">+ Hấp sả</button>
+            <button type="button" onclick="addAdminDishFlavor('Hấp Thái')" class="px-2 py-0.5 rounded-lg bg-white border border-stone-200 hover:border-emerald-500 hover:bg-emerald-50 text-stone-700 font-medium text-[10px] transition">+ Hấp Thái</button>
+            <button type="button" onclick="addAdminDishFlavor('Nướng Tây Bắc')" class="px-2 py-0.5 rounded-lg bg-white border border-stone-200 hover:border-emerald-500 hover:bg-emerald-50 text-stone-700 font-medium text-[10px] transition">+ Nướng Tây Bắc</button>
+            <button type="button" onclick="addAdminDishFlavor('Nướng mỡ hành')" class="px-2 py-0.5 rounded-lg bg-white border border-stone-200 hover:border-emerald-500 hover:bg-emerald-50 text-stone-700 font-medium text-[10px] transition">+ Nướng mỡ hành</button>
+            <button type="button" onclick="addAdminDishFlavor('Chiên giòn')" class="px-2 py-0.5 rounded-lg bg-white border border-stone-200 hover:border-emerald-500 hover:bg-emerald-50 text-stone-700 font-medium text-[10px] transition">+ Chiên giòn</button>
+          </div>
+
+          <!-- Danh sách các vị của món đang cấu hình -->
+          <div id="adminDishFlavorsList" class="min-h-[44px] p-2.5 bg-white border border-emerald-200/80 rounded-xl flex flex-wrap gap-1.5 items-center">
+            <!-- Render chips các vị -->
+          </div>
+        </div>
+
         <!-- Section: Định Lượng Nguyên Vật Liệu (Recipe BOM & Calo) -->
         <div class="bg-amber-50/60 border border-amber-200 rounded-2xl p-4 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-amber-200">
@@ -1684,6 +1725,36 @@
       loadAdminTables();
     }
 
+    function getAdminTableAreaStyle(area) {
+      const a = (area || '').trim();
+      if (a === 'Sân Pickle') {
+        return {
+          cardBg: 'bg-purple-50/75 border-purple-200 hover:border-purple-400',
+          badge: '🏓 Sân Pickle',
+          badgeClass: 'bg-purple-100 text-purple-900 border-purple-300'
+        };
+      } else if (a === 'Khu Hồ Bơi') {
+        return {
+          cardBg: 'bg-sky-50/75 border-sky-200 hover:border-sky-400',
+          badge: '🏊 Hồ Bơi',
+          badgeClass: 'bg-sky-100 text-sky-900 border-sky-300'
+        };
+      } else if (a.includes('Sảnh 2') || a.includes('Pickleball')) {
+        return {
+          cardBg: 'bg-emerald-50/65 border-emerald-200 hover:border-emerald-400',
+          badge: '🌿 Sảnh 2',
+          badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-300'
+        };
+      } else {
+        // Sảnh 1 (Chính Giữa) / Nhà Hàng
+        return {
+          cardBg: 'bg-amber-50/65 border-amber-200 hover:border-amber-400',
+          badge: '🍽️ Sảnh 1',
+          badgeClass: 'bg-amber-100 text-amber-900 border-amber-300'
+        };
+      }
+    }
+
     function renderTablesGrid() {
       const container = document.getElementById("adminTablesGrid");
       const filtered = currentAreaFilter === 'ALL' ? allTables : allTables.filter(t => t.area === currentAreaFilter);
@@ -1695,28 +1766,33 @@
 
       container.innerHTML = filtered.map(t => {
         const isOccupied = t.status === 'OCCUPIED';
+        const areaStyle = getAdminTableAreaStyle(t.area);
+        const cardStyle = isOccupied ? 'border-amber-400 bg-amber-50/60 shadow-sm ring-1 ring-amber-300' : `${areaStyle.cardBg} shadow-2xs`;
 
         return `
-          <div class="bg-white border ${isOccupied ? 'border-amber-400 bg-amber-50/20' : 'border-stone-200'} rounded-2xl p-4 flex flex-col justify-between hover:shadow-md transition">
+          <div class="border rounded-2xl p-4 flex flex-col justify-between hover:shadow-md transition ${cardStyle}">
             <div>
               <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 font-bold border border-stone-200">${t.table_code}</span>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isOccupied ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-300'}">
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-white text-stone-800 font-bold border border-stone-200 shadow-2xs">${t.table_code}</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isOccupied ? 'bg-amber-500 text-white shadow-2xs animate-pulse' : 'bg-white text-emerald-700 border border-emerald-300'}">
                   ${isOccupied ? 'Có khách' : 'Trống'}
                 </span>
               </div>
               <h4 class="font-bold text-sm text-stone-900">${t.name}</h4>
-              <div class="text-xs text-stone-500 mt-0.5">${t.area} • ${t.capacity || 4} chỗ</div>
+              <div class="text-xs text-stone-600 mt-1 flex items-center gap-1.5 flex-wrap">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${areaStyle.badgeClass}">${areaStyle.badge}</span>
+                <span>• ${t.capacity || 4} chỗ</span>
+              </div>
               ${isOccupied && t.current_bill_total > 0 ? `
-                <div class="mt-2 text-xs text-amber-700 font-bold bg-amber-50 p-1 rounded-lg">Đang gọi: ${formatVND(t.current_bill_total)}</div>
+                <div class="mt-2 text-xs text-amber-800 font-bold bg-amber-100/90 border border-amber-300 p-1.5 rounded-xl">Đang gọi: ${formatVND(t.current_bill_total)}</div>
               ` : ''}
             </div>
 
-            <div class="flex items-center gap-1.5 pt-3 mt-3 border-t border-stone-100">
-              <button onclick="showTableQrModal('${t.table_code}', '${t.name}', '${t.area}', '${t.qr_token}')" class="flex-1 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold flex items-center justify-center gap-1 transition" title="Xem mã QR">
+            <div class="flex items-center gap-1.5 pt-3 mt-3 border-t border-stone-200/60">
+              <button onclick="showTableQrModal('${t.table_code}', '${t.name}', '${t.area}', '${t.qr_token}')" class="flex-1 py-1.5 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-semibold flex items-center justify-center gap-1 transition shadow-2xs" title="Xem mã QR">
                 <i class="fa-solid fa-qrcode text-emerald-700"></i> QR
               </button>
-              <button onclick="openTableModal(${JSON.stringify(t).replace(/"/g, '&quot;')})" class="flex-1 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold flex items-center justify-center gap-1 transition" title="Chỉnh sửa">
+              <button onclick="openTableModal(${JSON.stringify(t).replace(/"/g, '&quot;')})" class="flex-1 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold flex items-center justify-center gap-1 transition shadow-2xs" title="Chỉnh sửa">
                 <i class="fa-solid fa-pen-to-square"></i> Sửa
               </button>
             </div>
@@ -2093,6 +2169,9 @@
         const hasZh = trans.zh && trans.zh.name;
         const hasKo = trans.ko && trans.ko.name;
         const hasRu = trans.ru && trans.ru.name;
+        const flavorsList = (item.options && item.options.length > 0 && item.options[0].options)
+          ? item.options[0].options
+          : [];
 
         return `
           <div class="bg-white border border-stone-200 rounded-2xl p-4 flex flex-col justify-between hover:shadow-md transition space-y-3">
@@ -2111,6 +2190,15 @@
                   <div class="text-xs font-bold text-emerald-700">${formatVND(item.price)}</div>
                   <div class="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">🔥 ${item.calories || 0} kcal</div>
                 </div>
+                ${flavorsList.length > 0 ? `
+                  <div class="flex flex-wrap gap-1 mt-1.5 pt-1.5 border-t border-stone-100">
+                    ${flavorsList.map(fl => `
+                      <span class="text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.2 rounded-md">
+                        ✨ ${fl}
+                      </span>
+                    `).join('')}
+                  </div>
+                ` : ''}
               </div>
             </div>
 
@@ -2147,6 +2235,53 @@
       } catch (e) {
         console.error(e);
       }
+    }
+
+    // Quản lý Vị Chế Biến / Tùy Chọn Món Ăn
+    let adminDishFlavors = [];
+
+    function renderAdminDishFlavors() {
+      const listEl = document.getElementById("adminDishFlavorsList");
+      const countEl = document.getElementById("adminDishFlavorCountBadge");
+      if (countEl) countEl.innerText = `${adminDishFlavors.length} vị`;
+      if (!listEl) return;
+
+      if (adminDishFlavors.length === 0) {
+        listEl.innerHTML = `<span class="text-xs text-stone-400 italic">Món này chưa có vị riêng (sử dụng vị chuẩn). Nhập vị ở trên hoặc bấm gợi ý nhanh để thêm.</span>`;
+        return;
+      }
+
+      listEl.innerHTML = adminDishFlavors.map((fl, idx) => `
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-100 text-emerald-950 font-bold text-xs border border-emerald-300 shadow-2xs">
+          <span>✨ ${fl}</span>
+          <button type="button" onclick="removeAdminDishFlavor(${idx})" class="w-4 h-4 rounded-full bg-emerald-200/80 hover:bg-rose-500 hover:text-white text-emerald-800 flex items-center justify-center text-[10px] font-bold transition ml-0.5" title="Xóa vị này">×</button>
+        </span>
+      `).join('');
+    }
+
+    function addAdminDishFlavor(val = null) {
+      let flavor = val;
+      if (!flavor) {
+        const input = document.getElementById("adminNewFlavorInput");
+        if (input) {
+          flavor = input.value.trim();
+          input.value = "";
+          input.focus();
+        }
+      }
+      if (!flavor) return;
+
+      // Không thêm trùng vị
+      if (adminDishFlavors.some(f => f.toLowerCase() === flavor.toLowerCase())) {
+        return;
+      }
+      adminDishFlavors.push(flavor);
+      renderAdminDishFlavors();
+    }
+
+    function removeAdminDishFlavor(idx) {
+      adminDishFlavors.splice(idx, 1);
+      renderAdminDishFlavors();
     }
 
     let adminBomRows = [];
@@ -2337,6 +2472,9 @@
 
         adminBomRows = [];
         renderAdminBomTable();
+
+        adminDishFlavors = [];
+        renderAdminDishFlavors();
       } else {
         document.getElementById("itemModalTitle").innerText = `Chỉnh Sửa Món: ${item.name}`;
         document.getElementById("itemFormId").value = item.id;
@@ -2373,6 +2511,20 @@
         document.getElementById("itemTransZhName").value = (trans.zh && trans.zh.name) || "";
         document.getElementById("itemTransKoName").value = (trans.ko && trans.ko.name) || "";
         document.getElementById("itemTransRuName").value = (trans.ru && trans.ru.name) || "";
+
+        // Nạp danh sách các vị chế biến của món
+        adminDishFlavors = [];
+        if (item.options && item.options.length > 0 && item.options[0].options) {
+          adminDishFlavors = [...item.options[0].options];
+        } else if (item.options_json) {
+          try {
+            const parsed = JSON.parse(item.options_json);
+            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].options) {
+              adminDishFlavors = [...parsed[0].options];
+            }
+          } catch(e){}
+        }
+        renderAdminDishFlavors();
 
         // Tải danh sách BOM định lượng sẵn có của món
         adminBomRows = [];
@@ -2539,6 +2691,10 @@
         ru: { name: document.getElementById("itemTransRuName").value.trim() || name, description: desc }
       };
 
+      const options_json = adminDishFlavors.length > 0
+        ? JSON.stringify([{ name: "Chọn vị chế biến", options: adminDishFlavors }])
+        : "[]";
+
       const payload = {
         category_id: catId,
         station: station,
@@ -2550,7 +2706,8 @@
         main_menu_type: mainMenuType,
         calories: calories,
         portion: portion,
-        translations: translations
+        translations: translations,
+        options_json: options_json
       };
 
       try {

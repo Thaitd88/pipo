@@ -826,9 +826,9 @@
 
     // 1. Khởi chạy khi load trang
     document.addEventListener("DOMContentLoaded", () => {
-      // Nhận diện tự động nếu bàn Sân Pickle hoặc Cafe
-      const isPickleTable = (TABLE_INFO.branchType === "PICKLE" || (TABLE_INFO.area || "").toLowerCase().includes("pickle") || (TABLE_INFO.code || "").toUpperCase().startsWith("PK"));
-      const isCafeTable = (TABLE_INFO.branchType === "CAFE" || (TABLE_INFO.area || "").toLowerCase().includes("cafe") || (TABLE_INFO.code || "").toUpperCase().startsWith("CF"));
+      // Nhận diện tự động nếu bàn Sân Pickle (4 bàn PK-01 -> PK-04, tuyệt đối không nhầm sang Sảnh 2 Cạnh Sân Pickleball)
+      const isPickleTable = (TABLE_INFO.branchType === "PICKLE" || (TABLE_INFO.area || "").trim() === "Sân Pickle" || (TABLE_INFO.code || "").toUpperCase().startsWith("PK"));
+      const isCafeTable = (TABLE_INFO.branchType === "CAFE" || (TABLE_INFO.area || "").trim() === "Cafe" || (TABLE_INFO.code || "").toUpperCase().startsWith("CF"));
       
       if (isPickleTable) {
         currentMainMenu = "PICKLE";
@@ -839,9 +839,16 @@
         const bBadge = document.getElementById("bannerBadge");
         if (bBadge) bBadge.innerText = "🏓 THỰC ĐƠN SÂN PICKLEBALL";
         const bDesc = document.getElementById("bannerDesc");
-        if (bDesc) bDesc.innerText = "Gọi nước giải khát & đồ uống nhanh chóng, nhân viên sẽ mang ra tận sân.";
-      } else if (isCafeTable && !localStorage.getItem("pipo_main_menu")) {
-        currentMainMenu = "CAFE";
+        if (bDesc) bDesc.innerText = "Nước giải khát, tăng lực & món ăn nhanh phục vụ tận sân đấu.";
+      } else {
+        // Nếu không phải bàn Sân Pickle mà trước đó lưu PICKLE trong cache -> chuyển về RESTAURANT
+        if (currentMainMenu === "PICKLE") {
+          currentMainMenu = "RESTAURANT";
+          localStorage.setItem("pipo_main_menu", "RESTAURANT");
+        }
+        if (isCafeTable && !localStorage.getItem("pipo_main_menu")) {
+          currentMainMenu = "CAFE";
+        }
       }
 
       // Khôi phục giỏ hàng đã lưu trước đó nếu có (khi đổi ngôn ngữ tự làm mới trang)
@@ -1302,66 +1309,94 @@
               const discPct = item.discount_percent || 0;
               const hasDisc = discPct > 0 && discPct <= 100;
               const effectivePrice = hasDisc ? Math.round(item.price * (100 - discPct) / 100) : item.price;
+              const hasFlavors = (item.options && item.options.length > 0 && item.options[0].options && item.options[0].options.length > 0);
+              const optGroupName = hasFlavors ? (item.options[0].name || "Chọn vị chế biến") : "";
 
               return `
-              <div onclick="openItemModal(${item.id})" class="cursor-pointer bg-white rounded-2xl p-3 shadow-xs hover:shadow-md ${theme.borderHover} border border-stone-200/80 flex gap-3 items-center active:scale-[0.99] transition ${!isAvailable ? 'opacity-70 bg-stone-50/70' : ''}">
-                <!-- Ảnh món -->
-                <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden flex-shrink-0 bg-stone-50 border border-stone-100 group/thumb">
-                  <img src="${item.image_url || '/static/logo.png'}" alt="${itemName}" loading="lazy" onerror="this.onerror=null; this.src='/static/logo.png';" class="w-full h-full object-cover transition duration-300 group-hover/thumb:scale-110 ${!isAvailable ? 'grayscale-[40%]' : ''}">
-                  ${hasDisc ? `
-                    <span class="absolute top-1 left-1 bg-rose-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-lg shadow-sm">-${discPct}%</span>
-                  ` : ''}
-                  <div class="absolute inset-0 bg-black/25 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white">
-                    <i class="fa-solid fa-magnifying-glass-plus text-xs"></i>
+              <div onclick="openItemModal(${item.id})" class="cursor-pointer bg-white rounded-2xl p-3 shadow-xs hover:shadow-md ${theme.borderHover} border border-stone-200/80 flex flex-col justify-between active:scale-[0.99] transition ${!isAvailable ? 'opacity-70 bg-stone-50/70' : ''}">
+                <div class="flex gap-3 items-start">
+                  <!-- Ảnh món -->
+                  <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden flex-shrink-0 bg-stone-50 border border-stone-100 group/thumb">
+                    <img src="${item.image_url || '/static/logo.png'}" alt="${itemName}" loading="lazy" onerror="this.onerror=null; this.src='/static/logo.png';" class="w-full h-full object-cover transition duration-300 group-hover/thumb:scale-110 ${!isAvailable ? 'grayscale-[40%]' : ''}">
+                    ${hasDisc ? `
+                      <span class="absolute top-1 left-1 bg-rose-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-lg shadow-sm">-${discPct}%</span>
+                    ` : ''}
+                    <div class="absolute inset-0 bg-black/25 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white">
+                      <i class="fa-solid fa-magnifying-glass-plus text-xs"></i>
+                    </div>
+                    <span class="absolute bottom-1 right-1 bg-black/60 text-white text-[9px] px-1 rounded flex items-center gap-0.5">
+                      <i class="fa-solid fa-expand text-[8px]"></i>
+                    </span>
                   </div>
-                  <span class="absolute bottom-1 right-1 bg-black/60 text-white text-[9px] px-1 rounded flex items-center gap-0.5">
-                    <i class="fa-solid fa-expand text-[8px]"></i>
-                  </span>
+
+                  <!-- Thông tin món (Nguyên liệu chính) -->
+                  <div class="flex-1 min-w-0">
+                    <h4 class="font-bold text-sm text-stone-900 truncate hover:text-emerald-800 transition">${itemName}</h4>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      ${(item.portion && item.portion !== '1 phần') ? `
+                        <div class="flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/80">
+                          <i class="fa-solid fa-scale-balanced text-[9px] text-amber-700"></i>
+                          <span>${item.portion}</span>
+                        </div>
+                      ` : ''}
+                      ${(item.calories !== undefined && item.calories !== null && item.calories > 0) ? `
+                        <div class="flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/80">
+                          <span class="text-[10px] text-orange-500">🔥</span>
+                          <span>${item.calories} kcal</span>
+                        </div>
+                      ` : ''}
+                    </div>
+                    <div class="mt-2 flex items-center justify-between">
+                      ${hasDisc ? `
+                        <div class="flex items-center gap-1.5">
+                          <span class="font-black text-rose-600 text-sm">${formatVND(effectivePrice)}</span>
+                          <span class="text-[11px] text-stone-400 line-through">${formatVND(item.price)}</span>
+                        </div>
+                      ` : `
+                        <span class="font-black ${theme.priceColor} text-sm">${formatVND(item.price)}</span>
+                      `}
+                      ${isOutOfIngredients ? `
+                        <span class="text-[10px] font-black text-rose-800 bg-rose-50 border border-rose-300 px-2 py-0.5 rounded-xl flex items-center gap-1 shadow-2xs">
+                          <i class="fa-solid fa-triangle-exclamation text-rose-600 text-[10px]"></i>
+                          <span>Hết NVL</span>
+                        </span>
+                      ` : (!isAvailable ? `
+                        <span class="text-[10px] font-bold text-stone-500 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full">
+                          Hết hàng
+                        </span>
+                      ` : (!hasFlavors ? `
+                        <button type="button" onclick="event.stopPropagation(); quickAddToCart(${item.id})" class="${theme.btnAction} font-bold text-xs px-3 py-1.5 rounded-xl transition flex items-center gap-1 shadow-xs active:scale-95" title="${t('btn_add_to_cart')}">
+                          <span>${t('btn_add_short')}</span>
+                          <i class="fa-solid fa-plus text-[10px]"></i>
+                        </button>
+                      ` : ''))}
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Thông tin món -->
-                <div class="flex-1 min-w-0">
-                  <h4 class="font-bold text-sm text-stone-900 truncate hover:text-emerald-800 transition">${itemName}</h4>
-                  <div class="flex flex-wrap gap-1 mt-1">
-                    ${(item.options && item.options.length > 0 && item.options[0].options) ? `
-                      <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
-                        <i class="fa-solid fa-layer-group text-emerald-600 text-[9px]"></i>
-                        <span>${item.options[0].options.length} vị</span>
-                      </div>
-                    ` : ''}
-                    ${(item.calories !== undefined && item.calories !== null && item.calories > 0) ? `
-                      <div class="flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/80">
-                        <span class="text-[10px] text-orange-500">🔥</span>
-                        <span>${item.calories} kcal</span>
-                      </div>
-                    ` : ''}
+                ${(hasFlavors && isAvailable) ? `
+                  <!-- Danh sách các vị hiển thị trực tiếp để khách bấm 1 chạm thêm ngay -->
+                  <div class="mt-2.5 pt-2 border-t border-stone-100 flex flex-col gap-1.5" onclick="event.stopPropagation()">
+                    <div class="text-[10px] font-bold text-stone-500 flex items-center gap-1">
+                      <i class="fa-solid fa-wand-magic-sparkles text-emerald-600"></i>
+                      <span>Chọn vị chế biến để thêm:</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                      ${item.options[0].options.map(fl => {
+                        const safeFl = fl.replace(/'/g, "\\'");
+                        const safeGroup = optGroupName.replace(/'/g, "\\'");
+                        return `
+                          <button type="button" 
+                            onclick="event.stopPropagation(); addDishFlavorDirectly(${item.id}, '${safeGroup}', '${safeFl}')" 
+                            class="px-2.5 py-1 text-xs font-semibold rounded-xl bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-300 hover:border-emerald-600 transition active:scale-95 shadow-2xs flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-[9px] text-emerald-600"></i>
+                            <span>${fl}</span>
+                          </button>
+                        `;
+                      }).join('')}
+                    </div>
                   </div>
-                  <div class="mt-1.5 flex items-center justify-between">
-                    ${hasDisc ? `
-                      <div class="flex items-center gap-1.5">
-                        <span class="font-black text-rose-600 text-sm">${formatVND(effectivePrice)}</span>
-                        <span class="text-[11px] text-stone-400 line-through">${formatVND(item.price)}</span>
-                      </div>
-                    ` : `
-                      <span class="font-black ${theme.priceColor} text-sm">${formatVND(item.price)}</span>
-                    `}
-                    ${isOutOfIngredients ? `
-                      <span class="text-[10px] font-black text-rose-800 bg-rose-50 border border-rose-300 px-2.5 py-1 rounded-xl flex items-center gap-1 shadow-2xs">
-                        <i class="fa-solid fa-triangle-exclamation text-rose-600 text-[10px]"></i>
-                        <span>${t('dish_out_of_ingredients_badge')}</span>
-                      </span>
-                    ` : (isAvailable ? `
-                      <button type="button" onclick="event.stopPropagation(); quickAddToCart(${item.id})" class="${theme.btnAction} font-bold text-xs px-3 py-1.5 rounded-xl transition flex items-center gap-1 shadow-xs active:scale-95" title="${(item.options && item.options.length > 0) ? t('btn_choose_flavor') : t('btn_add_to_cart')}">
-                        <span>${(item.options && item.options.length > 0) ? t('btn_choose_flavor') : t('btn_add_short')}</span>
-                        <i class="fa-solid fa-plus text-[10px]"></i>
-                      </button>
-                    ` : `
-                      <span class="text-[10px] font-bold text-stone-500 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full">
-                        Hết hàng
-                      </span>
-                    `)}
-                  </div>
-                </div>
+                ` : ''}
               </div>
             `}).join('')}
           </div>
@@ -1651,6 +1686,60 @@
       updateCartUI();
       const localizedName = getItemName(item);
       showToast(t("toast_added", 1, localizedName));
+
+      if (navigator.vibrate) {
+        try { navigator.vibrate(35); } catch(e){}
+      }
+    }
+
+    // Thêm trực tiếp món kèm vị đã chọn từ thẻ món ăn (1-click add)
+    function addDishFlavorDirectly(itemId, optName, choice) {
+      let item = null;
+      for (let c of menuData) {
+        let f = (c.items || []).find(x => x.id === itemId);
+        if (f) { item = f; break; }
+      }
+      if (!item) return;
+
+      const isOutOfIngredients = (item.out_of_ingredients === 1);
+      const isAvailable = (item.is_available === 1 && !isOutOfIngredients);
+      if (!isAvailable) {
+        showToast("⚠️ Món ăn hiện tạm hết hoặc ngưng phục vụ!");
+        return;
+      }
+
+      const discPct = item.discount_percent || 0;
+      const hasDisc = discPct > 0 && discPct <= 100;
+      const effectivePrice = hasDisc ? Math.round(item.price * (100 - discPct) / 100) : item.price;
+
+      const modArray = [{ name: optName, value: choice }];
+      const modKey = JSON.stringify(modArray);
+
+      // Tìm xem món này với đúng vị này đã có trong giỏ chưa
+      const existing = cart.find(it => it.item_id === item.id && (!it.note || it.note === "") && JSON.stringify(it.modifiers || []) === modKey);
+      if (existing) {
+        existing.quantity += 1;
+        if (!existing.name) existing.name = item.name;
+      } else {
+        cart.push({
+          item_id: item.id,
+          id: item.id,
+          name: item.name,
+          station: item.station || "HOT_KITCHEN",
+          raw_item: item,
+          price: effectivePrice,
+          original_price: item.price,
+          discount_percent: discPct,
+          quantity: 1,
+          note: "",
+          modifiers: modArray
+        });
+      }
+
+      localStorage.setItem("pipo_cart_" + TABLE_INFO.id, JSON.stringify(cart));
+      updateCartUI();
+      const localizedName = getItemName(item);
+      showToast(`✅ Đã thêm: ${localizedName} (${choice})`);
 
       if (navigator.vibrate) {
         try { navigator.vibrate(35); } catch(e){}

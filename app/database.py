@@ -477,6 +477,9 @@ def init_db():
     # Gom món theo loại nguyên liệu và tạo tùy chọn vị chế biến
     consolidate_menu_items_with_options(conn)
 
+    # Đảm bảo các món ăn nhẹ & nước giải khát gắn tag PICKLE cho Sân Pickleball
+    ensure_pickle_menu_items(conn)
+
     # Đảm bảo cấu hình mặc định cho 2 máy in LAN (Bếp 192.168.31.251 và Thu ngân 192.168.31.252)
     ensure_printer_settings(conn)
 
@@ -945,6 +948,24 @@ def consolidate_menu_items_with_options(conn):
         for did in item["deactivate_ids"]:
             cursor.execute("UPDATE menu_items SET is_available = 0 WHERE id = ?", (did,))
 
+    conn.commit()
+
+
+def ensure_pickle_menu_items(conn):
+    """Đảm bảo các món ăn nhẹ, ăn nhanh và đồ uống cho sân Pickleball có gắn tag PICKLE."""
+    cursor = conn.cursor()
+    # Danh sách ID món ăn nhẹ / nạp năng lượng nhanh cho khách chơi Pickleball
+    PICKLE_SNACK_IDS = [140, 146, 147, 157, 160, 178, 179, 182, 190]
+    for dish_id in PICKLE_SNACK_IDS:
+        cursor.execute("SELECT main_menu_type FROM menu_items WHERE id = ?", (dish_id,))
+        row = cursor.fetchone()
+        if row:
+            raw_types = row[0] or ""
+            types = [t.strip() for t in raw_types.split(",") if t.strip()]
+            if "PICKLE" not in types:
+                types.append("PICKLE")
+                new_type_str = ",".join(types)
+                cursor.execute("UPDATE menu_items SET main_menu_type = ? WHERE id = ?", (new_type_str, dish_id))
     conn.commit()
 
 

@@ -1664,6 +1664,40 @@
       renderTablesGrid();
     }
 
+    function getPosTableAreaStyle(area) {
+      const a = (area || '').trim();
+      if (a === 'Sân Pickle') {
+        return {
+          bg: 'bg-purple-50/75',
+          border: 'border-purple-200 hover:border-purple-400',
+          badge: '🏓 Sân Pickle',
+          badgeClass: 'bg-purple-100 text-purple-900 border-purple-200'
+        };
+      } else if (a === 'Khu Hồ Bơi') {
+        return {
+          bg: 'bg-sky-50/75',
+          border: 'border-sky-200 hover:border-sky-400',
+          badge: '🏊 Hồ Bơi',
+          badgeClass: 'bg-sky-100 text-sky-900 border-sky-200'
+        };
+      } else if (a.includes('Sảnh 2') || a.includes('Pickleball')) {
+        return {
+          bg: 'bg-emerald-50/65',
+          border: 'border-emerald-200 hover:border-emerald-400',
+          badge: '🌿 Sảnh 2',
+          badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-200'
+        };
+      } else {
+        // Sảnh 1 (Chính Giữa) / Nhà Hàng
+        return {
+          bg: 'bg-amber-50/65',
+          border: 'border-amber-200 hover:border-amber-400',
+          badge: '🍽️ Sảnh 1',
+          badgeClass: 'bg-amber-100 text-amber-900 border-amber-200'
+        };
+      }
+    }
+
     function renderTablesGrid() {
       const container = document.getElementById("tablesGrid");
 
@@ -1729,17 +1763,18 @@
 
       container.innerHTML = filtered.map(t => {
         let statusBadge = "";
-        let borderClass = "border-stone-200 bg-white";
-        let subText = "Bàn trống";
+        const areaStyle = getPosTableAreaStyle(t.area);
+        let borderClass = `${areaStyle.border} ${areaStyle.bg} shadow-2xs`;
+        let subText = `<span class="text-stone-500 font-medium">Bàn trống</span>`;
 
         if (t.status === 'OCCUPIED') {
-          borderClass = "border-blue-400 bg-blue-50/70 shadow-sm ring-1 ring-blue-300";
+          borderClass = "border-blue-500 bg-blue-50/90 shadow-md ring-2 ring-blue-400";
           statusBadge = `<span class="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></span>`;
-          subText = `<span class="font-bold text-blue-700">${formatVND(t.current_bill_total)}</span> • ${t.unpaid_orders_count || 1} đợt món`;
+          subText = `<span class="font-bold text-blue-800">${formatVND(t.current_bill_total)}</span> • <span class="text-blue-700 font-semibold">${t.unpaid_orders_count || 1} đợt món</span>`;
         } else if (t.status === 'BILLING') {
-          borderClass = "border-amber-400 bg-amber-50 shadow-md ring-1 ring-amber-300";
+          borderClass = "border-amber-500 bg-amber-100/90 shadow-md ring-2 ring-amber-400 animate-pulse";
           statusBadge = `<span class="w-3 h-3 rounded-full bg-amber-500 animate-ping"></span>`;
-          subText = `<span class="font-bold text-amber-800">Yêu cầu tính tiền: ${formatVND(t.current_bill_total)}</span>`;
+          subText = `<span class="font-bold text-amber-900">Yêu cầu tính tiền: ${formatVND(t.current_bill_total)}</span>`;
         }
 
         return `
@@ -1748,16 +1783,19 @@
               <div>
                 <div class="font-black text-base text-stone-900 flex items-center gap-1.5">
                   ${t.name}
-                  ${(t.status === 'OCCUPIED' || t.status === 'BILLING') ? '<span class="text-[10px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-bold">CÓ KHÁCH</span>' : ''}
+                  ${(t.status === 'OCCUPIED' || t.status === 'BILLING') ? '<span class="text-[10px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-bold shadow-2xs">CÓ KHÁCH</span>' : ''}
                 </div>
-                <div class="text-[11px] text-stone-400 font-medium">${t.area} • Sức chứa ${t.capacity}</div>
+                <div class="text-[11px] text-stone-600 mt-1 flex items-center gap-1.5 flex-wrap">
+                  <span class="text-[10px] font-bold px-1.5 py-0.2 rounded-md border ${areaStyle.badgeClass}">${areaStyle.badge}</span>
+                  <span class="text-stone-400">• Sức chứa ${t.capacity}</span>
+                </div>
               </div>
               ${statusBadge}
             </div>
 
-            <div class="pt-3 border-t border-stone-100 flex items-center justify-between text-xs">
+            <div class="pt-3 border-t border-stone-200/60 flex items-center justify-between text-xs">
               <div class="truncate mr-2">${subText}</div>
-              <button onclick="event.stopPropagation(); openPosOrderModal(${t.id})" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-700 text-emerald-800 hover:text-white font-bold text-[11px] transition flex items-center gap-1 shadow-xs border border-emerald-200/80 hover:border-transparent flex-shrink-0" title="Gọi món hoặc thêm món cho bàn này">
+              <button onclick="event.stopPropagation(); openPosOrderModal(${t.id})" class="px-2.5 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] transition flex items-center gap-1 shadow-xs flex-shrink-0" title="Gọi món hoặc thêm món cho bàn này">
                 <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>Gọi món</span>
               </button>
@@ -3670,6 +3708,22 @@
                     </button>
                   `}
                 </div>
+
+                ${(hasOptions && !isUnavailable) ? `
+                  <div class="mt-2 pt-1.5 border-t border-stone-100 flex flex-wrap gap-1" onclick="event.stopPropagation()">
+                    ${it.options[0].options.map(fl => {
+                      const safeFl = fl.replace(/'/g, "\\'");
+                      const safeGroup = (it.options[0].name || "Chọn vị").replace(/'/g, "\\'");
+                      return `
+                        <button type="button" 
+                          onclick="event.stopPropagation(); addDishToPosCartWithDirectFlavor(${it.id}, '${safeGroup}', '${safeFl}')" 
+                          class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-50 hover:bg-emerald-700 hover:text-white text-emerald-800 border border-emerald-300 transition active:scale-95 shadow-2xs">
+                          + ${fl}
+                        </button>
+                      `;
+                    }).join('')}
+                  </div>
+                ` : ''}
               </div>
             `;
           }).join('')}
@@ -3734,6 +3788,38 @@
       }
 
       closePosFlavorModal();
+      renderPosOrderCart();
+      filterPosOrderDishes();
+    }
+
+    function addDishToPosCartWithDirectFlavor(itemId, optName, choice) {
+      let targetItem = null;
+      for (const cat of posMenuCategories) {
+        const found = (cat.items || []).find(it => it.id === itemId);
+        if (found) { targetItem = found; break; }
+      }
+      if (!targetItem) return;
+
+      if (targetItem.is_available === 0 || targetItem.out_of_ingredients === 1) {
+        alert("Món ăn tạm thời hết hoặc ngưng phục vụ!");
+        return;
+      }
+
+      const existing = posOrderCart.find(ci => ci.item_id === targetItem.id && ci.selected_flavor === choice);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        posOrderCart.push({
+          item_id: targetItem.id,
+          name: targetItem.name,
+          price: targetItem.price,
+          quantity: 1,
+          selected_flavor: choice,
+          note: choice,
+          modifiers: [{ name: optName, value: choice }]
+        });
+      }
+
       renderPosOrderCart();
       filterPosOrderDishes();
     }
