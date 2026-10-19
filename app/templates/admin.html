@@ -64,7 +64,7 @@
       <div class="flex items-center gap-2 pl-2 sm:pl-3 border-l border-emerald-800 text-xs">
         <div class="text-right hidden sm:block">
           <div class="text-white font-bold text-xs" id="adminUserName">{{ user.full_name }}</div>
-          <div class="text-[9px] text-amber-300 font-semibold">Quản Trị Viên</div>
+          <div class="text-[9px] text-amber-300 font-semibold">{% if user.role == 'SUPER_ADMIN' or user.username.lower() == 'thaitd' %}👑 Chủ Nhà Hàng (Super Admin){% else %}Quản Trị Viên{% endif %}</div>
         </div>
         <button onclick="logoutAdmin()" class="w-8 h-8 rounded-lg bg-emerald-950/80 hover:bg-rose-900 text-emerald-200 hover:text-white flex items-center justify-center transition" title="Đăng xuất">
           <i class="fa-solid fa-right-from-bracket text-xs"></i>
@@ -163,7 +163,7 @@
       </div>
 
       <!-- Sub-tabs Báo Cáo: Tổng quan & Chi tiết -->
-      <div class="flex items-center justify-between border-b border-stone-200 pb-3">
+      <div class="flex items-center justify-between border-b border-stone-200 pb-3 flex-wrap gap-2">
         <div class="flex gap-2">
           <button onclick="switchReportSubTab('overview')" id="subReportBtn-overview" class="px-3.5 py-1.5 rounded-xl bg-emerald-700 text-white font-bold text-xs shadow-xs">
             <i class="fa-solid fa-chart-simple mr-1"></i> Tổng Quan & Biểu Đồ
@@ -172,9 +172,18 @@
             <i class="fa-solid fa-list-check mr-1"></i> Báo Cáo Chi Tiết Từng Hóa Đơn
           </button>
         </div>
-        <button onclick="loadRevenueReports()" class="text-xs text-stone-500 hover:text-emerald-700 flex items-center gap-1 font-semibold">
-          <i class="fa-solid fa-rotate"></i> Làm mới dữ liệu
-        </button>
+        <div class="flex items-center gap-2">
+          {% if user.role == 'SUPER_ADMIN' or user.username.lower() == 'thaitd' %}
+          <button onclick="openCleanHistoryModal()" class="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition active:scale-95" title="Xóa dữ liệu chạy thử nghiệm để bắt đầu lại">
+            <i class="fa-solid fa-calendar-xmark text-white"></i>
+            <span>Xóa Doanh Thu & Dữ Liệu Test</span>
+            <span class="bg-black/25 px-1.5 py-0.5 rounded text-[9px] font-black uppercase">Super Admin</span>
+          </button>
+          {% endif %}
+          <button onclick="loadRevenueReports()" class="text-xs text-stone-500 hover:text-emerald-700 flex items-center gap-1 font-semibold">
+            <i class="fa-solid fa-rotate"></i> Làm mới dữ liệu
+          </button>
+        </div>
       </div>
 
       <!-- SUB-TAB 1: TỔNG QUAN BIỂU ĐỒ & TOP MÓN -->
@@ -1339,6 +1348,9 @@
           <div>
             <label class="block font-semibold text-stone-700 mb-1">Vai trò phân quyền *:</label>
             <select id="staffFormRole" class="w-full p-2.5 rounded-xl border border-stone-300 bg-white font-medium">
+              {% if user.role == 'SUPER_ADMIN' or user.username.lower() == 'thaitd' %}
+              <option value="SUPER_ADMIN">👑 Chủ Nhà Hàng (Super Admin)</option>
+              {% endif %}
               <option value="ADMIN">Quản lý (Admin)</option>
               <option value="CASHIER">Thu ngân (Cashier)</option>
               <option value="CHEF">Bếp trưởng (Chef)</option>
@@ -1361,6 +1373,123 @@
           <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-xs">Lưu Nhân Viên</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL XÓA DOANH THU & DỮ LIỆU ĐƠN HÀNG (SUPER ADMIN) -->
+  <div id="cleanHistoryModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-stone-200 overflow-hidden transform transition-all">
+      <div class="bg-gradient-to-r from-rose-700 to-red-800 p-4 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl shadow-inner border border-white/25">
+            👑
+          </div>
+          <div>
+            <h3 class="font-black text-sm sm:text-base leading-tight">Xóa Doanh Thu & Dữ Liệu Bán Hàng</h3>
+            <p class="text-[10px] text-white/80">Đặc quyền Chủ Nhà Hàng (Super Admin - Thaitd)</p>
+          </div>
+        </div>
+        <button onclick="closeCleanHistoryModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 text-xs text-stone-700">
+        <div class="bg-rose-50 border border-rose-200 rounded-2xl p-3 flex gap-2.5 items-start text-rose-800">
+          <i class="fa-solid fa-triangle-exclamation text-rose-600 text-sm mt-0.5 flex-shrink-0"></i>
+          <div class="text-[11px] leading-relaxed">
+            <span class="font-bold">Lưu ý quan trọng:</span> Tính năng này dùng để <strong>xóa dữ liệu chạy thử nghiệm tính năng mới</strong> hoặc dọn dẹp các đơn test trong ngày mà không làm ảnh hưởng đến CSDL thực đơn, bàn ghế hay hoạt động chung của quán.
+          </div>
+        </div>
+
+        <!-- Chọn chế độ xóa -->
+        <div>
+          <label class="block font-bold text-stone-900 mb-2">1. Chọn phạm vi thời gian cần xóa:</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="flex flex-col items-center p-2.5 rounded-xl border-2 cursor-pointer transition text-center hover:bg-stone-50 has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50/50 has-[:checked]:text-rose-900">
+              <input type="radio" name="cleanMode" value="SINGLE_DATE" checked onchange="handleCleanModeChange()" class="sr-only">
+              <i class="fa-solid fa-calendar-day text-base mb-1 text-rose-600"></i>
+              <span class="font-bold text-[11px]">1 Ngày Cụ Thể</span>
+              <span class="text-[9px] text-stone-400">Xóa ngày test</span>
+            </label>
+            <label class="flex flex-col items-center p-2.5 rounded-xl border-2 cursor-pointer transition text-center hover:bg-stone-50 has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50/50 has-[:checked]:text-rose-900">
+              <input type="radio" name="cleanMode" value="FROM_DATE" onchange="handleCleanModeChange()" class="sr-only">
+              <i class="fa-solid fa-calendar-plus text-base mb-1 text-rose-600"></i>
+              <span class="font-bold text-[11px]">Từ Ngày... Trở Đi</span>
+              <span class="text-[9px] text-stone-400">Từ mốc X đến nay</span>
+            </label>
+            <label class="flex flex-col items-center p-2.5 rounded-xl border-2 cursor-pointer transition text-center hover:bg-stone-50 has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50/50 has-[:checked]:text-rose-900">
+              <input type="radio" name="cleanMode" value="DATE_RANGE" onchange="handleCleanModeChange()" class="sr-only">
+              <i class="fa-solid fa-calendar-week text-base mb-1 text-rose-600"></i>
+              <span class="font-bold text-[11px]">Khoảng Ngày</span>
+              <span class="text-[9px] text-stone-400">Từ ngày A đến B</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Khung nhập ngày tương ứng -->
+        <div id="cleanDateInputs" class="bg-stone-50 p-3 rounded-2xl border border-stone-200 space-y-2.5">
+          <!-- Chế độ 1: 1 Ngày -->
+          <div id="cleanSingleDateGroup">
+            <label class="block font-semibold text-stone-700 mb-1">Chọn ngày cần xóa doanh thu & đơn hàng:</label>
+            <input type="date" id="cleanSingleDate" class="w-full p-2 rounded-xl border border-stone-300 bg-white font-medium text-xs">
+          </div>
+
+          <!-- Chế độ 2: Từ ngày X -->
+          <div id="cleanFromDateOnlyGroup" class="hidden">
+            <label class="block font-semibold text-stone-700 mb-1">Xóa toàn bộ đơn từ ngày này trở về sau:</label>
+            <input type="date" id="cleanFromDateOnly" class="w-full p-2 rounded-xl border border-stone-300 bg-white font-medium text-xs">
+          </div>
+
+          <!-- Chế độ 3: Khoảng ngày -->
+          <div id="cleanDateRangeGroup" class="hidden grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-stone-700 mb-1">Từ ngày:</label>
+              <input type="date" id="cleanRangeFrom" class="w-full p-2 rounded-xl border border-stone-300 bg-white font-medium text-xs">
+            </div>
+            <div>
+              <label class="block font-semibold text-stone-700 mb-1">Đến ngày:</label>
+              <input type="date" id="cleanRangeTo" class="w-full p-2 rounded-xl border border-stone-300 bg-white font-medium text-xs">
+            </div>
+          </div>
+        </div>
+
+        <!-- Tùy chọn dữ liệu xóa -->
+        <div class="space-y-2">
+          <label class="block font-bold text-stone-900">2. Các hạng mục xử lý kèm theo:</label>
+          <label class="flex items-center gap-2 cursor-pointer font-medium text-stone-700">
+            <input type="checkbox" id="cleanOptOrders" checked disabled class="rounded text-rose-600">
+            <span>Hóa đơn, món gọi, lệnh in bếp trong khoảng thời gian này (Bắt buộc)</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer font-medium text-stone-700">
+            <input type="checkbox" id="cleanOptInventory" checked class="rounded text-rose-600">
+            <span>Xóa trừ kho NVL và biến động kho sinh ra từ các đơn này</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer font-medium text-stone-700">
+            <input type="checkbox" id="cleanOptResetTables" checked class="rounded text-rose-600">
+            <span>Đưa tất cả bàn ăn bị kẹt về trạng thái Trống (AVAILABLE)</span>
+          </label>
+        </div>
+
+        <!-- Ô nhập chữ xác nhận bảo vệ an toàn -->
+        <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 space-y-1.5">
+          <label class="block font-bold text-amber-900">
+            3. Nhập chữ <span class="text-rose-700 font-mono text-xs font-black">XOA</span> để mở khóa nút xác nhận:
+          </label>
+          <input type="text" id="cleanConfirmPhrase" oninput="checkCleanConfirmPhrase()" placeholder="Nhập chữ XOA" class="w-full p-2 rounded-xl border border-amber-300 bg-white font-black text-center text-xs tracking-widest uppercase">
+        </div>
+
+        <!-- Nút hành động -->
+        <div class="pt-2 flex items-center justify-end gap-2 border-t border-stone-100">
+          <button type="button" onclick="closeCleanHistoryModal()" class="px-4 py-2 rounded-xl border border-stone-300 text-stone-600 font-semibold hover:bg-stone-50 transition">
+            Hủy bỏ
+          </button>
+          <button type="button" id="btnExecuteCleanHistory" disabled onclick="executeCleanHistory()" class="px-5 py-2 rounded-xl bg-stone-300 text-stone-500 font-bold shadow-xs cursor-not-allowed transition flex items-center gap-1.5">
+            <i class="fa-solid fa-trash-can"></i>
+            <span>Xác Nhận Xóa Dữ Liệu</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1683,6 +1812,168 @@
 
       } catch (e) {
         console.error("Lỗi tải báo cáo chi tiết:", e);
+      }
+    }
+
+    // ==========================================
+    // DỌN DẸP / XÓA LỊCH SỬ TEST (SUPER ADMIN)
+    // ==========================================
+    function openCleanHistoryModal() {
+      const today = new Date().toISOString().split('T')[0];
+      const singleDate = document.getElementById("cleanSingleDate");
+      const fromDate = document.getElementById("cleanFromDateOnly");
+      const rangeFrom = document.getElementById("cleanRangeFrom");
+      const rangeTo = document.getElementById("cleanRangeTo");
+      const phraseInput = document.getElementById("cleanConfirmPhrase");
+
+      if (singleDate) singleDate.value = today;
+      if (fromDate) fromDate.value = today;
+      if (rangeFrom) rangeFrom.value = today;
+      if (rangeTo) rangeTo.value = today;
+      if (phraseInput) phraseInput.value = "";
+
+      const defaultRadio = document.querySelector('input[name="cleanMode"][value="SINGLE_DATE"]');
+      if (defaultRadio) defaultRadio.checked = true;
+
+      handleCleanModeChange();
+      checkCleanConfirmPhrase();
+
+      const modal = document.getElementById("cleanHistoryModal");
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function closeCleanHistoryModal() {
+      const modal = document.getElementById("cleanHistoryModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function handleCleanModeChange() {
+      const mode = document.querySelector('input[name="cleanMode"]:checked')?.value || 'SINGLE_DATE';
+      const singleGroup = document.getElementById("cleanSingleDateGroup");
+      const fromOnlyGroup = document.getElementById("cleanFromDateOnlyGroup");
+      const rangeGroup = document.getElementById("cleanDateRangeGroup");
+
+      if (singleGroup) singleGroup.classList.toggle("hidden", mode !== 'SINGLE_DATE');
+      if (fromOnlyGroup) fromOnlyGroup.classList.toggle("hidden", mode !== 'FROM_DATE');
+      if (rangeGroup) rangeGroup.classList.toggle("hidden", mode !== 'DATE_RANGE');
+    }
+
+    function checkCleanConfirmPhrase() {
+      const phrase = (document.getElementById("cleanConfirmPhrase")?.value || "").trim().toUpperCase();
+      const btn = document.getElementById("btnExecuteCleanHistory");
+      if (!btn) return;
+
+      if (phrase === "XOA") {
+        btn.disabled = false;
+        btn.className = "px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-md cursor-pointer transition active:scale-95 flex items-center gap-1.5";
+      } else {
+        btn.disabled = true;
+        btn.className = "px-5 py-2 rounded-xl bg-stone-300 text-stone-500 font-bold shadow-xs cursor-not-allowed transition flex items-center gap-1.5";
+      }
+    }
+
+    async function executeCleanHistory() {
+      const phrase = (document.getElementById("cleanConfirmPhrase")?.value || "").trim().toUpperCase();
+      if (phrase !== "XOA") {
+        alert("Vui lòng nhập đúng từ 'XOA' để xác nhận.");
+        return;
+      }
+
+      const mode = document.querySelector('input[name="cleanMode"]:checked')?.value || 'SINGLE_DATE';
+      let singleDate = null;
+      let fromDate = null;
+      let toDate = null;
+
+      if (mode === 'SINGLE_DATE') {
+        singleDate = document.getElementById("cleanSingleDate")?.value;
+        if (!singleDate) {
+          alert("Vui lòng chọn ngày cần xóa dữ liệu!");
+          return;
+        }
+      } else if (mode === 'FROM_DATE') {
+        fromDate = document.getElementById("cleanFromDateOnly")?.value;
+        if (!fromDate) {
+          alert("Vui lòng chọn mốc ngày bắt đầu xóa!");
+          return;
+        }
+      } else if (mode === 'DATE_RANGE') {
+        fromDate = document.getElementById("cleanRangeFrom")?.value;
+        toDate = document.getElementById("cleanRangeTo")?.value;
+        if (!fromDate || !toDate) {
+          alert("Vui lòng chọn đầy đủ từ ngày và đến ngày!");
+          return;
+        }
+        if (fromDate > toDate) {
+          alert("Từ ngày không thể lớn hơn đến ngày!");
+          return;
+        }
+      }
+
+      const deleteInventory = document.getElementById("cleanOptInventory")?.checked ?? true;
+      const resetTables = document.getElementById("cleanOptResetTables")?.checked ?? true;
+
+      const confirmMsg = `CẢNH BÁO: Bạn đang thực hiện xóa toàn bộ hóa đơn, món ăn đã gọi và doanh thu bán hàng!\n\n` +
+        `• Chế độ: ${mode === 'SINGLE_DATE' ? ('Ngày ' + singleDate) : (mode === 'FROM_DATE' ? ('Từ ngày ' + fromDate + ' đến nay') : ('Từ ngày ' + fromDate + ' đến ' + toDate))}\n` +
+        `• Xóa kho liên quan: ${deleteInventory ? 'Có' : 'Không'}\n` +
+        `• Đưa bàn kẹt về trống: ${resetTables ? 'Có' : 'Không'}\n\n` +
+        `Thao tác này KHÔNG THỂ HOÀN TÁC. Bạn có chắc chắn muốn tiến hành?`;
+
+      if (!confirm(confirmMsg)) return;
+
+      const btn = document.getElementById("btnExecuteCleanHistory");
+      const originalHTML = btn ? btn.innerHTML : "";
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang xử lý...</span>`;
+      }
+
+      try {
+        const payload = {
+          clean_mode: mode,
+          single_date: singleDate,
+          from_date: fromDate,
+          to_date: toDate,
+          delete_inventory_tx: deleteInventory,
+          reset_tables: resetTables
+        };
+
+        const res = await fetch("/api/reports/clean-history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Không thể thực hiện xóa dữ liệu.");
+        }
+
+        alert(
+          `✅ Xóa dữ liệu thành công!\n\n` +
+          `- Số hóa đơn đã xóa: ${data.deleted_orders}\n` +
+          `- Số món trong đơn: ${data.deleted_order_items}\n` +
+          `- Lệnh in bếp: ${data.deleted_print_jobs}\n` +
+          `- Phiên bàn: ${data.deleted_sessions}\n` +
+          `- Biến động kho: ${data.deleted_inventory_tx}\n` +
+          `- Bàn đã đưa về trống: ${data.reset_tables}`
+        );
+
+        closeCleanHistoryModal();
+
+        // Refresh dữ liệu báo cáo & bàn
+        if (typeof loadRevenueReports === 'function') loadRevenueReports();
+        if (typeof fetchDetailReport === 'function') fetchDetailReport();
+        if (typeof loadAdminTables === 'function') loadAdminTables();
+
+      } catch (err) {
+        console.error("Lỗi xóa dữ liệu:", err);
+        alert("❌ Đã xảy ra lỗi: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+          checkCleanConfirmPhrase();
+        }
       }
     }
 
@@ -2966,21 +3257,23 @@
         const staff = await res.json();
 
         const roleBadges = {
-          ADMIN: { label: "Quản lý (Admin)", color: "bg-rose-100 text-rose-800 border-rose-300" },
-          CASHIER: { label: "Thu ngân (POS)", color: "bg-blue-100 text-blue-800 border-blue-300" },
-          CHEF: { label: "Bếp trưởng", color: "bg-amber-100 text-amber-800 border-amber-300" },
-          WAITER: { label: "Phục vụ", color: "bg-purple-100 text-purple-800 border-purple-300" }
+          SUPER_ADMIN: { label: "👑 Chủ Nhà Hàng (Super Admin)", color: "bg-rose-100 text-rose-800 border-rose-300 font-black" },
+          ADMIN: { label: "Quản lý (Admin)", color: "bg-purple-100 text-purple-800 border-purple-300 font-bold" },
+          CASHIER: { label: "Thu ngân (POS)", color: "bg-blue-100 text-blue-800 border-blue-300 font-semibold" },
+          CHEF: { label: "Bếp trưởng", color: "bg-amber-100 text-amber-800 border-amber-300 font-semibold" },
+          WAITER: { label: "Phục vụ", color: "bg-stone-100 text-stone-800 border-stone-300 font-semibold" }
         };
 
         const tbody = document.getElementById("staffTableBody");
         tbody.innerHTML = staff.map(u => {
-          const badge = roleBadges[u.role] || { label: u.role, color: "bg-stone-100 text-stone-700" };
+          const badge = roleBadges[u.role] || { label: u.role, color: "bg-stone-100 text-stone-700 font-semibold" };
+          const isSuper = (u.username === 'admin' || u.username.toLowerCase() === 'thaitd' || u.role === 'SUPER_ADMIN');
           return `
             <tr class="hover:bg-stone-50 transition">
               <td class="py-3 px-4">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
-                    ${u.full_name.charAt(0)}
+                  <div class="w-8 h-8 rounded-full ${isSuper ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'} flex items-center justify-center font-bold text-xs">
+                    ${isSuper ? '👑' : u.full_name.charAt(0)}
                   </div>
                   <div>
                     <div class="font-bold text-stone-900">${u.full_name}</div>
@@ -3005,7 +3298,7 @@
                   <button onclick="editStaff(${JSON.stringify(u).replace(/"/g, '&quot;')})" class="text-xs text-blue-600 hover:text-blue-800 font-semibold p-1">
                     <i class="fa-solid fa-pen-to-square"></i> Sửa
                   </button>
-                  ${u.username !== 'admin' ? `
+                  ${!isSuper ? `
                     <button onclick="deleteStaff(${u.id}, '${u.username}')" class="text-xs text-rose-600 hover:text-rose-800 font-semibold p-1">
                       <i class="fa-solid fa-trash-can"></i> Xóa
                     </button>

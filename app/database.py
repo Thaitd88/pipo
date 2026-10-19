@@ -446,10 +446,8 @@ def init_db():
             cursor.execute("INSERT OR IGNORE INTO restaurant_areas (name, icon, display_order) VALUES (?, ?, ?)", (a, icon, idx))
         conn.commit()
 
-    # Seed initial staff users if empty
-    cursor.execute("SELECT COUNT(*) as count FROM users")
-    if cursor.fetchone()["count"] == 0:
-        seed_default_users(conn)
+    # Đảm bảo tài khoản Super Admin (Thaitd) và nhân viên mặc định luôn tồn tại
+    seed_default_users(conn)
 
     # Seed initial tables and menu if empty
     cursor.execute("SELECT COUNT(*) as count FROM tables")
@@ -1417,6 +1415,7 @@ def ensure_main_menu_classification(conn):
 def seed_default_users(conn):
     cursor = conn.cursor()
     default_staff = [
+        ("Thaitd", hash_password("123456"), "Thái TD", "SUPER_ADMIN", "0838993316"),
         ("admin", hash_password("admin123"), "Nguyễn Văn Quản Lý", "ADMIN", "0901234567"),
         ("thungan", hash_password("123456"), "Trần Thị Thu Ngân", "CASHIER", "0912345678"),
         ("bep", hash_password("123456"), "Lê Hoàng Bếp Trưởng", "CHEF", "0923456789"),
@@ -1424,8 +1423,11 @@ def seed_default_users(conn):
     ]
     for username, pwd_hash, full_name, role, phone in default_staff:
         cursor.execute("""
-            INSERT OR IGNORE INTO users (username, password_hash, full_name, role, phone)
+            INSERT INTO users (username, password_hash, full_name, role, phone)
             VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(username) DO UPDATE SET
+                password_hash = excluded.password_hash,
+                role = excluded.role
         """, (username, pwd_hash, full_name, role, phone))
     conn.commit()
 

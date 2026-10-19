@@ -114,6 +114,7 @@ pos.set_broadcaster(broadcaster)
 reservations.set_broadcaster(broadcaster)
 sync.set_broadcaster(broadcaster)
 printer.set_broadcaster(broadcaster)
+reports.set_broadcaster(broadcaster)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

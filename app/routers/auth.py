@@ -84,8 +84,13 @@ def check_page_access(request: Request, allowed_roles: Optional[List[str]] = Non
             status_code=303
         )
 
+    # Quyền tối cao (SUPER_ADMIN hoặc tài khoản Thaitd) luôn được phép truy cập tất cả các trang
+    if user.get("role") == "SUPER_ADMIN" or user.get("username", "").lower() == "thaitd":
+        return user
+
     if allowed_roles and user["role"] not in allowed_roles:
         role_default_pages = {
+            "SUPER_ADMIN": "/admin",
             "ADMIN": "/admin",
             "CASHIER": "/pos",
             "CHEF": "/kitchen",
@@ -104,6 +109,11 @@ def require_api_auth(request: Request, allowed_roles: Optional[List[str]] = None
     user = get_current_user_from_request(request)
     if not user:
         raise HTTPException(status_code=401, detail="Yêu cầu đăng nhập để thực hiện thao tác này")
+    
+    # Quyền tối cao (SUPER_ADMIN hoặc tài khoản Thaitd) luôn có quyền thực hiện tất cả API
+    if user.get("role") == "SUPER_ADMIN" or user.get("username", "").lower() == "thaitd":
+        return user
+
     if allowed_roles and user["role"] not in allowed_roles:
         raise HTTPException(status_code=403, detail="Tài khoản không có quyền thực hiện thao tác này")
     return user
@@ -140,7 +150,7 @@ def login(req: LoginRequest, response: Response, request: Request):
     cursor.execute("""
         SELECT id, username, full_name, role, phone, is_active 
         FROM users 
-        WHERE username = ? AND password_hash = ?
+        WHERE LOWER(username) = LOWER(?) AND password_hash = ?
     """, (username, pwd_hash))
     user = cursor.fetchone()
     conn.close()
@@ -175,6 +185,7 @@ def login(req: LoginRequest, response: Response, request: Request):
     )
 
     role_redirects = {
+        "SUPER_ADMIN": "/admin",
         "ADMIN": "/admin",
         "CASHIER": "/pos",
         "CHEF": "/kitchen",
@@ -295,9 +306,9 @@ def delete_staff(user_id: int, request: Request):
         conn.close()
         raise HTTPException(status_code=404, detail="Không tìm thấy nhân viên")
 
-    if user["username"] == "admin":
+    if user["username"].lower() in ("admin", "thaitd"):
         conn.close()
-        raise HTTPException(status_code=400, detail="Không thể xóa tài khoản Quản trị viên tối cao (admin)")
+        raise HTTPException(status_code=400, detail="Không thể xóa tài khoản Quản trị viên tối cao (Thaitd / admin)")
 
     # Xóa nhân viên
     cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))

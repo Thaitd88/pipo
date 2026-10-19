@@ -1,10 +1,18 @@
 # Revenue Reports router for PiPo Garden
 from fastapi import APIRouter, HTTPException, Query, Request
+from pydantic import BaseModel
+from typing import Optional, List
 from datetime import datetime, timedelta
 from ..database import get_db
 from .auth import require_api_auth
 
 router = APIRouter(prefix="/api/reports", tags=["Revenue Reports"])
+
+broadcaster = None
+
+def set_broadcaster(b):
+    global broadcaster
+    broadcaster = b
 
 @router.get("/overview")
 def get_revenue_overview(request: Request):
@@ -258,4 +266,148 @@ def get_revenue_detail(
         "summary": summary,
         "sub_chart": sub_chart,
         "orders": orders_list
+    }
+
+class CleanHistoryRequest(BaseModel):
+    clean_mode: Optional[str] = None
+    mode: Optional[str] = "SINGLE_DATE"  # "SINGLE_DATE", "FROM_DATE", "DATE_RANGE", "ALL"
+    single_date: Optional[str] = None
+    date: Optional[str] = None  # "YYYY-MM-DD"
+    from_date: Optional[str] = None  # "YYYY-MM-DD"
+    to_date: Optional[str] = None  # "YYYY-MM-DD"
+    delete_inventory_tx: Optional[bool] = None
+    clean_inventory: Optional[bool] = True
+    reset_tables: Optional[bool] = True
+
+@router.post("/clean-history")
+def clean_order_history(req: CleanHistoryRequest, request: Request):
+    """
+    Chức năng ĐẶC QUYỀN của SUPER_ADMIN (Chủ nhà hàng / Thaitd):
+    Cho phép xóa doanh thu, lịch sử đơn hàng, bán hàng:
+    - Xóa theo 1 ngày cụ thể
+    - Xóa từ một ngày nào đó trở đi
+    - Xóa trong khoảng từ ngày A đến ngày B
+    - Hoặc xóa sạch để thử nghiệm tính năng mới mà không ảnh hưởng CSDL gốc.
+    """
+    user = require_api_auth(request)
+    if user.get("role") != "SUPER_ADMIN" and user.get("username", "").lower() != "thaitd":
+        raise HTTPException(
+            status_code=403,
+            detail="Chỉ tài khoản Quyền Tối Cao (Super Admin - Thaitd) mới có quyền xóa doanh thu và lịch sử đơn hàng!"
+        )
+
+    mode = (req.clean_mode or req.mode or "SINGLE_DATE").upper()
+    target_date = req.single_date or req.date
+    clean_inventory = req.delete_inventory_tx if req.delete_inventory_tx is not None else req.clean_inventory
+    reset_tables = req.reset_tables if req.reset_tables is not None else True
+
+    if mode == "SINGLE_DATE":
+        if not target_date:
+            raise HTTPException(status_code=400, detail="Vui lòng chọn ngày cần xóa (định dạng YYYY-MM-DD)")
+        where_cond = "DATE(created_at) = ?"
+        where_sessions = "DATE(opened_at) = ?"
+        params = (target_date,)
+        desc_range = f"ngày {target_date}"
+    elif mode == "FROM_DATE":
+        if not req.from_date:
+            raise HTTPException(status_code=400, detail="Vui lòng chọn ngày bắt đầu xóa (định dạng YYYY-MM-DD)")
+        where_cond = "DATE(created_at) >= ?"
+        where_sessions = "DATE(opened_at) >= ?"
+        params = (req.from_date,)
+        desc_range = f"từ ngày {req.from_date} trở đi"
+    elif mode == "DATE_RANGE":
+        if not req.from_date or not req.to_date:
+            raise HTTPException(status_code=400, detail="Vui lòng chọn đủ ngày bắt đầu và kết thúc")
+        where_cond = "DATE(created_at) >= ? AND DATE(created_at) <= ?"
+        where_sessions = "DATE(opened_at) >= ? AND DATE(opened_at) <= ?"
+        params = (req.from_date, req.to_date)
+        desc_range = f"từ ngày {req.from_date} đến ngày {req.to_date}"
+    elif mode == "ALL":
+        where_cond = "1=1"
+        where_sessions = "1=1"
+        params = ()
+        desc_range = "toàn bộ lịch sử từ trước đến nay"
+    else:
+        raise HTTPException(status_code=400, detail="Chế độ xóa không hợp lệ (SINGLE_DATE, FROM_DATE, DATE_RANGE, ALL)")
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # 1. Thu thập danh sách orders cần xóa
+    cursor.execute(f"SELECT id, total FROM orders WHERE {where_cond}", params)
+    matched_orders = cursor.fetchall()
+    order_ids = [r["id"] for r in matched_orders]
+    total_rev_deleted = sum(r["total"] for r in matched_orders)
+    count_orders = len(order_ids)
+
+    count_items = 0
+    count_print_jobs = 0
+    if order_ids:
+        placeholders = ','.join(['?'] * len(order_ids))
+        # Đếm và xóa order_items
+        cursor.execute(f"SELECT COUNT(*) FROM order_items WHERE order_id IN ({placeholders})", order_ids)
+        count_items = cursor.fetchone()[0]
+        cursor.execute(f"DELETE FROM order_items WHERE order_id IN ({placeholders})", order_ids)
+
+        # Đếm và xóa print_jobs liên quan
+        cursor.execute(f"SELECT COUNT(*) FROM print_jobs WHERE order_id IN ({placeholders})", order_ids)
+        count_print_jobs = cursor.fetchone()[0]
+        cursor.execute(f"DELETE FROM print_jobs WHERE order_id IN ({placeholders})", order_ids)
+
+        # Xóa orders
+        cursor.execute(f"DELETE FROM orders WHERE id IN ({placeholders})", order_ids)
+
+    # 2. Xóa các service calls trong khoảng thời gian đó
+    cursor.execute(f"DELETE FROM service_calls WHERE {where_cond}", params)
+
+    # 3. Đếm & Xóa các table_sessions trong khoảng thời gian đó
+    cursor.execute(f"SELECT COUNT(*) FROM table_sessions WHERE {where_sessions}", params)
+    count_sessions = cursor.fetchone()[0]
+    cursor.execute(f"DELETE FROM table_sessions WHERE {where_sessions}", params)
+
+    # 4. Đếm & Xóa biến động kho nếu được chọn
+    count_inv = 0
+    if clean_inventory:
+        cursor.execute(f"SELECT COUNT(*) FROM inventory_transactions WHERE {where_cond}", params)
+        count_inv = cursor.fetchone()[0]
+        cursor.execute(f"DELETE FROM inventory_transactions WHERE {where_cond}", params)
+
+    # 5. Reset các bàn đang bị kẹt về AVAILABLE
+    count_reset_tables = 0
+    if reset_tables:
+        cursor.execute("""
+            UPDATE tables 
+            SET status = 'AVAILABLE', current_session_id = NULL 
+            WHERE current_session_id IS NULL 
+               OR current_session_id NOT IN (SELECT id FROM table_sessions WHERE status = 'ACTIVE')
+        """)
+        count_reset_tables = cursor.rowcount
+
+    conn.commit()
+    conn.close()
+
+    # Gửi tín hiệu WebSocket cập nhật real-time đến POS và KDS
+    if broadcaster:
+        import asyncio
+        try:
+            asyncio.create_task(broadcaster.send_to_pos({"event": "TABLES_UPDATED"}))
+            asyncio.create_task(broadcaster.send_to_pos({"event": "ORDERS_REFRESH"}))
+            asyncio.create_task(broadcaster.send_to_kds({"event": "KDS_REFRESH"}))
+        except Exception:
+            pass
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Đã xóa thành công {count_orders} đơn hàng ({count_items} món) với tổng doanh thu {total_rev_deleted:,} đ trong {desc_range}.",
+        "deleted_orders": count_orders,
+        "deleted_orders_count": count_orders,
+        "deleted_order_items": count_items,
+        "deleted_items_count": count_items,
+        "deleted_print_jobs": count_print_jobs,
+        "deleted_sessions": count_sessions,
+        "deleted_inventory_tx": count_inv,
+        "reset_tables": count_reset_tables,
+        "deleted_revenue": total_rev_deleted,
+        "mode": mode,
+        "desc_range": desc_range
     }
