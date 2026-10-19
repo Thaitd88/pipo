@@ -32,8 +32,14 @@ def get_pos_overview():
     cursor.execute("SELECT COALESCE(SUM(total), 0) as current_unpaid FROM orders WHERE payment_status = 'UNPAID'")
     current_unpaid = cursor.fetchone()["current_unpaid"]
 
-    # Yêu cầu phục vụ đang chờ xử lý
-    cursor.execute("SELECT * FROM service_calls WHERE status = 'PENDING' ORDER BY created_at DESC LIMIT 10")
+    # Yêu cầu phục vụ đang chờ xử lý (Kèm khu vực bàn và giới hạn 30 đơn mới nhất)
+    cursor.execute("""
+        SELECT sc.*, t.area 
+        FROM service_calls sc 
+        LEFT JOIN tables t ON sc.table_id = t.id 
+        WHERE sc.status = 'PENDING' 
+        ORDER BY sc.created_at DESC LIMIT 30
+    """)
     pending_calls = [dict(c) for c in cursor.fetchall()]
 
     conn.close()
@@ -487,3 +493,12 @@ async def dismiss_service_call(call_id: int):
     conn.commit()
     conn.close()
     return {"status": "SUCCESS", "call_id": call_id}
+
+@router.post("/service-call/dismiss-all")
+async def dismiss_all_service_calls():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE service_calls SET status = 'HANDLED' WHERE status = 'PENDING'")
+    conn.commit()
+    conn.close()
+    return {"status": "SUCCESS"}

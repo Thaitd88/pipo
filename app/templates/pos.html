@@ -128,45 +128,83 @@
           </div>
         </div>
 
-        <!-- Feed Yêu Cầu Phục Vụ (Xin đá, Khăn, Thanh toán) -->
-        <div id="serviceCallsContainer" class="flex items-center gap-2 overflow-x-auto">
-          <!-- Render badge yêu cầu -->
+        <!-- Feed Yêu Cầu Phục Vụ (Xin đá, Khăn, Thanh toán) - Chạy ngang trên điện thoại (< lg) -->
+        <div id="serviceCallsContainer" class="flex lg:hidden items-center gap-2 overflow-x-auto no-scrollbar max-w-full">
+          <!-- Render badge yêu cầu ngang trên mobile -->
         </div>
       </div>
     </div>
 
-    <main class="max-w-7xl mx-auto p-6 flex-1 w-full">
-      <!-- Thanh bộ lọc trạng thái bàn & khu vực -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
-        <!-- 1. Lọc theo Trạng thái (Đang có khách, Bàn trống, Đặt trước) -->
-        <div class="flex flex-wrap items-center gap-2 bg-stone-100 p-1.5 rounded-2xl border border-stone-200">
-          <button onclick="filterTableStatus('ALL')" id="tblStatusBtn-ALL" class="tbl-status-btn px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold shadow-xs">
-            Tất cả bàn (<span id="countTblAll">0</span>)
-          </button>
-          <button onclick="filterTableStatus('OCCUPIED')" id="tblStatusBtn-OCCUPIED" class="tbl-status-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50">
-            🔥 Đang có khách (<span id="countTblOccupied">0</span>)
-          </button>
-          <button onclick="filterTableStatus('AVAILABLE')" id="tblStatusBtn-AVAILABLE" class="tbl-status-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50">
-            ⚪ Bàn trống (<span id="countTblAvailable">0</span>)
-          </button>
-          <button onclick="openPosPreordersModal()" class="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold hover:bg-amber-200 flex items-center gap-1.5 shadow-xs transition">
-            <i class="fa-solid fa-calendar-check text-amber-600"></i>
-            <span>Đơn đặt trước</span>
-            <span id="posPreordersBadge" class="bg-rose-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold hidden">0</span>
+    <main class="max-w-[1680px] mx-auto p-3 sm:p-5 flex-1 w-full flex flex-col lg:flex-row gap-5 min-h-0">
+      
+      <!-- CỘT TRÁI (2/3): SƠ ĐỒ BÀN (FLOOR MAP) -->
+      <div class="w-full lg:w-8/12 xl:w-8/12 flex flex-col min-h-0">
+        <!-- Thanh bộ lọc trạng thái bàn & khu vực -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+          <!-- 1. Lọc theo Trạng thái (Đang có khách, Bàn trống, Đặt trước) -->
+          <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 bg-stone-100 p-1.5 rounded-2xl border border-stone-200">
+            <button onclick="filterTableStatus('ALL')" id="tblStatusBtn-ALL" class="tbl-status-btn px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold shadow-xs">
+              Tất cả bàn (<span id="countTblAll">0</span>)
+            </button>
+            <button onclick="filterTableStatus('OCCUPIED')" id="tblStatusBtn-OCCUPIED" class="tbl-status-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50">
+              🔥 Có khách (<span id="countTblOccupied">0</span>)
+            </button>
+            <button onclick="filterTableStatus('AVAILABLE')" id="tblStatusBtn-AVAILABLE" class="tbl-status-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50">
+              ⚪ Bàn trống (<span id="countTblAvailable">0</span>)
+            </button>
+            <button onclick="openPosPreordersModal()" class="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold hover:bg-amber-200 flex items-center gap-1.5 shadow-xs transition">
+              <i class="fa-solid fa-calendar-check text-amber-600"></i>
+              <span>Đặt trước</span>
+              <span id="posPreordersBadge" class="bg-rose-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold hidden">0</span>
+            </button>
+          </div>
+
+          <!-- 2. Lọc theo Khu Vực Bàn -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button onclick="filterArea('ALL')" class="area-btn px-3 py-1.5 rounded-xl bg-stone-800 text-white text-xs font-bold shadow-xs">Mọi khu</button>
+            <button onclick="filterArea('Bàn Nhà Hàng')" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🍽️ Nhà Hàng</button>
+            <button onclick="filterArea('Bàn Cafe')" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">☕ Cafe</button>
+            <button onclick="filterArea('Sân Pickle')" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🏓 Sân Pickle</button>
+          </div>
+        </div>
+
+        <!-- Grid Bàn Ăn (Chiếm 2/3 không gian) -->
+        <div id="tablesGrid" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4"></div>
+      </div>
+
+      <!-- CỘT PHẢI (1/3): KHUNG THÔNG BÁO CÁC BÀN GỌI PHỤC VỤ & THANH TOÁN (Dành cho máy tính desktop) -->
+      <div class="hidden lg:flex lg:w-4/12 xl:w-4/12 flex-col bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden flex-shrink-0 self-start sticky top-20 max-h-[calc(100vh-140px)]">
+        
+        <!-- Header Cột Thông Báo -->
+        <div class="p-3.5 bg-stone-900 text-white flex items-center justify-between flex-shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+            <h3 class="font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-bell text-amber-400"></i>
+              <span>Chuông Gọi Phục Vụ</span>
+            </h3>
+            <span id="serviceCallsDesktopBadge" class="bg-rose-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">0</span>
+          </div>
+          <button onclick="dismissAllServiceCalls()" type="button" class="text-[11px] text-stone-300 hover:text-white font-semibold flex items-center gap-1 transition" title="Xóa toàn bộ các thông báo đã phục vụ xong">
+            <i class="fa-solid fa-check-double"></i>
+            <span>Clear tất cả</span>
           </button>
         </div>
 
-        <!-- 2. Lọc theo Khu Vực Bàn -->
-        <div class="flex flex-wrap items-center gap-1.5">
-          <button onclick="filterArea('ALL')" class="area-btn px-3 py-1.5 rounded-xl bg-stone-800 text-white text-xs font-bold shadow-xs">Mọi khu</button>
-          <button onclick="filterArea('Bàn Nhà Hàng')" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🍽️ Nhà Hàng</button>
-          <button onclick="filterArea('Bàn Cafe')" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">☕ Cafe</button>
-          <button onclick="filterArea('Sân Pickle')" class="area-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🏓 Sân Pickle</button>
+        <!-- Danh sách thông báo (Cuộn dọc) -->
+        <div id="desktopServiceCallsList" class="flex-1 overflow-y-auto p-3 space-y-2.5 min-h-0">
+          <!-- Render thông báo theo thời gian thực -->
+        </div>
+
+        <!-- Footer Cột Thông Báo -->
+        <div class="px-3 py-2 bg-stone-50 border-t border-stone-200 flex items-center justify-between text-[11px] text-stone-500 flex-shrink-0">
+          <span>Tự động nhận thông báo</span>
+          <span class="flex items-center gap-1 text-emerald-700 font-bold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Trực tiếp (Live)
+          </span>
         </div>
       </div>
 
-      <!-- Grid Bàn Ăn -->
-      <div id="tablesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4"></div>
     </main>
   </div>
 
@@ -742,9 +780,12 @@
 
 
 
+  <!-- BACKDROP CHO DRAWER CHI TIẾT BÀN TRÊN MOBILE -->
+  <div id="billDrawerBackdrop" onclick="closeBillDrawer()" ontouchstart="closeBillDrawer()" class="fixed inset-0 bg-black/60 z-[9990] hidden transition-opacity" style="z-index: 9990;"></div>
+
   <!-- DRAWER CHI TIẾT BÀN & HÓA ĐƠN -->
-  <div id="billDrawer" class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
-    <div class="p-3.5 sm:p-4 bg-emerald-900 text-white flex items-center justify-between">
+  <div id="billDrawer" class="fixed inset-y-0 right-0 z-[9995] w-full max-w-md bg-white shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col" style="z-index: 9995;">
+    <div class="p-3.5 sm:p-4 bg-emerald-900 text-white flex items-center justify-between flex-shrink-0">
       <div>
         <h3 class="font-bold text-base" id="drawerTableName">Chi Tiết Bàn</h3>
         <p class="text-xs text-emerald-200" id="drawerTableArea">Khu Vực</p>
@@ -754,7 +795,7 @@
           <i class="fa-solid fa-plus-circle"></i>
           <span>Gọi Món</span>
         </button>
-        <button onclick="closeBillDrawer()" class="text-emerald-300 hover:text-white p-1 text-lg">
+        <button type="button" onclick="closeBillDrawer(); event.stopPropagation();" ontouchstart="closeBillDrawer(); event.stopPropagation();" class="w-9 h-9 rounded-full bg-emerald-800 hover:bg-rose-600 active:bg-rose-700 text-white flex items-center justify-center text-base shadow transition border border-emerald-700" title="Đóng chi tiết bàn">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -1119,7 +1160,7 @@
   </div>
 
   <!-- MODAL GỌI MÓN / GỌI THÊM MÓN TRỰC TIẾP TẠI POS (TỐI ƯU MOBILE & DESKTOP) -->
-  <div id="posOrderModal" onclick="if(event.target === this) closePosOrderModal()" class="fixed inset-0 z-70 bg-black/80 backdrop-blur-xs flex flex-col sm:items-center sm:justify-center p-0 sm:p-3 md:p-6 hidden overflow-hidden">
+  <div id="posOrderModal" onclick="if(event.target === this) closePosOrderModal()" class="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-xs flex flex-col sm:items-center sm:justify-center p-0 sm:p-3 md:p-6 hidden overflow-hidden" style="z-index: 99999;">
     <div class="bg-white rounded-none sm:rounded-3xl max-w-5xl w-full h-full sm:h-[92vh] sm:max-h-[860px] shadow-2xl flex flex-col overflow-hidden border-0 sm:border border-stone-200 animate-in zoom-in-95 duration-150">
       
       <!-- Header Modal -->
@@ -1138,7 +1179,7 @@
         </div>
 
         <!-- Nút Đóng (X) To, Rõ Ràng, Nổi Bật Dành Riêng Cho Mọi Màn Hình -->
-        <button type="button" onclick="closePosOrderModal()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-800 hover:bg-rose-600 active:scale-90 text-white flex items-center justify-center text-sm sm:text-base transition flex-shrink-0 shadow-sm border border-emerald-700" title="Đóng cửa sổ gọi món (Esc)">
+        <button type="button" onclick="closePosOrderModal(); event.stopPropagation();" ontouchend="closePosOrderModal(); event.stopPropagation();" class="w-10 h-10 rounded-full bg-emerald-800 hover:bg-rose-600 active:bg-rose-700 text-white flex items-center justify-center text-lg transition flex-shrink-0 shadow-md border border-emerald-600 cursor-pointer" title="Đóng cửa sổ gọi món (Esc)">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -1180,14 +1221,18 @@
             <!-- Render danh sách món -->
           </div>
 
-          <!-- Thanh Bar Nổi Nhanh Trên Điện Thoại Để Xem Giỏ -->
-          <div id="posOrderMobileQuickBar" class="md:hidden p-2.5 bg-white border-t border-stone-200 shadow-lg flex items-center justify-between gap-2 flex-shrink-0 hidden">
-            <div class="min-w-0">
+          <!-- Thanh Bar Nổi Nhanh Trên Điện Thoại: Có nút [✕ Đóng] + Tóm tắt giỏ + [Xem Giỏ Hàng] -->
+          <div id="posOrderMobileQuickBar" class="md:hidden p-2.5 bg-white border-t border-stone-200 shadow-lg flex items-center justify-between gap-2 flex-shrink-0">
+            <button type="button" onclick="closePosOrderModal(); event.stopPropagation();" ontouchend="closePosOrderModal(); event.stopPropagation();" class="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 active:bg-rose-100 active:text-rose-700 text-stone-700 font-bold text-xs flex items-center gap-1.5 border border-stone-300 shadow-xs flex-shrink-0">
+              <i class="fa-solid fa-xmark text-sm"></i>
+              <span>Đóng</span>
+            </button>
+            <div class="min-w-0 flex-1 text-center" id="posOrderQuickInfo">
               <div class="text-[10px] text-stone-500 font-medium leading-none">Đã chọn: <b class="text-stone-900" id="posOrderQuickCount">0 món</b></div>
               <div class="text-sm font-black text-emerald-800 leading-tight mt-0.5" id="posOrderQuickTotal">0 đ</div>
             </div>
-            <button type="button" onclick="switchPosOrderTab('cart')" class="px-3.5 py-2 rounded-xl bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 shadow transition">
-              <span>Xem Giỏ Hàng</span>
+            <button type="button" onclick="switchPosOrderTab('cart')" class="px-3.5 py-2 rounded-xl bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 shadow transition flex-shrink-0">
+              <span>Xem Giỏ</span>
               <i class="fa-solid fa-arrow-right text-[10px]"></i>
             </button>
           </div>
@@ -1657,23 +1702,193 @@
       `).join('');
     }
 
-    function renderServiceCalls(calls) {
-      const container = document.getElementById("serviceCallsContainer");
-      if (calls.length === 0) {
-        container.innerHTML = `<span class="text-xs text-stone-400 italic">Không có yêu cầu phục vụ nào</span>`;
-        return;
+    const CALL_TYPE_MAP = {
+      'BILL': {
+        name: 'YÊU CẦU THANH TOÁN',
+        shortName: 'Thanh toán',
+        icon: 'fa-solid fa-hand-holding-dollar',
+        isBill: true
+      },
+      'ICE': {
+        name: 'Xin thêm đá lạnh',
+        shortName: 'Xin đá',
+        icon: 'fa-solid fa-cube',
+        isBill: false
+      },
+      'TISSUE': {
+        name: 'Xin thêm khăn lạnh',
+        shortName: 'Xin khăn',
+        icon: 'fa-solid fa-toilet-paper',
+        isBill: false
+      },
+      'WAITER': {
+        name: 'Gọi nhân viên hỗ trợ',
+        shortName: 'Gọi phục vụ',
+        icon: 'fa-solid fa-bell-concierge',
+        isBill: false
       }
-      container.innerHTML = calls.map(c => `
-        <div class="flex items-center gap-2 bg-amber-50 border border-amber-300 text-amber-900 px-3 py-1 rounded-xl text-xs font-medium animate-pulse">
-          <span>🔔 <strong>${c.table_name}:</strong> ${c.call_type}</span>
-          <button onclick="dismissCall(${c.id})" class="text-amber-700 hover:text-amber-900 font-bold ml-1">✕</button>
-        </div>
-      `).join('');
+    };
+
+    function renderServiceCalls(calls) {
+      // 1. Mobile ticker (chạy ngang ở thanh header khi < lg)
+      const mobileContainer = document.getElementById("serviceCallsContainer");
+      if (mobileContainer) {
+        if (!calls || calls.length === 0) {
+          mobileContainer.innerHTML = `<span class="text-xs text-stone-400 italic">Không có yêu cầu phục vụ</span>`;
+        } else {
+          mobileContainer.innerHTML = calls.map(c => {
+            const meta = CALL_TYPE_MAP[c.call_type] || { name: c.call_type, shortName: c.call_type, icon: 'fa-solid fa-bell', isBill: false };
+            const isBill = meta.isBill;
+            return `
+              <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs flex-shrink-0 shadow-xs whitespace-nowrap ${isBill ? 'bg-rose-100 border-2 border-rose-500 text-rose-950 font-bold animate-pulse' : 'bg-amber-50 border border-amber-300 text-amber-900'}">
+                <i class="${meta.icon} ${isBill ? 'text-rose-600 animate-bounce' : 'text-amber-700'} text-[11px]"></i>
+                <span><strong>${c.table_name}:</strong> <span class="${isBill ? 'text-rose-700 uppercase font-black' : ''}">${meta.name}</span></span>
+                <button type="button" onclick="dismissCall(${c.id})" class="ml-1 px-1.5 py-0.5 rounded-md bg-white/90 hover:bg-white text-stone-700 font-black text-[10px] shadow-xs active:scale-90" title="Đã phục vụ - Clear thông báo">
+                  ✓
+                </button>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // 2. Desktop 1/3 right column (#desktopServiceCallsList)
+      const desktopContainer = document.getElementById("desktopServiceCallsList");
+      const desktopBadge = document.getElementById("serviceCallsDesktopBadge");
+      if (desktopBadge) {
+        desktopBadge.innerText = (calls || []).length;
+      }
+
+      if (desktopContainer) {
+        if (!calls || calls.length === 0) {
+          desktopContainer.innerHTML = `
+            <div class="py-16 text-center text-stone-400 text-xs">
+              <i class="fa-solid fa-bell-slash text-3xl mb-2 text-stone-300"></i>
+              <p class="font-bold text-stone-600">Chưa có bàn nào gọi phục vụ</p>
+              <p class="text-[11px] text-stone-400 mt-1 max-w-xs mx-auto">Khi khách tại bàn quét QR gọi thêm đá, khăn hoặc yêu cầu thanh toán, thông báo sẽ lập tức hiển thị tại đây.</p>
+            </div>
+          `;
+          return;
+        }
+
+        // Ưu tiên đưa yêu cầu thanh toán BILL lên đầu danh sách!
+        const sortedCalls = [...calls].sort((a, b) => {
+          if (a.call_type === 'BILL' && b.call_type !== 'BILL') return -1;
+          if (a.call_type !== 'BILL' && b.call_type === 'BILL') return 1;
+          return (b.id || 0) - (a.id || 0);
+        });
+
+        desktopContainer.innerHTML = sortedCalls.map(c => {
+          const meta = CALL_TYPE_MAP[c.call_type] || { name: c.call_type, shortName: c.call_type, icon: 'fa-solid fa-bell', isBill: false };
+          const isBill = meta.isBill;
+          const timeStr = c.created_at ? (c.created_at.length > 16 ? c.created_at.substring(11, 16) : c.created_at) : '';
+
+          if (isBill) {
+            return `
+              <div class="p-3 rounded-2xl bg-rose-50 border-2 border-rose-500 text-rose-950 shadow-sm animate-pulse space-y-2 ring-2 ring-rose-200/70">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center text-sm font-bold shadow flex-shrink-0 animate-bounce">
+                      <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </span>
+                    <div class="min-w-0">
+                      <div class="text-[10px] font-black uppercase tracking-wider text-rose-600 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span>
+                        <span>YÊU CẦU THANH TOÁN</span>
+                      </div>
+                      <div class="font-black text-sm text-stone-900 leading-tight truncate">
+                        ${c.table_name} <span class="text-xs font-normal text-stone-500">(${c.area || 'Khu vực'})</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-semibold text-stone-400 whitespace-nowrap">${timeStr}</span>
+                </div>
+
+                <div class="pt-1.5 border-t border-rose-200 flex items-center gap-2">
+                  <button type="button" onclick="openTableDetails(${c.table_id})" class="flex-1 py-1.5 px-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-xs transition" title="Mở bill để kiểm tra & in hóa đơn">
+                    <i class="fa-solid fa-receipt text-[11px]"></i>
+                    <span>Mở Bill Bàn</span>
+                  </button>
+                  <button type="button" onclick="dismissCall(${c.id})" class="py-1.5 px-3 rounded-xl bg-white hover:bg-rose-100 active:scale-95 text-rose-700 border border-rose-300 font-bold text-xs flex items-center justify-center gap-1 shadow-xs transition" title="Clear thông báo khi đã phục vụ xong">
+                    <i class="fa-solid fa-check text-[11px]"></i>
+                    <span>Clear</span>
+                  </button>
+                </div>
+              </div>
+            `;
+          }
+
+          let bgClass = "bg-amber-50 border-amber-300 text-amber-950";
+          let iconColor = "bg-amber-500 text-white";
+          let actionBtnClass = "bg-amber-600 hover:bg-amber-700 text-white";
+          let actionLabel = "Đã Xong";
+
+          if (c.call_type === 'ICE') {
+            bgClass = "bg-sky-50 border-sky-300 text-sky-950";
+            iconColor = "bg-sky-500 text-white";
+            actionBtnClass = "bg-sky-600 hover:bg-sky-700 text-white";
+            actionLabel = "Đã Mang Đá";
+          } else if (c.call_type === 'TISSUE') {
+            bgClass = "bg-amber-50 border-amber-300 text-amber-950";
+            iconColor = "bg-amber-500 text-white";
+            actionBtnClass = "bg-amber-600 hover:bg-amber-700 text-white";
+            actionLabel = "Đã Mang Khăn";
+          } else if (c.call_type === 'WAITER') {
+            bgClass = "bg-orange-50 border-orange-300 text-orange-950";
+            iconColor = "bg-orange-500 text-white";
+            actionBtnClass = "bg-orange-600 hover:bg-orange-700 text-white";
+            actionLabel = "Đã Hỗ Trợ";
+          }
+
+          return `
+            <div class="p-2.5 rounded-2xl border ${bgClass} shadow-xs space-y-2">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="w-7 h-7 rounded-lg ${iconColor} flex items-center justify-center text-xs font-bold shadow-xs flex-shrink-0">
+                    <i class="${meta.icon}"></i>
+                  </span>
+                  <div class="min-w-0">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-stone-600 truncate">
+                      ${meta.name}
+                    </div>
+                    <div class="font-bold text-xs text-stone-900 leading-tight truncate">
+                      ${c.table_name} <span class="text-[11px] font-normal text-stone-500">(${c.area || 'Khu vực'})</span>
+                    </div>
+                  </div>
+                </div>
+                <span class="text-[10px] text-stone-400 whitespace-nowrap">${timeStr}</span>
+              </div>
+
+              <div class="pt-1 border-t border-stone-200/60 flex items-center justify-end">
+                <button type="button" onclick="dismissCall(${c.id})" class="py-1 px-3 rounded-lg ${actionBtnClass} active:scale-95 font-bold text-[11px] flex items-center gap-1 shadow-xs transition" title="Bấm clear khi phục vụ xong">
+                  <i class="fa-solid fa-check text-[10px]"></i>
+                  <span>${actionLabel}</span>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
     }
 
     async function dismissCall(callId) {
-      await fetch(`/api/pos/service-call/${callId}/dismiss`, { method: "POST" });
-      fetchTablesOverview();
+      try {
+        await fetch(`/api/pos/service-call/${callId}/dismiss`, { method: "POST" });
+        await fetchTablesOverview();
+      } catch (e) {
+        console.error("Lỗi xóa thông báo:", e);
+      }
+    }
+
+    async function dismissAllServiceCalls() {
+      if (!confirm("Bạn có chắc muốn xóa tất cả thông báo gọi phục vụ hiện tại không?")) return;
+      try {
+        await fetch("/api/pos/service-call/dismiss-all", { method: "POST" });
+        await fetchTablesOverview();
+        showPosToast("✅ Đã clear toàn bộ thông báo gọi phục vụ!");
+      } catch (e) {
+        console.error("Lỗi xóa tất cả thông báo:", e);
+      }
     }
 
     async function loadAdminsList() {
@@ -1971,6 +2186,7 @@
       }
 
       document.getElementById("billDrawer").classList.remove("translate-x-full");
+      document.getElementById("billDrawerBackdrop")?.classList.remove("hidden");
     }
 
     async function posMarkItemServed(itemId) {
@@ -2011,6 +2227,7 @@
 
     function closeBillDrawer() {
       document.getElementById("billDrawer").classList.add("translate-x-full");
+      document.getElementById("billDrawerBackdrop")?.classList.add("hidden");
     }
 
     let posActiveCancelItem = null;
@@ -3163,6 +3380,7 @@
     }
 
     async function openPosOrderModal(tableId = null) {
+      closeBillDrawer();
       let target = null;
       if (tableId) {
         target = allTables.find(t => t.id == tableId) || { id: tableId, name: `Bàn ${tableId}`, area: '' };
@@ -3223,7 +3441,10 @@
     }
 
     function closePosOrderModal() {
-      document.getElementById("posOrderModal").classList.add("hidden");
+      const modal = document.getElementById("posOrderModal");
+      if (modal) {
+        modal.classList.add("hidden");
+      }
       switchPosOrderTab('menu');
       posOrderTargetTable = null;
       posOrderCart = [];
