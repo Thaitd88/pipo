@@ -197,6 +197,16 @@ def init_db():
         pass
 
     try:
+        cursor.execute("ALTER TABLE menu_items ADD COLUMN portion TEXT DEFAULT ''")
+    except Exception:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE menu_items ADD COLUMN calories INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
+    try:
         cursor.execute("ALTER TABLE order_items ADD COLUMN discount_percent INTEGER DEFAULT 0")
     except Exception:
         pass
@@ -992,6 +1002,15 @@ def ensure_bbq_category_and_dishes(conn):
     và thêm 5 món BBQ nướng sân vườn đặc sắc kèm tùy chọn vị và định lượng BOM.
     """
     cursor = conn.cursor()
+
+    try:
+        cursor.execute("ALTER TABLE menu_items ADD COLUMN portion TEXT DEFAULT ''")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE menu_items ADD COLUMN calories INTEGER DEFAULT 0")
+    except Exception:
+        pass
 
     # 1. Tạo hoặc cập nhật Category Hot BBQ
     cursor.execute("SELECT id, display_order FROM categories WHERE name = 'Hot BBQ'")
