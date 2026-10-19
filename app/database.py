@@ -477,8 +477,8 @@ def init_db():
     # Gom món theo loại nguyên liệu và tạo tùy chọn vị chế biến
     consolidate_menu_items_with_options(conn)
 
-    # Đảm bảo các món ăn nhẹ & nước giải khát gắn tag PICKLE cho Sân Pickleball
-    ensure_pickle_menu_items(conn)
+    # Xóa vĩnh viễn các món con thừa/ẩn, xóa NVL phụ trong kho/BOM, clear món Sân Pickle
+    clean_redundant_dishes_and_secondary_bom(conn)
 
     # Đảm bảo cấu hình mặc định cho 2 máy in LAN (Bếp 192.168.31.251 và Thu ngân 192.168.31.252)
     ensure_printer_settings(conn)
@@ -946,26 +946,43 @@ def consolidate_menu_items_with_options(conn):
         """, (item["name"], item["price"], item["portion"], item["description"], opts_str, trans_str, item["parent_id"]))
 
         for did in item["deactivate_ids"]:
-            cursor.execute("UPDATE menu_items SET is_available = 0 WHERE id = ?", (did,))
+            cursor.execute("DELETE FROM recipe_bom WHERE menu_item_id = ?", (did,))
+            cursor.execute("DELETE FROM menu_items WHERE id = ?", (did,))
 
     conn.commit()
 
 
-def ensure_pickle_menu_items(conn):
-    """Đảm bảo các món ăn nhẹ, ăn nhanh và đồ uống cho sân Pickleball có gắn tag PICKLE."""
+def clean_redundant_dishes_and_secondary_bom(conn):
+    """
+    1. Xóa vĩnh viễn các món con thừa/đã ẩn sau khi gom món theo nguyên liệu chính và vị.
+    2. Xóa toàn bộ NVL phụ (tỏi, ớt, nước mắm, sốt, gia vị, bơ phụ, hành...) chỉ giữ lại NVL chính của từng món.
+    3. Clear toàn bộ các món đang chọn cho Sân Pickle để người dùng tự tick thủ công.
+    """
     cursor = conn.cursor()
-    # Danh sách ID món ăn nhẹ / nạp năng lượng nhanh cho khách chơi Pickleball
-    PICKLE_SNACK_IDS = [140, 146, 147, 157, 160, 178, 179, 182, 190]
-    for dish_id in PICKLE_SNACK_IDS:
-        cursor.execute("SELECT main_menu_type FROM menu_items WHERE id = ?", (dish_id,))
-        row = cursor.fetchone()
-        if row:
-            raw_types = row[0] or ""
-            types = [t.strip() for t in raw_types.split(",") if t.strip()]
-            if "PICKLE" not in types:
-                types.append("PICKLE")
-                new_type_str = ",".join(types)
-                cursor.execute("UPDATE menu_items SET main_menu_type = ? WHERE id = ?", (new_type_str, dish_id))
+
+    # 1. Xóa các món con thừa (các món đã gom vào món chính với tùy chọn vị)
+    DELETED_CHILD_DISH_IDS = [141, 149, 151, 152, 155, 156, 158, 165, 166, 168, 170, 171, 173, 174, 175, 177]
+    cursor.execute(f"DELETE FROM recipe_bom WHERE menu_item_id IN ({','.join(['?']*len(DELETED_CHILD_DISH_IDS))})", DELETED_CHILD_DISH_IDS)
+    cursor.execute(f"DELETE FROM menu_items WHERE id IN ({','.join(['?']*len(DELETED_CHILD_DISH_IDS))})", DELETED_CHILD_DISH_IDS)
+
+    # 2. Xóa toàn bộ NVL phụ (gia vị, hành sả, tỏi ớt, mắm muối, bơ phụ...)
+    SECONDARY_CODES = ['NVL19', 'NVL22', 'NVL24', 'NVL25', 'NVL26', 'NVL30', 'NVL34', 'NVL35', 'NVL36', 'NVL38', 'NVL39']
+    cursor.execute(f"""
+        DELETE FROM recipe_bom 
+        WHERE ingredient_id IN (SELECT id FROM inventory_items WHERE code IN ({','.join(['?']*len(SECONDARY_CODES))}))
+    """, SECONDARY_CODES)
+    cursor.execute(f"""
+        DELETE FROM inventory_items 
+        WHERE code IN ({','.join(['?']*len(SECONDARY_CODES))})
+    """, SECONDARY_CODES)
+
+    # 3. Clear tất cả các món đang chọn cho Sân Pickle (chuyển về RESTAURANT để người dùng tự tick)
+    cursor.execute("""
+        UPDATE menu_items
+        SET main_menu_type = 'RESTAURANT'
+        WHERE main_menu_type LIKE '%PICKLE%'
+    """)
+
     conn.commit()
 
 
@@ -1273,28 +1290,17 @@ def seed_inventory_and_bom(conn):
         ("NVL16", "Xoài Xanh Keo Giòn", "kg", 20.0, 5.0, 28000, "Nông Sản Miền Tây"),
         ("NVL17", "Rau Muống Tươi Nhặt Sẵn", "kg", 25.0, 5.0, 20000, "Vườn Rau Sạch PiPo"),
         ("NVL18", "Cải Thìa Đà Lạt", "kg", 25.0, 5.0, 25000, "Nông Trại Đà Lạt"),
-        ("NVL19", "Lá Giang, Sả Cây & Hành Lá Tươi", "kg", 20.0, 4.0, 35000, "Vườn Rau Sạch PiPo"),
         ("NVL20", "Gạo Thơm ST25 (Nấu Cơm)", "kg", 50.0, 10.0, 32000, "Đại Lý Gạo Sóc Trăng"),
         ("NVL21", "Mì Vàng Tươi / Mì Trứng", "vắt", 150.0, 30.0, 5000, "Lò Mì Tươi Gia Truyền"),
-        ("NVL22", "Phô Mai Mozzarella & Bơ Lạt Anchor", "kg", 12.0, 3.0, 190000, "New Zealand Dairy"),
         ("NVL23", "Trứng Muối & Trứng Gà Tươi", "quả", 180.0, 30.0, 4500, "CP Foods Vietnam"),
-        ("NVL24", "Gói Thảo Dược Thuốc Bắc Tiềm", "gói", 40.0, 8.0, 20000, "Tiệm Thuốc Bắc Đồng Xuân"),
-        ("NVL25", "Tỏi Lý Sơn, Ớt Hiểm, Riềng Mẻ & Thảo Mộc", "kg", 15.0, 3.0, 65000, "Gia Vị Việt"),
-        ("NVL26", "Nước Mắm Nhĩ Phú Quốc & Sốt Tổng Hợp (Dầu hào, Sa tế, Chao, Tiêu)", "lít", 25.0, 5.0, 80000, "Nhà Thùng Nước Mắm Phú Quốc"),
         ("NVL27", "Trà Lài & Trà Olong Thượng Hạng", "kg", 10.0, 2.0, 180000, "Trà Bảo Lộc"),
         ("NVL28", "Đào Ngâm & Mãng Cầu Xiêm Tươi", "kg", 20.0, 4.0, 65000, "Thực Phẩm Pha Chế"),
         ("NVL29", "Dưa Hấu & Trái Cây Tươi", "kg", 35.0, 8.0, 22000, "Nông Sản Miền Tây"),
-        ("NVL30", "Syrup Đường Mía & Cam Sả Pha Chế", "lít", 15.0, 3.0, 55000, "Monin Vietnam"),
         ("NVL100", "Mực Ống Tươi Phú Quốc", "kg", 25.0, 5.0, 180000, "Vựa Hải Sản Hàm Ninh"),
         ("NVL31", "Ốc Móng Tay Tươi Sống", "kg", 30.0, 6.0, 110000, "Vựa Hải Sản Hàm Ninh"),
         ("NVL32", "Cánh Gà Tươi Chọn Lọc", "kg", 25.0, 5.0, 85000, "CP Foods Vietnam"),
         ("NVL33", "Thịt Ghẹ Tươi Bóc Sẵn Phú Quốc", "kg", 15.0, 3.0, 290000, "Hải Sản Đảo Ngọc"),
-        ("NVL34", "Tóp Mỡ Giòn Thơm", "kg", 15.0, 3.0, 80000, "Bếp PiPo Garden"),
-        ("NVL35", "Cà Rốt Đà Lạt Tươi", "kg", 20.0, 4.0, 22000, "Nông Trại Đà Lạt"),
-        ("NVL36", "Bánh Mì Đặc Ruột Nóng Giòn", "ổ", 60.0, 15.0, 4000, "Lò Bánh Mì Truyền Thống"),
         ("NVL37", "Gói Bò Xuyên Tiêu Chuẩn Bị Sẵn", "gói", 30.0, 6.0, 85000, "Thực Phẩm Chế Biến Sẵn"),
-        ("NVL38", "Gia Vị Mắc Khén & Hạt Dổi Tây Bắc", "kg", 8.0, 2.0, 190000, "Gia Vị Núi Rừng"),
-        ("NVL39", "Bún Tươi Phú Quốc", "kg", 35.0, 8.0, 16000, "Lò Bún Phú Quốc"),
     ]
 
     ing_map = {}
@@ -1310,54 +1316,40 @@ def seed_inventory_and_bom(conn):
     menu_map = {r["name"]: r["id"] for r in cursor.fetchall()}
 
     bom_recipes = [
-        ("Gỏi khoai môn hải sản", [("NVL13", 0.30), ("NVL100", 0.06), ("NVL01", 0.06), ("NVL26", 0.03)]),
-        ("Khoai tây chiên", [("NVL14", 0.30), ("NVL22", 0.01)]),
-        ("Đậu hũ tẩm hành", [("NVL15", 3.0), ("NVL19", 0.10), ("NVL34", 0.10)]),
-        ("Gỏi xoài tôm khô", [("NVL16", 0.30), ("NVL35", 0.07), ("NVL06", 0.04), ("NVL19", 0.03), ("NVL26", 0.02)]),
-        ("Rau muống xào tỏi", [("NVL17", 0.40), ("NVL25", 0.04), ("NVL26", 0.03)]),
-        ("Cải thìa sốt dầu hào", [("NVL18", 0.40), ("NVL25", 0.02), ("NVL26", 0.03)]),
+        ("Gỏi khoai môn hải sản", [("NVL13", 0.30), ("NVL100", 0.06), ("NVL01", 0.06)]),
+        ("Khoai tây chiên", [("NVL14", 0.30)]),
+        ("Đậu hũ", [("NVL15", 4.0)]),
+        ("Đậu hũ tẩm hành", [("NVL15", 4.0)]),
+        ("Đậu hũ chiên giòn", [("NVL15", 4.0)]),
+        ("Gỏi xoài tôm khô", [("NVL16", 0.30), ("NVL06", 0.04)]),
+        ("Rau muống xào tỏi", [("NVL17", 0.40)]),
+        ("Cải thìa sốt dầu hào", [("NVL18", 0.40)]),
         ("Bò xuyên tiêu", [("NVL37", 1.0)]),
-        ("Đậu hũ chiên giòn", [("NVL15", 4.0), ("NVL26", 0.03)]),
-        ("Khoai môn chiên nước mắm", [("NVL13", 0.35), ("NVL26", 0.03)]),
-        ("Gà hấp mắm nhĩ + Lòng mề xào", [("NVL07", 1.30), ("NVL26", 0.07), ("NVL19", 0.05)]),
-        ("Gà nướng muối ớt + Lòng mề xào", [("NVL07", 1.30), ("NVL25", 0.06), ("NVL26", 0.04)]),
-        ("Gà chiên mắm + Lòng mề xào", [("NVL07", 1.30), ("NVL26", 0.08), ("NVL25", 0.04)]),
-        ("Gà hấp hành + Lòng mề xào", [("NVL07", 1.30), ("NVL19", 0.15), ("NVL26", 0.04)]),
-        ("Lẩu gà lá giang", [("NVL07", 1.20), ("NVL19", 0.25), ("NVL39", 0.40), ("NVL26", 0.05)]),
-        ("Lẩu gà thuốc bắc", [("NVL07", 1.20), ("NVL24", 1.0), ("NVL39", 0.30), ("NVL19", 0.05)]),
-        ("Gà nướng tây bắc + Lòng mề xào", [("NVL07", 1.30), ("NVL38", 0.03), ("NVL25", 0.04), ("NVL26", 0.04)]),
-        ("Cánh gà chiên mắm", [("NVL32", 0.40), ("NVL26", 0.04), ("NVL25", 0.03)]),
-        ("Cánh gà nướng muối ớt", [("NVL32", 0.40), ("NVL25", 0.04), ("NVL26", 0.03)]),
-        ("Cánh gà nướng tây bắc", [("NVL32", 0.40), ("NVL38", 0.02), ("NVL25", 0.03)]),
-        ("Vịt quay thảo mộc", [("NVL09", 0.90), ("NVL25", 0.08), ("NVL26", 0.04)]),
-        ("Chân gà nướng", [("NVL08", 0.35), ("NVL25", 0.04), ("NVL26", 0.03)]),
-        ("Heo nướng giềng mẻ", [("NVL11", 0.35), ("NVL25", 0.08), ("NVL26", 0.03)]),
-        ("Nầm nướng sa tế", [("NVL12", 0.35), ("NVL25", 0.04), ("NVL26", 0.04)]),
-        ("Nầm nướng chao", [("NVL12", 0.35), ("NVL26", 0.06), ("NVL19", 0.03)]),
-        ("Hàu nướng phô mai", [("NVL04", 1.0), ("NVL22", 0.02)]),
-        ("Hàu nướng mỡ hành", [("NVL04", 1.0), ("NVL19", 0.02), ("NVL26", 0.01)]),
-        ("Nghêu hấp sả", [("NVL05", 0.35), ("NVL19", 0.06), ("NVL25", 0.02)]),
-        ("Nghêu hấp Thái", [("NVL05", 0.35), ("NVL26", 0.05), ("NVL19", 0.04)]),
-        ("Tôm sốt bơ tỏi", [("NVL01", 0.30), ("NVL22", 0.04), ("NVL25", 0.04)]),
-        ("Tôm hấp", [("NVL01", 0.30), ("NVL19", 0.05)]),
-        ("Tôm nướng muối ớt", [("NVL01", 0.30), ("NVL25", 0.04), ("NVL26", 0.02)]),
-        ("Ốc hương sốt trứng muối - bánh mì", [("NVL02", 0.20), ("NVL23", 2.0), ("NVL22", 0.05), ("NVL36", 1.0)]),
-        ("Ốc hương hấp sả", [("NVL02", 0.23), ("NVL19", 0.06), ("NVL25", 0.02)]),
-        ("Ốc hương cháy tỏi", [("NVL02", 0.23), ("NVL25", 0.07), ("NVL22", 0.02)]),
-        ("Ốc móng tay cháy tỏi", [("NVL31", 0.40), ("NVL25", 0.07), ("NVL22", 0.02)]),
-        ("Ốc móng tay nướng mỡ hành", [("NVL31", 0.40), ("NVL19", 0.05), ("NVL26", 0.02)]),
-        ("Ốc móng tay xào rau muống", [("NVL31", 0.40), ("NVL17", 0.20), ("NVL25", 0.03), ("NVL26", 0.03)]),
-        ("Bạch tuộc xào cay", [("NVL03", 0.40), ("NVL25", 0.05), ("NVL26", 0.04)]),
-        ("Bạch tuộc nướng muối ớt", [("NVL03", 0.40), ("NVL25", 0.05), ("NVL26", 0.03)]),
-        ("Bạch tuộc hấp hành gừng", [("NVL03", 0.40), ("NVL19", 0.10), ("NVL26", 0.03)]),
+        ("Khoai môn chiên nước mắm", [("NVL13", 0.35)]),
+        ("Gà ta nguyên con + Lòng mề xào", [("NVL07", 1.30)]),
+        ("Gà hấp mắm nhĩ + Lòng mề xào", [("NVL07", 1.30)]),
+        ("Lẩu gà lá giang", [("NVL07", 1.20)]),
+        ("Lẩu gà thuốc bắc", [("NVL07", 1.20)]),
+        ("Cánh gà", [("NVL32", 0.40)]),
+        ("Vịt quay thảo mộc", [("NVL09", 0.90)]),
+        ("Chân gà", [("NVL08", 0.35)]),
+        ("Chân gà nướng", [("NVL08", 0.35)]),
+        ("Heo nướng giềng mẻ", [("NVL11", 0.35)]),
+        ("Nầm heo", [("NVL12", 0.35)]),
+        ("Hàu sữa tươi", [("NVL04", 1.0)]),
+        ("Nghêu lụa", [("NVL05", 0.35)]),
+        ("Tôm sú Phú Quốc", [("NVL01", 0.30)]),
+        ("Ốc hương", [("NVL02", 0.23)]),
+        ("Ốc móng tay", [("NVL31", 0.40)]),
+        ("Bạch tuộc tươi Phú Quốc", [("NVL03", 0.40)]),
         ("Cơm chiên hải sản", [("NVL20", 0.25), ("NVL100", 0.05), ("NVL01", 0.05), ("NVL23", 1.0)]),
         ("Cơm chiên bò", [("NVL20", 0.25), ("NVL10", 0.08), ("NVL23", 1.0)]),
         ("Cơm chiên ghẹ", [("NVL20", 0.25), ("NVL33", 0.07), ("NVL23", 1.0)]),
         ("Mì xào hải sản", [("NVL21", 1.5), ("NVL100", 0.05), ("NVL01", 0.05), ("NVL18", 0.10)]),
         ("Mì xào bò", [("NVL21", 1.5), ("NVL10", 0.08), ("NVL18", 0.10)]),
-        ("Trà Đào Cam Sả PiPo Special", [("NVL27", 0.015), ("NVL28", 0.12), ("NVL30", 0.05)]),
-        ("Trà Mãng Cầu Xiêm Nhiệt Đới", [("NVL27", 0.015), ("NVL28", 0.15), ("NVL30", 0.05)]),
-        ("Nước Ép Dưa Hấu Bạc Hà", [("NVL29", 0.45), ("NVL19", 0.02), ("NVL30", 0.03)]),
+        ("Trà Đào Cam Sả PiPo Special", [("NVL27", 0.015), ("NVL28", 0.12)]),
+        ("Trà Mãng Cầu Xiêm Nhiệt Đới", [("NVL27", 0.015), ("NVL28", 0.15)]),
+        ("Nước Ép Dưa Hấu Bạc Hà", [("NVL29", 0.45)]),
     ]
 
     for dish_name, ing_list in bom_recipes:

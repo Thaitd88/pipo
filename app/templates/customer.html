@@ -1123,15 +1123,18 @@
 
     function determineInitialCategory() {
       if (!menuData || menuData.length === 0) return 'ALL';
-      const isCafeTable = (TABLE_INFO.branchType === "CAFE" || (TABLE_INFO.area || "").toLowerCase().includes("cafe") || (TABLE_INFO.code || "").toUpperCase().startsWith("CF"));
-      const isPickleTable = (TABLE_INFO.branchType === "PICKLE" || (TABLE_INFO.area || "").toLowerCase().includes("pickle") || (TABLE_INFO.code || "").toUpperCase().startsWith("PK"));
+      const isPickleTable = (TABLE_INFO.branchType === "PICKLE" || (TABLE_INFO.area || "").trim() === "Sân Pickle" || (TABLE_INFO.code || "").toUpperCase().startsWith("PK"));
+      const isCafeTable = (TABLE_INFO.branchType === "CAFE" || (TABLE_INFO.area || "").trim() === "Cafe" || (TABLE_INFO.code || "").toUpperCase().startsWith("CF"));
 
       const headerTbl = document.getElementById("headerTableName");
       if (headerTbl) {
         headerTbl.innerText = `${isPickleTable ? '🏓' : (isCafeTable ? '☕' : '🍽️')} ${TABLE_INFO.name}`;
       }
 
-      if (isCafeTable || isPickleTable) {
+      if (isPickleTable) {
+        return 'ALL';
+      }
+      if (isCafeTable) {
         const drinkCat = menuData.find(c => c.id === 6 || (c.name && c.name.toLowerCase().includes("uống")));
         return drinkCat ? drinkCat.id : 'ALL';
       }
@@ -1142,7 +1145,6 @@
     function isItemInMainMenu(item, menuType) {
       if (!menuType || menuType === "ALL") return true;
       if (menuType === "PICKLE") {
-        if (item.category_id === 6) return true;
         if (item.main_menu_type && item.main_menu_type.toUpperCase().includes("PICKLE")) return true;
         return false;
       }
