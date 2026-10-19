@@ -1118,37 +1118,52 @@
     </div>
   </div>
 
-  <!-- MODAL GỌI MÓN / GỌI THÊM MÓN TRỰC TIẾP TẠI POS -->
-  <div id="posOrderModal" class="fixed inset-0 z-70 bg-black/75 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-5xl w-full h-[94vh] max-h-[880px] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-stone-200">
+  <!-- MODAL GỌI MÓN / GỌI THÊM MÓN TRỰC TIẾP TẠI POS (TỐI ƯU MOBILE & DESKTOP) -->
+  <div id="posOrderModal" onclick="if(event.target === this) closePosOrderModal()" class="fixed inset-0 z-70 bg-black/80 backdrop-blur-xs flex flex-col sm:items-center sm:justify-center p-0 sm:p-3 md:p-6 hidden overflow-hidden">
+    <div class="bg-white rounded-none sm:rounded-3xl max-w-5xl w-full h-full sm:h-[92vh] sm:max-h-[860px] shadow-2xl flex flex-col overflow-hidden border-0 sm:border border-stone-200 animate-in zoom-in-95 duration-150">
       
       <!-- Header Modal -->
-      <div class="p-3.5 sm:p-4 bg-emerald-900 text-white flex items-center justify-between flex-shrink-0">
-        <div class="flex items-center gap-2.5 sm:gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-emerald-800 text-white flex items-center justify-center text-xl shadow-inner">
+      <div class="px-3 py-2.5 sm:px-4 sm:py-3 bg-emerald-900 text-white flex items-center justify-between flex-shrink-0 border-b border-emerald-800">
+        <div class="flex items-center gap-2.5 min-w-0 pr-2">
+          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-800 text-white flex items-center justify-center text-base sm:text-lg shadow-inner flex-shrink-0">
             🍽️
           </div>
-          <div>
+          <div class="min-w-0">
             <div class="flex items-center gap-2">
-              <h3 class="font-bold text-sm sm:text-base leading-tight" id="posOrderModalTitle">Gọi Món Cho Bàn</h3>
-              <span id="posOrderRoundBadge" class="text-[10px] bg-emerald-700 text-emerald-100 font-bold px-2 py-0.5 rounded-full">Đợt Mới</span>
+              <h3 class="font-bold text-xs sm:text-sm leading-tight truncate text-white" id="posOrderModalTitle">Gọi Món Cho Bàn</h3>
+              <span id="posOrderRoundBadge" class="text-[9px] sm:text-[10px] bg-emerald-700 text-emerald-100 font-bold px-2 py-0.5 rounded-full flex-shrink-0">Đợt Mới</span>
             </div>
-            <p class="text-xs text-emerald-200" id="posOrderModalSubtitle">Chọn món để in phiếu bếp & gửi trực tiếp xuống nhà bếp</p>
+            <p class="text-[10px] sm:text-xs text-emerald-200 truncate mt-0.5" id="posOrderModalSubtitle">Chọn món để in phiếu bếp & quầy bar</p>
           </div>
         </div>
-        <button onclick="closePosOrderModal()" class="text-emerald-200 hover:text-white p-1 text-xl">
+
+        <!-- Nút Đóng (X) To, Rõ Ràng, Nổi Bật Dành Riêng Cho Mọi Màn Hình -->
+        <button type="button" onclick="closePosOrderModal()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-800 hover:bg-rose-600 active:scale-90 text-white flex items-center justify-center text-sm sm:text-base transition flex-shrink-0 shadow-sm border border-emerald-700" title="Đóng cửa sổ gọi món (Esc)">
           <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Tab Switcher Cho Riêng Điện Thoại (Mobile) -->
+      <div class="flex md:hidden bg-emerald-950 p-1 border-b border-emerald-800/80 flex-shrink-0 text-xs">
+        <button type="button" id="posOrderTabBtn-menu" onclick="switchPosOrderTab('menu')" class="flex-1 py-1.5 px-3 rounded-lg font-bold transition flex items-center justify-center gap-1.5 bg-emerald-700 text-white shadow-xs">
+          <i class="fa-solid fa-utensils text-[11px]"></i>
+          <span>1. Chọn Thực Đơn</span>
+        </button>
+        <button type="button" id="posOrderTabBtn-cart" onclick="switchPosOrderTab('cart')" class="flex-1 py-1.5 px-3 rounded-lg font-bold transition flex items-center justify-center gap-1.5 text-emerald-300 hover:text-white">
+          <i class="fa-solid fa-cart-shopping text-[11px]"></i>
+          <span>2. Giỏ Món</span>
+          <span id="posOrderMobileCartBadge" class="bg-amber-400 text-stone-900 text-[10px] px-1.5 py-0.2 rounded-full font-black">0</span>
         </button>
       </div>
 
       <!-- Thân Modal: 2 Cột (Thực đơn & Giỏ món chọn) -->
       <div class="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
         
-        <!-- Cột Trái: Thực đơn & Tìm kiếm (60-65%) -->
-        <div class="w-full md:w-7/12 lg:w-3/5 flex flex-col border-r border-stone-200 bg-stone-50 min-h-0">
+        <!-- Cột 1: Thực đơn & Tìm kiếm -->
+        <div id="posOrderMenuCol" class="w-full md:w-7/12 lg:w-3/5 flex flex-col border-r border-stone-200 bg-stone-50 min-h-0 flex-1 md:flex">
           
           <!-- Search & Category Filters -->
-          <div class="p-3 bg-white border-b border-stone-200 space-y-2 flex-shrink-0">
+          <div class="p-2.5 sm:p-3 bg-white border-b border-stone-200 space-y-2 flex-shrink-0">
             <div class="relative">
               <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-stone-400 text-xs"></i>
               <input type="text" id="posOrderSearchInput" oninput="filterPosOrderDishes()" placeholder="Tìm món nhanh theo tên, mã món..." class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 focus:outline-emerald-600 bg-stone-50">
@@ -1161,45 +1176,68 @@
           </div>
 
           <!-- Dishes Grid Container -->
-          <div class="flex-1 overflow-y-auto p-3 min-h-0" id="posOrderDishesGrid">
+          <div class="flex-1 overflow-y-auto p-2.5 sm:p-3 min-h-0" id="posOrderDishesGrid">
             <!-- Render danh sách món -->
+          </div>
+
+          <!-- Thanh Bar Nổi Nhanh Trên Điện Thoại Để Xem Giỏ -->
+          <div id="posOrderMobileQuickBar" class="md:hidden p-2.5 bg-white border-t border-stone-200 shadow-lg flex items-center justify-between gap-2 flex-shrink-0 hidden">
+            <div class="min-w-0">
+              <div class="text-[10px] text-stone-500 font-medium leading-none">Đã chọn: <b class="text-stone-900" id="posOrderQuickCount">0 món</b></div>
+              <div class="text-sm font-black text-emerald-800 leading-tight mt-0.5" id="posOrderQuickTotal">0 đ</div>
+            </div>
+            <button type="button" onclick="switchPosOrderTab('cart')" class="px-3.5 py-2 rounded-xl bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 shadow transition">
+              <span>Xem Giỏ Hàng</span>
+              <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
           </div>
         </div>
 
-        <!-- Cột Phải: Giỏ món chuẩn bị gửi bếp (35-40%) -->
-        <div class="w-full md:w-5/12 lg:w-2/5 flex flex-col bg-white min-h-0">
-          <div class="p-3 bg-stone-100/70 border-b border-stone-200 flex items-center justify-between flex-shrink-0">
+        <!-- Cột 2: Giỏ món chuẩn bị gửi bếp -->
+        <div id="posOrderCartCol" class="w-full md:w-5/12 lg:w-2/5 flex flex-col bg-white min-h-0 flex-1 md:flex hidden md:flex">
+          <div class="px-3 py-2 sm:p-3 bg-stone-100/80 border-b border-stone-200 flex items-center justify-between flex-shrink-0">
             <span class="font-bold text-xs text-stone-800 flex items-center gap-1.5">
               <i class="fa-solid fa-list-check text-emerald-700"></i>
               <span>Món Chuẩn Bị Gửi Bếp</span>
             </span>
-            <span class="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200" id="posOrderCartBadge">0 món</span>
-          </div>
-
-          <!-- List các món đã chọn -->
-          <div class="flex-1 overflow-y-auto p-3 space-y-2 min-h-0" id="posOrderCartItems">
-            <div class="text-center py-16 text-stone-400 text-xs">
-              <i class="fa-solid fa-hand-pointer text-2xl text-stone-300 mb-2"></i>
-              <p>Chưa có món nào được chọn.</p>
-              <p class="text-[11px] text-stone-400 mt-0.5">Nhấp vào món ở cột thực đơn bên trái để thêm vào đây.</p>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="switchPosOrderTab('menu')" class="md:hidden text-[11px] font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1">
+                <i class="fa-solid fa-plus text-[10px]"></i> Chọn thêm món
+              </button>
+              <span class="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200" id="posOrderCartBadge">0 món</span>
             </div>
           </div>
 
-          <!-- Footer Giỏ món & Nút Gửi Bếp -->
-          <div class="p-3.5 bg-stone-50 border-t border-stone-200 space-y-2.5 flex-shrink-0">
+          <!-- List các món đã chọn -->
+          <div class="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-2 min-h-0" id="posOrderCartItems">
+            <div class="text-center py-16 text-stone-400 text-xs">
+              <i class="fa-solid fa-hand-pointer text-2xl text-stone-300 mb-2"></i>
+              <p>Chưa có món nào được chọn.</p>
+              <p class="text-[11px] text-stone-400 mt-0.5">Nhấp vào món ở cột thực đơn để thêm vào đây.</p>
+            </div>
+          </div>
+
+          <!-- Footer Giỏ món & Nút Gửi Bếp + Nút Đóng -->
+          <div class="p-2.5 sm:p-3.5 bg-stone-50 border-t border-stone-200 space-y-2 flex-shrink-0">
             <div>
               <input type="text" id="posOrderGeneralNote" placeholder="Ghi chú chung cho toàn bộ đợt gọi này..." class="w-full px-2.5 py-1.5 bg-white border border-stone-300 rounded-xl text-xs text-stone-800 focus:outline-emerald-600">
             </div>
 
-            <div class="flex items-center justify-between pt-1">
+            <div class="flex items-center justify-between pt-0.5">
               <span class="text-xs text-stone-600 font-semibold">Tổng tiền đợt gọi này:</span>
               <span class="text-base font-black text-emerald-800" id="posOrderCartTotal">0 đ</span>
             </div>
 
-            <button type="button" id="btnSubmitPosOrder" onclick="submitPosOrder()" class="w-full py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed">
-              <i class="fa-solid fa-paper-plane"></i>
-              <span>GỬI BẾP & IN PHIẾU NGAY</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="closePosOrderModal()" class="py-2.5 px-3.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-100 text-stone-700 font-bold text-xs flex items-center justify-center gap-1 transition">
+                <i class="fa-solid fa-xmark"></i>
+                <span>Đóng</span>
+              </button>
+              <button type="button" id="btnSubmitPosOrder" onclick="submitPosOrder()" class="flex-1 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-98 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span>GỬI BẾP & IN PHIẾU</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -3083,6 +3121,35 @@
     let posOrderCart = [];
     let posOrderTargetTable = null;
     let posSelectedCategory = 'ALL';
+    let posOrderActiveMobileTab = 'menu';
+
+    function switchPosOrderTab(tab) {
+      posOrderActiveMobileTab = tab;
+      const menuCol = document.getElementById("posOrderMenuCol");
+      const cartCol = document.getElementById("posOrderCartCol");
+      const btnMenu = document.getElementById("posOrderTabBtn-menu");
+      const btnCart = document.getElementById("posOrderTabBtn-cart");
+
+      if (tab === 'menu') {
+        if (menuCol) menuCol.classList.remove("hidden");
+        if (cartCol) cartCol.classList.add("hidden");
+        if (btnMenu) {
+          btnMenu.className = "flex-1 py-1.5 px-3 rounded-lg font-bold transition flex items-center justify-center gap-1.5 bg-emerald-700 text-white shadow-xs";
+        }
+        if (btnCart) {
+          btnCart.className = "flex-1 py-1.5 px-3 rounded-lg font-bold transition flex items-center justify-center gap-1.5 text-emerald-300 hover:text-white";
+        }
+      } else {
+        if (menuCol) menuCol.classList.add("hidden");
+        if (cartCol) cartCol.classList.remove("hidden");
+        if (btnMenu) {
+          btnMenu.className = "flex-1 py-1.5 px-3 rounded-lg font-bold transition flex items-center justify-center gap-1.5 text-emerald-300 hover:text-white";
+        }
+        if (btnCart) {
+          btnCart.className = "flex-1 py-1.5 px-3 rounded-lg font-bold transition flex items-center justify-center gap-1.5 bg-emerald-700 text-white shadow-xs";
+        }
+      }
+    }
 
     async function loadPosMenuData() {
       try {
@@ -3134,6 +3201,7 @@
       if (noteInput) noteInput.value = "";
       posSelectedCategory = 'ALL';
 
+      switchPosOrderTab('menu');
       document.getElementById("posOrderModal").classList.remove("hidden");
 
       if (posMenuCategories.length === 0) {
@@ -3156,6 +3224,7 @@
 
     function closePosOrderModal() {
       document.getElementById("posOrderModal").classList.add("hidden");
+      switchPosOrderTab('menu');
       posOrderTargetTable = null;
       posOrderCart = [];
     }
@@ -3328,6 +3397,23 @@
       if (totalEl) totalEl.innerText = formatVND(totalPrice);
       if (submitBtn) submitBtn.disabled = posOrderCart.length === 0;
 
+      const mobileBadge = document.getElementById("posOrderMobileCartBadge");
+      if (mobileBadge) mobileBadge.innerText = totalQty;
+
+      const quickBar = document.getElementById("posOrderMobileQuickBar");
+      const quickCount = document.getElementById("posOrderQuickCount");
+      const quickTotal = document.getElementById("posOrderQuickTotal");
+
+      if (quickCount) quickCount.innerText = `${totalQty} món`;
+      if (quickTotal) quickTotal.innerText = formatVND(totalPrice);
+      if (quickBar) {
+        if (totalQty > 0) {
+          quickBar.classList.remove("hidden");
+        } else {
+          quickBar.classList.add("hidden");
+        }
+      }
+
       if (!container) return;
 
       if (posOrderCart.length === 0) {
@@ -3335,7 +3421,7 @@
           <div class="text-center py-16 text-stone-400 text-xs">
             <i class="fa-solid fa-hand-pointer text-2xl text-stone-300 mb-2"></i>
             <p>Chưa có món nào được chọn.</p>
-            <p class="text-[11px] text-stone-400 mt-0.5">Nhấp vào món ở cột thực đơn bên trái để thêm vào đây.</p>
+            <p class="text-[11px] text-stone-400 mt-0.5">Nhấp vào món ở cột thực đơn để thêm vào đây.</p>
           </div>
         `;
         return;
@@ -3431,6 +3517,16 @@
         }
       }
     }
+
+    // Đóng modal gọi món nhanh bằng phím Escape
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        const modal = document.getElementById("posOrderModal");
+        if (modal && !modal.classList.contains("hidden")) {
+          closePosOrderModal();
+        }
+      }
+    });
 
     // ==========================================
     // 6. WEBSOCKET POS
