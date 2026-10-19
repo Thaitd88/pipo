@@ -110,6 +110,7 @@ def init_db():
         round_number INTEGER DEFAULT 1,
         subtotal INTEGER NOT NULL,
         discount INTEGER DEFAULT 0,
+        service_fee INTEGER DEFAULT 0,
         total INTEGER NOT NULL,
         status TEXT DEFAULT 'CONFIRMED', -- PENDING, CONFIRMED, PREPARING, READY, SERVED, COMPLETED, CANCELLED
         payment_status TEXT DEFAULT 'UNPAID', -- UNPAID, PAID
@@ -225,6 +226,7 @@ def init_db():
         ("bill_target", "TEXT DEFAULT 'CUSTOMER'"),
         ("billed_admin_id", "INTEGER"),
         ("billed_admin_name", "TEXT"),
+        ("service_fee", "INTEGER DEFAULT 0"),
     ]
     for col_name, col_type in order_billing_cols:
         try:

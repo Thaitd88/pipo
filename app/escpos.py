@@ -222,8 +222,9 @@ def format_receipt_ticket_text(table_info: dict, items: list, totals_info: dict 
         idx += 1
 
     discount = int(totals_info.get("discount", 0))
+    service_fee = int(totals_info.get("service_fee", 0))
     vat = int(totals_info.get("vat", 0))
-    grand_total = max(0, subtotal - discount + vat)
+    grand_total = max(0, subtotal - discount + service_fee + vat)
 
     lines.append(div_single)
 
@@ -244,11 +245,22 @@ def format_receipt_ticket_text(table_info: dict, items: list, totals_info: dict 
         sp_disc = w - len(lbl_disc) - len(val_disc)
         lines.append(f"{lbl_disc}{' ' * max(1, sp_disc)}{val_disc}")
 
-    if totals_info.get("bill_target") == "ADMIN":
+    if service_fee > 0:
+        lbl_fee = " Phi phuc vu:"
+        val_fee = f"+{format_currency_vnd(service_fee)}"
+        sp_fee = w - len(lbl_fee) - len(val_fee)
+        lines.append(f"{lbl_fee}{' ' * max(1, sp_fee)}{val_fee}")
+
+    pay_method = (totals_info.get("payment_method") or "CASH").upper()
+    if pay_method in ("TRANSFER", "VIETQR"):
+        lines.append(" Hinh thuc TT: Chuyen khoan (VietQR)")
+    elif pay_method == "INTERNAL" or totals_info.get("bill_target") == "ADMIN":
         adm_name = remove_vietnamese_accents(str(totals_info.get("billed_admin_name") or ""))
-        lines.append(" Doi tuong: Tinh bill voi Admin")
+        lines.append(" Hinh thuc TT: Tinh tien noi bo")
         if adm_name:
-            lines.append(f" Admin: {adm_name}")
+            lines.append(f" Nguoi chiu / Ghi chu: {adm_name}")
+    else:
+        lines.append(" Hinh thuc TT: Tien mat")
 
     if vat > 0:
         lbl_vat = " Thue VAT (8%):"
@@ -517,8 +529,9 @@ def build_escpos_receipt_bytes(table_info: dict, items: list, totals_info: dict 
         idx += 1
 
     discount = int(totals_info.get("discount", 0))
+    service_fee = int(totals_info.get("service_fee", 0))
     vat = int(totals_info.get("vat", 0))
-    grand_total = max(0, subtotal - discount + vat)
+    grand_total = max(0, subtotal - discount + service_fee + vat)
 
     buf.extend(div_single)
 
@@ -539,11 +552,22 @@ def build_escpos_receipt_bytes(table_info: dict, items: list, totals_info: dict 
         sp_disc = w - len(lbl_disc) - len(val_disc)
         buf.extend(f"{lbl_disc}{' ' * max(1, sp_disc)}{val_disc}\n".encode("ascii"))
 
-    if totals_info.get("bill_target") == "ADMIN":
+    if service_fee > 0:
+        lbl_fee = " Phi phuc vu:"
+        val_fee = f"+{format_currency_vnd(service_fee)}"
+        sp_fee = w - len(lbl_fee) - len(val_fee)
+        buf.extend(f"{lbl_fee}{' ' * max(1, sp_fee)}{val_fee}\n".encode("ascii"))
+
+    pay_method = (totals_info.get("payment_method") or "CASH").upper()
+    if pay_method in ("TRANSFER", "VIETQR"):
+        buf.extend(b" Hinh thuc TT: Chuyen khoan (VietQR)\n")
+    elif pay_method == "INTERNAL" or totals_info.get("bill_target") == "ADMIN":
         adm_name = remove_vietnamese_accents(str(totals_info.get("billed_admin_name") or ""))
-        buf.extend(b" Doi tuong: Tinh bill voi Admin\n")
+        buf.extend(b" Hinh thuc TT: Tinh tien noi bo\n")
         if adm_name:
-            buf.extend(f" Admin: {adm_name}\n".encode("ascii"))
+            buf.extend(f" Nguoi chiu / Ghi chu: {adm_name}\n".encode("ascii"))
+    else:
+        buf.extend(b" Hinh thuc TT: Tien mat\n")
 
     if vat > 0:
         lbl_vat = " Thue VAT (8%):"

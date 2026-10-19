@@ -82,6 +82,9 @@ async def api_print_table_bill(table_id: int, request: Request):
     discount_percent = float(payload.get("discount_percent") or 0)
     discount_amount = max(0, int(payload.get("discount_amount") or 0))
     discount_reason = (payload.get("discount_reason") or "").strip()
+    service_fee = max(0, int(payload.get("service_fee") or 0))
+    payment_method = (payload.get("payment_method") or "CASH").strip().upper()
+    billed_admin_name = (payload.get("billed_admin_name") or "").strip()
     cashier_display = (payload.get("cashier_name") or "Thu Ngan PiPo").strip()
 
     conn = get_db()
@@ -132,6 +135,9 @@ async def api_print_table_bill(table_id: int, request: Request):
         "discount": discount_amount,
         "discount_percent": int(discount_percent) if discount_percent.is_integer() else discount_percent if discount_percent > 0 else None,
         "discount_reason": discount_reason,
+        "service_fee": service_fee,
+        "payment_method": payment_method,
+        "billed_admin_name": billed_admin_name,
         "vat": 0
     }
 

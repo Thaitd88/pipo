@@ -376,14 +376,22 @@
               <div class="text-2xl font-black mt-1" id="detailTotalRev">0 đ</div>
               <div class="text-xs text-emerald-100 mt-1">Tổng doanh thu thực nhận đã thanh toán</div>
             </div>
-            <div class="flex gap-6 text-center">
-              <div class="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-xs">
-                <div class="text-xs text-emerald-200">Số đơn hoàn tất</div>
-                <div class="text-xl font-bold mt-0.5" id="detailTotalOrders">0</div>
+            <div class="flex gap-2.5 text-center flex-wrap">
+              <div class="bg-white/10 px-3.5 py-2 rounded-xl backdrop-blur-xs">
+                <div class="text-[10px] text-emerald-200 font-bold uppercase">💵 Quỹ Tiền Mặt</div>
+                <div class="text-base font-black mt-0.5" id="detailCashRev">0 đ</div>
               </div>
-              <div class="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-xs">
-                <div class="text-xs text-emerald-200">Tổng món phục vụ</div>
-                <div class="text-xl font-bold mt-0.5" id="detailTotalDishes">0</div>
+              <div class="bg-white/10 px-3.5 py-2 rounded-xl backdrop-blur-xs">
+                <div class="text-[10px] text-emerald-200 font-bold uppercase">📲 Doanh Thu CK</div>
+                <div class="text-base font-black mt-0.5" id="detailTransferRev">0 đ</div>
+              </div>
+              <div class="bg-white/10 px-3.5 py-2 rounded-xl backdrop-blur-xs">
+                <div class="text-[10px] text-emerald-200 font-bold uppercase">🏢 Tính Nội Bộ</div>
+                <div class="text-base font-black mt-0.5" id="detailInternalRev">0 đ</div>
+              </div>
+              <div class="bg-white/10 px-3 py-2 rounded-xl backdrop-blur-xs">
+                <div class="text-[10px] text-emerald-200 font-bold uppercase">Số đơn</div>
+                <div class="text-base font-bold mt-0.5" id="detailTotalOrders">0</div>
               </div>
             </div>
           </div>
@@ -866,31 +874,63 @@
           <input type="text" id="drawerDiscountCustomReason" placeholder="Ghi chú lý do giảm giá khác..." class="w-full mt-1.5 bg-white border border-stone-300 rounded-lg px-2.5 py-1 text-stone-700 text-xs focus:outline-emerald-600 hidden">
         </div>
 
-        <!-- 2. Đối tượng thanh toán / Nội dung -->
+        <!-- 2. Phí phục vụ (Nhập số tiền bằng tay) -->
         <div>
-          <label class="block font-bold text-stone-700 mb-1">💳 Nội dung thanh toán:</label>
-          <div class="grid grid-cols-2 gap-2">
-            <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-stone-300 cursor-pointer font-semibold text-stone-800 hover:border-emerald-500 transition">
-              <input type="radio" name="billTargetRadio" value="CUSTOMER" checked onchange="toggleBillTarget()" class="text-emerald-700">
-              <span>Thu tiền khách</span>
+          <div class="flex items-center justify-between mb-1">
+            <label class="font-bold text-stone-700 flex items-center gap-1">
+              <span>🛎️ Phí phục vụ / Phụ thu:</span>
             </label>
-            <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-stone-300 cursor-pointer font-semibold text-stone-800 hover:border-rose-500 transition">
-              <input type="radio" name="billTargetRadio" value="ADMIN" onchange="toggleBillTarget()" class="text-rose-700">
-              <span>Tính bill với Admin</span>
+            <span id="drawerServiceFeeCalculatedPill" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hidden">
+              +0 đ
+            </span>
+          </div>
+          <div class="relative">
+            <input type="number" id="drawerServiceFee" min="0" step="1000" value="0" placeholder="0" oninput="calculateDrawerTotal()" class="w-full bg-white border border-stone-300 rounded-lg px-3 py-1.5 font-black text-emerald-800 text-sm focus:outline-emerald-600 pr-12 text-right">
+            <span class="absolute right-3 top-1.5 text-stone-500 font-bold text-xs">VNĐ</span>
+          </div>
+          <!-- Phím chọn nhanh phí phục vụ -->
+          <div class="flex items-center gap-1 mt-1.5 flex-wrap">
+            <button type="button" onclick="setQuickServiceFee(0)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-stone-200 border border-stone-300 text-stone-600 transition">0đ</button>
+            <button type="button" onclick="setQuickServiceFee(20000)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-emerald-50 hover:text-emerald-700 border border-stone-300 transition">+20k</button>
+            <button type="button" onclick="setQuickServiceFee(30000)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-emerald-50 hover:text-emerald-700 border border-stone-300 transition">+30k</button>
+            <button type="button" onclick="setQuickServiceFee(50000)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-emerald-50 hover:text-emerald-700 border border-stone-300 transition">+50k</button>
+            <button type="button" onclick="setQuickServiceFee(100000)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white hover:bg-emerald-50 hover:text-emerald-700 border border-stone-300 transition">+100k</button>
+          </div>
+        </div>
+
+        <!-- 3. Hình thức thanh toán (Tiền mặt, Chuyển khoản, Tính tiền nội bộ) -->
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">💳 Hình thức thanh toán:</label>
+          <div class="grid grid-cols-3 gap-1.5">
+            <label class="flex flex-col items-center justify-center p-2 rounded-xl bg-white border border-stone-300 cursor-pointer font-bold text-stone-800 hover:border-emerald-500 transition text-center text-xs has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50 has-[:checked]:text-emerald-900">
+              <input type="radio" name="billTargetRadio" value="CASH" checked onchange="toggleBillTarget()" class="sr-only">
+              <span class="text-base mb-0.5">💵</span>
+              <span>Tiền mặt</span>
+            </label>
+            <label class="flex flex-col items-center justify-center p-2 rounded-xl bg-white border border-stone-300 cursor-pointer font-bold text-stone-800 hover:border-blue-500 transition text-center text-xs has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-900">
+              <input type="radio" name="billTargetRadio" value="TRANSFER" onchange="toggleBillTarget()" class="sr-only">
+              <span class="text-base mb-0.5">📲</span>
+              <span>Chuyển khoản</span>
+            </label>
+            <label class="flex flex-col items-center justify-center p-2 rounded-xl bg-white border border-stone-300 cursor-pointer font-bold text-stone-800 hover:border-purple-500 transition text-center text-xs has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50 has-[:checked]:text-purple-900">
+              <input type="radio" name="billTargetRadio" value="INTERNAL" onchange="toggleBillTarget()" class="sr-only">
+              <span class="text-base mb-0.5">🏢</span>
+              <span>Tính nội bộ</span>
             </label>
           </div>
-          <div id="adminSelectContainer" class="hidden mt-2 p-2 bg-rose-50 border border-rose-200 rounded-xl">
-            <label class="block text-[11px] font-bold text-rose-800 mb-1">Chọn Quản trị viên chịu bill:</label>
-            <select id="drawerAdminSelect" class="w-full bg-white border border-rose-300 rounded-lg px-2.5 py-1.5 font-bold text-rose-900 text-xs focus:outline-rose-600">
+          <div id="adminSelectContainer" class="hidden mt-2 p-2.5 bg-purple-50 border border-purple-200 rounded-xl space-y-1.5">
+            <label class="block text-[11px] font-bold text-purple-900">Chọn Quản trị viên / Nhân sự chịu bill:</label>
+            <select id="drawerAdminSelect" class="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1.5 font-bold text-purple-950 text-xs focus:outline-purple-600">
               <!-- Render danh sách Admin -->
             </select>
+            <input type="text" id="drawerInternalNote" placeholder="Ghi chú nội bộ (Tiếp khách, Thử món, Họp BQT...)" class="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1 text-purple-950 text-xs focus:outline-purple-600">
           </div>
         </div>
       </div>
     </div>
 
     <div class="p-4 bg-stone-50 border-t border-stone-200 space-y-2.5">
-      <!-- Chi tiết tổng tiền & giảm giá -->
+      <!-- Chi tiết tổng tiền, giảm giá & phí phục vụ -->
       <div class="space-y-1">
         <div id="drawerSubtotalRow" class="flex items-center justify-between text-xs text-stone-500 hidden">
           <span>Tiền món:</span>
@@ -899,6 +939,10 @@
         <div id="drawerDiscountRow" class="flex items-center justify-between text-xs text-rose-600 hidden">
           <span id="drawerDiscountLabel">Giảm giá (%):</span>
           <span id="drawerDiscountRowVal" class="font-bold">-0 đ</span>
+        </div>
+        <div id="drawerServiceFeeRow" class="flex items-center justify-between text-xs text-emerald-700 hidden">
+          <span>Phí phục vụ:</span>
+          <span id="drawerServiceFeeRowVal" class="font-bold">+0 đ</span>
         </div>
         <div class="flex items-center justify-between text-base pt-1 border-t border-stone-200">
           <span class="text-stone-700 font-bold">Cần thanh toán:</span>
@@ -997,6 +1041,10 @@
             <div id="receiptDiscountRow" class="flex justify-between items-center text-rose-600 hidden">
               <span id="receiptDiscountLabel">Giảm giá (%):</span>
               <span id="receiptDiscountVal" class="font-bold">-0 đ</span>
+            </div>
+            <div id="receiptServiceFeeRow" class="flex justify-between items-center text-emerald-700 hidden">
+              <span>Phí phục vụ:</span>
+              <span id="receiptServiceFeeVal" class="font-bold">+0 đ</span>
             </div>
             <div class="flex justify-between items-center text-sm font-black text-stone-900 pt-1 border-t border-dashed border-stone-300">
               <span>TỔNG CỘNG:</span>
@@ -2078,6 +2126,14 @@
       }
     }
 
+    function setQuickServiceFee(fee) {
+      const input = document.getElementById("drawerServiceFee");
+      if (input) {
+        input.value = fee;
+        calculateDrawerTotal();
+      }
+    }
+
     function calculateCalculatedDiscount() {
       if (!currentBillData || !currentBillData.grand_total) return 0;
       const rawVal = parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0;
@@ -2106,24 +2162,17 @@
       if (!badge) return;
       const rawVal = parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0;
       const pct = Math.min(100, Math.max(0, rawVal));
+      const serviceFee = Math.max(0, parseInt(document.getElementById("drawerServiceFee")?.value) || 0);
       
-      let isAdmin = false;
-      const radios = document.getElementsByName("billTargetRadio");
-      for (const r of radios) {
-        if (r.checked && r.value === "ADMIN") {
-          isAdmin = true;
-          break;
-        }
-      }
+      const method = document.querySelector('input[name="billTargetRadio"]:checked')?.value || "CASH";
+      const parts = [];
+      if (pct > 0) parts.push(`Giảm ${pct}%`);
+      if (serviceFee > 0) parts.push(`+${formatVND(serviceFee)} phí`);
+      if (method === "INTERNAL") parts.push("Ký nội bộ");
+      else if (method === "TRANSFER") parts.push("CK VietQR");
 
-      if (pct > 0 && isAdmin) {
-        badge.innerText = `Giảm ${pct}% • Ký Admin`;
-        badge.classList.remove("hidden");
-      } else if (pct > 0) {
-        badge.innerText = `Giảm ${pct}%`;
-        badge.classList.remove("hidden");
-      } else if (isAdmin) {
-        badge.innerText = `Ký nợ Admin`;
+      if (parts.length > 0) {
+        badge.innerText = parts.join(" • ");
         badge.classList.remove("hidden");
       } else {
         badge.classList.add("hidden");
@@ -2136,26 +2185,37 @@
       const rawVal = parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0;
       const pct = Math.min(100, Math.max(0, rawVal));
       const discount = (pct > 0) ? Math.round(subtotal * pct / 100) : 0;
-      const finalTotal = Math.max(0, subtotal - discount);
+      const serviceFee = Math.max(0, parseInt(document.getElementById("drawerServiceFee")?.value) || 0);
+      const finalTotal = Math.max(0, subtotal - discount + serviceFee);
 
       const totalEl = document.getElementById("drawerGrandTotal");
-      const pill = document.getElementById("drawerDiscountCalculatedPill");
+      const pillDisc = document.getElementById("drawerDiscountCalculatedPill");
+      const pillFee = document.getElementById("drawerServiceFeeCalculatedPill");
       const subRow = document.getElementById("drawerSubtotalRow");
       const subVal = document.getElementById("drawerSubtotalVal");
       const discRow = document.getElementById("drawerDiscountRow");
       const discLabel = document.getElementById("drawerDiscountLabel");
       const discVal = document.getElementById("drawerDiscountRowVal");
+      const feeRow = document.getElementById("drawerServiceFeeRow");
+      const feeVal = document.getElementById("drawerServiceFeeRowVal");
 
       if (totalEl) totalEl.innerText = formatVND(finalTotal);
 
-      if (discount > 0) {
-        if (pill) {
-          pill.innerText = `-${formatVND(discount)}`;
-          pill.classList.remove("hidden");
-        }
+      // Hiển thị dòng tiền món nếu có giảm giá hoặc phí phục vụ
+      if (discount > 0 || serviceFee > 0) {
         if (subRow && subVal) {
           subVal.innerText = formatVND(subtotal);
           subRow.classList.remove("hidden");
+        }
+      } else {
+        if (subRow) subRow.classList.add("hidden");
+      }
+
+      // Giảm giá
+      if (discount > 0) {
+        if (pillDisc) {
+          pillDisc.innerText = `-${formatVND(discount)}`;
+          pillDisc.classList.remove("hidden");
         }
         if (discRow && discLabel && discVal) {
           discLabel.innerText = `Giảm giá (${pct}%):`;
@@ -2163,10 +2223,25 @@
           discRow.classList.remove("hidden");
         }
       } else {
-        if (pill) pill.classList.add("hidden");
-        if (subRow) subRow.classList.add("hidden");
+        if (pillDisc) pillDisc.classList.add("hidden");
         if (discRow) discRow.classList.add("hidden");
       }
+
+      // Phí phục vụ
+      if (serviceFee > 0) {
+        if (pillFee) {
+          pillFee.innerText = `+${formatVND(serviceFee)}`;
+          pillFee.classList.remove("hidden");
+        }
+        if (feeRow && feeVal) {
+          feeVal.innerText = `+${formatVND(serviceFee)}`;
+          feeRow.classList.remove("hidden");
+        }
+      } else {
+        if (pillFee) pillFee.classList.add("hidden");
+        if (feeRow) feeRow.classList.add("hidden");
+      }
+
       updateBillOptionsBadge();
     }
 
@@ -2186,17 +2261,10 @@
     }
 
     function toggleBillTarget() {
-      const radios = document.getElementsByName("billTargetRadio");
-      let selectedVal = "CUSTOMER";
-      for (const r of radios) {
-        if (r.checked) {
-          selectedVal = r.value;
-          break;
-        }
-      }
+      const selectedVal = document.querySelector('input[name="billTargetRadio"]:checked')?.value || "CASH";
       const container = document.getElementById("adminSelectContainer");
       if (container) {
-        if (selectedVal === "ADMIN") {
+        if (selectedVal === "INTERNAL") {
           container.classList.remove("hidden");
           if (posAdmins.length === 0) loadAdminsList();
         } else {
@@ -2234,17 +2302,19 @@
 
       document.getElementById("drawerGrandTotal").innerText = formatVND(currentBillData.grand_total || 0);
 
-      // Reset controls giảm giá & đối tượng thanh toán
+      // Reset controls giảm giá, phí phục vụ & hình thức thanh toán
       if (document.getElementById("drawerDiscountVal")) document.getElementById("drawerDiscountVal").value = 0;
       if (document.getElementById("drawerDiscountReason")) document.getElementById("drawerDiscountReason").value = "";
       if (document.getElementById("drawerDiscountCustomReason")) {
         document.getElementById("drawerDiscountCustomReason").value = "";
         document.getElementById("drawerDiscountCustomReason").classList.add("hidden");
       }
+      if (document.getElementById("drawerServiceFee")) document.getElementById("drawerServiceFee").value = 0;
+      if (document.getElementById("drawerInternalNote")) document.getElementById("drawerInternalNote").value = "";
       const billTargetRadios = document.getElementsByName("billTargetRadio");
-      billTargetRadios.forEach(r => r.checked = (r.value === "CUSTOMER"));
+      billTargetRadios.forEach(r => r.checked = (r.value === "CASH"));
       toggleBillTarget();
-      toggleBillOptions(false); // Mặc định thu gọn các tùy chọn giảm giá / admin
+      toggleBillOptions(false); // Mặc định thu gọn các tùy chọn
       calculateDrawerTotal();
 
       const itemsContainer = document.getElementById("drawerItemsContainer");
@@ -2607,29 +2677,45 @@
 
       const disc = calculateCalculatedDiscount();
       const discPct = Math.min(100, Math.max(0, parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0));
-      const finalTotal = Math.max(0, currentBillData.grand_total - disc);
+      const serviceFee = Math.max(0, parseInt(document.getElementById("drawerServiceFee")?.value) || 0);
+      const finalTotal = Math.max(0, currentBillData.grand_total - disc + serviceFee);
 
       const receiptSubtotalRow = document.getElementById("receiptSubtotalRow");
       const receiptDiscountRow = document.getElementById("receiptDiscountRow");
-      if (disc > 0) {
+      const receiptServiceFeeRow = document.getElementById("receiptServiceFeeRow");
+
+      if (disc > 0 || serviceFee > 0) {
         if (receiptSubtotalRow) {
           receiptSubtotalRow.classList.remove("hidden");
           document.getElementById("receiptSubtotalVal").innerText = formatVND(currentBillData.grand_total);
         }
+      } else {
+        if (receiptSubtotalRow) receiptSubtotalRow.classList.add("hidden");
+      }
+
+      if (disc > 0) {
         if (receiptDiscountRow) {
           receiptDiscountRow.classList.remove("hidden");
           document.getElementById("receiptDiscountLabel").innerText = `Giảm giá (${discPct}%):`;
           document.getElementById("receiptDiscountVal").innerText = `-${formatVND(disc)}`;
         }
       } else {
-        if (receiptSubtotalRow) receiptSubtotalRow.classList.add("hidden");
         if (receiptDiscountRow) receiptDiscountRow.classList.add("hidden");
+      }
+
+      if (serviceFee > 0) {
+        if (receiptServiceFeeRow) {
+          receiptServiceFeeRow.classList.remove("hidden");
+          document.getElementById("receiptServiceFeeVal").innerText = `+${formatVND(serviceFee)}`;
+        }
+      } else {
+        if (receiptServiceFeeRow) receiptServiceFeeRow.classList.add("hidden");
       }
 
       document.getElementById("receiptGrandTotal").innerText = formatVND(finalTotal);
 
       let qrUrl = currentBillData.vietqr_url;
-      if (disc > 0 && currentBillData.grand_total > 0) {
+      if ((disc > 0 || serviceFee > 0) && currentBillData.grand_total > 0) {
         qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${finalTotal}&addInfo=${encodeURIComponent(currentBillData.transfer_note || '')}&accountName=PIPO%20GARDEN`;
       }
 
@@ -2713,6 +2799,18 @@
         discReason = document.getElementById("drawerDiscountCustomReason")?.value?.trim() || "Khác";
       }
       const discAmount = calculateCalculatedDiscount();
+      const serviceFee = Math.max(0, parseInt(document.getElementById("drawerServiceFee")?.value) || 0);
+      const payMethod = document.querySelector('input[name="billTargetRadio"]:checked')?.value || "CASH";
+      let billedAdminName = "";
+      if (payMethod === "INTERNAL") {
+        const adminSelect = document.getElementById("drawerAdminSelect");
+        if (adminSelect && adminSelect.value) {
+          const opt = adminSelect.options[adminSelect.selectedIndex];
+          billedAdminName = opt ? (opt.getAttribute("data-name") || opt.text) : "";
+        }
+        const note = document.getElementById("drawerInternalNote")?.value?.trim();
+        if (note) billedAdminName = billedAdminName ? `${billedAdminName} (${note})` : note;
+      }
 
       try {
         showPosToast(`🖨️ Đang in phiếu tạm tính bàn ${selectedTable.name}...`);
@@ -2723,6 +2821,9 @@
             discount_percent: discPct,
             discount_amount: discAmount,
             discount_reason: discReason,
+            service_fee: serviceFee,
+            payment_method: payMethod,
+            billed_admin_name: billedAdminName,
             cashier_name: currentUser ? currentUser.full_name : "Thu Ngân PiPo"
           })
         });
@@ -2749,9 +2850,10 @@
         return;
       }
       const disc = calculateCalculatedDiscount();
-      const finalTotal = Math.max(0, currentBillData.grand_total - disc);
+      const serviceFee = Math.max(0, parseInt(document.getElementById("drawerServiceFee")?.value) || 0);
+      const finalTotal = Math.max(0, currentBillData.grand_total - disc + serviceFee);
       let qrUrl = currentBillData.vietqr_url;
-      if (disc > 0) {
+      if ((disc > 0 || serviceFee > 0) && currentBillData.grand_total > 0) {
         qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${finalTotal}&addInfo=${encodeURIComponent(currentBillData.transfer_note || '')}&accountName=PIPO%20GARDEN`;
       }
       document.getElementById("vietqrImage").src = qrUrl;
@@ -2776,38 +2878,41 @@
       if (discountReason === "Khác") {
         discountReason = document.getElementById("drawerDiscountCustomReason")?.value?.trim() || "Khác";
       }
+      const serviceFee = Math.max(0, parseInt(document.getElementById("drawerServiceFee")?.value) || 0);
 
-      let billTarget = "CUSTOMER";
-      const radios = document.getElementsByName("billTargetRadio");
-      for (const r of radios) {
-        if (r.checked) {
-          billTarget = r.value;
-          break;
-        }
-      }
-
+      const payMethod = document.querySelector('input[name="billTargetRadio"]:checked')?.value || "CASH";
       let billedAdminId = null;
       let billedAdminName = "";
-      if (billTarget === "ADMIN") {
+      if (payMethod === "INTERNAL") {
         const adminSelect = document.getElementById("drawerAdminSelect");
         if (adminSelect && adminSelect.value) {
           billedAdminId = parseInt(adminSelect.value);
           const opt = adminSelect.options[adminSelect.selectedIndex];
           billedAdminName = opt ? (opt.getAttribute("data-name") || opt.text) : "";
         }
-        if (!billedAdminId) {
-          alert("Vui lòng chọn Quản trị viên (Admin) chịu bill!");
+        const note = document.getElementById("drawerInternalNote")?.value?.trim();
+        if (note) {
+          billedAdminName = billedAdminName ? `${billedAdminName} (${note})` : note;
+        }
+        if (!billedAdminId && !billedAdminName) {
+          alert("Vui lòng chọn Quản trị viên / Nhân sự hoặc nhập lý do nội bộ!");
           return;
         }
       }
 
-      let confirmMsg = `Xác nhận thanh toán và mở lại bàn ${selectedTable.name}?`;
-      if (billTarget === "ADMIN") {
-        confirmMsg += `\n(Hình thức: Tính bill với Admin "${billedAdminName}")`;
+      let methodLabel = "Tiền mặt";
+      if (payMethod === "TRANSFER") methodLabel = "Chuyển khoản (VietQR)";
+      else if (payMethod === "INTERNAL") methodLabel = `Tính tiền nội bộ (${billedAdminName || 'Nội bộ'})`;
+
+      let confirmMsg = `Xác nhận thanh toán và mở lại bàn ${selectedTable.name}?\n• Hình thức thanh toán: ${methodLabel}`;
+      if (serviceFee > 0) {
+        confirmMsg += `\n• Phí phục vụ / phụ thu: +${formatVND(serviceFee)}`;
       }
       if (discountAmount > 0) {
-        confirmMsg += `\n(Giảm giá ${discountPercent}%: ${formatVND(discountAmount)} - Lý do: ${discountReason || 'Không có'})`;
+        confirmMsg += `\n• Giảm giá ${discountPercent}%: -${formatVND(discountAmount)} (${discountReason || 'Không có'})`;
       }
+      const finalPay = Math.max(0, (currentBillData.grand_total || 0) - discountAmount + serviceFee);
+      confirmMsg += `\n• Tổng thanh toán: ${formatVND(finalPay)}`;
 
       if (!confirm(confirmMsg)) return;
 
@@ -2816,7 +2921,9 @@
           discount_percent: discountPercent,
           discount_amount: discountAmount,
           discount_reason: discountReason,
-          bill_target: billTarget,
+          service_fee: serviceFee,
+          payment_method: payMethod,
+          bill_target: payMethod === "INTERNAL" ? "ADMIN" : "CUSTOMER",
           billed_admin_id: billedAdminId,
           billed_admin_name: billedAdminName
         };
@@ -2879,10 +2986,15 @@
 
         tbody.innerHTML = posBillsData.map(b => {
           const itemsCount = (b.items || []).reduce((acc, it) => acc + (it.quantity || 1), 0);
-          const isAdm = b.bill_target === "ADMIN";
-          const methodBadge = isAdm 
-            ? `<span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full font-bold text-[10px]">Admin: ${b.billed_admin_name || 'Admin'}</span>`
-            : `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold text-[10px]">${b.payment_method || 'Tiền mặt'}</span>`;
+          const pMethod = (b.payment_method || (b.bill_target === 'ADMIN' ? 'INTERNAL' : 'CASH')).toUpperCase();
+          let methodBadge = '';
+          if (pMethod === 'INTERNAL' || b.bill_target === 'ADMIN') {
+            methodBadge = `<span class="bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-full font-bold text-[10px]">🏢 Nội bộ${b.billed_admin_name ? ': ' + b.billed_admin_name : ''}</span>`;
+          } else if (pMethod === 'TRANSFER' || pMethod === 'VIETQR') {
+            methodBadge = `<span class="bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full font-bold text-[10px]">📲 Chuyển khoản</span>`;
+          } else {
+            methodBadge = `<span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold text-[10px]">💵 Tiền mặt</span>`;
+          }
 
           return `
             <tr class="hover:bg-amber-50/40 transition">
@@ -3291,6 +3403,15 @@
 
         document.getElementById("detailPeriodTitle").innerText = periodLabels[data.period_type] || data.date_val;
         document.getElementById("detailTotalRev").innerText = formatVND(data.summary.total_revenue);
+        if (document.getElementById("detailCashRev")) {
+          document.getElementById("detailCashRev").innerText = formatVND(data.summary.cash_revenue || 0);
+        }
+        if (document.getElementById("detailTransferRev")) {
+          document.getElementById("detailTransferRev").innerText = formatVND(data.summary.transfer_revenue || 0);
+        }
+        if (document.getElementById("detailInternalRev")) {
+          document.getElementById("detailInternalRev").innerText = formatVND(data.summary.internal_revenue || 0);
+        }
         document.getElementById("detailTotalOrders").innerText = data.summary.total_orders;
         document.getElementById("detailTotalDishes").innerText = data.summary.total_dishes_count;
         document.getElementById("detailOrdersCountBadge").innerText = `${data.orders.length} hóa đơn đã thanh toán`;
@@ -3301,34 +3422,52 @@
           return;
         }
 
-        tbody.innerHTML = data.orders.map(o => `
-          <tr class="hover:bg-stone-50 transition">
-            <td class="py-3 px-4 font-mono font-bold text-emerald-800">#${o.id}</td>
-            <td class="py-3 px-4 text-stone-500 whitespace-nowrap">${o.created_at}</td>
-            <td class="py-3 px-4">
-              <div class="font-bold text-stone-900">${o.table_name}</div>
-              <div class="text-[10px] text-stone-400">${o.area}</div>
-            </td>
-            <td class="py-3 px-4 max-w-xs">
-              <div class="space-y-0.5">
-                ${o.items.map(it => {
-                  const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
-                  return `
-                    <div class="text-[11px] text-stone-700">
-                      <span>${it.item_name}</span> × <strong>${it.quantity}</strong> × ${formatVND(uPrice)} = <strong class="text-emerald-700">${formatVND(it.total_price)}</strong>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            </td>
-            <td class="py-3 px-4 text-center">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${o.payment_method === 'VIETQR' ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-stone-100 text-stone-700'}">
-                ${o.payment_method || 'CASH'}
-              </span>
-            </td>
-            <td class="py-3 px-4 text-right font-black text-stone-900">${formatVND(o.total)}</td>
-          </tr>
-        `).join('');
+        tbody.innerHTML = data.orders.map(o => {
+          const pMethod = (o.payment_method || (o.bill_target === 'ADMIN' ? 'INTERNAL' : 'CASH')).toUpperCase();
+          let methodBadge = '';
+          if (pMethod === 'INTERNAL' || o.bill_target === 'ADMIN') {
+            methodBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200 whitespace-nowrap">🏢 Nội bộ${o.billed_admin_name ? ': ' + o.billed_admin_name : ''}</span>`;
+          } else if (pMethod === 'TRANSFER' || pMethod === 'VIETQR') {
+            methodBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200 whitespace-nowrap">📲 Chuyển khoản</span>`;
+          } else {
+            methodBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 whitespace-nowrap">💵 Tiền mặt</span>`;
+          }
+
+          let feeBadge = '';
+          if (o.service_fee > 0) {
+            feeBadge = `<div class="text-[10px] text-emerald-700 font-semibold mt-0.5">+Phí: ${formatVND(o.service_fee)}</div>`;
+          }
+
+          return `
+            <tr class="hover:bg-stone-50 transition">
+              <td class="py-3 px-4 font-mono font-bold text-emerald-800">#${o.id}</td>
+              <td class="py-3 px-4 text-stone-500 whitespace-nowrap">${o.created_at}</td>
+              <td class="py-3 px-4">
+                <div class="font-bold text-stone-900">${o.table_name}</div>
+                <div class="text-[10px] text-stone-400">${o.area}</div>
+              </td>
+              <td class="py-3 px-4 max-w-xs">
+                <div class="space-y-0.5">
+                  ${o.items.map(it => {
+                    const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
+                    return `
+                      <div class="text-[11px] text-stone-700">
+                        <span>${it.item_name}</span> × <strong>${it.quantity}</strong> × ${formatVND(uPrice)} = <strong class="text-emerald-700">${formatVND(it.total_price)}</strong>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </td>
+              <td class="py-3 px-4 text-center">
+                ${methodBadge}
+              </td>
+              <td class="py-3 px-4 text-right">
+                <div class="font-black text-stone-900">${formatVND(o.total)}</div>
+                ${feeBadge}
+              </td>
+            </tr>
+          `;
+        }).join('');
 
       } catch (e) {
         console.error("Lỗi tải báo cáo chi tiết:", e);

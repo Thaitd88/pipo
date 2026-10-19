@@ -273,14 +273,22 @@
               <div class="text-2xl font-black mt-1" id="detailTotalRev">0 đ</div>
               <div class="text-xs text-emerald-100 mt-1">Tổng doanh thu thực nhận đã thanh toán</div>
             </div>
-            <div class="flex gap-6 text-center">
-              <div class="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-xs">
-                <div class="text-xl font-black" id="detailTotalOrders">0</div>
-                <div class="text-[10px] text-emerald-200">Hóa Đơn</div>
+            <div class="flex gap-2.5 text-center flex-wrap">
+              <div class="bg-white/10 px-3.5 py-2 rounded-xl backdrop-blur-xs">
+                <div class="text-[10px] text-emerald-200 font-bold uppercase">💵 Quỹ Tiền Mặt</div>
+                <div class="text-base font-black mt-0.5" id="detailCashRev">0 đ</div>
               </div>
-              <div class="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-xs">
-                <div class="text-xl font-black" id="detailTotalDishes">0</div>
-                <div class="text-[10px] text-emerald-200">Món Đã Bán</div>
+              <div class="bg-white/10 px-3.5 py-2 rounded-xl backdrop-blur-xs">
+                <div class="text-[10px] text-emerald-200 font-bold uppercase">📲 Doanh Thu CK</div>
+                <div class="text-base font-black mt-0.5" id="detailTransferRev">0 đ</div>
+              </div>
+              <div class="bg-white/10 px-3.5 py-2 rounded-xl backdrop-blur-xs">
+                <div class="text-[10px] text-emerald-200 font-bold uppercase">🏢 Tính Nội Bộ</div>
+                <div class="text-base font-black mt-0.5" id="detailInternalRev">0 đ</div>
+              </div>
+              <div class="bg-white/10 px-3 py-2 rounded-xl backdrop-blur-xs">
+                <div class="text-[10px] text-emerald-200 font-bold uppercase">Số đơn</div>
+                <div class="text-base font-bold mt-0.5" id="detailTotalOrders">0</div>
               </div>
             </div>
           </div>
@@ -1771,6 +1779,15 @@
 
         document.getElementById("detailPeriodTitle").innerText = periodLabels[data.period_type] || data.date_val;
         document.getElementById("detailTotalRev").innerText = formatVND(data.summary.total_revenue);
+        if (document.getElementById("detailCashRev")) {
+          document.getElementById("detailCashRev").innerText = formatVND(data.summary.cash_revenue || 0);
+        }
+        if (document.getElementById("detailTransferRev")) {
+          document.getElementById("detailTransferRev").innerText = formatVND(data.summary.transfer_revenue || 0);
+        }
+        if (document.getElementById("detailInternalRev")) {
+          document.getElementById("detailInternalRev").innerText = formatVND(data.summary.internal_revenue || 0);
+        }
         document.getElementById("detailTotalOrders").innerText = data.summary.total_orders;
         document.getElementById("detailTotalDishes").innerText = data.summary.total_dishes_count;
         document.getElementById("detailOrdersCountBadge").innerText = `${data.orders.length} hóa đơn đã thanh toán`;
@@ -1781,34 +1798,52 @@
           return;
         }
 
-        tbody.innerHTML = data.orders.map(o => `
-          <tr class="hover:bg-stone-50 transition">
-            <td class="py-3 px-4 font-mono font-bold text-emerald-800">#${o.id}</td>
-            <td class="py-3 px-4 text-stone-500 whitespace-nowrap">${o.created_at}</td>
-            <td class="py-3 px-4">
-              <div class="font-bold text-stone-900">${o.table_name}</div>
-              <div class="text-[10px] text-stone-400">${o.area}</div>
-            </td>
-            <td class="py-3 px-4 max-w-xs">
-              <div class="space-y-0.5">
-                ${o.items.map(it => {
-                  const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
-                  return `
-                    <div class="text-[11px] text-stone-700">
-                      <span>${it.item_name}</span> × <strong>${it.quantity}</strong> × ${formatVND(uPrice)} = <strong class="text-emerald-700">${formatVND(it.total_price)}</strong>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            </td>
-            <td class="py-3 px-4 text-center">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${o.payment_method === 'VIETQR' ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-stone-100 text-stone-700'}">
-                ${o.payment_method || 'CASH'}
-              </span>
-            </td>
-            <td class="py-3 px-4 text-right font-black text-stone-900">${formatVND(o.total)}</td>
-          </tr>
-        `).join('');
+        tbody.innerHTML = data.orders.map(o => {
+          const pMethod = (o.payment_method || (o.bill_target === 'ADMIN' ? 'INTERNAL' : 'CASH')).toUpperCase();
+          let methodBadge = '';
+          if (pMethod === 'INTERNAL' || o.bill_target === 'ADMIN') {
+            methodBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200 whitespace-nowrap">🏢 Nội bộ${o.billed_admin_name ? ': ' + o.billed_admin_name : ''}</span>`;
+          } else if (pMethod === 'TRANSFER' || pMethod === 'VIETQR') {
+            methodBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200 whitespace-nowrap">📲 Chuyển khoản</span>`;
+          } else {
+            methodBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 whitespace-nowrap">💵 Tiền mặt</span>`;
+          }
+
+          let feeBadge = '';
+          if (o.service_fee > 0) {
+            feeBadge = `<div class="text-[10px] text-emerald-700 font-semibold mt-0.5">+Phí: ${formatVND(o.service_fee)}</div>`;
+          }
+
+          return `
+            <tr class="hover:bg-stone-50 transition">
+              <td class="py-3 px-4 font-mono font-bold text-emerald-800">#${o.id}</td>
+              <td class="py-3 px-4 text-stone-500 whitespace-nowrap">${o.created_at}</td>
+              <td class="py-3 px-4">
+                <div class="font-bold text-stone-900">${o.table_name}</div>
+                <div class="text-[10px] text-stone-400">${o.area}</div>
+              </td>
+              <td class="py-3 px-4 max-w-xs">
+                <div class="space-y-0.5">
+                  ${o.items.map(it => {
+                    const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
+                    return `
+                      <div class="text-[11px] text-stone-700">
+                        <span>${it.item_name}</span> × <strong>${it.quantity}</strong> × ${formatVND(uPrice)} = <strong class="text-emerald-700">${formatVND(it.total_price)}</strong>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </td>
+              <td class="py-3 px-4 text-center">
+                ${methodBadge}
+              </td>
+              <td class="py-3 px-4 text-right">
+                <div class="font-black text-stone-900">${formatVND(o.total)}</div>
+                ${feeBadge}
+              </td>
+            </tr>
+          `;
+        }).join('');
 
       } catch (e) {
         console.error("Lỗi tải báo cáo chi tiết:", e);

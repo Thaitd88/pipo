@@ -121,9 +121,21 @@ def get_revenue_overview(request: Request):
     """)
     area_breakdown = [dict(r) for r in cursor.fetchall()]
 
-    # 9. Doanh thu theo phương thức thanh toán
+    # 9. Doanh thu theo phương thức thanh toán chuẩn (Tiền mặt, Chuyển khoản, Nội bộ)
     cursor.execute("""
-        SELECT COALESCE(payment_method, 'VIETQR') as method, 
+        SELECT 
+            COALESCE(SUM(CASE WHEN UPPER(COALESCE(payment_method, 'CASH')) = 'CASH' AND COALESCE(bill_target, 'CUSTOMER') != 'ADMIN' THEN total ELSE 0 END), 0) as cash_rev,
+            COALESCE(SUM(CASE WHEN UPPER(payment_method) IN ('TRANSFER', 'VIETQR') AND COALESCE(bill_target, 'CUSTOMER') != 'ADMIN' THEN total ELSE 0 END), 0) as transfer_rev,
+            COALESCE(SUM(CASE WHEN UPPER(payment_method) = 'INTERNAL' OR COALESCE(bill_target, 'CUSTOMER') = 'ADMIN' THEN total ELSE 0 END), 0) as internal_rev,
+            COALESCE(SUM(service_fee), 0) as service_fee_rev
+        FROM orders
+        WHERE payment_status = 'PAID'
+    """)
+    method_row = dict(cursor.fetchone() or {})
+
+    # Breakdown chi tiết theo từng method
+    cursor.execute("""
+        SELECT COALESCE(payment_method, 'CASH') as method, 
                COALESCE(SUM(total), 0) as method_revenue,
                COUNT(*) as orders_count
         FROM orders
@@ -138,6 +150,12 @@ def get_revenue_overview(request: Request):
         "today": {"revenue": today_rev, "orders": today_orders},
         "this_month": {"revenue": month_rev, "orders": month_orders},
         "this_year": {"revenue": year_rev, "orders": year_orders},
+        "funds": {
+            "cash_revenue": method_row.get("cash_rev", 0),
+            "transfer_revenue": method_row.get("transfer_rev", 0),
+            "internal_revenue": method_row.get("internal_rev", 0),
+            "service_fee_revenue": method_row.get("service_fee_rev", 0)
+        },
         "aov": aov,
         "days_chart": days_chart,
         "months_chart": months_chart,
@@ -177,20 +195,24 @@ def get_revenue_detail(
         where_clause = "strftime('%Y', o.created_at) = ?"
         param = date_val
 
-    # 1. Thống kê tổng hợp kỳ báo cáo
+    # 1. Thống kê tổng hợp kỳ báo cáo (gồm Quỹ tiền mặt, Doanh thu chuyển khoản, Nội bộ & Phí phục vụ)
     cursor.execute(f"""
         SELECT COALESCE(SUM(o.total), 0) as total_revenue,
                COUNT(o.id) as total_orders,
-               COALESCE(SUM(o.discount), 0) as total_discount
+               COALESCE(SUM(o.discount), 0) as total_discount,
+               COALESCE(SUM(o.service_fee), 0) as total_service_fee,
+               COALESCE(SUM(CASE WHEN UPPER(COALESCE(o.payment_method, 'CASH')) = 'CASH' AND COALESCE(o.bill_target, 'CUSTOMER') != 'ADMIN' THEN o.total ELSE 0 END), 0) as cash_revenue,
+               COALESCE(SUM(CASE WHEN UPPER(o.payment_method) IN ('TRANSFER', 'VIETQR') AND COALESCE(o.bill_target, 'CUSTOMER') != 'ADMIN' THEN o.total ELSE 0 END), 0) as transfer_revenue,
+               COALESCE(SUM(CASE WHEN UPPER(o.payment_method) = 'INTERNAL' OR COALESCE(o.bill_target, 'CUSTOMER') = 'ADMIN' THEN o.total ELSE 0 END), 0) as internal_revenue
         FROM orders o
         WHERE o.payment_status = 'PAID' AND {where_clause}
     """, (param,))
-    summary = dict(cursor.fetchone())
+    summary = dict(cursor.fetchone() or {})
 
     # 2. Lấy danh sách từng hóa đơn chi tiết
     cursor.execute(f"""
-        SELECT o.id, o.round_number, o.subtotal, o.discount, o.total,
-               o.payment_method, o.created_at, o.completed_at,
+        SELECT o.id, o.round_number, o.subtotal, o.discount, o.service_fee, o.total,
+               o.payment_method, o.bill_target, o.billed_admin_name, o.created_at, o.completed_at,
                t.name as table_name, t.table_code, t.area
         FROM orders o
         JOIN tables t ON o.table_id = t.id

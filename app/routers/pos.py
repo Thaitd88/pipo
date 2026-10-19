@@ -225,9 +225,18 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
     discount_percent = float(payload.get("discount_percent") or 0)
     discount_amount = max(0, int(payload.get("discount_amount") or 0))
     discount_reason = (payload.get("discount_reason") or "").strip()
+    service_fee = max(0, int(payload.get("service_fee") or 0))
+    payment_method = (payload.get("payment_method") or "CASH").strip().upper()
     bill_target = (payload.get("bill_target") or "CUSTOMER").strip().upper()
     billed_admin_id = payload.get("billed_admin_id")
     billed_admin_name = (payload.get("billed_admin_name") or "").strip()
+
+    if payment_method == "INTERNAL":
+        bill_target = "ADMIN"
+    elif payment_method in ("CASH", "TRANSFER", "VIETQR"):
+        bill_target = "CUSTOMER"
+        if payment_method == "VIETQR":
+            payment_method = "TRANSFER"
 
     conn = get_db()
     cursor = conn.cursor()
@@ -250,7 +259,7 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
         cursor.execute("SELECT * FROM order_items WHERE order_id = ? ORDER BY id ASC", (co["id"],))
         checkout_items.extend([dict(it) for it in cursor.fetchall()])
 
-    # 1. Đánh dấu tất cả đơn của bàn là PAID, cập nhật giảm giá & đối tượng thanh toán
+    # 1. Đánh dấu tất cả đơn của bàn là PAID, cập nhật giảm giá, phí phục vụ & phương thức thanh toán
     cursor.execute("""
         UPDATE orders 
         SET payment_status = 'PAID', 
@@ -258,12 +267,14 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
             completed_at = CURRENT_TIMESTAMP,
             discount = ?,
             discount_reason = ?,
+            service_fee = ?,
+            payment_method = ?,
             bill_target = ?,
             billed_admin_id = ?,
             billed_admin_name = ?,
-            total = MAX(0, subtotal - ?)
+            total = MAX(0, subtotal - ? + ?)
         WHERE table_id = ? AND payment_status = 'UNPAID'
-    """, (discount_amount, discount_reason, bill_target, billed_admin_id, billed_admin_name, discount_amount, table_id))
+    """, (discount_amount, discount_reason, service_fee, payment_method, bill_target, billed_admin_id, billed_admin_name, discount_amount, service_fee, table_id))
 
     # 2. Đánh dấu tất cả món của các đơn bàn này là SERVED (đã phục vụ xong)
     cursor.execute("""
@@ -291,6 +302,8 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
             "discount": discount_amount,
             "discount_percent": int(discount_percent) if discount_percent.is_integer() else discount_percent if discount_percent > 0 else None,
             "discount_reason": discount_reason,
+            "service_fee": service_fee,
+            "payment_method": payment_method,
             "bill_target": bill_target,
             "billed_admin_name": billed_admin_name
         }
@@ -354,7 +367,7 @@ async def get_bills_history(limit: int = 60, search: str = ""):
     query = """
         SELECT o.id, o.session_id, o.table_id, o.round_number, o.subtotal, o.total,
                o.payment_status, o.payment_method, o.discount, o.discount_reason,
-               o.bill_target, o.billed_admin_name, o.created_at, o.completed_at,
+               o.service_fee, o.bill_target, o.billed_admin_name, o.created_at, o.completed_at,
                t.name as table_name, t.table_code, t.area
         FROM orders o
         JOIN tables t ON o.table_id = t.id
@@ -392,8 +405,9 @@ async def get_bills_history(limit: int = 60, search: str = ""):
             "subtotal": r["subtotal"],
             "discount": r["discount"] or 0,
             "discount_reason": r["discount_reason"] or "",
+            "service_fee": r["service_fee"] or 0,
             "total": r["total"],
-            "payment_method": r["payment_method"] or "TIỀN MẶT",
+            "payment_method": r["payment_method"] or "CASH",
             "bill_target": r["bill_target"],
             "billed_admin_name": r["billed_admin_name"],
             "paid_at": r["completed_at"] or r["created_at"],
@@ -439,6 +453,8 @@ async def reprint_bill(order_id: int, request: Request):
         "cashier_name": cashier_display,
         "discount": order_row["discount"] or 0,
         "discount_reason": order_row["discount_reason"] or "",
+        "service_fee": order_row["service_fee"] or 0,
+        "payment_method": order_row["payment_method"] or "CASH",
         "bill_target": order_row["bill_target"],
         "billed_admin_name": order_row["billed_admin_name"]
     }
