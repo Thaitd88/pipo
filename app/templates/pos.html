@@ -1376,6 +1376,14 @@
         container.innerHTML = `<div class="text-center py-12 text-stone-400 text-xs">Hiện không có đơn đặt trước nào đang chờ phân bàn.</div>`;
         return;
       }
+
+      // Nhóm danh sách bàn theo khu vực để dễ chọn
+      const areasMap = {};
+      allTables.forEach(t => {
+        const a = t.area || 'Nhà Hàng';
+        if (!areasMap[a]) areasMap[a] = [];
+        areasMap[a].push(t);
+      });
       
       container.innerHTML = posPreorders.map(r => {
         let items = [];
@@ -1385,8 +1393,24 @@
           ? items.map(i => `<span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded text-[11px] font-semibold">${getPosItemName(i)} x${i.quantity || 1}</span>`).join(" ")
           : `<span class="text-stone-400 italic">Khách chưa chọn món</span>`;
           
+        // Tạo các option cho dropdown chọn bàn
+        let optionsHtml = '';
+        Object.keys(areasMap).sort().forEach(areaName => {
+          optionsHtml += `<optgroup label="📍 ${areaName}">`;
+          areasMap[areaName].forEach(t => {
+            const isAvail = (t.status === 'AVAILABLE' || (!t.status && (t.current_bill_total || 0) === 0));
+            const statusIcon = isAvail ? '🟢' : (t.status === 'BILLING' ? '🟡' : '🔴');
+            const statusText = isAvail ? 'Trống' : (t.status === 'BILLING' ? 'Chờ thanh toán' : 'Có khách');
+            const isSelected = (r.table_code && t.table_code.toUpperCase() === r.table_code.toUpperCase());
+            optionsHtml += `<option value="${t.table_code}" ${isSelected ? 'selected' : ''}>
+              ${statusIcon} ${t.name} (${statusText})
+            </option>`;
+          });
+          optionsHtml += `</optgroup>`;
+        });
+
         return `
-          <div class="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-2.5 hover:border-amber-400 transition">
+          <div class="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3 hover:border-amber-400 transition">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <span class="font-bold text-sm text-stone-900">${r.guest_name}</span>
@@ -1398,9 +1422,9 @@
             </div>
             
             <div class="flex flex-wrap items-center gap-2 text-xs">
-              <span class="text-stone-500 font-medium">Bàn khách chọn:</span>
+              <span class="text-stone-500 font-medium">Bàn khách mong muốn:</span>
               <span class="font-black text-emerald-800 bg-white px-2 py-0.5 rounded border border-stone-200">
-                ${r.table_code ? `Bàn ${r.table_code} (${r.area || 'Resort'})` : 'Chưa chọn bàn cụ thể'}
+                ${r.table_code ? `Bàn ${r.table_code} (${r.area || 'Nhà hàng'})` : 'Khách chưa chọn bàn cụ thể'}
               </span>
             </div>
             
@@ -1409,11 +1433,22 @@
               <div class="flex flex-wrap gap-1.5">${itemsHtml}</div>
             </div>
             
-            ${r.note ? `<div class="text-[11px] text-stone-500 italic">Ghi chú: ${r.note}</div>` : ''}
+            ${r.note ? `<div class="text-[11px] text-stone-500 italic">Ghi chú của khách: ${r.note}</div>` : ''}
             
-            <div class="pt-2 border-t border-stone-200 flex items-center justify-end gap-2">
-              <button onclick="posAssignTable(${r.id}, '${r.table_code || ''}')" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs shadow-xs flex items-center gap-1.5">
-                <i class="fa-solid fa-chair"></i> Gán Bàn & Nhận Khách
+            <div class="pt-3 border-t border-stone-200 flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-stone-100">
+              <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+                <label class="text-xs font-bold text-stone-700 whitespace-nowrap flex items-center gap-1">
+                  <i class="fa-solid fa-chair text-emerald-700"></i>
+                  <span>Chọn bàn gán khách:</span>
+                </label>
+                <select id="preorderTableSelect_${r.id}" class="w-full text-xs font-bold bg-stone-50 border border-stone-300 rounded-xl px-2.5 py-2 text-stone-800 focus:bg-white focus:border-emerald-600 focus:outline-none shadow-2xs">
+                  ${optionsHtml}
+                </select>
+              </div>
+
+              <button onclick="posConfirmAssignTable(${r.id})" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs shadow-xs flex items-center gap-1.5 transition flex-shrink-0">
+                <i class="fa-solid fa-check"></i>
+                <span>Gán Bàn & Nhận Khách</span>
               </button>
             </div>
           </div>
@@ -1421,16 +1456,23 @@
       }).join("");
     }
 
-    async function posAssignTable(resId, defaultTableCode) {
-      const availableTables = allTables.filter(t => t.status === 'AVAILABLE');
-      let targetCode = defaultTableCode;
-      if (!targetCode && availableTables.length > 0) {
-        targetCode = availableTables[0].table_code;
+    async function posConfirmAssignTable(resId) {
+      const selectEl = document.getElementById(`preorderTableSelect_${resId}`);
+      if (!selectEl) return;
+      const chosenCode = selectEl.value;
+      if (!chosenCode) {
+        alert("Vui lòng chọn một bàn từ danh sách để gán khách vào!");
+        return;
       }
-      
-      const chosenCode = prompt(`Nhập mã bàn muốn phân cho khách (Gợi ý: ${targetCode || 'NH01'}):`, targetCode || 'NH01');
-      if (!chosenCode) return;
-      
+
+      const chosenTable = allTables.find(t => t.table_code === chosenCode);
+      const tableName = chosenTable ? chosenTable.name : `Bàn ${chosenCode}`;
+
+      if (chosenTable && (chosenTable.status === 'OCCUPIED' || chosenTable.status === 'BILLING' || (chosenTable.current_bill_total || 0) > 0)) {
+        const ok = confirm(`⚠️ Chú ý: ${tableName} hiện đang có khách ngồi hoặc chờ thanh toán.\nBạn có chắc chắn muốn gán khách đặt trước vào bàn này không?`);
+        if (!ok) return;
+      }
+
       try {
         const res = await fetch(`/api/reservations/${resId}/assign-table`, {
           method: "POST",
@@ -1443,7 +1485,7 @@
         });
         const data = await res.json();
         if (res.ok) {
-          alert("🎉 " + (data.message || "Đã phân bàn thành công!"));
+          alert("🎉 " + (data.message || `Đã phân khách vào ${tableName} thành công!`));
           await fetchTablesOverview();
           await fetchPosPreorders();
           renderPosPreordersList();
@@ -1451,6 +1493,7 @@
           alert("❌ " + (data.detail || "Không thể phân bàn"));
         }
       } catch (e) {
+        console.error(e);
         alert("Lỗi kết nối khi phân bàn");
       }
     }
@@ -1712,21 +1755,32 @@
       const origin = window.location.origin;
 
       container.innerHTML = allTables.map(t => `
-        <div class="bg-white rounded-2xl p-5 border border-stone-200 text-center shadow-xs flex flex-col items-center justify-between">
-          <div class="mb-2 flex flex-col items-center">
-            <img src="/static/logo.png" alt="PiPo Garden" class="w-10 h-10 rounded-full object-contain mb-1">
-            <div class="text-xs font-bold text-emerald-800 tracking-wider">PIPO GARDEN</div>
-            <div class="text-lg font-black text-stone-900">${t.name}</div>
-            <div class="text-[11px] text-stone-400">${t.area}</div>
+        <div class="bg-white rounded-2xl p-4 border border-stone-200 text-center shadow-xs flex flex-col items-center justify-between max-w-[280px] mx-auto">
+          <div class="w-full text-center flex flex-col items-center mb-1">
+            <div class="flex items-center justify-center gap-1.5">
+              <img src="/static/logo.png" alt="PiPo Garden" class="w-6 h-6 rounded-full object-contain">
+              <span class="text-[11px] font-black tracking-widest text-emerald-900 uppercase">PIPO GARDEN</span>
+            </div>
+            <div class="text-base font-black text-stone-900 tracking-tight mt-0.5 uppercase">${t.name}</div>
           </div>
 
-          <div class="p-2 bg-stone-50 rounded-xl border border-stone-200 my-2">
-            <img src="/api/tables/${t.table_code}/qr-image?base_url=${origin}" alt="QR Code" class="w-40 h-40">
+          <div class="w-full bg-emerald-800 text-white py-1 px-2 rounded-xl text-center shadow-xs my-1">
+            <div class="text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-qrcode text-amber-300 text-xs"></i>
+              <span>QUÉT MÃ ĐẶT MÓN</span>
+            </div>
+            <div class="text-[8.5px] font-extrabold text-emerald-200 tracking-wider uppercase">SCAN TO VIEW MENU & ORDER</div>
           </div>
 
-          <div class="mt-2 text-center">
-            <p class="text-[11px] font-semibold text-stone-700">Dùng Camera hoặc Zalo để quét</p>
-            <p class="text-[10px] text-stone-400">Xem menu & gọi món tự động vào bếp</p>
+          <div class="p-1.5 bg-white rounded-xl border border-stone-200 my-1">
+            <img src="/api/tables/${t.table_code}/qr-image?base_url=${origin}" alt="QR Code" class="w-36 h-36 object-contain">
+          </div>
+
+          <div class="w-full text-center pt-1.5 border-t border-stone-100">
+            <div class="text-[10px] font-bold text-stone-800">
+              📶 Wi-Fi: <strong class="text-emerald-900">PiPo - Garden</strong> • Pass: <strong class="text-emerald-900">88888888</strong>
+            </div>
+            <div class="text-[8px] text-stone-400 mt-0.5">Dùng Camera hoặc Zalo để quét / Open Camera or Zalo</div>
           </div>
         </div>
       `).join('');
