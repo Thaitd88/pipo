@@ -57,6 +57,18 @@ def sync():
         print("  [-] Không tải được settings:", e)
         host_settings = None
 
+    try:
+        host_tables = fetch_json("/api/tables")
+    except Exception as e:
+        print("  [-] Không tải được tables:", e)
+        host_tables = None
+
+    try:
+        host_areas = fetch_json("/api/tables/areas")
+    except Exception as e:
+        print("  [-] Không tải được areas:", e)
+        host_areas = None
+
     # Thu thập toàn bộ items
     host_items = []
     for c in host_menu:
@@ -157,6 +169,50 @@ def sync():
                     ON CONFLICT(key) DO UPDATE SET value = excluded.value
                 """, (k, str(v)))
         print(f"  [+] Đã đồng bộ cấu hình System Settings.")
+ 
+    # Đồng bộ Khu vực bàn (restaurant_areas)
+    if host_areas:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS restaurant_areas (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                icon TEXT DEFAULT '🌿',
+                description TEXT,
+                display_order INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        for a in host_areas:
+            cursor.execute("""
+                INSERT INTO restaurant_areas (id, name, icon, description, display_order)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(name) DO UPDATE SET
+                    icon = excluded.icon,
+                    description = excluded.description,
+                    display_order = excluded.display_order
+            """, (a.get('id'), a.get('name'), a.get('icon', '🌿'), a.get('description', ''), a.get('display_order', 0)))
+        print(f"  [+] Đã đồng bộ {len(host_areas)} khu vực bàn.")
+
+    # Đồng bộ Danh sách bàn (tables)
+    if host_tables:
+        for t in host_tables:
+            cursor.execute("""
+                INSERT INTO tables (id, table_code, name, area, capacity, qr_token)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(table_code) DO UPDATE SET
+                    name = excluded.name,
+                    area = excluded.area,
+                    capacity = excluded.capacity,
+                    qr_token = excluded.qr_token
+            """, (
+                t.get('id'),
+                t.get('table_code'),
+                t.get('name'),
+                t.get('area', 'Khu Sân Vườn'),
+                t.get('capacity', 4),
+                t.get('qr_token')
+            ))
+        print(f"  [+] Đã đồng bộ {len(host_tables)} bàn ăn và sân Pickleball.")
 
     conn.commit()
     conn.close()
