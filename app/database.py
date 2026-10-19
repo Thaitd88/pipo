@@ -496,6 +496,9 @@ def init_db():
     # Xóa vĩnh viễn các món con thừa/ẩn, xóa NVL phụ trong kho/BOM, clear món Sân Pickle
     clean_redundant_dishes_and_secondary_bom(conn)
 
+    # Đảm bảo các món ăn nhanh sân Pickleball (Trứng gà luộc, Ngô luộc - Coming Soon)
+    ensure_pickleball_snack_dishes(conn)
+
     # Tối ưu hóa hiệu năng truy vấn CSDL (Database Performance Indexes)
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_menu_items_cat_avail ON menu_items(category_id, is_available);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_orders_table_status ON orders(table_id, status, payment_status);")
@@ -1019,6 +1022,65 @@ def clean_redundant_dishes_and_secondary_bom(conn):
         SET main_menu_type = 'RESTAURANT'
         WHERE main_menu_type LIKE '%PICKLE%'
     """)
+
+def ensure_pickleball_snack_dishes(conn):
+    """
+    Đảm bảo các món ăn nhẹ Sân Pickleball:
+    - Trứng gà luộc (10.000 đ, sẵn sàng để bán)
+    - Ngô luộc - Coming Soon (0 đ, để hết hàng)
+    """
+    cursor = conn.cursor()
+    # 1. Trứng gà luộc
+    cursor.execute("SELECT id FROM menu_items WHERE name = 'Trứng gà luộc'")
+    egg = cursor.fetchone()
+    egg_translations = {
+        "en": {"name": "Boiled Chicken Egg", "description": "Fresh soft-boiled egg, rich in natural protein for athletes."},
+        "zh": {"name": "水煮土鸡蛋", "description": "精选新鲜水煮鸡蛋，营养丰富，快速补充运动能量。"},
+        "ko": {"name": "삶은 계란", "description": "신선한 삶은 달걀, 피클볼 경기 중 빠른 단백질 보충 간식."},
+        "ru": {"name": "Вареное яйцо", "description": "Свежее вареное яйцо, отличный источник белка для спортсменов."}
+    }
+    if not egg:
+        cursor.execute("""
+            INSERT INTO menu_items (
+                category_id, name, price, portion, description, image_url,
+                station, options_json, translations_json, is_available,
+                out_of_ingredients, main_menu_type
+            ) VALUES (1, 'Trứng gà luộc', 10000, '1 quả', 'Trứng gà ta luộc thơm ngon, giàu protein bổ sung năng lượng nhanh chóng cho người chơi thể thao tại sân Pickleball.', '/static/logo.png', 'HOT_KITCHEN', '[]', ?, 1, 0, 'RESTAURANT,PICKLE')
+        """, (json.dumps(egg_translations, ensure_ascii=False),))
+    else:
+        cursor.execute("""
+            UPDATE menu_items 
+            SET price = 10000, is_available = 1, out_of_ingredients = 0,
+                main_menu_type = CASE WHEN main_menu_type LIKE '%PICKLE%' THEN main_menu_type ELSE main_menu_type || ',PICKLE' END
+            WHERE id = ?
+        """, (egg["id"],))
+
+    # 2. Ngô luộc - Coming Soon
+    cursor.execute("SELECT id FROM menu_items WHERE name = 'Ngô luộc - Coming Soon' OR name = 'Ngô luộc'")
+    corn = cursor.fetchone()
+    corn_translations = {
+        "en": {"name": "Boiled Sweet Corn (Coming Soon)", "description": "Freshly boiled sweet corn (Coming soon)."},
+        "zh": {"name": "香甜水煮玉米 (即将推出)", "description": "新鲜香甜水煮玉米 (敬请期待)。"},
+        "ko": {"name": "삶은 옥수수 (출시 예정)", "description": "달콤하고 고소한 찐 옥수수 (출시 예정)."},
+        "ru": {"name": "Вареная кукуруза (Скоро в меню)", "description": "Сладкая вареная кукуруза (Скоро появится)."}
+    }
+    if not corn:
+        cursor.execute("""
+            INSERT INTO menu_items (
+                category_id, name, price, portion, description, image_url,
+                station, options_json, translations_json, is_available,
+                out_of_ingredients, main_menu_type
+            ) VALUES (1, 'Ngô luộc - Coming Soon', 0, '1 bắp', 'Bắp ngô ngọt luộc nóng hổi, thơm bùi tự nhiên (Món sắp ra mắt - Coming Soon).', '/static/logo.png', 'HOT_KITCHEN', '[]', ?, 0, 1, 'RESTAURANT,PICKLE')
+        """, (json.dumps(corn_translations, ensure_ascii=False),))
+    else:
+        cursor.execute("""
+            UPDATE menu_items 
+            SET name = 'Ngô luộc - Coming Soon', price = 0, is_available = 0, out_of_ingredients = 1,
+                main_menu_type = CASE WHEN main_menu_type LIKE '%PICKLE%' THEN main_menu_type ELSE main_menu_type || ',PICKLE' END
+            WHERE id = ?
+        """, (corn["id"],))
+
+    conn.commit()
 
 def ensure_bbq_category_and_dishes(conn):
     """
