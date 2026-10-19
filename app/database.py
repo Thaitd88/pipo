@@ -1584,11 +1584,11 @@ def ensure_standard_27_tables(conn):
         ("S2-09", "Sảnh 2 - Bàn 09", "Sảnh 2 (Cạnh Sân Pickleball)", 8),
         ("S2-10", "Sảnh 2 - Bàn 10", "Sảnh 2 (Cạnh Sân Pickleball)", 10),
 
-        # Sân Pickle: 4 bàn (PK-01 - PK-04)
-        ("PK-01", "Sân Pickle - Bàn 01", "Sân Pickle", 4),
-        ("PK-02", "Sân Pickle - Bàn 02", "Sân Pickle", 4),
-        ("PK-03", "Sân Pickle - Bàn 03", "Sân Pickle", 4),
-        ("PK-04", "Sân Pickle - Bàn 04", "Sân Pickle", 4),
+        # Sân Pickle: 4 sân (PK-01 - PK-04)
+        ("PK-01", "Sân Pick 01", "Sân Pickle", 4),
+        ("PK-02", "Sân Pick 02", "Sân Pickle", 4),
+        ("PK-03", "Sân Pick 03", "Sân Pickle", 4),
+        ("PK-04", "Sân Pick 04", "Sân Pickle", 4),
     ]
 
     # Cập nhật hoặc thêm mới từng bàn dựa theo table_code

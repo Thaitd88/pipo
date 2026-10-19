@@ -128,7 +128,7 @@
         <button onclick="filterPrintArea('ALL')" id="filterBtn-ALL" class="print-filter-btn px-3 py-1.5 rounded-xl bg-stone-800 text-white text-xs font-bold shadow-xs">Tất cả (31 bàn)</button>
         <button onclick="filterPrintArea('Bàn Nhà Hàng')" id="filterBtn-Bàn Nhà Hàng" class="print-filter-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🍽️ Nhà Hàng (15 bàn)</button>
         <button onclick="filterPrintArea('Khu Hồ Bơi')" id="filterBtn-Khu Hồ Bơi" class="print-filter-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🏊 Hồ Bơi (12 bàn)</button>
-        <button onclick="filterPrintArea('Sân Pickle')" id="filterBtn-Sân Pickle" class="print-filter-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🏓 Sân Pickle (4 bàn)</button>
+        <button onclick="filterPrintArea('Sân Pickle')" id="filterBtn-Sân Pickle" class="print-filter-btn px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50">🏓 Sân Pick (4 sân)</button>
       </div>
     </div>
   </header>
@@ -166,7 +166,7 @@
         if (document.getElementById("filterBtn-ALL")) document.getElementById("filterBtn-ALL").innerText = `Tất cả (${allTables.length} bàn)`;
         if (document.getElementById("filterBtn-Bàn Nhà Hàng")) document.getElementById("filterBtn-Bàn Nhà Hàng").innerText = `🍽️ Nhà Hàng (${countRestaurant} bàn)`;
         if (document.getElementById("filterBtn-Khu Hồ Bơi")) document.getElementById("filterBtn-Khu Hồ Bơi").innerText = `🏊 Hồ Bơi (${countPool} bàn)`;
-        if (document.getElementById("filterBtn-Sân Pickle")) document.getElementById("filterBtn-Sân Pickle").innerText = `🏓 Sân Pickle (${countPickle} bàn)`;
+        if (document.getElementById("filterBtn-Sân Pickle")) document.getElementById("filterBtn-Sân Pickle").innerText = `🏓 Sân Pick (${countPickle} sân)`;
 
         renderCards();
       } catch (e) {

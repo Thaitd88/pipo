@@ -823,6 +823,7 @@
     let currentModalItem = null;
     let modalQty = 1;
     let selectedOptions = {};
+    let cardSelectedFlavors = {}; // Lưu vị đang được khách chọn trên từng thẻ món ăn
 
     // 1. Khởi chạy khi load trang
     document.addEventListener("DOMContentLoaded", () => {
@@ -1331,19 +1332,20 @@
                     </span>
                   </div>
 
-                  <!-- Thông tin món: Tên món + Các vị ngay sau tên (nhiều thì xuống dòng) -->
+                  <!-- Thông tin món: Tên món + Các vị ngay sau tên (chọn vị trước, bấm thêm sau) -->
                   <div class="flex-1 min-w-0 flex flex-col justify-between self-stretch">
                     <div>
-                      <div class="flex flex-wrap items-center gap-1.5" onclick="event.stopPropagation()">
+                      <div class="flex flex-wrap items-center gap-1.5" id="flavor-container-${item.id}" onclick="event.stopPropagation()">
                         <h4 class="font-bold text-sm text-stone-900 hover:text-emerald-800 transition mr-0.5 leading-snug inline-block">${itemName}</h4>
                         ${(hasFlavors && isAvailable) ? item.options[0].options.map(fl => {
+                          const isSelected = (cardSelectedFlavors[item.id] === fl);
                           const safeFl = fl.replace(/'/g, "\\'");
-                          const safeGroup = optGroupName.replace(/'/g, "\\'");
                           return `
                             <button type="button" 
-                              onclick="event.stopPropagation(); addDishFlavorDirectly(${item.id}, '${safeGroup}', '${safeFl}')" 
-                              class="px-2 py-0.5 text-[11px] font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-300 hover:border-emerald-600 transition active:scale-95 shadow-2xs inline-flex items-center gap-1 leading-tight flex-shrink-0">
-                              <i class="fa-solid fa-plus text-[8px] text-emerald-600"></i>
+                              data-flavor="${safeFl}"
+                              onclick="event.stopPropagation(); selectDishCardFlavor(${item.id}, '${safeFl}')" 
+                              class="dish-flavor-chip px-2.5 py-0.5 text-[11px] rounded-lg transition active:scale-95 shadow-2xs inline-flex items-center gap-1 leading-tight flex-shrink-0 cursor-pointer ${isSelected ? 'bg-emerald-600 text-white border border-emerald-600 font-bold shadow-xs ring-2 ring-emerald-300' : 'bg-stone-50 hover:bg-emerald-50 text-stone-700 hover:text-emerald-800 border border-stone-200 hover:border-emerald-300 font-medium'}">
+                              <span class="chip-icon">${isSelected ? '<i class="fa-solid fa-check text-[8px] text-white"></i>' : '<span class="inline-block w-1.5 h-1.5 rounded-full bg-stone-300"></span>'}</span>
                               <span>${fl}</span>
                             </button>
                           `;
@@ -1351,7 +1353,7 @@
                       </div>
                     </div>
 
-                    <!-- Giá tiền được đẩy lui xuống dưới -->
+                    <!-- Giá tiền được đẩy lui xuống dưới & Nút thêm mặc định cho tất cả món -->
                     <div class="mt-2.5 pt-1 flex items-center justify-between">
                       ${hasDisc ? `
                         <div class="flex items-center gap-1.5">
@@ -1370,12 +1372,16 @@
                         <span class="text-[10px] font-bold text-stone-500 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full">
                           Hết hàng
                         </span>
-                      ` : (!hasFlavors ? `
-                        <button type="button" onclick="event.stopPropagation(); quickAddToCart(${item.id})" class="${theme.btnAction} font-bold text-xs px-3 py-1.5 rounded-xl transition flex items-center gap-1 shadow-xs active:scale-95" title="${t('btn_add_to_cart')}">
+                      ` : `
+                        <button type="button" 
+                          id="btn-add-${item.id}"
+                          onclick="event.stopPropagation(); handleDishCardAddToCart(${item.id})" 
+                          class="${theme.btnAction} font-bold text-xs px-3 py-1.5 rounded-xl transition flex items-center gap-1 shadow-xs active:scale-95" 
+                          title="${t('btn_add_to_cart')}">
                           <span>${t('btn_add_short')}</span>
                           <i class="fa-solid fa-plus text-[10px]"></i>
                         </button>
-                      ` : ''))}
+                      `)}
                     </div>
                   </div>
                 </div>
@@ -1674,7 +1680,78 @@
       }
     }
 
-    // Thêm trực tiếp món kèm vị đã chọn từ thẻ món ăn (1-click add)
+    // 1. Khách bấm chọn vị trên thẻ món ăn (đổi vị linh hoạt không lo thêm nhầm vào giỏ)
+    function selectDishCardFlavor(itemId, flavorName) {
+      cardSelectedFlavors[itemId] = flavorName;
+      const container = document.getElementById("flavor-container-" + itemId);
+      if (!container) return;
+
+      // Xóa viền nhắc nhở nếu trước đó có cảnh báo
+      container.classList.remove("ring-2", "ring-amber-400", "p-1", "rounded-xl", "animate-pulse");
+
+      const chips = container.querySelectorAll(".dish-flavor-chip");
+      chips.forEach(chip => {
+        const fl = chip.dataset.flavor;
+        const iconSpan = chip.querySelector(".chip-icon");
+        if (fl === flavorName) {
+          chip.className = "dish-flavor-chip px-2.5 py-0.5 text-[11px] rounded-lg transition active:scale-95 shadow-xs inline-flex items-center gap-1 leading-tight flex-shrink-0 cursor-pointer bg-emerald-600 text-white border border-emerald-600 font-bold ring-2 ring-emerald-300";
+          if (iconSpan) iconSpan.innerHTML = '<i class="fa-solid fa-check text-[8px] text-white"></i>';
+        } else {
+          chip.className = "dish-flavor-chip px-2.5 py-0.5 text-[11px] rounded-lg transition active:scale-95 shadow-2xs inline-flex items-center gap-1 leading-tight flex-shrink-0 cursor-pointer bg-stone-50 hover:bg-emerald-50 text-stone-700 hover:text-emerald-800 border border-stone-200 hover:border-emerald-300 font-medium";
+          if (iconSpan) iconSpan.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-stone-300"></span>';
+        }
+      });
+
+      if (navigator.vibrate) {
+        try { navigator.vibrate(20); } catch(e){}
+      }
+    }
+
+    // 2. Xử lý nút [Thêm +] ở đáy thẻ món: Món nhiều vị thì kiểm tra đã chọn vị chưa rồi mới thêm
+    function handleDishCardAddToCart(itemId) {
+      let item = null;
+      for (let c of menuData) {
+        let f = (c.items || []).find(x => x.id === itemId);
+        if (f) { item = f; break; }
+      }
+      if (!item) return;
+
+      const isOutOfIngredients = (item.out_of_ingredients === 1);
+      const isAvailable = (item.is_available === 1 && !isOutOfIngredients);
+      if (!isAvailable) {
+        showToast("⚠️ Món ăn hiện tạm hết nguyên liệu hoặc ngưng phục vụ!");
+        return;
+      }
+
+      const hasFlavors = (item.options && item.options.length > 0 && item.options[0].options && item.options[0].options.length > 0);
+      if (hasFlavors) {
+        const selectedFl = cardSelectedFlavors[itemId];
+        if (!selectedFl) {
+          // Chưa chọn vị -> nhắc nhở khách và làm nhấp nháy cụm vị để khách chú ý bấm chọn
+          const localizedName = getItemName(item);
+          showToast(`⚠️ Quý khách vui lòng bấm chọn 1 vị chế biến cho món ${localizedName} trước nhé!`);
+          const container = document.getElementById("flavor-container-" + itemId);
+          if (container) {
+            container.classList.add("ring-2", "ring-amber-400", "p-1", "rounded-xl", "animate-pulse");
+            setTimeout(() => {
+              container.classList.remove("ring-2", "ring-amber-400", "p-1", "rounded-xl", "animate-pulse");
+            }, 2500);
+          }
+          if (navigator.vibrate) {
+            try { navigator.vibrate([40, 60, 40]); } catch(e){}
+          }
+          return;
+        }
+
+        const optGroupName = item.options[0].name || "Chọn vị chế biến";
+        addDishFlavorDirectly(itemId, optGroupName, selectedFl);
+      } else {
+        // Món đơn (không phân loại vị): thêm trực tiếp vào giỏ
+        quickAddToCart(itemId);
+      }
+    }
+
+    // Thêm trực tiếp món kèm vị đã chọn từ thẻ món ăn (khi đã chọn vị và bấm thêm)
     function addDishFlavorDirectly(itemId, optName, choice) {
       let item = null;
       for (let c of menuData) {
