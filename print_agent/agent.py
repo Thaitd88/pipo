@@ -196,7 +196,7 @@ def http_post_json(url: str, data: dict, timeout: float = 5.0):
 
 async def sync_worker(config: dict):
     """Tiến trình đồng bộ ngầm giữa Local Server và Cloud Server."""
-    cloud_url = config.get("cloud_api_url", "https://pipo.n2.tinhgon.xyz").rstrip("/")
+    cloud_url = config.get("cloud_api_url", "https://pipogarden.com").rstrip("/")
     local_url = config.get("local_api_url", "http://127.0.0.1:8000").rstrip("/")
     interval = config.get("sync_interval_sec", 20)
 
@@ -256,6 +256,7 @@ async def main():
     tasks = [
         asyncio.create_task(ws_listener(cloud_ws_url, "CLOUD (4G Khách)", config)),
         asyncio.create_task(ws_listener(server_ws_url, "LOCAL (Mạng LAN)", config)),
+        asyncio.create_task(sync_worker(config)),
     ]
 
     await asyncio.gather(*tasks)
