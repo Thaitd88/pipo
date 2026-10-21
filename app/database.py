@@ -610,7 +610,27 @@ def ensure_order_deduplication(conn):
           AND id NOT IN (SELECT DISTINCT order_id FROM order_items)
     """)
 
-    # 3. Khử trùng các đơn bị nhân bản (cùng table_id, cùng total, cùng created_at)
+    # 3. Dọn dẹp và khử trùng table_sessions (chống nhân bản bàn / sân do nhiều session active)
+    # Đóng tất cả các session ACTIVE của bàn đang AVAILABLE hoặc không có đơn UNPAID
+    cursor.execute("""
+        UPDATE table_sessions 
+        SET status = 'CLOSED', closed_at = CURRENT_TIMESTAMP
+        WHERE status = 'ACTIVE' 
+          AND table_id IN (
+              SELECT id FROM tables WHERE status = 'AVAILABLE' OR current_session_id IS NULL
+          )
+    """)
+    # Đảm bảo mỗi bàn có tối đa 1 session ACTIVE duy nhất (giữ session mới nhất, đóng các session cũ)
+    cursor.execute("""
+        UPDATE table_sessions
+        SET status = 'CLOSED', closed_at = CURRENT_TIMESTAMP
+        WHERE status = 'ACTIVE'
+          AND id NOT IN (
+              SELECT MAX(id) FROM table_sessions WHERE status = 'ACTIVE' GROUP BY table_id
+          )
+    """)
+
+    # 4. Khử trùng các đơn bị nhân bản (cùng table_id, cùng total, cùng created_at)
     cursor.execute("""
         SELECT table_id, total, created_at, COUNT(*) as cnt, GROUP_CONCAT(id) as ids
         FROM orders

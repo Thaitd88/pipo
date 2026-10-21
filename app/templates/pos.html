@@ -2072,7 +2072,14 @@
           fetch("/api/tables"),
           fetch("/api/pos/overview")
         ]);
-        allTables = await tablesRes.json();
+        const rawTables = await tablesRes.json();
+        const tblMap = new Map();
+        for (const t of rawTables) {
+          if (!tblMap.has(t.id)) {
+            tblMap.set(t.id, t);
+          }
+        }
+        allTables = Array.from(tblMap.values());
         const overview = await overviewRes.json();
 
         document.getElementById("statOccupied").innerText = overview.occupied_tables;

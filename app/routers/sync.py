@@ -157,10 +157,11 @@ async def import_orders(payload: Dict[str, Any]):
             if s_row:
                 local_session_id = s_row["id"]
             else:
+                sess_status = "ACTIVE" if o.get("payment_status") == "UNPAID" else "CLOSED"
                 cursor.execute("""
                     INSERT INTO table_sessions (table_id, session_token, status, guest_count)
-                    VALUES (?, ?, 'ACTIVE', 2)
-                """, (local_table_id, session_token))
+                    VALUES (?, ?, ?, 2)
+                """, (local_table_id, session_token, sess_status))
                 local_session_id = cursor.lastrowid
         else:
             cursor.execute("SELECT id FROM table_sessions WHERE table_id = ? AND status = 'ACTIVE' LIMIT 1", (local_table_id,))

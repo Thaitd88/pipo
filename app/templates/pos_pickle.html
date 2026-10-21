@@ -654,11 +654,16 @@
         if (!res.ok) throw new Error("Không thể tải danh sách sân");
         const allTables = await res.json();
 
-        // Lọc đúng 4 sân Pickleball
-        pickleCourts = allTables.filter(t => 
-          (t.table_code && t.table_code.startsWith("PK-")) || 
-          (t.area && t.area.includes("Pickle"))
-        );
+        // Lọc đúng 4 sân Pickleball (Khử trùng 100% theo table_code)
+        const courtMap = new Map();
+        for (const t of allTables) {
+          if ((t.table_code && t.table_code.startsWith("PK-")) || (t.area && t.area.includes("Pickle"))) {
+            if (!courtMap.has(t.table_code)) {
+              courtMap.set(t.table_code, t);
+            }
+          }
+        }
+        pickleCourts = Array.from(courtMap.values());
 
         // Đảm bảo sắp xếp đúng PK-01 đến PK-04
         pickleCourts.sort((a, b) => (a.table_code || "").localeCompare(b.table_code || ""));
