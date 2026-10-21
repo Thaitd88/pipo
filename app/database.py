@@ -488,6 +488,14 @@ def init_db():
     )
     """)
 
+    # 20. Bang luu danh sach order_uuid da bi Super Admin xoa (Chong Ping-Pong Loop khi sync Cloud <-> Local)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS deleted_order_uuids (
+        order_uuid TEXT PRIMARY KEY,
+        deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
     conn.commit()
 
     # Seed Homepage CMS default settings

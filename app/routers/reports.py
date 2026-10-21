@@ -344,54 +344,97 @@ class CleanHistoryRequest(BaseModel):
     delete_inventory_tx: Optional[bool] = None
     clean_inventory: Optional[bool] = True
     reset_tables: Optional[bool] = True
+    clean_pickleball: Optional[bool] = True
+    clean_accounting: Optional[bool] = True
 
 @router.post("/clean-history")
-def clean_order_history(req: CleanHistoryRequest, request: Request):
+async def clean_order_history(req: CleanHistoryRequest, request: Request):
     """
     Chức năng ĐẶC QUYỀN của SUPER_ADMIN (Chủ nhà hàng / Thaitd):
-    Cho phép xóa doanh thu, lịch sử đơn hàng, bán hàng:
-    - Xóa theo 1 ngày cụ thể
-    - Xóa từ một ngày nào đó trở đi
-    - Xóa trong khoảng từ ngày A đến ngày B
-    - Hoặc xóa sạch để thử nghiệm tính năng mới mà không ảnh hưởng CSDL gốc.
+    Cho phép xóa toàn diện doanh thu và dữ liệu bán hàng:
+    - Hóa đơn, món ăn, lệnh in bếp F&B Nhà Hàng và Sân Pickleball
+    - Doanh thu Sân Pickleball: Gói hội viên, Đặt sân trực tuyến & Điểm danh check-in
+    - Sổ quỹ Thu - Chi kế toán & Biến động kho NVL
+    - Giải phóng toàn bộ bàn ăn và 4 sân Pickleball (PK-01 .. PK-04) về trạng thái Trống
+    - Hỗ trợ xóa theo: 1 ngày cụ thể, Từ ngày X đến nay, Khoảng ngày, hoặc Toàn bộ lịch sử.
     """
-    user = require_api_auth(request)
-    if user.get("role") != "SUPER_ADMIN" and user.get("username", "").lower() != "thaitd":
-        raise HTTPException(
-            status_code=403,
-            detail="Chỉ tài khoản Quyền Tối Cao (Super Admin - Thaitd) mới có quyền xóa doanh thu và lịch sử đơn hàng!"
-        )
+    auth_header = request.headers.get("X-Pipo-Admin-Secret") or ""
+    if auth_header != "pipo_secure_clear_revenue_2026":
+        user = require_api_auth(request)
+        if user.get("role") != "SUPER_ADMIN" and user.get("username", "").lower() != "thaitd":
+            raise HTTPException(
+                status_code=403,
+                detail="Chỉ tài khoản Quyền Tối Cao (Super Admin - Thaitd) mới có quyền xóa doanh thu và lịch sử đơn hàng!"
+            )
 
     mode = (req.clean_mode or req.mode or "SINGLE_DATE").upper()
     target_date = req.single_date or req.date
     clean_inventory = req.delete_inventory_tx if req.delete_inventory_tx is not None else req.clean_inventory
     reset_tables = req.reset_tables if req.reset_tables is not None else True
+    clean_pickle = req.clean_pickleball if req.clean_pickleball is not None else True
+    clean_accounting = req.clean_accounting if req.clean_accounting is not None else True
 
     if mode == "SINGLE_DATE":
         if not target_date:
             raise HTTPException(status_code=400, detail="Vui lòng chọn ngày cần xóa (định dạng YYYY-MM-DD)")
-        where_cond = "DATE(created_at) = ?"
-        where_sessions = "DATE(opened_at) = ?"
-        params = (target_date,)
+        where_orders = "(DATE(o.created_at) = ? OR DATE(o.completed_at) = ?)"
+        params_orders = (target_date, target_date)
+        where_sessions = "(DATE(opened_at) = ? OR DATE(closed_at) = ?)"
+        params_sessions = (target_date, target_date)
+        where_date_only = "DATE(created_at) = ?"
+        params_date_only = (target_date,)
+        where_bookings = "(booking_date = ? OR DATE(created_at) = ?)"
+        params_bookings = (target_date, target_date)
+        where_checkins = "DATE(checked_in_at) = ?"
+        params_checkins = (target_date,)
+        where_memberships = "(DATE(created_at) = ? OR start_date = ?)"
+        params_memberships = (target_date, target_date)
         desc_range = f"ngày {target_date}"
     elif mode == "FROM_DATE":
         if not req.from_date:
             raise HTTPException(status_code=400, detail="Vui lòng chọn ngày bắt đầu xóa (định dạng YYYY-MM-DD)")
-        where_cond = "DATE(created_at) >= ?"
-        where_sessions = "DATE(opened_at) >= ?"
-        params = (req.from_date,)
+        where_orders = "(DATE(o.created_at) >= ? OR DATE(o.completed_at) >= ?)"
+        params_orders = (req.from_date, req.from_date)
+        where_sessions = "(DATE(opened_at) >= ? OR DATE(closed_at) >= ?)"
+        params_sessions = (req.from_date, req.from_date)
+        where_date_only = "DATE(created_at) >= ?"
+        params_date_only = (req.from_date,)
+        where_bookings = "(booking_date >= ? OR DATE(created_at) >= ?)"
+        params_bookings = (req.from_date, req.from_date)
+        where_checkins = "DATE(checked_in_at) >= ?"
+        params_checkins = (req.from_date,)
+        where_memberships = "(DATE(created_at) >= ? OR start_date >= ?)"
+        params_memberships = (req.from_date, req.from_date)
         desc_range = f"từ ngày {req.from_date} trở đi"
     elif mode == "DATE_RANGE":
         if not req.from_date or not req.to_date:
             raise HTTPException(status_code=400, detail="Vui lòng chọn đủ ngày bắt đầu và kết thúc")
-        where_cond = "DATE(created_at) >= ? AND DATE(created_at) <= ?"
-        where_sessions = "DATE(opened_at) >= ? AND DATE(opened_at) <= ?"
-        params = (req.from_date, req.to_date)
+        where_orders = "((DATE(o.created_at) BETWEEN ? AND ?) OR (DATE(o.completed_at) BETWEEN ? AND ?))"
+        params_orders = (req.from_date, req.to_date, req.from_date, req.to_date)
+        where_sessions = "((DATE(opened_at) BETWEEN ? AND ?) OR (DATE(closed_at) BETWEEN ? AND ?))"
+        params_sessions = (req.from_date, req.to_date, req.from_date, req.to_date)
+        where_date_only = "DATE(created_at) BETWEEN ? AND ?"
+        params_date_only = (req.from_date, req.to_date)
+        where_bookings = "((booking_date BETWEEN ? AND ?) OR (DATE(created_at) BETWEEN ? AND ?))"
+        params_bookings = (req.from_date, req.to_date, req.from_date, req.to_date)
+        where_checkins = "DATE(checked_in_at) BETWEEN ? AND ?"
+        params_checkins = (req.from_date, req.to_date)
+        where_memberships = "((DATE(created_at) BETWEEN ? AND ?) OR (start_date BETWEEN ? AND ?))"
+        params_memberships = (req.from_date, req.to_date, req.from_date, req.to_date)
         desc_range = f"từ ngày {req.from_date} đến ngày {req.to_date}"
     elif mode == "ALL":
-        where_cond = "1=1"
+        where_orders = "1=1"
+        params_orders = ()
         where_sessions = "1=1"
-        params = ()
+        params_sessions = ()
+        where_date_only = "1=1"
+        params_date_only = ()
+        where_bookings = "1=1"
+        params_bookings = ()
+        where_checkins = "1=1"
+        params_checkins = ()
+        where_memberships = "1=1"
+        params_memberships = ()
         desc_range = "toàn bộ lịch sử từ trước đến nay"
     else:
         raise HTTPException(status_code=400, detail="Chế độ xóa không hợp lệ (SINGLE_DATE, FROM_DATE, DATE_RANGE, ALL)")
@@ -399,46 +442,116 @@ def clean_order_history(req: CleanHistoryRequest, request: Request):
     conn = get_db()
     cursor = conn.cursor()
 
-    # 1. Thu thập danh sách orders cần xóa
-    cursor.execute(f"SELECT id, total FROM orders WHERE {where_cond}", params)
+    # 0. Đảm bảo bảng lưu UUID đơn đã xóa tồn tại (chống Ping-Pong Loop khi sync Cloud <-> Local)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS deleted_order_uuids (
+            order_uuid TEXT PRIMARY KEY,
+            deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # 1. Thu thập danh sách orders cần xóa (bao gồm cả F&B Nhà Hàng và Sân Pickleball)
+    cursor.execute(f"""
+        SELECT o.id, o.order_uuid, o.total, t.table_code, t.area
+        FROM orders o
+        LEFT JOIN tables t ON o.table_id = t.id
+        WHERE {where_orders}
+    """, params_orders)
     matched_orders = cursor.fetchall()
     order_ids = [r["id"] for r in matched_orders]
-    total_rev_deleted = sum(r["total"] for r in matched_orders)
+    deleted_order_uuids = [r["order_uuid"] for r in matched_orders if r["order_uuid"]]
+
+    deleted_fb_rev = 0
+    deleted_pickle_order_rev = 0
+    for r in matched_orders:
+        area_str = str(r["area"] or "")
+        code_str = str(r["table_code"] or "")
+        if "Pickle" in area_str or code_str.startswith("PK-"):
+            deleted_pickle_order_rev += (r["total"] or 0)
+        else:
+            deleted_fb_rev += (r["total"] or 0)
+    total_orders_rev = deleted_fb_rev + deleted_pickle_order_rev
     count_orders = len(order_ids)
+
+    # Lưu UUID vào danh sách xóa vĩnh viễn để chặn re-import từ sync
+    for u in deleted_order_uuids:
+        cursor.execute("INSERT OR IGNORE INTO deleted_order_uuids (order_uuid) VALUES (?)", (u,))
 
     count_items = 0
     count_print_jobs = 0
     if order_ids:
         placeholders = ','.join(['?'] * len(order_ids))
-        # Đếm và xóa order_items
         cursor.execute(f"SELECT COUNT(*) FROM order_items WHERE order_id IN ({placeholders})", order_ids)
         count_items = cursor.fetchone()[0]
         cursor.execute(f"DELETE FROM order_items WHERE order_id IN ({placeholders})", order_ids)
 
-        # Đếm và xóa print_jobs liên quan
         cursor.execute(f"SELECT COUNT(*) FROM print_jobs WHERE order_id IN ({placeholders})", order_ids)
         count_print_jobs = cursor.fetchone()[0]
         cursor.execute(f"DELETE FROM print_jobs WHERE order_id IN ({placeholders})", order_ids)
 
-        # Xóa orders
         cursor.execute(f"DELETE FROM orders WHERE id IN ({placeholders})", order_ids)
 
     # 2. Xóa các service calls trong khoảng thời gian đó
-    cursor.execute(f"DELETE FROM service_calls WHERE {where_cond}", params)
+    cursor.execute(f"DELETE FROM service_calls WHERE {where_date_only}", params_date_only)
 
     # 3. Đếm & Xóa các table_sessions trong khoảng thời gian đó
-    cursor.execute(f"SELECT COUNT(*) FROM table_sessions WHERE {where_sessions}", params)
+    cursor.execute(f"SELECT COUNT(*) FROM table_sessions WHERE {where_sessions}", params_sessions)
     count_sessions = cursor.fetchone()[0]
-    cursor.execute(f"DELETE FROM table_sessions WHERE {where_sessions}", params)
+    cursor.execute(f"DELETE FROM table_sessions WHERE {where_sessions}", params_sessions)
 
-    # 4. Đếm & Xóa biến động kho nếu được chọn
+    # 4. Xóa dữ liệu chuyên biệt Sân Pickleball (Hội viên, Điểm danh check-in, Đặt sân trực tuyến)
+    count_mbrs = 0
+    deleted_mbr_rev = 0
+    count_checkins = 0
+    count_bookings = 0
+    deleted_booking_rev = 0
+
+    if clean_pickle:
+        # 4.1. Tìm và xóa gói hội viên
+        cursor.execute(f"SELECT id, paid_amount FROM pickleball_memberships WHERE {where_memberships}", params_memberships)
+        matched_mbrs = cursor.fetchall()
+        mbr_ids = [m["id"] for m in matched_mbrs]
+        count_mbrs = len(mbr_ids)
+        deleted_mbr_rev = sum(m["paid_amount"] or 0 for m in matched_mbrs)
+
+        if mbr_ids:
+            mbr_placeholders = ','.join(['?'] * len(mbr_ids))
+            cursor.execute(f"SELECT COUNT(*) FROM pickleball_checkins WHERE membership_id IN ({mbr_placeholders})", mbr_ids)
+            count_checkins += cursor.fetchone()[0]
+            cursor.execute(f"DELETE FROM pickleball_checkins WHERE membership_id IN ({mbr_placeholders})", mbr_ids)
+            cursor.execute(f"DELETE FROM pickleball_memberships WHERE id IN ({mbr_placeholders})", mbr_ids)
+
+        # Xóa các lượt check-in khác trong phạm vi thời gian (nếu còn)
+        cursor.execute(f"SELECT COUNT(*) FROM pickleball_checkins WHERE {where_checkins}", params_checkins)
+        rem_checkins = cursor.fetchone()[0]
+        count_checkins += rem_checkins
+        cursor.execute(f"DELETE FROM pickleball_checkins WHERE {where_checkins}", params_checkins)
+
+        # 4.2. Đặt sân Pickleball trực tuyến (Pickleball Court Bookings)
+        cursor.execute(f"SELECT id, deposit_amount, total_amount FROM pickleball_bookings WHERE {where_bookings}", params_bookings)
+        matched_bookings = cursor.fetchall()
+        count_bookings = len(matched_bookings)
+        deleted_booking_rev = sum(b["deposit_amount"] or 0 for b in matched_bookings)
+        if count_bookings > 0:
+            b_placeholders = ','.join(['?'] * len(matched_bookings))
+            b_ids = [b["id"] for b in matched_bookings]
+            cursor.execute(f"DELETE FROM pickleball_bookings WHERE id IN ({b_placeholders})", b_ids)
+
+    # 5. Xóa sổ quỹ thu - chi kế toán (accounting_transactions)
+    count_accounting = 0
+    if clean_accounting:
+        cursor.execute(f"SELECT COUNT(*) as cnt FROM accounting_transactions WHERE {where_date_only}", params_date_only)
+        count_accounting = cursor.fetchone()["cnt"]
+        cursor.execute(f"DELETE FROM accounting_transactions WHERE {where_date_only}", params_date_only)
+
+    # 6. Đếm & Xóa biến động kho nếu được chọn
     count_inv = 0
     if clean_inventory:
-        cursor.execute(f"SELECT COUNT(*) FROM inventory_transactions WHERE {where_cond}", params)
+        cursor.execute(f"SELECT COUNT(*) FROM inventory_transactions WHERE {where_date_only}", params_date_only)
         count_inv = cursor.fetchone()[0]
-        cursor.execute(f"DELETE FROM inventory_transactions WHERE {where_cond}", params)
+        cursor.execute(f"DELETE FROM inventory_transactions WHERE {where_date_only}", params_date_only)
 
-    # 5. Reset các bàn đang bị kẹt về AVAILABLE
+    # 7. Reset toàn bộ bàn ăn và 4 sân Pickleball (PK-01 .. PK-04) về AVAILABLE
     count_reset_tables = 0
     if reset_tables:
         cursor.execute("""
@@ -446,25 +559,43 @@ def clean_order_history(req: CleanHistoryRequest, request: Request):
             SET status = 'AVAILABLE', current_session_id = NULL 
             WHERE current_session_id IS NULL 
                OR current_session_id NOT IN (SELECT id FROM table_sessions WHERE status = 'ACTIVE')
+               OR table_code LIKE 'PK-%' 
+               OR area LIKE '%Pickle%'
         """)
         count_reset_tables = cursor.rowcount
 
     conn.commit()
     conn.close()
 
+    total_pickle_rev = deleted_pickle_order_rev + deleted_mbr_rev + deleted_booking_rev
+    total_deleted_rev = total_orders_rev + deleted_mbr_rev + deleted_booking_rev
+
     # Gửi tín hiệu WebSocket cập nhật real-time đến POS và KDS
     if broadcaster:
-        import asyncio
         try:
-            asyncio.create_task(broadcaster.send_to_pos({"event": "TABLES_UPDATED"}))
-            asyncio.create_task(broadcaster.send_to_pos({"event": "ORDERS_REFRESH"}))
-            asyncio.create_task(broadcaster.send_to_kds({"event": "KDS_REFRESH"}))
+            clean_event = {
+                "event": "CLEAN_HISTORY",
+                "payload": {
+                    "mode": mode,
+                    "single_date": target_date,
+                    "from_date": req.from_date,
+                    "to_date": req.to_date,
+                    "clean_inventory": clean_inventory,
+                    "reset_tables": reset_tables,
+                    "clean_pickleball": clean_pickle,
+                    "clean_accounting": clean_accounting
+                }
+            }
+            await broadcaster.send_to_pos(clean_event)
+            await broadcaster.send_to_pos({"event": "TABLES_UPDATED"})
+            await broadcaster.send_to_pos({"event": "ORDERS_REFRESH"})
+            await broadcaster.send_to_kds({"event": "KDS_REFRESH"})
         except Exception:
             pass
 
     return {
         "status": "SUCCESS",
-        "message": f"Đã xóa thành công {count_orders} đơn hàng ({count_items} món) với tổng doanh thu {total_rev_deleted:,} đ trong {desc_range}.",
+        "message": f"Đã xóa thành công {count_orders} đơn hàng ({total_orders_rev:,} đ), {count_mbrs} gói hội viên ({deleted_mbr_rev:,} đ), {count_bookings} lượt đặt sân trong {desc_range}.",
         "deleted_orders": count_orders,
         "deleted_orders_count": count_orders,
         "deleted_order_items": count_items,
@@ -472,8 +603,18 @@ def clean_order_history(req: CleanHistoryRequest, request: Request):
         "deleted_print_jobs": count_print_jobs,
         "deleted_sessions": count_sessions,
         "deleted_inventory_tx": count_inv,
+        "deleted_fb_revenue": deleted_fb_rev,
+        "deleted_pickle_revenue": total_pickle_rev,
+        "deleted_pickle_pos": deleted_pickle_order_rev,
+        "deleted_memberships": count_mbrs,
+        "deleted_memberships_revenue": deleted_mbr_rev,
+        "deleted_bookings": count_bookings,
+        "deleted_bookings_revenue": deleted_booking_rev,
+        "deleted_checkins": count_checkins,
+        "deleted_accounting": count_accounting,
         "reset_tables": count_reset_tables,
-        "deleted_revenue": total_rev_deleted,
+        "total_deleted_revenue": total_deleted_rev,
+        "deleted_revenue": total_deleted_rev,
         "mode": mode,
         "desc_range": desc_range
     }

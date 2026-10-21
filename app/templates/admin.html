@@ -1799,7 +1799,15 @@
           <label class="block font-bold text-stone-900">2. Các hạng mục xử lý kèm theo:</label>
           <label class="flex items-center gap-2 cursor-pointer font-medium text-stone-700">
             <input type="checkbox" id="cleanOptOrders" checked disabled class="rounded text-rose-600">
-            <span>Hóa đơn, món gọi, lệnh in bếp trong khoảng thời gian này (Bắt buộc)</span>
+            <span>Hóa đơn, món gọi, lệnh in bếp F&B và Sân Pickleball (Bắt buộc)</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer font-medium text-stone-700">
+            <input type="checkbox" id="cleanOptPickle" checked class="rounded text-rose-600">
+            <span>Xóa doanh thu Sân Pickleball: Gói hội viên, Đặt sân & Lịch sử check-in</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer font-medium text-stone-700">
+            <input type="checkbox" id="cleanOptAccounting" checked class="rounded text-rose-600">
+            <span>Xóa phiếu thu - chi sổ quỹ kế toán phát sinh trong kỳ</span>
           </label>
           <label class="flex items-center gap-2 cursor-pointer font-medium text-stone-700">
             <input type="checkbox" id="cleanOptInventory" checked class="rounded text-rose-600">
@@ -1807,7 +1815,7 @@
           </label>
           <label class="flex items-center gap-2 cursor-pointer font-medium text-stone-700">
             <input type="checkbox" id="cleanOptResetTables" checked class="rounded text-rose-600">
-            <span>Đưa tất cả bàn ăn bị kẹt về trạng thái Trống (AVAILABLE)</span>
+            <span>Đưa toàn bộ bàn ăn & 4 sân Pickleball (PK-01 .. PK-04) về trạng thái Trống</span>
           </label>
         </div>
 
@@ -2215,7 +2223,11 @@
     // DỌN DẸP / XÓA LỊCH SỬ TEST (SUPER ADMIN)
     // ==========================================
     function openCleanHistoryModal() {
-      const today = new Date().toISOString().split('T')[0];
+      const d = new Date();
+      const localYear = d.getFullYear();
+      const localMonth = String(d.getMonth() + 1).padStart(2, '0');
+      const localDay = String(d.getDate()).padStart(2, '0');
+      const today = `${localYear}-${localMonth}-${localDay}`;
       const singleDate = document.getElementById("cleanSingleDate");
       const fromDate = document.getElementById("cleanFromDateOnly");
       const rangeFrom = document.getElementById("cleanRangeFrom");
@@ -2307,11 +2319,15 @@
 
       const deleteInventory = document.getElementById("cleanOptInventory")?.checked ?? true;
       const resetTables = document.getElementById("cleanOptResetTables")?.checked ?? true;
+      const cleanPickle = document.getElementById("cleanOptPickle")?.checked ?? true;
+      const cleanAccounting = document.getElementById("cleanOptAccounting")?.checked ?? true;
 
-      const confirmMsg = `CẢNH BÁO: Bạn đang thực hiện xóa toàn bộ hóa đơn, món ăn đã gọi và doanh thu bán hàng!\n\n` +
+      const confirmMsg = `CẢNH BÁO: Bạn đang thực hiện xóa toàn bộ hóa đơn, doanh thu F&B Nhà Hàng và Sân Pickleball!\n\n` +
         `• Chế độ: ${mode === 'SINGLE_DATE' ? ('Ngày ' + singleDate) : (mode === 'FROM_DATE' ? ('Từ ngày ' + fromDate + ' đến nay') : ('Từ ngày ' + fromDate + ' đến ' + toDate))}\n` +
-        `• Xóa kho liên quan: ${deleteInventory ? 'Có' : 'Không'}\n` +
-        `• Đưa bàn kẹt về trống: ${resetTables ? 'Có' : 'Không'}\n\n` +
+        `• Xóa Sân Pickleball & Hội viên: ${cleanPickle ? 'Có' : 'Không'}\n` +
+        `• Xóa Sổ quỹ Thu - Chi: ${cleanAccounting ? 'Có' : 'Không'}\n` +
+        `• Xóa kho NVL liên quan: ${deleteInventory ? 'Có' : 'Không'}\n` +
+        `• Giải phóng bàn & 4 sân Pick: ${resetTables ? 'Có' : 'Không'}\n\n` +
         `Thao tác này KHÔNG THỂ HOÀN TÁC. Bạn có chắc chắn muốn tiến hành?`;
 
       if (!confirm(confirmMsg)) return;
@@ -2330,7 +2346,9 @@
           from_date: fromDate,
           to_date: toDate,
           delete_inventory_tx: deleteInventory,
-          reset_tables: resetTables
+          reset_tables: resetTables,
+          clean_pickleball: cleanPickle,
+          clean_accounting: cleanAccounting
         };
 
         const res = await fetch("/api/reports/clean-history", {
@@ -2346,20 +2364,25 @@
 
         alert(
           `✅ Xóa dữ liệu thành công!\n\n` +
-          `- Số hóa đơn đã xóa: ${data.deleted_orders}\n` +
-          `- Số món trong đơn: ${data.deleted_order_items}\n` +
-          `- Lệnh in bếp: ${data.deleted_print_jobs}\n` +
-          `- Phiên bàn: ${data.deleted_sessions}\n` +
-          `- Biến động kho: ${data.deleted_inventory_tx}\n` +
-          `- Bàn đã đưa về trống: ${data.reset_tables}`
+          `• Doanh thu F&B Nhà Hàng đã xóa: ${(data.deleted_fb_revenue || 0).toLocaleString()} đ (${data.deleted_orders || 0} đơn)\n` +
+          `• Doanh thu Sân Pickleball đã xóa: ${(data.deleted_pickle_revenue || 0).toLocaleString()} đ\n` +
+          `  - Gói hội viên sân: ${data.deleted_memberships || 0} gói (${(data.deleted_memberships_revenue || 0).toLocaleString()} đ)\n` +
+          `  - Đặt sân trực tuyến: ${data.deleted_bookings || 0} lượt (${(data.deleted_bookings_revenue || 0).toLocaleString()} đ)\n` +
+          `  - Điểm danh check-in: ${data.deleted_checkins || 0} lượt\n` +
+          `• Sổ quỹ thu chi kế toán: ${data.deleted_accounting || 0} phiếu\n` +
+          `• Biến động kho NVL: ${data.deleted_inventory_tx || 0} giao dịch\n` +
+          `• Bàn ăn & Sân Pickleball giải phóng: ${data.reset_tables || 0}`
         );
 
         closeCleanHistoryModal();
 
-        // Refresh dữ liệu báo cáo & bàn
+        // Refresh toàn diện dữ liệu báo cáo, bàn & Sân Pickleball
         if (typeof loadRevenueReports === 'function') loadRevenueReports();
         if (typeof fetchDetailReport === 'function') fetchDetailReport();
         if (typeof loadAdminTables === 'function') loadAdminTables();
+        if (typeof loadAdminPickleball === 'function') loadAdminPickleball();
+        if (typeof loadAccountingPnL === 'function') loadAccountingPnL();
+        if (typeof loadAccountingLedger === 'function') loadAccountingLedger();
 
       } catch (err) {
         console.error("Lỗi xóa dữ liệu:", err);

@@ -188,11 +188,14 @@ def http_get_json(url: str, timeout: float = 5.0):
     with urllib.request.urlopen(req, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))
 
-def http_post_json(url: str, data: dict, timeout: float = 5.0):
+def http_post_json(url: str, data: dict, timeout: float = 5.0, headers: dict = None):
+    req_headers = {"Content-Type": "application/json", "User-Agent": "PiPo-Sync-Agent/1.0"}
+    if headers:
+        req_headers.update(headers)
     req = urllib.request.Request(
         url,
         data=json.dumps(data).encode("utf-8"),
-        headers={"Content-Type": "application/json", "User-Agent": "PiPo-Sync-Agent/1.0"},
+        headers=req_headers,
         method="POST"
     )
     with urllib.request.urlopen(req, timeout=timeout) as response:
@@ -204,8 +207,12 @@ async def sync_orders_now(config: dict):
     local_url = config.get("local_api_url", "http://127.0.0.1:8000").rstrip("/")
     try:
         export_cloud = await asyncio.to_thread(http_get_json, f"{cloud_url}/api/sync/export-orders?limit=50", 4.0)
-        if export_cloud.get("count", 0) > 0:
-            pull_res = await asyncio.to_thread(http_post_json, f"{local_url}/api/sync/import-orders", {"orders": export_cloud["orders"]}, 4.0)
+        if export_cloud.get("count", 0) > 0 or export_cloud.get("deleted_uuids"):
+            pull_payload = {
+                "orders": export_cloud.get("orders", []),
+                "deleted_uuids": export_cloud.get("deleted_uuids", [])
+            }
+            pull_res = await asyncio.to_thread(http_post_json, f"{local_url}/api/sync/import-orders", pull_payload, 4.0)
             if pull_res.get("imported", 0) > 0 or pull_res.get("updated", 0) > 0:
                 print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚡ [SYNC KHÁCH 4G] Đã kéo {pull_res.get('imported', 0)} đơn mới về POS Local!")
     except Exception:
@@ -241,6 +248,19 @@ async def cloud_pos_listener(config: dict):
                             print(f"[{datetime.now().strftime('%H:%M:%S')}] 🛎️ [CLOUD POS] Sự kiện: {event}")
                             await sync_orders_now(config)
                             await asyncio.to_thread(http_post_json, f"{local_url}/api/sync/notify-pos-event", data, 2.0)
+                        elif event in ["CLEAN_HISTORY", "REVENUE_CLEARED"]:
+                            print(f"[{datetime.now().strftime('%H:%M:%S')}] 🧹 [CLOUD -> LOCAL SYNC] Nhận lệnh Xóa Doanh Thu từ Cloud, đồng bộ CSDL Local!")
+                            clean_payload = data.get("payload") or {}
+                            try:
+                                await asyncio.to_thread(
+                                    http_post_json,
+                                    f"{local_url}/api/reports/clean-history",
+                                    clean_payload,
+                                    5.0,
+                                    {"X-Pipo-Admin-Secret": "pipo_secure_clear_revenue_2026", "X-Forwarded-From": "CLOUD"}
+                                )
+                            except Exception as _ce:
+                                print(f"[CLEAN_HISTORY sync error] {_ce}")
                         elif event in ["NEW_RESERVATION", "RESERVATION_UPDATED", "RESERVATION_DELETED"]:
                             print(f"[{datetime.now().strftime('%H:%M:%S')}] 📅 [CLOUD RES] Sự kiện đặt bàn: {event}")
                             await sync_reservations_now(config)
@@ -272,8 +292,12 @@ async def sync_worker(config: dict):
 
             # 2. Đẩy các đơn bán offline từ Local lên Cloud
             export_local = await asyncio.to_thread(http_get_json, f"{local_url}/api/sync/export-orders?limit=50", 4.0)
-            if export_local.get("count", 0) > 0:
-                push_res = await asyncio.to_thread(http_post_json, f"{cloud_url}/api/sync/import-orders", {"orders": export_local["orders"]}, 5.0)
+            if export_local.get("count", 0) > 0 or export_local.get("deleted_uuids"):
+                push_payload = {
+                    "orders": export_local.get("orders", []),
+                    "deleted_uuids": export_local.get("deleted_uuids", [])
+                }
+                push_res = await asyncio.to_thread(http_post_json, f"{cloud_url}/api/sync/import-orders", push_payload, 5.0)
                 if push_res.get("imported", 0) > 0 or push_res.get("updated", 0) > 0:
                     print(f"[{datetime.now().strftime('%H:%M:%S')}] ⬆️ [SYNC] Local -> Cloud: {push_res.get('message')}")
 

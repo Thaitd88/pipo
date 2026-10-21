@@ -63,9 +63,12 @@ async def clear_revenue_data(request: Request):
     cursor.execute("DELETE FROM reservations")
     cursor.execute("DELETE FROM inventory_transactions")
     cursor.execute("DELETE FROM pickleball_bookings")
+    cursor.execute("DELETE FROM pickleball_checkins")
+    cursor.execute("DELETE FROM pickleball_memberships")
+    cursor.execute("DELETE FROM accounting_transactions")
     cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL")
     try:
-        cursor.execute("DELETE FROM sqlite_sequence WHERE name IN ('orders', 'order_items', 'print_jobs', 'service_calls', 'table_sessions', 'inventory_transactions', 'reservations', 'pickleball_bookings')")
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name IN ('orders', 'order_items', 'print_jobs', 'service_calls', 'table_sessions', 'inventory_transactions', 'reservations', 'pickleball_bookings', 'pickleball_memberships', 'pickleball_checkins', 'accounting_transactions')")
     except Exception:
         pass
     conn.commit()
@@ -89,15 +92,23 @@ def export_orders(since: Optional[str] = None, limit: int = 200):
     conn = get_db()
     cursor = conn.cursor()
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS deleted_order_uuids (
+            order_uuid TEXT PRIMARY KEY,
+            deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     query = """
         SELECT o.*, t.table_code, t.name as table_name, s.session_token
         FROM orders o
         JOIN tables t ON o.table_id = t.id
         LEFT JOIN table_sessions s ON o.session_id = s.id
+        WHERE (o.order_uuid NOT IN (SELECT order_uuid FROM deleted_order_uuids))
     """
     params = []
     if since:
-        query += " WHERE (o.payment_status = 'UNPAID' OR o.created_at > ? OR o.completed_at > ?)"
+        query += " AND (o.payment_status = 'UNPAID' OR o.created_at > ? OR o.completed_at > ?)"
         params.extend([since, since])
     
     query += " ORDER BY o.id ASC LIMIT ?"
@@ -116,9 +127,13 @@ def export_orders(since: Optional[str] = None, limit: int = 200):
         cursor.execute("SELECT * FROM order_items WHERE order_id = ?", (o["id"],))
         o["items"] = [dict(it) for it in cursor.fetchall()]
 
+    # Xuất danh sách order_uuid đã bị xóa để server đối tác cùng dọn dẹp
+    cursor.execute("SELECT order_uuid FROM deleted_order_uuids ORDER BY deleted_at DESC LIMIT 500")
+    deleted_uuids = [r["order_uuid"] for r in cursor.fetchall()]
+
     conn.commit()
     conn.close()
-    return {"orders": orders, "count": len(orders)}
+    return {"orders": orders, "count": len(orders), "deleted_uuids": deleted_uuids}
 
 @router.post("/import-orders")
 async def import_orders(payload: Dict[str, Any]):
@@ -137,7 +152,32 @@ async def import_orders(payload: Dict[str, Any]):
 
     import re
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS deleted_order_uuids (
+            order_uuid TEXT PRIMARY KEY,
+            deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # Đồng bộ các UUID đơn hàng đã bị xóa từ server đối tác
+    incoming_del_uuids = payload.get("deleted_uuids", [])
+    if incoming_del_uuids:
+        for du in incoming_del_uuids:
+            cursor.execute("INSERT OR IGNORE INTO deleted_order_uuids (order_uuid) VALUES (?)", (du,))
+            cursor.execute("SELECT id FROM orders WHERE order_uuid = ?", (du,))
+            d_row = cursor.fetchone()
+            if d_row:
+                did = d_row["id"]
+                cursor.execute("DELETE FROM order_items WHERE order_id = ?", (did,))
+                cursor.execute("DELETE FROM print_jobs WHERE order_id = ?", (did,))
+                cursor.execute("DELETE FROM orders WHERE id = ?", (did,))
+
     for o in orders_to_import:
+        incoming_uuid = o.get("order_uuid")
+        if incoming_uuid:
+            cursor.execute("SELECT 1 FROM deleted_order_uuids WHERE order_uuid = ?", (incoming_uuid,))
+            if cursor.fetchone():
+                continue
         table_code = o.get("table_code")
         session_token = o.get("session_token")
         incoming_uuid = o.get("order_uuid")
