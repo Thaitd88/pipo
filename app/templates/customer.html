@@ -152,6 +152,18 @@
     </div>
   </header>
 
+  <!-- Toggle chuyển đổi Thực đơn Sân Pick / Toàn bộ Menu Nhà Hàng (cho khách quét QR sân Pick) -->
+  <div id="pickleViewToggle" class="max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto px-4 pt-3 hidden">
+    <div class="bg-emerald-950/90 p-1.5 rounded-2xl flex items-center gap-1.5 border border-emerald-700/60 shadow-inner">
+      <button type="button" id="btnPickleMode-PICKLE" onclick="switchPickleView('PICKLE')" class="flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 bg-amber-400 text-stone-950 shadow-md">
+        <span>🏓 Thực Đơn Sân Pick</span>
+      </button>
+      <button type="button" id="btnPickleMode-RESTAURANT" onclick="switchPickleView('RESTAURANT')" class="flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 text-emerald-200 hover:bg-emerald-900/60">
+        <span>📖 Xem Toàn Bộ Thực Đơn Nhà Hàng</span>
+      </button>
+    </div>
+  </div>
+
   <!-- Banner Chào Mừng -->
   <div class="max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto p-4">
     <div class="bg-gradient-to-r from-emerald-700 to-teal-800 text-white rounded-2xl p-4 shadow-sm relative overflow-hidden">
@@ -909,6 +921,8 @@
         if (sel && sel.parentElement) sel.parentElement.classList.add("hidden");
         const catTabs = document.getElementById("categoryTabs");
         if (catTabs) catTabs.classList.add("hidden");
+        const toggleBar = document.getElementById("pickleViewToggle");
+        if (toggleBar) toggleBar.classList.remove("hidden");
         const bBadge = document.getElementById("bannerBadge");
         if (bBadge) bBadge.innerText = "🏓 THỰC ĐƠN SÂN PICKLEBALL";
         const bDesc = document.getElementById("bannerDesc");
@@ -1232,6 +1246,10 @@
 
     // Helper kiểm tra món có thuộc Menu chính đang chọn hay không
     function isItemInMainMenu(item, menuType) {
+      // Ẩn tuyệt đối Category 8 (Dịch Vụ Sân: Social, thuê vợt, thuê sân...) trên giao diện khách quét QR bàn
+      if (item.category_id === 8) {
+        return false;
+      }
       if (!menuType || menuType === "ALL") return true;
       if (menuType === "PICKLE") {
         if (item.main_menu_type && item.main_menu_type.toUpperCase().includes("PICKLE")) return true;
@@ -1240,6 +1258,35 @@
       if (!item.main_menu_type) return true;
       const parts = item.main_menu_type.split(",").map(s => s.trim().toUpperCase());
       return parts.includes(menuType.toUpperCase()) || parts.includes("ALL");
+    }
+
+    function switchPickleView(mode) {
+      const btnPickle = document.getElementById("btnPickleMode-PICKLE");
+      const btnFull = document.getElementById("btnPickleMode-RESTAURANT");
+      const catTabs = document.getElementById("categoryTabs");
+      const bBadge = document.getElementById("bannerBadge");
+      const bDesc = document.getElementById("bannerDesc");
+
+      if (mode === 'RESTAURANT') {
+        currentMainMenu = "RESTAURANT";
+        activeCategoryId = 'ALL';
+        if (btnPickle) btnPickle.className = "flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 text-emerald-200 hover:bg-emerald-900/60";
+        if (btnFull) btnFull.className = "flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 bg-amber-400 text-stone-950 shadow-md";
+        if (catTabs) catTabs.classList.remove("hidden");
+        if (bBadge) bBadge.innerText = "📖 TOÀN BỘ THỰC ĐƠN NHÀ HÀNG & BẾP";
+        if (bDesc) bDesc.innerText = "Món ăn nóng sốt, đặc sản PiPo Garden giao tận sân đấu.";
+        renderCategories();
+        renderMenu();
+      } else {
+        currentMainMenu = "PICKLE";
+        activeCategoryId = 'ALL';
+        if (btnPickle) btnPickle.className = "flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 bg-amber-400 text-stone-950 shadow-md";
+        if (btnFull) btnFull.className = "flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 text-emerald-200 hover:bg-emerald-900/60";
+        if (catTabs) catTabs.classList.add("hidden");
+        if (bBadge) bBadge.innerText = "🏓 THỰC ĐƠN SÂN PICKLEBALL";
+        if (bDesc) bDesc.innerText = "Nước giải khát, tăng lực & món ăn nhanh phục vụ tận sân đấu.";
+        renderMenu();
+      }
     }
 
     function selectMainMenu(menuKey) {

@@ -142,46 +142,77 @@ async def create_order(payload: dict):
         order_item_id = cursor.lastrowid
         order_items_to_broadcast.append({**dit, "id": order_item_id, "status": "QUEUED"})
 
-    # 7. TỰ ĐỘNG TẠO PHIẾU IN BẾP THEO TỪNG TRẠM (HOT_KITCHEN, COLD_KITCHEN, BAR)
-    station_groups = {}
-    for dit in detailed_items:
-        st = dit["station"]
-        if st not in station_groups:
-            station_groups[st] = []
-        station_groups[st].append(dit)
-
-    order_info = {
-        "id": order_id,
-        "table_name": table["name"],
-        "area": table["area"],
-        "round_number": round_number,
-        "customer_note": customer_note,
-        "created_at": now_ts
-    }
-
+    # 7. TỰ ĐỘNG TẠO PHIẾU IN: PHIẾU THANH TOÁN (NẾU TỪ POS PICK) HOẶC PHIẾU BẾP KOT (NẾU KHÁCH QUÉT QR)
+    order_source = str(payload.get("order_source", "")).strip().upper()
     print_jobs_created = []
 
-    for station, st_items in station_groups.items():
-        # Định dạng text phiếu in
-        ticket_text = format_kitchen_ticket_text(order_info, st_items, station)
-        
-        # Biên dịch mã byte ESC/POS nhị phân chuẩn 80mm T80W
-        escpos_bytes = build_escpos_kitchen_bytes(order_info, st_items, station=station, beep=True)
-        escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
+    if order_source == "POS_PICKLE":
+        # Từ giao diện POS Sân Pick: In trực tiếp Phiếu Thanh Toán (Receipt) ra Máy in Thu Ngân 252
+        from ..escpos import format_receipt_ticket_text, build_escpos_receipt_bytes
+        totals_info = {
+            "title": "PHIEU THANH TOAN DICH VU",
+            "cashier_name": "Thu Ngan San Pick",
+            "discount": 0,
+            "service_fee": 0,
+            "payment_method": "CASH",
+            "bill_target": "CUSTOMER",
+            "created_at": now_ts
+        }
+        receipt_text = format_receipt_ticket_text(dict(table), detailed_items, totals_info=totals_info)
+        receipt_bytes = build_escpos_receipt_bytes(dict(table), detailed_items, totals_info=totals_info)
+        receipt_b64 = base64.b64encode(receipt_bytes).decode("ascii")
 
         cursor.execute("""
             INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
-            VALUES (?, ?, 'KOT', 'PENDING', ?)
-        """, (order_id, station, ticket_text))
+            VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?)
+        """, (order_id, receipt_text))
         job_id = cursor.lastrowid
 
         print_jobs_created.append({
             "job_id": job_id,
-            "station": station,
-            "ticket_text": ticket_text,
-            "escpos_b64": escpos_b64,
+            "station": "CASHIER",
+            "job_type": "RECEIPT",
+            "ticket_text": receipt_text,
+            "escpos_b64": receipt_b64,
             "table_name": table["name"]
         })
+    else:
+        # Khách tự quét mã QR tại bàn: Bóc tách trạm và in phiếu order KOT gửi Bếp / Quầy Bar
+        station_groups = {}
+        for dit in detailed_items:
+            st = dit["station"]
+            if st not in station_groups:
+                station_groups[st] = []
+            station_groups[st].append(dit)
+
+        order_info = {
+            "id": order_id,
+            "table_name": table["name"],
+            "area": table["area"],
+            "round_number": round_number,
+            "customer_note": customer_note,
+            "created_at": now_ts
+        }
+
+        for station, st_items in station_groups.items():
+            ticket_text = format_kitchen_ticket_text(order_info, st_items, station)
+            escpos_bytes = build_escpos_kitchen_bytes(order_info, st_items, station=station, beep=True)
+            escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
+
+            cursor.execute("""
+                INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+                VALUES (?, ?, 'KOT', 'PENDING', ?)
+            """, (order_id, station, ticket_text))
+            job_id = cursor.lastrowid
+
+            print_jobs_created.append({
+                "job_id": job_id,
+                "station": station,
+                "job_type": "KOT",
+                "ticket_text": ticket_text,
+                "escpos_b64": escpos_b64,
+                "table_name": table["name"]
+            })
 
     conn.commit()
     conn.close()

@@ -168,6 +168,10 @@ def get_table_bill(table_id: int):
             first_order_time = order["created_at"]
         cursor.execute("SELECT * FROM order_items WHERE order_id = ? ORDER BY id ASC", (order["id"],))
         items = [dict(it) for it in cursor.fetchall()]
+        for it in items:
+            it["name"] = it["item_name"]
+            it["price"] = it["unit_price"]
+            it["total"] = it["total_price"]
         all_items.extend(items)
         # Chỉ cộng các món chưa bị hủy (status != 'CANCELLED')
         order_active_sum = sum(it["total_price"] for it in items if it["status"] != "CANCELLED")
@@ -207,6 +211,7 @@ def get_table_bill(table_id: int):
         "status": table["status"],
         "orders_count": len(orders),
         "grand_total": grand_total,
+        "total": grand_total,
         "items": all_items,
         "transfer_note": transfer_note,
         "in_time": in_time_str,

@@ -228,14 +228,17 @@
         <div class="md:col-span-7 p-4 overflow-y-auto custom-scrollbar border-r border-stone-200 flex flex-col space-y-3">
           <!-- Category Filter Pills -->
           <div class="flex items-center gap-1.5 overflow-x-auto pb-1" id="orderMenuTabs">
-            <button type="button" onclick="filterOrderCategory('ALL')" id="tabCat-ALL" class="cat-pill px-3 py-1 rounded-full text-xs font-bold bg-emerald-800 text-white">
-              Tất Cả
+            <button type="button" onclick="filterOrderCategory('PICKLE')" id="tabCat-PICKLE" class="cat-pill px-3 py-1 rounded-full text-xs font-bold bg-emerald-800 text-white whitespace-nowrap transition cursor-pointer">
+              🏓 Thực Đơn Sân Pick
             </button>
-            <button type="button" onclick="filterOrderCategory(8)" id="tabCat-8" class="cat-pill px-3 py-1 rounded-full text-xs font-bold bg-stone-200 hover:bg-stone-300 text-stone-700">
-              🎾 Dịch Vụ Sân Pick
+            <button type="button" onclick="filterOrderCategory(8)" id="tabCat-8" class="cat-pill px-3 py-1 rounded-full text-xs font-bold bg-stone-200 hover:bg-stone-300 text-stone-700 whitespace-nowrap transition cursor-pointer">
+              🎾 Dịch Vụ Sân
             </button>
-            <button type="button" onclick="filterOrderCategory(6)" id="tabCat-6" class="cat-pill px-3 py-1 rounded-full text-xs font-bold bg-stone-200 hover:bg-stone-300 text-stone-700">
-              🍹 Đồ Uống & Nước Giải Khát
+            <button type="button" onclick="filterOrderCategory(6)" id="tabCat-6" class="cat-pill px-3 py-1 rounded-full text-xs font-bold bg-stone-200 hover:bg-stone-300 text-stone-700 whitespace-nowrap transition cursor-pointer">
+              🍹 Đồ Uống
+            </button>
+            <button type="button" onclick="filterOrderCategory('ALL')" id="tabCat-ALL" class="cat-pill px-3 py-1 rounded-full text-xs font-bold bg-stone-200 hover:bg-stone-300 text-stone-700 whitespace-nowrap transition cursor-pointer">
+              📖 Toàn Bộ Menu Nhà Hàng & Bếp
             </button>
           </div>
 
@@ -654,19 +657,18 @@
         if (!res.ok) throw new Error("Không thể tải danh sách sân");
         const allTables = await res.json();
 
-        // Lọc đúng 4 sân Pickleball (Khử trùng 100% theo table_code)
+        // Lọc đúng 4 sân Pickleball (PK-01 đến PK-04), khử trùng 100%, ẩn triệt để mọi bàn khác
+        const ALLOWED_PICKLE_CODES = ["PK-01", "PK-02", "PK-03", "PK-04"];
         const courtMap = new Map();
         for (const t of allTables) {
-          if ((t.table_code && t.table_code.startsWith("PK-")) || (t.area && t.area.includes("Pickle"))) {
-            if (!courtMap.has(t.table_code)) {
-              courtMap.set(t.table_code, t);
+          const code = (t.table_code || "").trim().toUpperCase();
+          if (ALLOWED_PICKLE_CODES.includes(code)) {
+            if (!courtMap.has(code)) {
+              courtMap.set(code, t);
             }
           }
         }
-        pickleCourts = Array.from(courtMap.values());
-
-        // Đảm bảo sắp xếp đúng PK-01 đến PK-04
-        pickleCourts.sort((a, b) => (a.table_code || "").localeCompare(b.table_code || ""));
+        pickleCourts = ALLOWED_PICKLE_CODES.map(code => courtMap.get(code)).filter(Boolean);
 
         // Lấy chi tiết bill cho các sân đang có khách (OCCUPIED)
         for (const court of pickleCourts) {
@@ -713,8 +715,9 @@
         const courtName = c.name || `Sân ${idx + 1}`;
         const tableCode = c.table_code || `PK-0${idx + 1}`;
         const bill = c.billData;
-        const totalAmount = bill ? (bill.total || 0) : 0;
-        const itemCount = bill && bill.items ? bill.items.length : 0;
+        const totalAmount = bill ? (bill.grand_total || bill.total || 0) : 0;
+        const items = (bill && bill.items) ? bill.items : [];
+        const itemCount = items.length;
 
         return `
           <div class="bg-white rounded-3xl border-2 transition shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden ${isOccupied ? 'border-amber-400 bg-amber-50/20' : 'border-stone-200 hover:border-emerald-500'}">
@@ -747,12 +750,17 @@
 
                   <!-- Quick preview first 3 items -->
                   <div class="bg-white rounded-xl p-2.5 border border-amber-200 text-xs space-y-1">
-                    ${(bill.items || []).slice(0, 3).map(it => `
-                      <div class="flex items-center justify-between text-[11.5px]">
-                        <span class="text-stone-700 truncate max-w-[150px] font-medium">${it.quantity}x ${it.name}</span>
-                        <span class="font-bold text-stone-900">${formatVND(it.price * it.quantity)}</span>
-                      </div>
-                    `).join('')}
+                    ${items.slice(0, 3).map(it => {
+                      const itName = it.item_name || it.name || 'Món';
+                      const itQty = it.quantity || 1;
+                      const itPrice = it.total_price != null ? it.total_price : ((it.unit_price || it.price || 0) * itQty);
+                      return `
+                        <div class="flex items-center justify-between text-[11.5px]">
+                          <span class="text-stone-700 truncate max-w-[150px] font-medium">${itQty}x ${itName}</span>
+                          <span class="font-bold text-stone-900">${formatVND(itPrice)}</span>
+                        </div>
+                      `;
+                    }).join('')}
                     ${itemCount > 3 ? `<div class="text-[10px] text-stone-400 italic text-center">+ ${itemCount - 3} món khác...</div>` : ''}
                   </div>
 
@@ -775,7 +783,7 @@
             <!-- Card Actions -->
             <div class="p-3 bg-stone-50 border-t border-stone-200/80 grid ${isOccupied ? 'grid-cols-2' : 'grid-cols-1'} gap-2">
               <button onclick="openServiceOrderModal(${c.id})" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition shadow-xs flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-plus"></i> ${isOccupied ? 'Thêm Món / Giờ' : 'Vào Sân / Bán Vé'}
+                <i class="fa-solid fa-plus"></i> ${isOccupied ? 'Thêm Món / Giờ' : 'Vào Sân / Gọi Đồ'}
               </button>
 
               ${isOccupied ? `
@@ -818,8 +826,8 @@
       orderCart = [];
 
       document.getElementById("orderModalCourtName").innerText = `${court.name} (${court.table_code})`;
-      selectedOrderCat = 'ALL';
-      renderOrderDishes();
+      selectedOrderCat = 'PICKLE';
+      filterOrderCategory('PICKLE');
       renderOrderCart();
 
       document.getElementById("serviceOrderModal").classList.remove("hidden");
@@ -834,11 +842,11 @@
     function filterOrderCategory(catId) {
       selectedOrderCat = catId;
       document.querySelectorAll(".cat-pill").forEach(el => {
-        el.className = "cat-pill px-3 py-1 rounded-full text-xs font-bold bg-stone-200 hover:bg-stone-300 text-stone-700";
+        el.className = "cat-pill px-3 py-1 rounded-full text-xs font-bold bg-stone-200 hover:bg-stone-300 text-stone-700 whitespace-nowrap transition cursor-pointer";
       });
       const targetBtn = document.getElementById(`tabCat-${catId}`);
       if (targetBtn) {
-        targetBtn.className = "cat-pill px-3 py-1 rounded-full text-xs font-bold bg-emerald-800 text-white";
+        targetBtn.className = "cat-pill px-3 py-1 rounded-full text-xs font-bold bg-emerald-800 text-white whitespace-nowrap transition shadow-xs cursor-pointer";
       }
       renderOrderDishes();
     }
@@ -847,11 +855,15 @@
       const container = document.getElementById("orderItemsGrid");
       if (!container) return;
 
-      // Sân Pickleball chỉ phục vụ Category 8 (Dịch Vụ Sân) và Category 6 (Đồ Uống)
-      let dishes = fullMenuItems.filter(it => it.category_id === 8 || it.category_id === 6);
-
-      if (selectedOrderCat !== 'ALL') {
-        dishes = dishes.filter(it => it.category_id == selectedOrderCat);
+      let dishes = fullMenuItems;
+      if (selectedOrderCat === 'PICKLE') {
+        // Nhóm thực đơn Sân Pick: Dịch vụ sân (8), Đồ uống (6), và các món gắn tag PICKLE
+        dishes = fullMenuItems.filter(it => it.category_id === 8 || it.category_id === 6 || (it.main_menu_type && it.main_menu_type.includes("PICKLE")));
+      } else if (selectedOrderCat === 'ALL') {
+        // Toàn bộ menu nhà hàng & bếp
+        dishes = fullMenuItems;
+      } else {
+        dishes = fullMenuItems.filter(it => it.category_id == selectedOrderCat);
       }
 
       if (dishes.length === 0) {
@@ -973,7 +985,7 @@
       const btn = document.getElementById("btnSubmitOrder");
       const origHtml = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi & chia máy in...`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi & in phiếu thanh toán...`;
 
       try {
         // 1. Mở session bàn nếu bàn chưa mở
@@ -983,11 +995,12 @@
         const sessData = await sessRes.json();
         const sessionToken = sessData.session_token || (sessData.session && sessData.session.session_token);
 
-        // 2. Gửi order kèm table_id đầy đủ
+        // 2. Gửi order kèm table_id và order_source POS_PICKLE (để in trực tiếp phiếu thanh toán ra máy in thu ngân)
         const payload = {
           table_id: currentTargetCourt.id,
           session_token: sessionToken,
           customer_note: "Order từ POS Sân Pickleball",
+          order_source: "POS_PICKLE",
           items: orderCart.map(it => ({
             item_id: it.item_id,
             quantity: it.quantity,
@@ -1007,7 +1020,7 @@
           throw new Error(errData.detail || "Không thể gửi đơn");
         }
 
-        showToast(`✅ Đã gửi đơn thành công! Đã tự động chia in bếp nóng / quầy bar thu ngân.`);
+        showToast(`✅ Đã tạo đơn & tự động in Phiếu Thanh Toán ra quầy thu ngân thành công!`);
         closeServiceOrderModal();
         await loadPickleCourts();
       } catch (err) {
@@ -1031,24 +1044,30 @@
         currentCheckoutBill = await res.json();
         currentTargetCourt = court;
 
+        const grandTotal = currentCheckoutBill.grand_total || currentCheckoutBill.total || 0;
         document.getElementById("checkoutCourtTitle").innerText = `Thanh Toán ${court.name} (${court.table_code})`;
-        document.getElementById("checkoutTotalAmount").innerText = formatVND(currentCheckoutBill.total || 0);
+        document.getElementById("checkoutTotalAmount").innerText = formatVND(grandTotal);
 
         // Render Bill Items
         const itemsList = document.getElementById("checkoutBillItems");
         const items = currentCheckoutBill.items || [];
-        itemsList.innerHTML = items.map(it => `
-          <div class="flex items-center justify-between py-1 border-b border-stone-200/60 last:border-none">
-            <div>
-              <span class="font-bold text-stone-800">${it.quantity}x ${it.name}</span>
-              ${it.note ? `<div class="text-[10px] text-stone-500 italic">${it.note}</div>` : ''}
+        itemsList.innerHTML = items.map(it => {
+          const itName = it.item_name || it.name || 'Món';
+          const itQty = it.quantity || 1;
+          const itPrice = it.total_price != null ? it.total_price : ((it.unit_price || it.price || 0) * itQty);
+          return `
+            <div class="flex items-center justify-between py-1 border-b border-stone-200/60 last:border-none">
+              <div>
+                <span class="font-bold text-stone-800">${itQty}x ${itName}</span>
+                ${it.note ? `<div class="text-[10px] text-stone-500 italic">${it.note}</div>` : ''}
+              </div>
+              <span class="font-black text-stone-900">${formatVND(itPrice)}</span>
             </div>
-            <span class="font-black text-stone-900">${formatVND(it.price * it.quantity)}</span>
-          </div>
-        `).join('');
+          `;
+        }).join('');
 
         // Prepare VietQR Image URL
-        const amount = currentCheckoutBill.total || 0;
+        const amount = grandTotal;
         const addInfo = encodeURIComponent(`TT PiPo Ban ${court.table_code.replace('-', '')}`);
         const qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${amount}&addInfo=${addInfo}&accountName=PIPO%20GARDEN`;
         document.getElementById("checkoutQRImg").src = qrUrl;
