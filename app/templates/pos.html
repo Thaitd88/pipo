@@ -3292,8 +3292,11 @@
       document.getElementById("vietqrModal").classList.add("hidden");
     }
 
+    let isTableCheckingOut = false;
     async function confirmCheckoutTable() {
+      if (isTableCheckingOut) return;
       if (!selectedTable) return;
+      isTableCheckingOut = true;
 
       const discountPercent = Math.min(100, Math.max(0, parseFloat(document.getElementById("drawerDiscountVal")?.value) || 0));
       const discountAmount = calculateCalculatedDiscount();
@@ -3342,7 +3345,7 @@
       }
       confirmMsg += `\n• Tổng thanh toán: ${formatVND(finalPay)}`;
 
-      if (!confirm(confirmMsg)) return;
+      if (!confirm(confirmMsg)) { isTableCheckingOut = false; return; }
 
       try {
         const payload = {
@@ -3366,6 +3369,7 @@
           closeBillDrawer();
           fetchTablesOverview();
           showPosToast(`✅ Đã thanh toán bàn ${selectedTable.name}! Máy in đang tự động in hóa đơn...`);
+          isTableCheckingOut = false;
           const billHistPanel = document.getElementById("tabContent-bill-history");
           if (billHistPanel && !billHistPanel.classList.contains("hidden")) {
             loadPosBillsHistory();
@@ -4570,13 +4574,17 @@
       `).join('');
     }
 
+    let isPosOrderSubmitting = false;
     async function submitPosOrder() {
-      if (!posOrderTargetTable) {
+      if (isPosOrderSubmitting) return;
+      isPosOrderSubmitting = true;
+      if (!posOrderTargetTable) { isPosOrderSubmitting = false;
         alert("Vui lòng chọn bàn cần gọi món!");
         return;
       }
       if (posOrderCart.length === 0) {
         alert("Vui lòng chọn ít nhất 1 món ăn trước khi gửi bếp!");
+        isPosOrderSubmitting = false;
         return;
       }
 
@@ -4628,6 +4636,7 @@
           btn.disabled = false;
           btn.innerHTML = origHtml;
         }
+        isPosOrderSubmitting = false;
       }
     }
 

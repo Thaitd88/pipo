@@ -566,6 +566,9 @@ def init_db():
     except Exception as _e:
         print("[PiPo Menu Fixer] Loi:", _e)
 
+    # Khử trùng và chuẩn hóa mã định danh order_uuid cho toàn bộ đơn hàng
+    ensure_order_deduplication(conn)
+
     # Tối ưu hóa hiệu năng truy vấn CSDL (Database Performance Indexes)
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_menu_items_cat_avail ON menu_items(category_id, is_available);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_orders_table_status ON orders(table_id, status, payment_status);")
@@ -578,6 +581,74 @@ def init_db():
     conn.commit()
 
     conn.close()
+
+def ensure_order_deduplication(conn):
+    """
+    Tự động chuẩn hóa mã định danh order_uuid cho mọi đơn hàng,
+    và khử trùng triệt để các đơn hàng bị nhân bản trùng lặp do cơ chế đồng bộ hoặc lỗi click đúp.
+    """
+    cursor = conn.cursor()
+    import uuid
+    import re
+
+    # 1. Thêm cột order_uuid và index nếu chưa có
+    try:
+        cursor.execute("ALTER TABLE orders ADD COLUMN order_uuid TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_uuid ON orders(order_uuid)")
+    except Exception:
+        pass
+
+    # 2. Xóa các đơn rỗng 0đ do checkout bàn trống (không có món và total = 0)
+    cursor.execute("""
+        DELETE FROM orders 
+        WHERE total = 0 
+          AND subtotal = 0 
+          AND service_fee = 0 
+          AND id NOT IN (SELECT DISTINCT order_id FROM order_items)
+    """)
+
+    # 3. Khử trùng các đơn bị nhân bản (cùng table_id, cùng total, cùng created_at)
+    cursor.execute("""
+        SELECT table_id, total, created_at, COUNT(*) as cnt, GROUP_CONCAT(id) as ids
+        FROM orders
+        GROUP BY table_id, total, created_at
+        HAVING COUNT(*) > 1
+    """)
+    dup_groups = [dict(r) for r in cursor.fetchall()]
+
+    for g in dup_groups:
+        id_strs = g['ids'].split(',')
+        ids = [int(x) for x in id_strs]
+        ids.sort()
+        keep_id = ids[0]
+        del_ids = ids[1:]
+
+        cursor.execute("SELECT customer_note, order_uuid FROM orders WHERE id = ?", (keep_id,))
+        row = cursor.fetchone()
+        raw_note = (row["customer_note"] or "") if row else ""
+        clean_note = re.sub(r'\s*\[REF:SYNC_[^\]]+\]', '', raw_note).strip()
+        curr_uuid = (row["order_uuid"] or f"ord_{uuid.uuid4().hex}") if row else f"ord_{uuid.uuid4().hex}"
+
+        cursor.execute("UPDATE orders SET customer_note = ?, order_uuid = ? WHERE id = ?", (clean_note, curr_uuid, keep_id))
+
+        placeholders = ','.join('?' for _ in del_ids)
+        cursor.execute(f"DELETE FROM order_items WHERE order_id IN ({placeholders})", tuple(del_ids))
+        cursor.execute(f"DELETE FROM print_jobs WHERE order_id IN ({placeholders})", tuple(del_ids))
+        cursor.execute(f"DELETE FROM orders WHERE id IN ({placeholders})", tuple(del_ids))
+
+    # 4. Gán order_uuid cho mọi đơn còn lại chưa có
+    cursor.execute("SELECT id, customer_note, order_uuid FROM orders WHERE order_uuid IS NULL")
+    for row in cursor.fetchall():
+        new_uuid = f"ord_{uuid.uuid4().hex}"
+        raw_note = row["customer_note"] or ""
+        clean_note = re.sub(r'\s*\[REF:SYNC_[^\]]+\]', '', raw_note).strip()
+        cursor.execute("UPDATE orders SET order_uuid = ?, customer_note = ? WHERE id = ?", (new_uuid, clean_note, row["id"]))
+
+    conn.commit()
+
 
 def ensure_printer_settings(conn):
     """Đảm bảo cấu hình mặc định cho 2 máy in nhiệt mạng LAN (Bếp 251 và Thu ngân 252)."""

@@ -215,19 +215,25 @@ async def sync_worker(config: dict):
                 print(f"\n[{datetime.now().strftime('%H:%M:%S')}] 🌐 [SYNC] INTERNET ĐÃ ĐƯỢC KHÔI PHỤC! Đang đồng bộ bù toàn bộ đơn offline...")
                 internet_was_down = False
 
+            since_param = f"?since={urllib.parse.quote(last_sync_time)}" if last_sync_time else ""
+
             # 2. Đẩy đơn từ Local lên Cloud (những đơn bán offline lúc mất mạng)
-            export_local = await asyncio.to_thread(http_get_json, f"{local_url}/api/sync/export-orders", 4.0)
+            export_local = await asyncio.to_thread(http_get_json, f"{local_url}/api/sync/export-orders{since_param}", 4.0)
             if export_local.get("count", 0) > 0:
                 push_res = await asyncio.to_thread(http_post_json, f"{cloud_url}/api/sync/import-orders", {"orders": export_local["orders"]}, 5.0)
                 if push_res.get("imported", 0) > 0 or push_res.get("updated", 0) > 0:
                     print(f"[{datetime.now().strftime('%H:%M:%S')}] ⬆️ [SYNC] Local -> Cloud: {push_res.get('message')}")
 
             # 3. Kéo đơn từ Cloud về Local (những đơn khách 4G đặt trực tiếp trên Cloud)
-            export_cloud = await asyncio.to_thread(http_get_json, f"{cloud_url}/api/sync/export-orders", 5.0)
+            export_cloud = await asyncio.to_thread(http_get_json, f"{cloud_url}/api/sync/export-orders{since_param}", 5.0)
             if export_cloud.get("count", 0) > 0:
                 pull_res = await asyncio.to_thread(http_post_json, f"{local_url}/api/sync/import-orders", {"orders": export_cloud["orders"]}, 4.0)
                 if pull_res.get("imported", 0) > 0 or pull_res.get("updated", 0) > 0:
                     print(f"[{datetime.now().strftime('%H:%M:%S')}] ⬇️ [SYNC] Cloud -> Local: {pull_res.get('message')}")
+
+            # Cập nhật mốc thời gian sync (lùi 10 phút để tránh lệch đồng hồ)
+            from datetime import timedelta
+            last_sync_time = (datetime.now() - timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
 
         except (urllib.error.URLError, TimeoutError, OSError) as e:
             if not internet_was_down:

@@ -952,8 +952,11 @@
       `).join('');
     }
 
+    let isPickleServiceSubmitting = false;
     async function submitServiceOrder() {
+      if (isPickleServiceSubmitting) return;
       if (!currentTargetCourt) return;
+      isPickleServiceSubmitting = true;
       if (orderCart.length === 0) {
         alert("Vui lòng chọn ít nhất 1 dịch vụ hoặc đồ uống!");
         return;
@@ -1004,6 +1007,7 @@
       } finally {
         btn.disabled = false;
         btn.innerHTML = origHtml;
+        isPickleCheckingOut = false;
       }
     }
 
@@ -1066,8 +1070,11 @@
       }
     }
 
+    let isPickleCheckingOut = false;
     async function executeCheckout() {
+      if (isPickleCheckingOut) return;
       if (!currentTargetCourt) return;
+      isPickleCheckingOut = true;
       const paymentMethod = document.querySelector('input[name="checkoutPaymentMethod"]:checked')?.value || "CASH";
 
       const btn = document.getElementById("btnConfirmCheckout");
@@ -1112,6 +1119,7 @@
         btn.disabled = false;
         btn.innerHTML = origHtml;
       }
+      isPickleServiceSubmitting = false;
     }
 
     function printTicketLocally(text) {

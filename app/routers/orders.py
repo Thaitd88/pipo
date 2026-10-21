@@ -111,10 +111,12 @@ async def create_order(payload: dict):
     total = subtotal
 
     # 5. Lưu vào bảng Orders
+    import uuid
+    new_order_uuid = f"ord_{uuid.uuid4().hex}"
     cursor.execute("""
-        INSERT INTO orders (session_id, table_id, round_number, subtotal, total, status, payment_status, customer_note)
-        VALUES (?, ?, ?, ?, ?, 'CONFIRMED', 'UNPAID', ?)
-    """, (session_id, table_id, round_number, subtotal, total, customer_note))
+        INSERT INTO orders (order_uuid, session_id, table_id, round_number, subtotal, total, status, payment_status, customer_note)
+        VALUES (?, ?, ?, ?, ?, ?, 'CONFIRMED', 'UNPAID', ?)
+    """, (new_order_uuid, session_id, table_id, round_number, subtotal, total, customer_note))
     order_id = cursor.lastrowid
 
     # 6. Lưu vào bảng Order Items

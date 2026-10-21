@@ -123,7 +123,7 @@ def get_table_bill(table_id: int):
         raise HTTPException(status_code=404, detail="Bàn không tồn tại")
 
     table = dict(row)
-    session_id = table.get("current_session_id")
+    session_id = table["current_session_id"]
 
     # Nếu bàn đang trống VÀ không có phiên hoạt động -> Trả về hóa đơn rỗng
     if table["status"] == "AVAILABLE" and not session_id:
@@ -262,10 +262,25 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
     now_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # 1. Đánh dấu đơn là PAID hoặc TẠO MỚI nếu bàn chỉ kê phí phục vụ / tiền sân không gọi món
+    import uuid
     if not checkout_orders:
-        session_id = table.get("current_session_id")
+        # Nếu không có đơn hàng và không có phụ thu -> Giải phóng bàn, tuyệt đối không tạo đơn 0đ rác
+        if service_fee <= 0 and discount_amount <= 0:
+            cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL WHERE id = ?", (table_id,))
+            if table["current_session_id"]:
+                cursor.execute("UPDATE table_sessions SET status = 'CLOSED', closed_at = ? WHERE id = ?", (now_ts, table["current_session_id"]))
+            conn.commit()
+            conn.close()
+            return {
+                "status": "SUCCESS",
+                "message": f"Bàn {table['name']} đã được trả về trạng thái trống (không phát sinh hóa đơn).",
+                "final_total": 0,
+                "table_id": table_id,
+                "receipt_text": None
+            }
+
+        session_id = table["current_session_id"]
         if not session_id:
-            import uuid
             sess_token = f"sess_{uuid.uuid4().hex[:12]}"
             cursor.execute("""
                 INSERT INTO table_sessions (table_id, session_token, guest_count, status, opened_at, closed_at)
@@ -275,15 +290,16 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
 
         subtotal = 0
         total = max(0, subtotal - discount_amount + service_fee)
+        new_uuid = f"ord_{uuid.uuid4().hex}"
         cursor.execute("""
             INSERT INTO orders (
-                session_id, table_id, round_number, subtotal, discount, discount_reason,
+                order_uuid, session_id, table_id, round_number, subtotal, discount, discount_reason,
                 service_fee, total, status, payment_status, payment_method,
                 bill_target, billed_admin_id, billed_admin_name, customer_note,
                 created_at, completed_at
-            ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, 'COMPLETED', 'PAID', ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?, 'COMPLETED', 'PAID', ?, ?, ?, ?, ?, ?, ?)
         """, (
-            session_id, table_id, subtotal, discount_amount, discount_reason,
+            new_uuid, session_id, table_id, subtotal, discount_amount, discount_reason,
             service_fee, total, payment_method, bill_target, billed_admin_id, billed_admin_name,
             "Phiếu thu phí dịch vụ / phụ thu", now_ts, now_ts
         ))
@@ -293,6 +309,7 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
         # Nếu có đơn hàng unpaid: Đơn đầu tiên nhận toàn bộ discount & service_fee của hóa đơn
         first_order = checkout_orders[0]
         first_total = max(0, first_order["subtotal"] - discount_amount + service_fee)
+        first_uuid = first_order.get("order_uuid") or f"ord_{uuid.uuid4().hex}"
         cursor.execute("""
             UPDATE orders 
             SET payment_status = 'PAID', 
@@ -305,12 +322,16 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
                 bill_target = ?,
                 billed_admin_id = ?,
                 billed_admin_name = ?,
-                total = ?
+                total = ?,
+                order_uuid = COALESCE(order_uuid, ?)
             WHERE id = ?
-        """, (now_ts, discount_amount, discount_reason, service_fee, payment_method, bill_target, billed_admin_id, billed_admin_name, first_total, first_order["id"]))
+        """, (now_ts, discount_amount, discount_reason, service_fee, payment_method, bill_target, billed_admin_id, billed_admin_name, first_total, first_uuid, first_order["id"]))
 
         # Các đơn tiếp theo nếu có (round 2, 3...)
         for other_order in checkout_orders[1:]:
+            cursor.execute("SELECT COALESCE(SUM(total_price), 0) as s FROM order_items WHERE order_id = ? AND status != 'CANCELLED'", (other_order["id"],))
+            actual_sub = cursor.fetchone()["s"] or other_order.get("subtotal", 0)
+            other_uuid = other_order.get("order_uuid") or f"ord_{uuid.uuid4().hex}"
             cursor.execute("""
                 UPDATE orders 
                 SET payment_status = 'PAID', 
@@ -323,9 +344,11 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
                     bill_target = ?,
                     billed_admin_id = ?,
                     billed_admin_name = ?,
-                    total = subtotal
+                    subtotal = ?,
+                    total = ?,
+                    order_uuid = COALESCE(order_uuid, ?)
                 WHERE id = ?
-            """, (now_ts, payment_method, bill_target, billed_admin_id, billed_admin_name, other_order["id"]))
+            """, (now_ts, payment_method, bill_target, billed_admin_id, billed_admin_name, actual_sub, actual_sub, other_uuid, other_order["id"]))
 
     # 2. Đánh dấu tất cả món của các đơn bàn này là SERVED và tự động trừ kho NVL (kèm nước Social, v.v.)
     cursor.execute("""

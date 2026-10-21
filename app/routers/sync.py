@@ -96,8 +96,8 @@ def export_orders(since: Optional[str] = None, limit: int = 200):
     """
     params = []
     if since:
-        query += " WHERE o.created_at > ?"
-        params.append(since)
+        query += " WHERE (o.created_at > ? OR o.completed_at > ?)"
+        params.extend([since, since])
     
     query += " ORDER BY o.id ASC LIMIT ?"
     params.append(limit)
@@ -105,17 +105,26 @@ def export_orders(since: Optional[str] = None, limit: int = 200):
     cursor.execute(query, tuple(params))
     orders = [dict(r) for r in cursor.fetchall()]
 
-    # Lấy kèm chi tiết món
+    # Đảm bảo mỗi order xuất đi luôn có order_uuid cố định duy nhất
     for o in orders:
+        if not o.get("order_uuid"):
+            uid = f"ord_{uuid.uuid4().hex}"
+            cursor.execute("UPDATE orders SET order_uuid = ? WHERE id = ?", (uid, o["id"]))
+            o["order_uuid"] = uid
+
         cursor.execute("SELECT * FROM order_items WHERE order_id = ?", (o["id"],))
         o["items"] = [dict(it) for it in cursor.fetchall()]
 
+    conn.commit()
     conn.close()
     return {"orders": orders, "count": len(orders)}
 
 @router.post("/import-orders")
 def import_orders(payload: Dict[str, Any]):
-    """Nhập các đơn hàng được đồng bộ từ Cloud về Local hoặc ngược lại."""
+    """
+    Nhập các đơn hàng được đồng bộ từ Cloud về Local hoặc ngược lại.
+    Áp dụng 3 lớp khử trùng độc lập chống hoàn toàn hiện tượng lặp hóa đơn (Ping-Pong Loop).
+    """
     orders_to_import = payload.get("orders", [])
     if not orders_to_import:
         return {"status": "SUCCESS", "imported": 0, "message": "Không có đơn mới để nhập"}
@@ -125,9 +134,12 @@ def import_orders(payload: Dict[str, Any]):
     imported_count = 0
     updated_count = 0
 
+    import re
+
     for o in orders_to_import:
         table_code = o.get("table_code")
         session_token = o.get("session_token")
+        incoming_uuid = o.get("order_uuid")
         
         # 1. Tìm hoặc ánh xạ bàn
         cursor.execute("SELECT id FROM tables WHERE table_code = ?", (table_code,))
@@ -154,41 +166,68 @@ def import_orders(payload: Dict[str, Any]):
             s_row = cursor.fetchone()
             local_session_id = s_row["id"] if s_row else 1
 
-        # 3. Kiểm tra xem đơn đã tồn tại chưa (dựa theo order_code hoặc thời gian + table_id + total)
-        order_code = o.get("order_code") or f"SYNC_{o['id']}_{o.get('created_at', '')[:19]}"
-        cursor.execute("SELECT id, payment_status, status FROM orders WHERE customer_note LIKE ?", (f"%[REF:{order_code}]%",))
-        existing_order = cursor.fetchone()
+        # 3. KIỂM TRA ĐƠN ĐÃ TỒN TẠI (3 LỚP BẢO VỆ CHỐNG TRÙNG LẶP TRIỆT ĐỂ)
+        existing_order = None
+        
+        # Lớp 1: Khớp theo order_uuid toàn cục
+        if incoming_uuid:
+            cursor.execute("SELECT id, payment_status, status, order_uuid FROM orders WHERE order_uuid = ?", (incoming_uuid,))
+            existing_order = cursor.fetchone()
+
+        # Lớp 2: Khớp theo mã REF trong customer_note (đối với các đơn cũ)
+        if not existing_order:
+            order_code = o.get("order_code") or f"SYNC_{o.get('id')}_{o.get('created_at', '')[:19]}"
+            cursor.execute("SELECT id, payment_status, status, order_uuid FROM orders WHERE customer_note LIKE ?", (f"%[REF:{order_code}]%",))
+            existing_order = cursor.fetchone()
+
+        # Lớp 3: Khử trùng tự nhiên (Natural Key Deduplication)
+        # Cùng bàn, cùng tổng tiền, thời gian tạo cách nhau không quá 60 giây -> 100% là cùng 1 đơn
+        if not existing_order and o.get("created_at"):
+            cursor.execute("""
+                SELECT id, payment_status, status, order_uuid FROM orders
+                WHERE table_id = ? 
+                  AND total = ? 
+                  AND ABS(strftime('%s', created_at) - strftime('%s', ?)) <= 60
+                LIMIT 1
+            """, (local_table_id, o.get("total", 0), o.get("created_at", "")))
+            existing_order = cursor.fetchone()
 
         if existing_order:
-            # Đơn đã có -> Cập nhật trạng thái thanh toán nếu có thay đổi
+            # ĐÃ TỒN TẠI: Cập nhật order_uuid nếu đơn này chưa có
+            if incoming_uuid and not existing_order["order_uuid"]:
+                cursor.execute("UPDATE orders SET order_uuid = ? WHERE id = ?", (incoming_uuid, existing_order["id"]))
+
+            # Cập nhật trạng thái thanh toán nếu có thay đổi
             if o.get("payment_status") != existing_order["payment_status"] or o.get("status") != existing_order["status"]:
                 cursor.execute("""
                     UPDATE orders 
-                    SET status = ?, payment_status = ?, completed_at = ?
+                    SET status = ?, payment_status = ?, completed_at = ?, payment_method = ?
                     WHERE id = ?
-                """, (o.get("status"), o.get("payment_status"), o.get("completed_at"), existing_order["id"]))
+                """, (o.get("status"), o.get("payment_status"), o.get("completed_at"), o.get("payment_method", "CASH"), existing_order["id"]))
                 updated_count += 1
             continue
 
-        # 4. Chèn đơn hàng mới
-        note_with_ref = (o.get("customer_note") or "") + f" [REF:{order_code}]"
+        # 4. CHÈN ĐƠN MỚI NGUYÊN BẢN (KHÔNG LÀM BẨN NOTE VỚI MÃ REF LẶP LẠI)
+        final_uuid = incoming_uuid or f"ord_{uuid.uuid4().hex}"
+        raw_note = o.get("customer_note") or ""
+        clean_note = re.sub(r'\s*\[REF:SYNC_[^\]]+\]', '', raw_note).strip()
+
         cursor.execute("""
             INSERT INTO orders (
-                session_id, table_id, round_number, subtotal, discount, total,
+                order_uuid, session_id, table_id, round_number, subtotal, discount, total,
                 status, payment_status, payment_method, customer_note, created_at, completed_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            local_session_id, local_table_id, o.get("round_number", 1),
+            final_uuid, local_session_id, local_table_id, o.get("round_number", 1),
             o.get("subtotal", 0), o.get("discount", 0), o.get("total", 0),
             o.get("status", "CONFIRMED"), o.get("payment_status", "UNPAID"),
-            o.get("payment_method", "CASH"), note_with_ref,
+            o.get("payment_method", "CASH"), clean_note,
             o.get("created_at"), o.get("completed_at")
         ))
         new_order_id = cursor.lastrowid
 
         # 5. Chèn danh sách món
         for it in o.get("items", []):
-            # Tìm ID món theo tên nếu ID khác nhau
             cursor.execute("SELECT id FROM menu_items WHERE name = ?", (it.get("item_name"),))
             mi_row = cursor.fetchone()
             local_item_id = mi_row["id"] if mi_row else it.get("item_id", 1)
