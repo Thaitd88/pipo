@@ -276,7 +276,7 @@
                 Hủy Bỏ
               </button>
               <button type="button" onclick="submitServiceOrder()" id="btnSubmitOrder" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition shadow-sm flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-check"></i> Xác Nhận Thêm
+                <i class="fa-solid fa-receipt"></i> Xác Nhận & In Bill Thu Tiền
               </button>
             </div>
           </div>
@@ -745,7 +745,10 @@
                 <div class="space-y-2">
                   <div class="flex items-center justify-between text-xs">
                     <span class="text-stone-500">Dịch vụ & đồ uống:</span>
-                    <span class="font-bold text-stone-800">${itemCount} món / lượt</span>
+                    <button onclick="openCheckoutModal(${c.id})" class="font-bold text-stone-700 hover:text-emerald-800 underline flex items-center gap-1 cursor-pointer" title="Xem chi tiết hóa đơn">
+                      <span>${itemCount} món / lượt</span>
+                      <i class="fa-solid fa-eye text-[10px]"></i>
+                    </button>
                   </div>
 
                   <!-- Quick preview first 3 items -->
@@ -765,8 +768,11 @@
                   </div>
 
                   <div class="pt-2 border-t border-amber-200/80 flex items-center justify-between">
-                    <span class="text-xs font-bold text-stone-600">Tạm tính hiện tại:</span>
-                    <span class="font-black text-amber-800 text-lg">${formatVND(totalAmount)}</span>
+                    <div>
+                      <span class="text-xs font-bold text-stone-600">Đã thu (Hóa đơn):</span>
+                      <div class="text-[10px] text-stone-400">Khách đã trả tiền khi gọi</div>
+                    </div>
+                    <span class="font-black text-emerald-800 text-lg">${formatVND(totalAmount)}</span>
                   </div>
                 </div>
               ` : `
@@ -782,13 +788,13 @@
 
             <!-- Card Actions -->
             <div class="p-3 bg-stone-50 border-t border-stone-200/80 grid ${isOccupied ? 'grid-cols-2' : 'grid-cols-1'} gap-2">
-              <button onclick="openServiceOrderModal(${c.id})" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition shadow-xs flex items-center justify-center gap-1.5">
+              <button onclick="openServiceOrderModal(${c.id})" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
                 <i class="fa-solid fa-plus"></i> ${isOccupied ? 'Thêm Món / Giờ' : 'Vào Sân / Gọi Đồ'}
               </button>
 
               ${isOccupied ? `
-                <button onclick="openCheckoutModal(${c.id})" class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-xs transition shadow-xs flex items-center justify-center gap-1.5">
-                  <i class="fa-solid fa-receipt"></i> Thanh Toán
+                <button onclick="confirmReleaseCourt(${c.id}, '${courtName}')" class="px-3 py-2 rounded-xl bg-stone-800 hover:bg-stone-900 text-amber-300 font-black text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer" title="Khách chơi xong về hết, giải phóng sân thành sân trống (Không in lại bill)">
+                  <i class="fa-solid fa-flag-checkered"></i> Báo Sân Trống
                 </button>
               ` : ''}
             </div>
@@ -1123,6 +1129,28 @@
       } finally {
         btn.disabled = false;
         btn.innerHTML = orig;
+      }
+    }
+
+    // ==================== 4. BÁO SÂN TRỐNG (GIẢI PHÓNG SÂN - KHÔNG IN LẠI BILL) ====================
+    async function confirmReleaseCourt(courtId, courtName) {
+      if (!confirm(`Khách chơi đã về hết.\n\nXác nhận giải phóng [${courtName}] thành Sân Trống (Không in lại bill)?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/pos/table/${courtId}/release-court`, {
+          method: "POST"
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Không thể báo sân trống");
+        }
+        showToast(`✅ Đã giải phóng [${courtName}] thành Sân Trống thành công!`);
+        await loadPickleCourts();
+      } catch (err) {
+        console.error("Lỗi confirmReleaseCourt:", err);
+        alert("Lỗi khi báo sân trống: " + err.message);
       }
     }
 

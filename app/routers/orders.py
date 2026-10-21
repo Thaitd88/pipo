@@ -69,6 +69,7 @@ async def create_order(payload: dict):
         cursor.execute("UPDATE tables SET status = 'OCCUPIED', current_session_id = ? WHERE id = ?", (session_id, table_id))
     else:
         session_id = session["id"]
+        cursor.execute("UPDATE tables SET status = 'OCCUPIED', current_session_id = ? WHERE id = ?", (session_id, table_id))
 
     # 3. Tính số đợt gọi món (Round Number) của bàn
     cursor.execute("SELECT COUNT(*) as round_cnt FROM orders WHERE session_id = ?", (session_id,))
@@ -125,28 +126,47 @@ async def create_order(payload: dict):
     new_order_uuid = f"ord_{uuid.uuid4().hex}"
     now_ts = now_vn_str("%Y-%m-%d %H:%M:%S")
     now_time = now_vn_time_str("%H:%M:%S")
+
+    order_source = str(payload.get("order_source", "")).strip().upper()
+    is_pos_pickle = (order_source == "POS_PICKLE")
+    order_status = "COMPLETED" if is_pos_pickle else "CONFIRMED"
+    payment_status = "PAID" if is_pos_pickle else "UNPAID"
+    payment_method = str(payload.get("payment_method") or "CASH").strip().upper()
+    completed_at = now_ts if is_pos_pickle else None
+
     cursor.execute("""
-        INSERT INTO orders (order_uuid, session_id, table_id, round_number, subtotal, total, status, payment_status, customer_note, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, 'CONFIRMED', 'UNPAID', ?, ?)
-    """, (new_order_uuid, session_id, table_id, round_number, subtotal, total, customer_note, now_ts))
+        INSERT INTO orders (order_uuid, session_id, table_id, round_number, subtotal, total, status, payment_status, payment_method, customer_note, created_at, completed_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (new_order_uuid, session_id, table_id, round_number, subtotal, total, order_status, payment_status, payment_method, customer_note, now_ts, completed_at))
     order_id = cursor.lastrowid
 
     # 6. Lưu vào bảng Order Items
     order_items_to_broadcast = []
+    item_status = "SERVED" if is_pos_pickle else "QUEUED"
     for dit in detailed_items:
         cursor.execute("""
             INSERT INTO order_items (order_id, item_id, item_name, quantity, unit_price, total_price, station, note, modifiers_json, status, discount_percent, original_price, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'QUEUED', ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (order_id, dit["item_id"], dit["item_name"], dit["quantity"], dit["unit_price"], dit["total_price"], 
-              dit["station"], dit["note"], json.dumps(dit["modifiers"]), dit["discount_percent"], dit["original_price"], now_ts, now_ts))
+              dit["station"], dit["note"], json.dumps(dit["modifiers"]), item_status, dit["discount_percent"], dit["original_price"], now_ts, now_ts))
         order_item_id = cursor.lastrowid
-        order_items_to_broadcast.append({**dit, "id": order_item_id, "status": "QUEUED"})
+        order_items_to_broadcast.append({**dit, "id": order_item_id, "status": item_status})
+
+    if is_pos_pickle:
+        # Tự động trừ kho NVL cho các món/dịch vụ sân (nước uống, nước tặng kèm)
+        try:
+            from ..database import deduct_inventory_for_order_item
+            for oit in order_items_to_broadcast:
+                deduct_inventory_for_order_item(conn, oit["id"])
+        except Exception as _deduct_err:
+            print("[create_order POS_PICKLE] deduct inventory error:", _deduct_err)
+        # Giữ sân ở trạng thái OCCUPIED (Đang Chơi) để nhân viên quản lý
+        cursor.execute("UPDATE tables SET status = 'OCCUPIED' WHERE id = ?", (table_id,))
 
     # 7. TỰ ĐỘNG TẠO PHIẾU IN: PHIẾU THANH TOÁN (NẾU TỪ POS PICK) HOẶC PHIẾU BẾP KOT (NẾU KHÁCH QUÉT QR)
-    order_source = str(payload.get("order_source", "")).strip().upper()
     print_jobs_created = []
 
-    if order_source == "POS_PICKLE":
+    if is_pos_pickle:
         # Từ giao diện POS Sân Pick: In trực tiếp Phiếu Thanh Toán (Receipt) ra Máy in Thu Ngân 252
         from ..escpos import format_receipt_ticket_text, build_escpos_receipt_bytes
         totals_info = {
@@ -154,7 +174,7 @@ async def create_order(payload: dict):
             "cashier_name": "Thu Ngan San Pick",
             "discount": 0,
             "service_fee": 0,
-            "payment_method": "CASH",
+            "payment_method": payment_method,
             "bill_target": "CUSTOMER",
             "created_at": now_ts
         }

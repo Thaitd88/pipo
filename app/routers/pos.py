@@ -144,11 +144,11 @@ def get_table_bill(table_id: int):
             "qr_code_url": ""
         }
 
-    # Bàn đang có khách: Chỉ lấy các đơn hàng của đúng phiên hiện tại nếu có session_id
+    # Bàn đang có khách: Lấy các đơn hàng của phiên hiện tại nếu có session_id, hoặc UNPAID nếu không có session_id
     if session_id:
         cursor.execute("""
             SELECT * FROM orders 
-            WHERE table_id = ? AND (session_id = ? OR session_id IS NULL) AND payment_status = 'UNPAID'
+            WHERE table_id = ? AND (session_id = ? OR session_id IS NULL)
             ORDER BY round_number ASC
         """, (table_id, session_id))
     else:
@@ -161,6 +161,8 @@ def get_table_bill(table_id: int):
 
     all_items = []
     grand_total = 0
+    paid_total = 0
+    unpaid_total = 0
     first_order_time = None
 
     for order in orders:
@@ -175,7 +177,12 @@ def get_table_bill(table_id: int):
         all_items.extend(items)
         # Chỉ cộng các món chưa bị hủy (status != 'CANCELLED')
         order_active_sum = sum(it["total_price"] for it in items if it["status"] != "CANCELLED")
-        grand_total += max(0, order_active_sum - order["discount"])
+        order_net = max(0, order_active_sum - (order.get("discount") or 0))
+        grand_total += order_net
+        if order.get("payment_status") == "PAID":
+            paid_total += order_net
+        else:
+            unpaid_total += order_net
 
     conn.close()
 
@@ -212,6 +219,8 @@ def get_table_bill(table_id: int):
         "orders_count": len(orders),
         "grand_total": grand_total,
         "total": grand_total,
+        "paid_total": paid_total,
+        "unpaid_total": unpaid_total,
         "items": all_items,
         "transfer_note": transfer_note,
         "in_time": in_time_str,
@@ -453,6 +462,63 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
         "receipt_text": receipt_text if 'receipt_text' in locals() else None,
         "receipt_b64": receipt_b64 if 'receipt_b64' in locals() else None,
         "final_total": final_checkout_total,
+        "table_id": table_id
+    }
+
+@router.post("/table/{table_id}/release-court")
+async def release_court(table_id: int, request: Request):
+    """
+    Dành riêng cho POS Sân Pickleball:
+    Khi khách chơi xong và về hết, nhân viên bấm 'Báo Sân Trống'.
+    Endpoint này đóng phiên, đưa sân về trạng thái AVAILABLE mà TUYỆT ĐỐI KHÔNG IN LẠI BILL.
+    """
+    user = require_api_auth(request, allowed_roles=["ADMIN", "CASHIER", "WAITER", "PICKLEBALL"])
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM tables WHERE id = ?", (table_id,))
+    table = cursor.fetchone()
+    if not table:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Sân không tồn tại")
+
+    now_ts = now_vn_str("%Y-%m-%d %H:%M:%S")
+
+    # 1. Chốt tất cả đơn còn lại nếu có sang PAID (CASH)
+    cursor.execute("""
+        UPDATE orders 
+        SET payment_status = 'PAID', status = 'COMPLETED', completed_at = COALESCE(completed_at, ?)
+        WHERE table_id = ? AND payment_status = 'UNPAID'
+    """, (now_ts, table_id))
+
+    cursor.execute("""
+        UPDATE order_items 
+        SET status = 'SERVED'
+        WHERE order_id IN (SELECT id FROM orders WHERE table_id = ?) AND status != 'CANCELLED'
+    """, (table_id,))
+
+    # 2. Đóng toàn bộ session của sân
+    if table["current_session_id"]:
+        cursor.execute("UPDATE table_sessions SET status = 'CLOSED', closed_at = ? WHERE id = ?", (now_ts, table["current_session_id"]))
+    cursor.execute("UPDATE table_sessions SET status = 'CLOSED', closed_at = ? WHERE table_id = ? AND (status = 'ACTIVE' OR status = 'OPEN')", (now_ts, table_id))
+
+    # 3. Đưa sân về trạng thái AVAILABLE
+    cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL WHERE id = ?", (table_id,))
+
+    conn.commit()
+    conn.close()
+
+    # 4. Phát sự kiện WebSocket
+    if ws_broadcaster:
+        await ws_broadcaster.send_to_pos({
+            "event": "TABLE_STATUS_CHANGED",
+            "table_id": table_id,
+            "status": "AVAILABLE"
+        })
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Sân {table['name']} đã được giải phóng thành sân trống thành công.",
         "table_id": table_id
     }
 
