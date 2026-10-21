@@ -294,6 +294,10 @@
                 <div class="text-[10px] text-emerald-200 font-bold uppercase">Số đơn</div>
                 <div class="text-base font-bold mt-0.5" id="detailTotalOrders">0</div>
               </div>
+              <div class="bg-white/10 px-3 py-2 rounded-xl backdrop-blur-xs">
+                <div class="text-[10px] text-emerald-200 font-bold uppercase">Tổng món</div>
+                <div class="text-base font-bold mt-0.5" id="detailTotalDishes">0</div>
+              </div>
             </div>
           </div>
 
@@ -1770,7 +1774,9 @@
     }
 
     async function fetchDetailReport() {
-      const dateVal = document.getElementById("inputFilterDate").value;
+      const filterEl = document.getElementById("inputFilterDate");
+      if (filterEl && !filterEl.value) { filterEl.value = new Date().toISOString().split("T")[0]; }
+      const dateVal = filterEl ? filterEl.value : "";
       try {
         const res = await fetch(`/api/reports/detail?period_type=${currentDetailPeriod}&date_val=${dateVal}`);
         const data = await res.json();
@@ -1796,7 +1802,7 @@
           document.getElementById("detailServiceFeeTotal").innerText = formatVND(data.summary.total_service_fee || 0);
         }
         document.getElementById("detailTotalOrders").innerText = data.summary.total_orders;
-        document.getElementById("detailTotalDishes").innerText = data.summary.total_dishes_count;
+        if (document.getElementById("detailTotalDishes")) { document.getElementById("detailTotalDishes").innerText = (data.summary && data.summary.total_dishes_count) || 0; }
         document.getElementById("detailOrdersCountBadge").innerText = `${data.orders.length} hóa đơn đã thanh toán`;
 
         const tbody = document.getElementById("detailOrdersTableBody");

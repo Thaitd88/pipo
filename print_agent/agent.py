@@ -57,7 +57,7 @@ def print_to_lan_printer(host: str, port: int, payload_bytes: bytes) -> bool:
     """Gửi dữ liệu ESC/POS trực tiếp tới máy in nhiệt qua socket mạng LAN nội bộ."""
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(3.0)
+        s.settimeout(5.0)
         s.connect((host, port))
         s.sendall(payload_bytes)
         time.sleep(0.05)

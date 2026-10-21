@@ -84,7 +84,7 @@ def save_printer_config(cfg: dict):
     conn.close()
     get_printer_config(force_reload=True)
 
-def send_escpos_to_printer(host: str, port: int, payload_bytes: bytes, timeout: float = 3.0) -> tuple[bool, str]:
+def send_escpos_to_printer(host: str, port: int, payload_bytes: bytes, timeout: float = 5.0) -> tuple[bool, str]:
     """Gửi dữ liệu ESC/POS trực tiếp tới máy in nhiệt qua TCP socket."""
     s = None
     try:
@@ -104,7 +104,7 @@ def send_escpos_to_printer(host: str, port: int, payload_bytes: bytes, timeout: 
                 pass
         return False, str(e)
 
-def check_single_printer(host: str, port: int = 9100, timeout: float = 1.5) -> dict:
+def check_single_printer(host: str, port: int = 9100, timeout: float = 3.5) -> dict:
     """Kiểm tra trạng thái kết nối và đo độ trễ tới máy in."""
     t0 = time.time()
     s = None

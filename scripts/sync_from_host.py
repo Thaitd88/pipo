@@ -26,13 +26,13 @@ os.makedirs(HOME_DIR, exist_ok=True)
 BASE_HOST = "https://pipogarden.com"
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) PiPoSyncAgent/1.0"}
 
-def fetch_json(endpoint):
+def fetch_json(endpoint, timeout=5):
     url = f"{BASE_HOST}{endpoint}"
     req = urllib.request.Request(url, headers=HEADERS)
-    with urllib.request.urlopen(req, timeout=15) as res:
+    with urllib.request.urlopen(req, timeout=timeout) as res:
         return json.loads(res.read().decode('utf-8'))
 
-def sync():
+def sync(timeout=5, download_images=True):
     print(f"[*] Bắt đầu đồng bộ từ Host ({BASE_HOST}) xuống Local...")
 
     # 1. Backup local DB nếu có
@@ -42,29 +42,29 @@ def sync():
 
     # 2. Fetch dữ liệu từ Host
     print("  [+] Đang tải danh mục, món ăn và cấu hình từ Host...")
-    host_cats = fetch_json("/api/menu/categories")
-    host_menu = fetch_json("/api/menu")
+    host_cats = fetch_json("/api/menu/categories", timeout=timeout)
+    host_menu = fetch_json("/api/menu", timeout=timeout)
     
     try:
-        host_cms = fetch_json("/api/homepage/cms")
+        host_cms = fetch_json("/api/homepage/cms", timeout=timeout)
     except Exception as e:
         print("  [-] Không tải được CMS:", e)
         host_cms = None
 
     try:
-        host_settings = fetch_json("/api/menu/settings")
+        host_settings = fetch_json("/api/menu/settings", timeout=timeout)
     except Exception as e:
         print("  [-] Không tải được settings:", e)
         host_settings = None
 
     try:
-        host_tables = fetch_json("/api/tables")
+        host_tables = fetch_json("/api/tables", timeout=timeout)
     except Exception as e:
         print("  [-] Không tải được tables:", e)
         host_tables = None
 
     try:
-        host_areas = fetch_json("/api/tables/areas")
+        host_areas = fetch_json("/api/tables/areas", timeout=timeout)
     except Exception as e:
         print("  [-] Không tải được areas:", e)
         host_areas = None
@@ -217,25 +217,26 @@ def sync():
     conn.commit()
     conn.close()
 
-    # 4. Tải các ảnh món mới nếu thiếu
-    missing_imgs = 0
-    for it in host_items:
-        img_url = it.get('image_url') or ""
-        clean_path = img_url.split('?')[0]
-        if clean_path.startswith('/static/dishes/'):
-            fname = os.path.basename(clean_path)
-            lpath = os.path.join(DISHES_DIR, fname)
-            if not os.path.exists(lpath):
-                missing_imgs += 1
-                try:
-                    full_url = f"{BASE_HOST}{clean_path}"
-                    req_img = urllib.request.Request(full_url, headers=HEADERS)
-                    with urllib.request.urlopen(req_img, timeout=10) as ir:
-                        with open(lpath, 'wb') as f:
-                            f.write(ir.read())
-                    print(f"    -> Đã tải ảnh: {fname}")
-                except Exception as e:
-                    print(f"    -> Lỗi tải ảnh {fname}: {e}")
+    # 4. Tải các ảnh món mới nếu thiếu (nếu download_images=True)
+    if download_images:
+        missing_imgs = 0
+        for it in host_items:
+            img_url = it.get('image_url') or ""
+            clean_path = img_url.split('?')[0]
+            if clean_path.startswith('/static/dishes/'):
+                fname = os.path.basename(clean_path)
+                lpath = os.path.join(DISHES_DIR, fname)
+                if not os.path.exists(lpath):
+                    missing_imgs += 1
+                    try:
+                        full_url = f"{BASE_HOST}{clean_path}"
+                        req_img = urllib.request.Request(full_url, headers=HEADERS)
+                        with urllib.request.urlopen(req_img, timeout=5) as ir:
+                            with open(lpath, 'wb') as f:
+                                f.write(ir.read())
+                        print(f"    -> Đã tải ảnh: {fname}")
+                    except Exception as e:
+                        print(f"    -> Lỗi tải ảnh {fname}: {e}")
 
     print(f"[*] Hoàn tất đồng bộ! Local DB đã được cập nhật chính xác 100% theo Host.")
 

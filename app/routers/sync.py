@@ -217,3 +217,57 @@ def import_orders(payload: Dict[str, Any]):
         "updated": updated_count,
         "message": f"Đã đồng bộ {imported_count} đơn mới, cập nhật {updated_count} đơn."
     }
+
+import io
+import os
+import zipfile
+from fastapi.responses import StreamingResponse
+
+@router.get("/code-bundle")
+def get_code_bundle():
+    """Tạo gói zip chứa code mới nhất (app, scripts, run_server) để máy thu ngân tự động cập nhật."""
+    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        # 1. Nén thư mục app (trừ __pycache__)
+        app_dir = os.path.join(root_dir, "app")
+        for root, dirs, files in os.walk(app_dir):
+            dirs[:] = [d for d in dirs if d not in ("__pycache__", ".git")]
+            for f in files:
+                if not f.endswith((".pyc", ".pyo", ".tmp")):
+                    full_p = os.path.join(root, f)
+                    rel_p = os.path.relpath(full_p, root_dir)
+                    zf.write(full_p, rel_p)
+
+        # 2. Nén thư mục print_agent
+        agent_dir = os.path.join(root_dir, "print_agent")
+        for root, dirs, files in os.walk(agent_dir):
+            dirs[:] = [d for d in dirs if d not in ("__pycache__", ".git")]
+            for f in files:
+                if not f.endswith((".pyc", ".pyo", ".tmp")):
+                    full_p = os.path.join(root, f)
+                    rel_p = os.path.relpath(full_p, root_dir)
+                    zf.write(full_p, rel_p)
+
+        # 3. Nén thư mục scripts
+        scripts_dir = os.path.join(root_dir, "scripts")
+        for root, dirs, files in os.walk(scripts_dir):
+            dirs[:] = [d for d in dirs if d not in ("__pycache__", ".git")]
+            for f in files:
+                if not f.endswith((".pyc", ".pyo", ".tmp")):
+                    full_p = os.path.join(root, f)
+                    rel_p = os.path.relpath(full_p, root_dir)
+                    zf.write(full_p, rel_p)
+
+        # 4. Nén các file gốc cần thiết
+        for fn in ["run_server.py", "run_agent.py", "requirements.txt"]:
+            fp = os.path.join(root_dir, fn)
+            if os.path.exists(fp):
+                zf.write(fp, fn)
+
+    buffer.seek(0)
+    return StreamingResponse(
+        buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=pipo_update_bundle.zip"}
+    )

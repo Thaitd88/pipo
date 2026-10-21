@@ -5,6 +5,7 @@ import sys
 if sys.platform == "win32":
     try:
         sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
     except Exception:
         pass
 
@@ -66,8 +67,28 @@ def prepare_thungan():
     # 6. Tạo các file BAT và hướng dẫn
     print("  [+] Tạo các tập lệnh vận hành (.bat)...")
 
+    # Đoạn mã tìm Python dùng chung cho tất cả các file .bat
+    py_detect_snippet = """set "PY_CMD="
+py -3 --version >nul 2>&1 && set "PY_CMD=py -3"
+if not defined PY_CMD (
+    python --version >nul 2>&1 && set "PY_CMD=python"
+)
+if not defined PY_CMD (
+    for /d %%d in ("%LOCALAPPDATA%\\Programs\\Python\\Python3*") do (
+        if exist "%%d\\python.exe" set "PY_CMD=%%d\\python.exe"
+    )
+)
+if not defined PY_CMD (
+    for /d %%d in ("%ProgramFiles%\\Python3*") do (
+        if exist "%%d\\python.exe" set "PY_CMD=%%d\\python.exe"
+    )
+    for /d %%d in ("C:\\Python3*") do (
+        if exist "%%d\\python.exe" set "PY_CMD=%%d\\python.exe"
+    )
+)"""
+
     # 1_CAI_DAT_LAN_DAU.bat
-    bat_cai_dat = """@echo off
+    bat_cai_dat = f"""@echo off
 chcp 65001 > nul
 title PiPo Garden - Cai Dat Ban Dau Cho May Thu Ngan
 color 0A
@@ -79,9 +100,10 @@ echo.
 
 cd /d "%~dp0"
 
-echo [1/3] Kiem tra moi truong Python tren may thu ngan...
-python --version > nul 2>&1
-if %errorlevel% neq 0 (
+echo [1/4] Kiem tra moi truong Python tren may thu ngan...
+{py_detect_snippet}
+
+if not defined PY_CMD (
     echo.
     echo [LOI] May tinh chua cai dat Python hoac chua tick "Add python.exe to PATH"!
     echo Vui long tai va cai dat Python (ban 3.10 tro len) tu https://www.python.org/
@@ -90,12 +112,14 @@ if %errorlevel% neq 0 (
     pause
     exit /b 1
 )
-python --version
+
+echo [+] Da tim thay Python: %PY_CMD%
+%PY_CMD% --version
 echo.
 
-echo [2/3] Dang cai dat cac thu vien he thong (FastAPI, Uvicorn, Websockets...)...
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+echo [2/4] Dang cai dat cac thu vien he thong (FastAPI, Uvicorn, Websockets...)...
+%PY_CMD% -m pip install --upgrade pip
+%PY_CMD% -m pip install -r requirements.txt
 if %errorlevel% neq 0 (
     echo.
     echo [CANH BAO] Co loi khi cai dat thu vien qua pip. Vui long kiem tra lai ket noi Internet.
@@ -104,21 +128,25 @@ if %errorlevel% neq 0 (
 )
 echo.
 
-echo [3/3] Mo cong Firewall 8000 de dien thoai nhan vien / khach ket noi qua Wi-Fi...
+echo [3/4] Mo cong Firewall 8000 de dien thoai nhan vien / khach ket noi qua Wi-Fi...
 netsh advfirewall firewall delete rule name="PiPo POS Server (Port 8000)" > nul 2>&1
 netsh advfirewall firewall add rule name="PiPo POS Server (Port 8000)" dir=in action=allow protocol=TCP localport=8000 > nul 2>&1
 if %errorlevel% equ 0 (
     echo [+] Da mo cong 8000 tren Windows Firewall thanh cong!
 ) else (
     echo [-] Khong the tu dong sua Firewall (Can quyen Administrator).
-    echo     Neu dien thoai khong truy cap duoc http://192.168.31.253:8000, 
-    echo     vui long chuot phai vao file nay va chon "Run as administrator".
+    echo     Neu can mo, vui long chuot phai vao file nay va chon "Run as administrator".
 )
+echo.
+
+echo [4/4] Tu dong dang ky khoi dong cung Windows...
+%PY_CMD% scripts\\setup_autostart.py
 
 echo.
 echo ===================================================================
-echo   CAI DAT HOAN TAT!
-echo   Bay gio ban chi can nhap dup vao: 2_CHAY_HE_THONG.bat de su dung!
+echo   🎉 CAI DAT HOAN TAT 100%%!
+echo   He thong da duoc thiet lap tu dong khoi dong moi khi bat may tinh.
+echo   De chay thu ngay bay gio, ban chi can nhap dup: 2_CHAY_HE_THONG.bat
 echo ===================================================================
 echo.
 pause
@@ -127,49 +155,36 @@ pause
         f.write(bat_cai_dat)
 
     # 2_CHAY_HE_THONG.bat
-    bat_chay = """@echo off
+    bat_chay = f"""@echo off
 chcp 65001 > nul
 title PiPo Garden - Khoi Dong POS Thu Ngan & Server Local
 color 0B
-echo ===================================================================
-echo     🌿 HE THONG NHA HANG PIPO GARDEN - MAY THU NGAN LOCAL
-echo     IP May Thu Ngan: 192.168.31.253 | Cong: 8000
-echo ===================================================================
-echo.
 
 cd /d "%~dp0"
 
-echo [*] 1. Khoi chay Server Local (FastAPI & WebSockets)...
-start "PiPo Server Local (Port 8000)" cmd /k "title PiPo Server Local & cd /d %~dp0 & python run_server.py"
+{py_detect_snippet}
 
-echo [*] 2. Khoi chay Print Agent (In Bep 251 & Thu Ngan 252)...
-start "PiPo Print Agent" cmd /k "title PiPo Print Agent & cd /d %~dp0 & python run_agent.py"
+if not defined PY_CMD (
+    echo [LOI] Khong tim thay Python tren may thu ngan!
+    echo Vui long chuot phai vao file run_server.py va chon "Open with -> Python".
+    pause
+    exit /b 1
+)
 
-echo [*] 3. Dang doi he thong san sang trong 3 giay...
-timeout /t 3 /nobreak > nul
-
-echo [*] 4. Dang mo giao dien Thu Ngan POS tren trinh duyet...
-start http://localhost:8000/pos
-
-echo.
 echo ===================================================================
-echo   ✅ HE THONG DA SAN SANG HOAT DONG!
-echo.
-echo   * MAY THU NGAN NAY     : http://localhost:8000/pos
-echo   * DIEN THOAI PHUC VU   : http://192.168.31.253:8000/waiter
-echo   * MAN HINH BEP KDS     : http://192.168.31.253:8000/kds
-echo   * QUAN TRI ADMIN       : http://192.168.31.253:8000/admin
-echo.
-echo   LUU Y: Giu 2 cua so mau den (Server va Print Agent) chay ngam!
-echo   Khong dong 2 cua so do khi quan dang ban hang.
+echo     🌿 HE THONG NHA HANG PIPO GARDEN - MAY THU NGAN LOCAL
+echo     Dang khoi chay qua: %PY_CMD%
 echo ===================================================================
 echo.
+
+%PY_CMD% run_server.py
+pause
 """
     with open(os.path.join(DEST_DIR, "2_CHAY_HE_THONG.bat"), "w", encoding="utf-8") as f:
         f.write(bat_chay)
 
     # 3_DONG_BO_MENU_TU_HOST.bat
-    bat_dong_bo = """@echo off
+    bat_dong_bo = f"""@echo off
 chcp 65001 > nul
 title PiPo Garden - Dong Bo Menu Tu Host (pipogarden.com)
 color 0E
@@ -180,8 +195,16 @@ echo.
 
 cd /d "%~dp0"
 
+{py_detect_snippet}
+
+if not defined PY_CMD (
+    echo [LOI] Khong tim thay Python tren may!
+    pause
+    exit /b 1
+)
+
 echo [*] Dang ket noi toi Host https://pipogarden.com de dong bo...
-python scripts\\sync_from_host.py
+%PY_CMD% scripts\\sync_from_host.py
 
 echo.
 echo ===================================================================
@@ -194,39 +217,48 @@ pause
         f.write(bat_dong_bo)
 
     # 4_TU_DONG_KHOI_DONG_CUNG_MAY.bat
-    bat_startup = """@echo off
+    bat_startup = f"""@echo off
 chcp 65001 > nul
 title PiPo Garden - Cau Hinh Tu Khoi Dong Cung Windows
 color 0D
-echo ===================================================================
-echo   🌿 CAU HINH TU DONG KHOI DONG HE THONG CUNG WINDOWS
-echo ===================================================================
-echo.
 
 cd /d "%~dp0"
 
-set "TARGET_BAT=%~dp02_CHAY_HE_THONG.bat"
-set "SHORTCUT_PATH=%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\PiPo_Garden_POS.lnk"
+{py_detect_snippet}
 
-echo [*] Dang tao loi tat tu khoi dong trong thu muc Startup...
-
-powershell -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('%SHORTCUT_PATH%'); $s.TargetPath = '%TARGET_BAT%'; $s.WorkingDirectory = '%~dp0'; $s.Description = 'PiPo Garden Local POS Server'; $s.Save()"
-
-if %errorlevel% equ 0 (
-    echo.
-    echo [+] THANH CONG! Da dang ky tu khoi dong cung Windows.
-    echo     Tu gio, moi khi bat may tinh thu ngan len, he thong se tu dong chay
-    echo     va mo giao dien POS ma thu ngan khong can phai thao tac gi them!
-) else (
-    echo.
-    echo [-] Co loi khi tao loi tat.
+if not defined PY_CMD (
+    echo [LOI] Khong tim thay Python tren may!
+    echo Ban co the chuot phai vao scripts\\setup_autostart.py va chon Open with Python.
+    pause
+    exit /b 1
 )
 
-echo.
-pause
+%PY_CMD% scripts\\setup_autostart.py
 """
     with open(os.path.join(DEST_DIR, "4_TU_DONG_KHOI_DONG_CUNG_MAY.bat"), "w", encoding="utf-8") as f:
         f.write(bat_startup)
+
+    # 5_CAP_NHAT_CODE_MOI.bat
+    bat_update_code = f"""@echo off
+chcp 65001 > nul
+title PiPo Garden - Cap Nhat Code Phan Mem Tu Host
+color 0B
+
+cd /d "%~dp0"
+
+{py_detect_snippet}
+
+if not defined PY_CMD (
+    echo [LOI] Khong tim thay Python tren may!
+    echo Ban co the chuot phai vao scripts\\update_code_from_host.py va chon Open with Python.
+    pause
+    exit /b 1
+)
+
+%PY_CMD% scripts\\update_code_from_host.py
+"""
+    with open(os.path.join(DEST_DIR, "5_CAP_NHAT_CODE_MOI.bat"), "w", encoding="utf-8") as f:
+        f.write(bat_update_code)
 
     # HUONG_DAN_CAI_DAT_VA_VAN_HANH.txt
     huong_dan = """===============================================================================
@@ -240,80 +272,35 @@ I. THÔNG SỐ KỸ THUẬT MẠNG NHÀ HÀNG:
 3. IP Máy in Thu ngân (80mm)     : 192.168.31.252 (Cổng: 9100)
 4. Tên miền Cloud / Quét QR 4G   : https://pipogarden.com
 
-II. CÁCH CÀI ĐẶT LẦN ĐẦU TRÊN MÁY THU NGÂN (CHỈ LÀM 1 LẦN):
+II. CÁC TẬP LỆNH CHÍNH TRONG THƯ MỤC NÀY:
 -------------------------------------------------------------------------------
-Bước 1: Copy toàn bộ thư mục [thungan] này vào ổ C:\\ hoặc D:\\ máy thu ngân
-        (Ví dụ đặt tại: C:\\thungan hoặc D:\\thungan).
+1. [1_CAI_DAT_LAN_DAU.bat]           : Cài đặt thư viện, mở tường lửa và ĐĂNG KÝ
+                                       TỰ ĐỘNG KHỞI ĐỘNG CÙNG WINDOWS.
+2. [2_CHAY_HE_THONG.bat]             : Chạy toàn bộ hệ thống ngay lập tức
+                                       (Đồng bộ menu + Print Agent + Server + Mở POS).
+3. [3_DONG_BO_MENU_TU_HOST.bat]      : Cập nhật thủ công Menu mới nhất từ pipogarden.com.
+4. [4_TU_DONG_KHOI_DONG_CUNG_MAY.bat]: Đăng ký hoặc cập nhật lại tính năng tự động
+                                       khởi động khi bật máy tính thu ngân.
+5. [run_server.py]                   : File Python cốt lõi - Bạn có thể mở trực tiếp
+                                       bằng Python (Open with -> Python) nếu muốn!
 
-Bước 2: Cài đặt Python trên máy thu ngân:
-        - Tải Python (bản 3.10 hoặc 3.11/3.12) từ https://www.python.org/downloads/
-        - RẤT QUAN TRỌNG: Ở màn hình cài đặt đầu tiên, PHẢI TÍCH CHỌN VÀO Ô:
-          [x] "Add python.exe to PATH" rồi mới bấm "Install Now".
-
-Bước 3: Chuột phải vào file [1_CAI_DAT_LAN_DAU.bat] -> Chọn "Run as administrator":
-        - File này sẽ tự động cài các thư viện: FastAPI, Uvicorn, Websockets...
-        - Tự động mở cổng tường lửa Windows 8000 để các máy khác bắt Wi-Fi truy cập được.
-
-Bước 4 (Tùy chọn nhưng KHUYÊN DÙNG):
-        - Nhấp đúp vào file [4_TU_DONG_KHOI_DONG_CUNG_MAY.bat].
-        - Từ nay mỗi khi bật máy thu ngân lên, hệ thống sẽ tự động chạy và bật POS.
-
-III. CÁCH VẬN HÀNH HÀNG NGÀY:
+III. TÍNH NĂNG TỰ ĐỘNG THÔNG MINH MỚI:
 -------------------------------------------------------------------------------
-1. Bật máy thu ngân:
-   - Nhấp đúp vào file: [2_CHAY_HE_THONG.bat]
-   - Màn hình sẽ bật 2 cửa sổ nền đen (Server và Print Agent) và tự động mở trình
-     duyệt web tại địa chỉ: http://localhost:8000/pos
-   - Thu ngân đăng nhập tài khoản:
-     + Tài khoản: thungan  | Mật khẩu: 123456
-     + Hoặc tài khoản Admin: Thaitd | Mật khẩu: 123456
-
-2. Điện thoại nhân viên phục vụ / Order tại bàn:
-   - Kết nối vào Wi-Fi nhà hàng PiPo Garden.
-   - Mở trình duyệt web trên điện thoại gõ: http://192.168.31.253:8000/waiter
-     (hoặc http://192.168.31.253:8000/pos)
-   - Đăng nhập: phucvu | pass: 123456
-   - Bấm gọi món -> Phiếu bếp sẽ in ngay lập tức tại máy in 192.168.31.251 (<0.1 giây)!
-
-3. Màn hình Bếp KDS (nếu bếp dùng máy tính bảng hoặc màn hình phụ):
-   - Mở trình duyệt gõ: http://192.168.31.253:8000/kds
-
-IV. KHI BẠN SỬA MENU TRÊN HOST HOẶC MÁY CỦA BẠN:
--------------------------------------------------------------------------------
-Khi bạn thêm món mới, sửa giá, hoặc thêm khu vực trên Host (pipogarden.com):
-- Tại máy thu ngân, chỉ cần nhấp đúp vào file: [3_DONG_BO_MENU_TU_HOST.bat]
-- Hệ thống sẽ tự động kéo toàn bộ danh mục, món ăn, giá bán và hình ảnh mới nhất
-  từ Host về CSDL máy thu ngân trong vài giây!
-
-V. CƠ CHẾ HOẠT ĐỘNG SONG SONG VÀ CHỐNG MẤT MẠNG:
--------------------------------------------------------------------------------
-- BÌNH THƯỜNG: Print Agent kết nối cả Cloud (pipogarden.com) và Local (127.0.0.1:8000).
-  Khách dùng 4G quét QR trên bàn gọi món -> Máy in tại quán vẫn in bình thường.
-  Thu ngân/phục vụ bấm trên mạng nội bộ -> In ngay lập tức.
-  Đơn hàng tự động đồng bộ 2 chiều giữa máy thu ngân và Cloud mỗi 20 giây.
-
-- KHI ĐỨT CÁP / MẤT INTERNET NGOÀI:
-  Nhà hàng VẪN BÁN HÀNG 100% BÌNH THƯỜNG!
-  Máy thu ngân và điện thoại nhân viên phục vụ kết nối Wi-Fi nội bộ không cần Internet.
-  In hóa đơn, in phiếu bếp, thanh toán diễn ra trơn tru.
-  Khi có mạng lại, hệ thống sẽ tự động đồng bộ bù các đơn hàng lên Cloud.
-
-VI. HỖ TRỢ XỬ LÝ SỰ CỐ NHANH:
--------------------------------------------------------------------------------
-1. Nếu điện thoại nhân viên không vào được http://192.168.31.253:8000:
-   - Kiểm tra điện thoại đã kết nối đúng Wi-Fi của quán chưa.
-   - Chuột phải vào file 1_CAI_DAT_LAN_DAU.bat chọn "Run as administrator" để mở Firewall.
-
-2. Nếu máy in không in:
-   - Kiểm tra đèn mạng trên 2 máy in (Bếp: 192.168.31.251, Thu ngân: 192.168.31.252).
-   - Kiểm tra giấy in và khởi động lại máy in nếu bị kẹt giấy.
+- MỖI KHI BẬT MÁY THU NGÂN:
+  Windows sẽ tự khởi động ngầm toàn bộ:
+  1. Chờ Wi-Fi kết nối ổn định (5 giây).
+  2. Tự động kiểm tra và tải Menu mới nhất từ Host https://pipogarden.com.
+     (Nếu mất mạng ngoài, hệ thống sẽ tự động dùng Menu offline mà không bị lỗi).
+  3. Tự động bật Print Agent để in bếp 251 và in bill thu ngân 252.
+  4. Tự động bật trình duyệt hiển thị màn hình bán hàng POS: http://localhost:8000/pos.
+  -> Thu ngân mở máy lên là sẵn sàng bán hàng ngay!
 ===============================================================================
 """
     with open(os.path.join(DEST_DIR, "HUONG_DAN_CAI_DAT_VA_VAN_HANH.txt"), "w", encoding="utf-8") as f:
         f.write(huong_dan)
 
-    print(f"\n[HOÀN TẤT] Đã đóng gói thành công thư mục: {DEST_DIR}")
-    print(f"Bây giờ bạn chỉ cần copy thư mục [thungan] này sang máy thu ngân!")
+    print("\n[+] Đóng gói hoàn tất thành công 100%!")
+    print(f"[*] Thư mục sẵn sàng tại: {DEST_DIR}")
 
 if __name__ == "__main__":
     prepare_thungan()
