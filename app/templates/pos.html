@@ -85,6 +85,11 @@
         <i class="fa-solid fa-user-shield"></i> Tổng Hợp Bill Admin
       </button>
 
+      <!-- Nút Gõ Món In Bếp Nhanh -->
+      <button type="button" onclick="openCustomKitchenPrintModal()" id="btnCustomKitchenPrint" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white text-xs font-black flex-shrink-0 flex items-center gap-1.5 shadow-sm transition whitespace-nowrap cursor-pointer" title="Tự gõ tên món và bắn lệnh in thẳng vào Máy in Bếp">
+        <i class="fa-solid fa-fire-burner text-amber-300"></i> Gõ Món In Bếp
+      </button>
+
       <a href="/pickleball" target="_blank" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex-shrink-0 flex items-center gap-1.5 shadow-sm transition whitespace-nowrap" title="Xem lịch đặt sân Pickleball">
         <i class="fa-solid fa-calendar-days text-amber-300"></i> Lịch Đặt Sân ↗
       </a>
@@ -1319,9 +1324,14 @@
           
           <!-- Search & Category Filters -->
           <div class="p-2.5 sm:p-3 bg-white border-b border-stone-200 space-y-2 flex-shrink-0">
-            <div class="relative">
-              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-stone-400 text-xs"></i>
-              <input type="text" id="posOrderSearchInput" oninput="filterPosOrderDishes()" placeholder="Tìm món nhanh theo tên, mã món..." class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 focus:outline-emerald-600 bg-stone-50">
+            <div class="flex items-center gap-2">
+              <div class="relative flex-1">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-stone-400 text-xs"></i>
+                <input type="text" id="posOrderSearchInput" oninput="filterPosOrderDishes()" placeholder="Tìm món nhanh theo tên, mã món..." class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 focus:outline-emerald-600 bg-stone-50">
+              </div>
+              <button type="button" onclick="openCustomKitchenPrintModal(currentPosTable ? currentPosTable.id : null)" class="px-2.5 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs whitespace-nowrap flex items-center gap-1 shadow-xs transition cursor-pointer" title="Tự gõ món ngoài menu và in bếp">
+                <i class="fa-solid fa-pen-to-square"></i> Gõ Món In Bếp
+              </button>
             </div>
 
             <!-- Categories pills horizontal scroll -->
@@ -1760,6 +1770,130 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: GÕ MÓN IN BẾP NHANH (CUSTOM KITCHEN TICKET) -->
+  <!-- ======================================================== -->
+  <div id="customKitchenPrintModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full flex flex-col shadow-2xl border border-stone-200 overflow-hidden animate-in zoom-in-95 duration-200">
+      <!-- Header -->
+      <div class="px-5 py-4 bg-gradient-to-r from-orange-700 to-amber-700 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-xl text-amber-300 shadow-inner">
+            <i class="fa-solid fa-fire-burner"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-base leading-tight">Gõ Món & In Phiếu Bếp Nhanh</h3>
+            <p class="text-xs text-orange-100">Tự nhập món ngoài menu và bắn lệnh in thẳng vào bếp</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeCustomKitchenPrintModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <form id="customKitchenPrintForm" onsubmit="submitCustomKitchenPrint(event)" class="p-5 space-y-3.5 max-h-[80vh] overflow-y-auto custom-scrollbar">
+        <!-- 1. Chọn Bàn / Vị trí -->
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">
+            <i class="fa-solid fa-chair text-orange-600"></i> Bàn / Vị trí phục vụ *
+          </label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <select id="ckpTableSelect" onchange="onCkpTableChange()" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-bold text-stone-800 focus:outline-orange-600 focus:bg-white cursor-pointer">
+              <option value="CUSTOM">✍️ Tự nhập vị trí / Mang về</option>
+            </select>
+            <input type="text" id="ckpCustomTableName" placeholder="Tên bàn / Vị trí (VD: Bàn 01, Mang về...)" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs text-stone-800 focus:outline-orange-600 focus:bg-white font-bold">
+          </div>
+        </div>
+
+        <!-- 2. Tên Món Ăn / Đồ Uống -->
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">
+            <i class="fa-solid fa-utensils text-orange-600"></i> Tên Món Ăn / Yêu Cầu Chế Biến *
+          </label>
+          <input type="text" id="ckpItemName" required placeholder="Ví dụ: Mì xào bò ít rau, Cháo cá hồi em bé, Gà hấp thêm tiêu..." class="w-full px-3.5 py-2.5 bg-stone-50 border-2 border-orange-200 rounded-xl text-sm font-bold text-stone-900 focus:outline-orange-600 focus:bg-white placeholder:font-normal placeholder:text-stone-400">
+        </div>
+
+        <!-- 3. Số Lượng & Đơn Giá -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">Số Lượng (SL)</label>
+            <div class="flex items-center bg-stone-100 border border-stone-300 rounded-xl overflow-hidden">
+              <button type="button" onclick="adjustCkpQty(-1)" class="w-9 h-9 flex items-center justify-center text-stone-600 hover:bg-stone-200 font-black text-sm cursor-pointer">-</button>
+              <input type="number" id="ckpQuantity" value="1" min="1" max="99" oninput="updateCkpTotalPreview()" class="w-full text-center bg-transparent font-black text-sm text-stone-900 focus:outline-hidden">
+              <button type="button" onclick="adjustCkpQty(1)" class="w-9 h-9 flex items-center justify-center text-stone-600 hover:bg-stone-200 font-black text-sm cursor-pointer">+</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">Đơn Giá (đ) <span class="text-[10px] text-stone-400 font-normal">Tùy chọn</span></label>
+            <input type="number" id="ckpPrice" value="0" min="0" step="1000" oninput="updateCkpTotalPreview()" placeholder="0" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-bold text-stone-800 focus:outline-orange-600 focus:bg-white text-right">
+          </div>
+        </div>
+
+        <!-- 4. Chọn Máy In / Trạm Bếp -->
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1.5">
+            <i class="fa-solid fa-print text-orange-600"></i> Trạm Máy In Bếp Tiếp Nhận *
+          </label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="ckp-station-card flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 border-orange-500 bg-orange-50/60 cursor-pointer transition text-center shadow-2xs">
+              <input type="radio" name="ckpStation" value="HOT_KITCHEN" checked class="hidden" onchange="updateCkpStationUI()">
+              <span class="text-lg mb-0.5">🔥</span>
+              <span class="font-black text-xs text-stone-900">Bếp Nóng</span>
+              <span class="text-[9.5px] text-stone-500">Mì, Cơm, Nướng, Lẩu</span>
+            </label>
+
+            <label class="ckp-station-card flex flex-col items-center justify-center p-2.5 rounded-2xl border border-stone-200 bg-white hover:border-orange-300 cursor-pointer transition text-center shadow-2xs">
+              <input type="radio" name="ckpStation" value="COLD_KITCHEN" class="hidden" onchange="updateCkpStationUI()">
+              <span class="text-lg mb-0.5">🥗</span>
+              <span class="font-black text-xs text-stone-900">Bếp Lạnh</span>
+              <span class="text-[9.5px] text-stone-500">Khai vị, Gỏi, Salad</span>
+            </label>
+
+            <label class="ckp-station-card flex flex-col items-center justify-center p-2.5 rounded-2xl border border-stone-200 bg-white hover:border-orange-300 cursor-pointer transition text-center shadow-2xs">
+              <input type="radio" name="ckpStation" value="BAR" class="hidden" onchange="updateCkpStationUI()">
+              <span class="text-lg mb-0.5">🍹</span>
+              <span class="font-black text-xs text-stone-900">Quầy Bar</span>
+              <span class="text-[9.5px] text-stone-500">Pha chế, Nước, Bia</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 5. Ghi Chú Yêu Cầu Chế Biến -->
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">
+            <i class="fa-solid fa-comment-dots text-stone-500"></i> Lưu Ý Đặc Biệt Cho Đầu Bếp
+          </label>
+          <textarea id="ckpNote" rows="2" placeholder="Ví dụ: Không hành, không tiêu, nấu nhừ, làm gấp cho khách..." class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs text-stone-800 focus:outline-orange-600 focus:bg-white resize-none"></textarea>
+        </div>
+
+        <!-- 6. Checkbox Thêm vào Bill -->
+        <div class="p-3 bg-stone-50 rounded-2xl border border-stone-200 flex items-center justify-between">
+          <label for="ckpAddToBill" class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="ckpAddToBill" checked class="w-4 h-4 accent-orange-600 rounded">
+            <div>
+              <div class="text-xs font-bold text-stone-800">Ghi món vào Hóa Đơn của Bàn</div>
+              <div class="text-[10px] text-stone-500">Tự tính tiền vào bill nếu bàn đang có khách</div>
+            </div>
+          </label>
+          <span class="text-[11px] font-mono font-bold text-stone-600" id="ckpTotalPreview">0 đ</span>
+        </div>
+
+        <!-- Footer Action Buttons -->
+        <div class="pt-2 flex items-center gap-2">
+          <button type="button" onclick="closeCustomKitchenPrintModal()" class="w-1/3 py-2.5 rounded-xl border border-stone-300 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition cursor-pointer">
+            Hủy Bỏ
+          </button>
+          <button type="submit" id="btnSubmitCkp" class="w-2/3 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-black text-xs transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-print"></i>
+            <span>IN PHIẾU BẾP NGAY</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -4701,6 +4835,156 @@
       ws.onclose = () => {
         setTimeout(connectPosWebSocket, 3000);
       };
+    }
+
+    // ========================================================
+    // GÕ MÓN IN BẾP NHANH (CUSTOM KITCHEN TICKET)
+    // ========================================================
+    function openCustomKitchenPrintModal(preselectedTableId = null) {
+      const select = document.getElementById("ckpTableSelect");
+      if (select) {
+        let html = `<option value="CUSTOM">✍️ Tự nhập vị trí / Mang về</option>`;
+        const tablesList = (typeof allTables !== 'undefined' && Array.isArray(allTables) && allTables.length > 0) ? allTables : [];
+        tablesList.forEach(t => {
+          const isOccupied = t.status === 'OCCUPIED';
+          const label = `${t.name} (${t.area || ''}) ${isOccupied ? '• Đang có khách' : '• Trống'}`;
+          const isSelected = (preselectedTableId && preselectedTableId == t.id);
+          html += `<option value="${t.id}" data-name="${t.name}" data-area="${t.area || ''}" data-status="${t.status}" ${isSelected ? 'selected' : ''}>${label}</option>`;
+        });
+        select.innerHTML = html;
+        if (preselectedTableId) {
+          select.value = String(preselectedTableId);
+        }
+      }
+
+      onCkpTableChange();
+      document.getElementById("ckpItemName").value = "";
+      document.getElementById("ckpQuantity").value = "1";
+      document.getElementById("ckpPrice").value = "0";
+      document.getElementById("ckpNote").value = "";
+      
+      const hotRadio = document.querySelector('input[name="ckpStation"][value="HOT_KITCHEN"]');
+      if (hotRadio) hotRadio.checked = true;
+      updateCkpStationUI();
+      updateCkpTotalPreview();
+
+      document.getElementById("customKitchenPrintModal").classList.remove("hidden");
+      setTimeout(() => document.getElementById("ckpItemName")?.focus(), 120);
+    }
+
+    function closeCustomKitchenPrintModal() {
+      document.getElementById("customKitchenPrintModal").classList.add("hidden");
+    }
+
+    function onCkpTableChange() {
+      const select = document.getElementById("ckpTableSelect");
+      const customInput = document.getElementById("ckpCustomTableName");
+      if (!select || !customInput) return;
+      const selectedOpt = select.options[select.selectedIndex];
+      if (select.value === "CUSTOM") {
+        customInput.placeholder = "Tên bàn / Vị trí (VD: Bàn 01, Mang về...)";
+        if (customInput.value === (selectedOpt ? selectedOpt.getAttribute("data-name") : "")) {
+          customInput.value = "";
+        }
+      } else {
+        customInput.value = selectedOpt ? selectedOpt.getAttribute("data-name") : "";
+      }
+    }
+
+    function adjustCkpQty(delta) {
+      const el = document.getElementById("ckpQuantity");
+      if (!el) return;
+      let val = parseInt(el.value || 1) + delta;
+      if (val < 1) val = 1;
+      if (val > 99) val = 99;
+      el.value = val;
+      updateCkpTotalPreview();
+    }
+
+    function updateCkpTotalPreview() {
+      const qty = parseInt(document.getElementById("ckpQuantity")?.value || 1);
+      const price = parseInt(document.getElementById("ckpPrice")?.value || 0);
+      const preview = document.getElementById("ckpTotalPreview");
+      if (preview) {
+        preview.innerText = formatVND(qty * price);
+      }
+    }
+
+    function updateCkpStationUI() {
+      const selected = document.querySelector('input[name="ckpStation"]:checked')?.value || "HOT_KITCHEN";
+      document.querySelectorAll(".ckp-station-card").forEach(card => {
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio && radio.value === selected) {
+          card.className = "ckp-station-card flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 border-orange-500 bg-orange-50/60 cursor-pointer transition text-center shadow-2xs";
+        } else {
+          card.className = "ckp-station-card flex flex-col items-center justify-center p-2.5 rounded-2xl border border-stone-200 bg-white hover:border-orange-300 cursor-pointer transition text-center shadow-2xs";
+        }
+      });
+    }
+
+    async function submitCustomKitchenPrint(event) {
+      event.preventDefault();
+      const itemName = document.getElementById("ckpItemName")?.value.trim();
+      if (!itemName) {
+        alert("Vui lòng nhập tên món ăn cần in bếp!");
+        return;
+      }
+
+      const select = document.getElementById("ckpTableSelect");
+      const selectedOpt = select ? select.options[select.selectedIndex] : null;
+      let tableId = (select && select.value !== "CUSTOM") ? parseInt(select.value) : null;
+      let tableName = document.getElementById("ckpCustomTableName")?.value.trim() || (selectedOpt ? selectedOpt.getAttribute("data-name") : "Bàn Quầy");
+      let areaName = selectedOpt ? selectedOpt.getAttribute("data-area") : "Nhà Hàng";
+      const qty = parseInt(document.getElementById("ckpQuantity")?.value || 1);
+      const price = parseInt(document.getElementById("ckpPrice")?.value || 0);
+      const station = document.querySelector('input[name="ckpStation"]:checked')?.value || "HOT_KITCHEN";
+      const note = document.getElementById("ckpNote")?.value.trim();
+      const addToBill = document.getElementById("ckpAddToBill")?.checked;
+
+      const btn = document.getElementById("btnSubmitCkp");
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang in bếp...`;
+
+      try {
+        const payload = {
+          table_id: tableId,
+          table_name: tableName,
+          area: areaName,
+          item_name: itemName,
+          quantity: qty,
+          price: price,
+          station: station,
+          note: note,
+          add_to_bill: addToBill
+        };
+
+        const res = await fetch("/api/printer/custom-kitchen-ticket", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Không thể in phiếu bếp");
+
+        showToast(`✅ Đã gửi lệnh in món "${itemName}" (x${qty}) tới Bếp thành công!`);
+        closeCustomKitchenPrintModal();
+
+        // Nếu có ghi vào bill và chọn bàn, làm mới dữ liệu bàn
+        if (tableId && addToBill) {
+          if (typeof loadTables === 'function') loadTables();
+          if (typeof currentPosTable !== 'undefined' && currentPosTable && currentPosTable.id === tableId) {
+            if (typeof openTableDetails === 'function') openTableDetails(tableId);
+          }
+        }
+      } catch (err) {
+        console.error("Lỗi submitCustomKitchenPrint:", err);
+        alert("Lỗi in bếp: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
     }
   </script>
   <script src="/static/js/pos_pickle_accounting.js"></script>

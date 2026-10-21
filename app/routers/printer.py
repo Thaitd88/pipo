@@ -12,7 +12,11 @@ from ..printer_service import (
     print_cashier_receipt,
     async_dispatch_cashier_print
 )
+import os
 from ..database import get_db
+from ..timezone_utils import now_vn_str, now_vn_time_str
+from ..escpos import format_kitchen_ticket_text, build_escpos_kitchen_bytes
+from ..printer_service import send_escpos_to_printer
 
 router = APIRouter(prefix="/api/printer", tags=["Printer Control"])
 
@@ -180,4 +184,175 @@ async def api_print_table_bill(table_id: int, request: Request):
         "job_id": job_id,
         "discount_amount": discount_amount,
         "discount_percent": discount_percent
+    }
+
+class CustomKitchenTicketPayload(BaseModel):
+    table_id: Optional[int] = None
+    table_name: Optional[str] = "QUẦY THU NGÂN"
+    area: Optional[str] = "Nhà Hàng"
+    item_name: str
+    quantity: Optional[int] = 1
+    price: Optional[int] = 0
+    note: Optional[str] = ""
+    station: Optional[str] = "HOT_KITCHEN"  # HOT_KITCHEN, COLD_KITCHEN, BAR
+    add_to_bill: Optional[bool] = False
+    beep: Optional[bool] = True
+
+@router.post("/custom-kitchen-ticket")
+async def api_custom_kitchen_ticket(payload: CustomKitchenTicketPayload):
+    """
+    Tự gõ tên món và in phiếu bếp:
+    - Bắn lệnh in trực tiếp vào máy in bếp (Bếp Nóng 251, Bếp Lạnh, hoặc Quầy Bar 252).
+    - Tạo print_job KOT, phát WebSocket tới Print Agent & Màn hình KDS.
+    - Nếu chọn add_to_bill=True và có table_id, tự động ghi món vào order của bàn.
+    """
+    item_name = (payload.item_name or "").strip()
+    if not item_name:
+        raise HTTPException(status_code=400, detail="Vui lòng nhập tên món ăn")
+
+    quantity = max(1, payload.quantity or 1)
+    price = max(0, payload.price or 0)
+    station = (payload.station or "HOT_KITCHEN").strip().upper()
+    if station not in ("HOT_KITCHEN", "COLD_KITCHEN", "BAR"):
+        station = "HOT_KITCHEN"
+
+    note = (payload.note or "").strip()
+    table_id = payload.table_id
+    table_name = (payload.table_name or "QUẦY THU NGÂN").strip()
+    area = (payload.area or "Nhà Hàng").strip()
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    order_id = 0
+    now_ts = now_vn_str("%Y-%m-%d %H:%M:%S")
+
+    if table_id:
+        cursor.execute("SELECT * FROM tables WHERE id = ?", (table_id,))
+        t_row = cursor.fetchone()
+        if t_row:
+            table_dict = dict(t_row)
+            table_name = table_dict.get("name") or table_name
+            area = table_dict.get("area") or area
+
+            if payload.add_to_bill:
+                # Tìm active session hoặc tạo mới
+                session_id = table_dict.get("current_session_id")
+                if not session_id:
+                    cursor.execute("SELECT id FROM table_sessions WHERE table_id = ? AND status = 'ACTIVE' ORDER BY id DESC LIMIT 1", (table_id,))
+                    s_row = cursor.fetchone()
+                    if s_row:
+                        session_id = s_row["id"]
+                    else:
+                        import uuid
+                        s_token = f"sess_{uuid.uuid4().hex[:12]}"
+                        cursor.execute("INSERT INTO table_sessions (table_id, session_token, guest_count, status, opened_at) VALUES (?, ?, 2, 'ACTIVE', ?)", (table_id, s_token, now_ts))
+                        session_id = cursor.lastrowid
+                    cursor.execute("UPDATE tables SET status = 'OCCUPIED', current_session_id = ? WHERE id = ?", (session_id, table_id))
+
+                # Tìm đơn UNPAID của session này hoặc tạo mới
+                cursor.execute("SELECT id FROM orders WHERE table_id = ? AND (session_id = ? OR session_id IS NULL) AND payment_status = 'UNPAID' ORDER BY id DESC LIMIT 1", (table_id, session_id))
+                ord_row = cursor.fetchone()
+                line_total = price * quantity
+                if ord_row:
+                    order_id = ord_row["id"]
+                    cursor.execute("UPDATE orders SET subtotal = subtotal + ?, total = total + ? WHERE id = ?", (line_total, line_total, order_id))
+                else:
+                    import uuid
+                    ord_uuid = f"ord_{uuid.uuid4().hex}"
+                    cursor.execute("""
+                        INSERT INTO orders (order_uuid, session_id, table_id, round_number, subtotal, total, status, payment_status, customer_note, created_at)
+                        VALUES (?, ?, ?, 1, ?, ?, 'CONFIRMED', 'UNPAID', 'Món tự gõ từ Thu Ngân', ?)
+                    """, (ord_uuid, session_id, table_id, line_total, line_total, now_ts))
+                    order_id = cursor.lastrowid
+
+                # Thêm món vào order_items
+                cursor.execute("""
+                    INSERT INTO order_items (order_id, item_id, item_name, quantity, unit_price, total_price, station, note, modifiers_json, status, created_at, updated_at)
+                    VALUES (?, 0, ?, ?, ?, ?, ?, ?, '[]', 'QUEUED', ?, ?)
+                """, (order_id, item_name, quantity, price, line_total, station, note, now_ts, now_ts))
+
+    order_info = {
+        "id": order_id if order_id else "TU_GO",
+        "table_name": table_name,
+        "area": area,
+        "round_number": "LE",
+        "customer_note": f"Món tự gõ: {note}" if note else "Món tự gõ từ Thu Ngân",
+        "created_at": now_vn_str("%H:%M:%S - %d/%m/%Y")
+    }
+
+    ticket_item = {
+        "item_name": item_name,
+        "quantity": quantity,
+        "note": note,
+        "status": "QUEUED"
+    }
+
+    ticket_text = format_kitchen_ticket_text(order_info, [ticket_item], station=station)
+    escpos_bytes = build_escpos_kitchen_bytes(order_info, [ticket_item], station=station, beep=payload.beep)
+    escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
+
+    cursor.execute("""
+        INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+        VALUES (?, ?, 'KOT', 'PENDING', ?)
+    """, (order_id or 0, station, ticket_text))
+    job_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+
+    print_job_payload = {
+        "job_id": job_id,
+        "station": station,
+        "job_type": "KOT",
+        "ticket_text": ticket_text,
+        "escpos_b64": escpos_b64,
+        "table_name": table_name
+    }
+
+    # Bắn WebSocket cho Print Agent & KDS
+    if ws_broadcaster:
+        await ws_broadcaster.send_to_printers({
+            "event": "PRINT_JOB",
+            **print_job_payload
+        })
+        await ws_broadcaster.send_to_kds({
+            "event": "NEW_ORDER",
+            "order": {
+                "order_id": order_id or "TU_GO",
+                "table_name": table_name,
+                "area": area,
+                "round_number": "LE",
+                "items": [{
+                    "id": job_id,
+                    "item_name": item_name,
+                    "quantity": quantity,
+                    "station": station,
+                    "note": note,
+                    "status": "QUEUED"
+                }]
+            }
+        })
+
+    # Cố gắng gửi socket LAN trực tiếp nếu cùng mạng
+    is_cloud = os.environ.get("VIBE_PROJECT_ID") or os.environ.get("KUBERNETES_SERVICE_HOST") or (os.name != "nt")
+    if not is_cloud:
+        try:
+            p_cfg = get_printer_config()
+            is_cashier_side = station in ["BAR", "COLD_KITCHEN", "CASHIER"]
+            dest_ip = p_cfg["cashier_ip"] if is_cashier_side else p_cfg["kitchen_ip"]
+            dest_port = p_cfg["cashier_port"] if is_cashier_side else p_cfg["kitchen_port"]
+            import asyncio
+            loop = asyncio.get_event_loop()
+            loop.run_in_executor(None, send_escpos_to_printer, dest_ip, dest_port, escpos_bytes)
+        except Exception as _e:
+            print("[Custom Kitchen Socket Error]:", _e)
+
+    st_names = {"HOT_KITCHEN": "Bếp Nóng (251)", "COLD_KITCHEN": "Bếp Lạnh", "BAR": "Quầy Bar (252)"}
+    st_display = st_names.get(station, "Bếp")
+    return {
+        "status": "SUCCESS",
+        "message": f"Đã in phiếu món '{item_name}' (SL: {quantity}) ra {st_display} thành công!",
+        "job_id": job_id,
+        "ticket_text": ticket_text,
+        "order_id": order_id
     }
