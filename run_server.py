@@ -1,6 +1,10 @@
 """
 PiPo Garden - All-in-One POS Server Launcher
-Tự động đồng bộ Menu từ Host + Khởi chạy Print Agent + Máy chủ Local + Mở giao diện POS
+1. Tự động cập nhật Code mới nhất từ Cloud Host (pipogarden.com)
+2. Tự động đồng bộ Menu, Danh mục, Bàn ăn từ Host
+3. Tự động khởi chạy Print Agent (In bếp & In thu ngân)
+4. Tự động mở giao diện Thu Ngân POS trên trình duyệt
+5. Khởi chạy Máy chủ Local FastAPI & WebSockets
 """
 
 import os
@@ -40,16 +44,33 @@ def get_local_ip():
     except Exception:
         return "127.0.0.1"
 
-# 1. TỰ ĐỘNG ĐỒNG BỘ MENU TỪ HOST (pipogarden.com) KHI KHỞI ĐỘNG
-def auto_sync_from_host():
-    if os.getenv("DISABLE_SYNC"):
-        print("[*] Tùy chọn DISABLE_SYNC được bật, bỏ qua đồng bộ từ Host.")
+# 1. TỰ ĐỘNG CẬP NHẬT CODE MỚI NHẤT TỪ CLOUD HOST KHI KHỞI ĐỘNG
+def auto_update_code_from_host():
+    if os.getenv("DISABLE_CODE_UPDATE"):
+        print("[*] Tùy chọn DISABLE_CODE_UPDATE được bật, bỏ qua cập nhật code.")
         return
 
-    print("[1/3] 🔄 Đang kiểm tra & đồng bộ Menu mới nhất từ Host (pipogarden.com)...")
+    print("[1/4] 🚀 Đang kiểm tra & cập nhật phần mềm (Code) từ Cloud Host...")
+    try:
+        from scripts.update_code_from_host import update_code
+        updated = update_code(timeout=6, interactive=False)
+        if updated:
+            print("  [+] ✅ Đã áp dụng phiên bản phần mềm mới nhất từ Cloud!")
+        else:
+            print("  [+] ℹ️ Hệ thống khởi chạy với phiên bản phần mềm hiện tại.")
+    except Exception as e:
+        print(f"  [-] Bỏ qua cập nhật code ({e}), tiếp tục khởi động hệ thống.")
+
+# 2. TỰ ĐỘNG ĐỒNG BỘ MENU TỪ HOST (pipogarden.com) KHI KHỞI ĐỘNG
+def auto_sync_from_host():
+    if os.getenv("DISABLE_SYNC"):
+        print("[*] Tùy chọn DISABLE_SYNC được bật, bỏ qua đồng bộ Menu từ Host.")
+        return
+
+    print("\n[2/4] 🔄 Đang kiểm tra & đồng bộ Menu mới nhất từ Host (pipogarden.com)...")
     sync_script = os.path.join(BASE_DIR, "scripts", "sync_from_host.py")
     if not os.path.exists(sync_script):
-        print("  [-] Không tìm thấy scripts/sync_from_host.py, bỏ qua đồng bộ.")
+        print("  [-] Không tìm thấy scripts/sync_from_host.py, bỏ qua đồng bộ Menu.")
         return
 
     try:
@@ -57,10 +78,10 @@ def auto_sync_from_host():
         sync(timeout=5, download_images=True)
         print("  [+] ✅ Đã đồng bộ Menu, Danh mục, Bàn ăn thành công từ Host!")
     except Exception as e:
-        print(f"  [-] Lưu ý: Không thể kết nối Host để đồng bộ ({e}).")
+        print(f"  [-] Lưu ý: Không thể kết nối Host để đồng bộ Menu ({e}).")
         print("  [+] ℹ️ Hệ thống tiếp tục sử dụng Menu & Cài đặt offline hiện có.")
 
-# 2. KHỞI CHẠY PRINT AGENT CHẠY NGẦM
+# 3. KHỞI CHẠY PRINT AGENT CHẠY NGẦM
 agent_proc = None
 
 def start_print_agent():
@@ -74,7 +95,7 @@ def start_print_agent():
         print("  [-] Không tìm thấy print_agent/agent.py")
         return
 
-    print("[2/3] 🖨️  Đang khởi động Print Agent (Lắng nghe & In bếp 251 / Thu ngân 252)...")
+    print("\n[3/4] 🖨️  Đang khởi động Print Agent (Lắng nghe & In bếp 251 / Thu ngân 252)...")
     try:
         agent_proc = subprocess.Popen(
             [sys.executable, "-u", agent_path],
@@ -95,7 +116,7 @@ def cleanup_print_agent():
 
 atexit.register(cleanup_print_agent)
 
-# 3. TỰ ĐỘNG MỞ TRÌNH DUYỆT POS KHI SERVER SẴN SÀNG
+# 4. TỰ ĐỘNG MỞ TRÌNH DUYỆT POS KHI SERVER SẴN SÀNG
 def auto_open_pos(port):
     if os.getenv("NO_BROWSER"):
         return
@@ -119,26 +140,26 @@ if __name__ == "__main__":
     print("🌿 HỆ THỐNG GỌI MÓN & TỰ ĐỘNG IN BẾP PIPO GARDEN")
     print("==================================================================")
 
-    # Bước 1: Đồng bộ Menu từ Host
+    # Bước 1: Tự động cập nhật Code mới nhất từ Cloud
+    auto_update_code_from_host()
+
+    # Bước 2: Tự động đồng bộ Menu từ Host
     auto_sync_from_host()
 
-    # Bước 2: Bật Print Agent
+    # Bước 3: Bật Print Agent
     start_print_agent()
 
-    # Bước 3: Lên lịch mở trình duyệt POS
+    # Bước 4: Lên lịch mở trình duyệt POS
     auto_open_pos(port)
 
-    print("\n[3/3] 🚀 Khởi chạy Máy chủ Local Web & WebSockets...")
+    print("\n[4/4] 🚀 Khởi chạy Máy chủ Local Web & WebSockets...")
     print(f"[*] Máy chủ đang chạy tại:")
     print(f"    - Cục bộ / Thu ngân     : http://localhost:{port}")
     print(f"    - Mạng nội bộ Wi-Fi quán: http://{local_ip}:{port}")
     print("------------------------------------------------------------------")
-    print(f"    - Trang Chủ & Đăng Nhập : http://localhost:{port}/")
     print(f"    - Thu Ngân & Sơ Đồ Bàn  : http://localhost:{port}/pos")
-    print(f"    - Không Gian Bếp & BOM  : http://localhost:{port}/kitchen")
-    print(f"    - Màn Hình Bếp KDS      : http://localhost:{port}/kds")
     print(f"    - Phục Vụ Ra Món        : http://{local_ip}:{port}/waiter")
-    print(f"    - Quản Lý Kho NVL       : http://localhost:{port}/inventory")
+    print(f"    - Màn Hình Bếp KDS      : http://{local_ip}:{port}/kds")
     print("==================================================================")
     print("LƯU Ý: Giữ cửa sổ này mở trong suốt ca bán hàng!\n")
 

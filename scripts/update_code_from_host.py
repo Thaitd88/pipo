@@ -25,44 +25,59 @@ BASE_DIR = os.path.dirname(CURRENT_DIR) if os.path.basename(CURRENT_DIR).lower()
 CLOUD_URL = "https://pipogarden.com/api/sync/code-bundle"
 DEV_LAN_URL = "http://192.168.31.67:8000/api/sync/code-bundle"
 
-def download_code_bundle():
+def update_code(timeout: int = 6, interactive: bool = False) -> bool:
     print("==================================================================")
-    print("🌿 PIPO GARDEN - CẬP NHẬT PHẦN MỀM TỪ MÁY CHỦ (HOST CLOUD / LAN)")
+    print("🌿 PIPO GARDEN - CẬP NHẬT PHẦN MỀM TỰ ĐỘNG TỪ CLOUD HOST")
     print("==================================================================")
-    print(f"[*] Thư mục cài đặt hiện tại: {BASE_DIR}")
+    print(f"[*] Thư mục hệ thống: {BASE_DIR}")
 
     urls = [
         ("Cloud Host (pipogarden.com)", CLOUD_URL),
-        ("Máy Dev Lập Trình (192.168.31.67)", DEV_LAN_URL)
+        ("Máy Dev Lập Trình LAN (192.168.31.67)", DEV_LAN_URL)
     ]
 
     zip_bytes = None
     success_source = None
 
     for label, url in urls:
-        print(f"\n[*] Đang kiểm tra nguồn: {label}...")
+        print(f"[*] Đang kiểm tra cập nhật từ: {label}...")
         try:
             req = urllib.request.Request(
                 url,
                 headers={"User-Agent": "PiPo-Updater/1.0"}
             )
-            with urllib.request.urlopen(req, timeout=15) as res:
+            with urllib.request.urlopen(req, timeout=timeout) as res:
                 if res.status == 200:
                     zip_bytes = res.read()
                     success_source = label
-                    print(f"  [+] ✅ Đã tải thành công gói cập nhật ({len(zip_bytes) / 1024:.1f} KB) từ {label}!")
+                    print(f"  [+] ✅ Đã nhận gói cập nhật ({len(zip_bytes) / 1024:.1f} KB) từ {label}!")
                     break
         except Exception as e:
-            print(f"  [-] Nguồn {label} chưa sẵn sàng ({e}).")
+            print(f"  [-] Chưa thể kết nối tới {label} ({e}).")
 
     if not zip_bytes:
-        print("\n[LỖI] Không thể tải gói cập nhật từ cả Cloud và máy Dev.")
-        print("Vui lòng đảm bảo máy có kết nối Internet hoặc máy Dev đang bật!")
+        print("  [-] Không thể tải gói cập nhật từ máy chủ (có thể mất Internet hoặc máy chủ bận).")
+        print("  [+] Hệ thống sẽ tiếp tục sử dụng phiên bản phần mềm hiện tại.")
+        if interactive:
+            print("\nBấm Enter để đóng...")
+            try:
+                input()
+            except Exception:
+                pass
         return False
 
-    # Sao lưu thư mục hiện tại trước khi cập nhật
+    # Kiểm tra tính toàn vẹn của tệp zip trước khi giải nén
+    try:
+        zf_test = zipfile.ZipFile(io.BytesIO(zip_bytes))
+        if zf_test.testzip() is not None:
+            print("  [-] Gói cập nhật bị lỗi cấu trúc nén. Bỏ qua cập nhật.")
+            return False
+    except Exception as e:
+        print(f"  [-] Lỗi kiểm tra gói nén: {e}")
+        return False
+
+    # Sao lưu an toàn trước khi ghi đè
     backup_dir = os.path.join(BASE_DIR, "_backup_before_update")
-    print(f"\n[*] Đang tạo bản sao lưu an toàn tại: {backup_dir}...")
     try:
         os.makedirs(backup_dir, exist_ok=True)
         for d in ["app", "print_agent", "scripts"]:
@@ -72,39 +87,36 @@ def download_code_bundle():
                 if os.path.exists(dst_p):
                     shutil.rmtree(dst_p)
                 shutil.copytree(src_p, dst_p)
-        print("  [+] ✅ Đã sao lưu mã nguồn cũ an toàn!")
     except Exception as e:
         print(f"  [-] Lưu ý khi sao lưu: {e}")
 
-    # Giải nén đè lên BASE_DIR
-    print("\n[*] Đang áp dụng bản cập nhật mới vào hệ thống...")
+    # Áp dụng bản cập nhật vào BASE_DIR
+    extracted_count = 0
     try:
         with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
-            # Danh sách các file trong zip
-            namelist = zf.namelist()
-            print(f"  [+] Gói cập nhật gồm {len(namelist)} tệp tin.")
-            for name in namelist:
-                # Bảo vệ tối thượng: Tuyệt đối không ghi đè pipo_garden.db
-                if "pipo_garden.db" in name.lower():
+            for member in zf.infolist():
+                name = member.filename
+                # BẢO VỆ TUYỆT ĐỐI CƠ SỞ DỮ LIỆU ĐƠN HÀNG VÀ DOANH THU
+                if name.lower().endswith(".db") or "pipo_garden.db" in name.lower() or name.startswith("data/"):
                     continue
-                zf.extract(name, BASE_DIR)
-        print("  [+] ✅ Đã giải nén và cập nhật toàn bộ file mới thành công!")
+                zf.extract(member, BASE_DIR)
+                extracted_count += 1
+        print(f"  [+] ✅ Đã cập nhật thành công {extracted_count} tệp tin mã nguồn mới!")
     except Exception as e:
-        print(f"[LỖI] Quá trình giải nén cập nhật thất bại: {e}")
+        print(f"  [-] Quá trình giải nén cập nhật thất bại: {e}")
         return False
 
-    print("\n==================================================================")
-    print("🎉 CHÚC MỪNG! HỆ THỐNG ĐÃ ĐƯỢC CẬP NHẬT CODE MỚI NHẤT.")
-    print("   Toàn bộ tính năng mới, sửa lỗi báo cáo và in ấn đã được áp dụng.")
-    print("   Dữ liệu đơn hàng và doanh thu của quán vẫn được bảo toàn nguyên vẹn.")
-    print("   Vui lòng khởi động lại hệ thống (chạy file 2_CHAY_HE_THONG.bat) để có hiệu lực!")
     print("==================================================================")
+    print("🎉 HOÀN TẤT CẬP NHẬT CODE MỚI NHẤT CHO MÁY THU NGÂN!")
+    print("==================================================================\n")
+
+    if interactive:
+        print("Bấm Enter để đóng...")
+        try:
+            input()
+        except Exception:
+            pass
     return True
 
 if __name__ == "__main__":
-    download_code_bundle()
-    print("\nBấm Enter để đóng...")
-    try:
-        input()
-    except Exception:
-        pass
+    update_code(timeout=10, interactive=True)

@@ -28,3 +28,5 @@ Desktop.ini
 .DS_Store
 design/extracted/
 design/rendered_pages/
+
+_backup_before_update/
