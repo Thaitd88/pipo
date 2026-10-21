@@ -499,6 +499,13 @@ def init_db():
     # Đảm bảo các món ăn nhanh sân Pickleball (Trứng gà luộc, Ngô luộc - Coming Soon)
     ensure_pickleball_snack_dishes(conn)
 
+    # Áp dụng chuẩn hóa menu, định lượng, BOM và bản dịch 4 thứ tiếng cho 40 món
+    try:
+        from .menu_fixer import apply_menu_bom_and_translations_fix
+        apply_menu_bom_and_translations_fix(conn)
+    except Exception as _e:
+        print("[PiPo Menu Fixer] Loi:", _e)
+
     # Tối ưu hóa hiệu năng truy vấn CSDL (Database Performance Indexes)
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_menu_items_cat_avail ON menu_items(category_id, is_available);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_orders_table_status ON orders(table_id, status, payment_status);")
@@ -666,8 +673,10 @@ def ensure_simple_dish_portions(conn):
         "Cơm chiên hải sản": "Cơm 250g, hải sản 100g",
         "Cơm chiên bò": "Cơm 250g, thịt bò 100g",
         "Cơm chiên ghẹ": "Cơm 250g, thịt ghẹ 80g",
+        "Cơm chiên": "Cơm 250g, Ghẹ / Hải sản / Bò 80-100g",
         "Mì xào hải sản": "Mì 2 vắt, hải sản 100g",
         "Mì xào bò": "Mì 2 vắt, thịt bò 100g",
+        "Mì xào": "Mì 2 vắt, Bò hoặc Hải sản 100g",
         
         # Đồ Uống
         "Trà Đào Cam Sả PiPo Special": "1 ly (500ml)",
@@ -1702,7 +1711,87 @@ def seed_inventory_and_bom(conn):
 
     conn.commit()
 
+def get_dynamic_bom_for_item(cursor, menu_item_id: int, modifiers_json: str = None, item_name: str = "") -> list:
+    """
+    Trả về danh sách định lượng NVL thực tế theo tùy chọn/vị được khách chọn:
+    Ví dụ: Mì xào chọn vị Bò -> Trừ thịt bò (NVL10) + mì vắt (NVL21), KHÔNG trừ hải sản!
+    """
+    mod_text = ""
+    try:
+        raw_mods = json.loads(modifiers_json or "[]") if isinstance(modifiers_json, str) else (modifiers_json or [])
+        for m in raw_mods:
+            if isinstance(m, dict):
+                v = str(m.get("value") or "").strip()
+                if v:
+                    mod_text += " " + v.lower()
+            elif isinstance(m, str):
+                mod_text += " " + m.lower()
+    except Exception:
+        pass
+
+    full_check = (str(item_name or "").lower() + " " + mod_text).strip()
+
+    # 1. Mì xào (ID 181)
+    if menu_item_id == 181 or "mì xào" in full_check or "mi xao" in full_check or "mỳ xào" in full_check:
+        if "bò" in full_check or "bo" in full_check:
+            # NVL21: Mì vàng tươi (2 vắt), NVL10: Thịt bò thăn mềm (0.1 kg)
+            ing_ids = [(21, 2.0), (10, 0.1)]
+        else:
+            # Mặc định hải sản: NVL21: Mì vàng tươi (2 vắt), NVL01: Tôm sú (0.05 kg), NVL100: Mực ống (0.05 kg)
+            ing_ids = [(21, 2.0), (1, 0.05), (31, 0.05)]
+
+        res = []
+        for ing_id, qty in ing_ids:
+            cursor.execute("SELECT id, name, unit, cost_price FROM inventory_items WHERE id = ?", (ing_id,))
+            row = cursor.fetchone()
+            if row:
+                res.append({
+                    "ingredient_id": row["id"],
+                    "bom_qty": qty,
+                    "ing_name": row["name"],
+                    "unit": row["unit"],
+                    "cost_price": row["cost_price"] or 0
+                })
+        return res
+
+    # 2. Cơm chiên (ID 180)
+    if menu_item_id == 180 or "cơm chiên" in full_check or "com chien" in full_check:
+        if "bò" in full_check or "bo" in full_check:
+            # Gạo ST25 0.25kg, Trứng 1 quả, Thịt bò 0.1kg
+            ing_ids = [(20, 0.25), (23, 1.0), (10, 0.1)]
+        elif "hải sản" in full_check or "hai san" in full_check:
+            # Gạo ST25 0.25kg, Trứng 1 quả, Tôm sú 0.05kg, Mực ống 0.05kg
+            ing_ids = [(20, 0.25), (23, 1.0), (1, 0.05), (31, 0.05)]
+        else:
+            # Mặc định ghẹ: Gạo ST25 0.25kg, Trứng 1 quả, Thịt ghẹ 0.07kg
+            ing_ids = [(20, 0.25), (23, 1.0), (34, 0.07)]
+
+        res = []
+        for ing_id, qty in ing_ids:
+            cursor.execute("SELECT id, name, unit, cost_price FROM inventory_items WHERE id = ?", (ing_id,))
+            row = cursor.fetchone()
+            if row:
+                res.append({
+                    "ingredient_id": row["id"],
+                    "bom_qty": qty,
+                    "ing_name": row["name"],
+                    "unit": row["unit"],
+                    "cost_price": row["cost_price"] or 0
+                })
+        return res
+
+    # Các món thông thường khác: lấy từ bảng recipe_bom
+    cursor.execute("""
+        SELECT rb.ingredient_id, rb.quantity as bom_qty, ii.name as ing_name, ii.unit, ii.cost_price
+        FROM recipe_bom rb
+        JOIN inventory_items ii ON rb.ingredient_id = ii.id
+        WHERE rb.menu_item_id = ?
+    """, (menu_item_id,))
+    return [dict(r) for r in cursor.fetchall()]
+
+
 def deduct_inventory_for_order_item(conn, order_item_id: int):
+
     """
     Tự động tra cứu định lượng BOM và TRỪ TỒN KHO khi bếp bắt đầu nấu hoặc hoàn tất món.
     Đảm bảo mỗi món trong đơn chỉ bị trừ kho đúng 1 lần duy nhất.
@@ -1726,14 +1815,8 @@ def deduct_inventory_for_order_item(conn, order_item_id: int):
     menu_item_id = item["item_id"]
     item_qty = item["quantity"]
 
-    # Tra cứu BOM của món ăn
-    cursor.execute("""
-        SELECT rb.ingredient_id, rb.quantity as bom_qty, ii.name as ing_name, ii.unit, ii.cost_price
-        FROM recipe_bom rb
-        JOIN inventory_items ii ON rb.ingredient_id = ii.id
-        WHERE rb.menu_item_id = ?
-    """, (menu_item_id,))
-    recipes = cursor.fetchall()
+    # Tra cứu BOM của món ăn (tự động phân nhánh theo vị)
+    recipes = get_dynamic_bom_for_item(cursor, menu_item_id, item["modifiers_json"], item["item_name"])
 
     for r in recipes:
         ing_id = r["ingredient_id"]
@@ -1784,13 +1867,7 @@ def restore_inventory_for_order_item(conn, order_item_id: int, reason: str = "H�
     menu_item_id = item["item_id"]
     item_qty = item["quantity"]
 
-    cursor.execute("""
-        SELECT rb.ingredient_id, rb.quantity as bom_qty, ii.name as ing_name, ii.unit, ii.cost_price
-        FROM recipe_bom rb
-        JOIN inventory_items ii ON rb.ingredient_id = ii.id
-        WHERE rb.menu_item_id = ?
-    """, (menu_item_id,))
-    recipes = cursor.fetchall()
+    recipes = get_dynamic_bom_for_item(cursor, menu_item_id, item["modifiers_json"], item["item_name"])
 
     for r in recipes:
         ing_id = r["ingredient_id"]

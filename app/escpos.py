@@ -72,6 +72,66 @@ def generate_vietqr_emvco(bank_bin: str = "970422", account_no: str = "075624456
     return payload + crc
 
 
+def resolve_item_name_and_portion(name: str, portion: str, modifiers: list) -> tuple[str, str, str]:
+    """
+    Chuẩn hóa tên món và định lượng NVL theo vị/tùy chọn chế biến để Bếp không bao giờ làm nhầm.
+    Ví dụ: 'Mì xào' + vị 'Bò' ->
+        name: 'Mì xào [VỊ BÒ]'
+        portion: 'Mì 2 vắt, thịt bò 100g, rau cải'
+        chosen_flavor: 'Bò'
+    """
+    clean_name = str(name or "").strip()
+    clean_port = str(portion or "").strip()
+    mod_values = []
+
+    if modifiers and isinstance(modifiers, list):
+        for m in modifiers:
+            if isinstance(m, dict):
+                val = str(m.get("value") or "").strip()
+                if val:
+                    mod_values.append(val)
+            elif isinstance(m, str) and m.strip():
+                mod_values.append(m.strip())
+
+    chosen_flavor = " - ".join(mod_values) if mod_values else ""
+
+    # 1. Trường hợp Mì xào
+    lower_name = clean_name.lower()
+    if "mì xào" in lower_name or "mi xao" in lower_name or "mỳ xào" in lower_name or "my xao" in lower_name:
+        lower_flavor = chosen_flavor.lower()
+        if "bò" in lower_flavor or "bo" in lower_flavor:
+            clean_name = f"{clean_name} [VỊ BÒ]"
+            clean_port = "Mì 2 vắt, thịt bò 100g, rau cải"
+        elif "hải sản" in lower_flavor or "hai san" in lower_flavor:
+            clean_name = f"{clean_name} [VỊ HẢI SẢN]"
+            clean_port = "Mì 2 vắt, tôm mực 100g, rau cải"
+        elif chosen_flavor:
+            clean_name = f"{clean_name} [VỊ {chosen_flavor.upper()}]"
+
+    # 2. Trường hợp Cơm chiên
+    elif "cơm chiên" in lower_name or "com chien" in lower_name:
+        lower_flavor = chosen_flavor.lower()
+        if "bò" in lower_flavor or "bo" in lower_flavor:
+            clean_name = f"{clean_name} [VỊ BÒ]"
+            clean_port = "Cơm 250g, thịt bò 100g, trứng"
+        elif "hải sản" in lower_flavor or "hai san" in lower_flavor:
+            clean_name = f"{clean_name} [VỊ HẢI SẢN]"
+            clean_port = "Cơm 250g, tôm mực 100g, trứng"
+        elif "ghẹ" in lower_flavor or "ghe" in lower_flavor:
+            clean_name = f"{clean_name} [VỊ GHẸ]"
+            clean_port = "Cơm 250g, thịt ghẹ 80g, trứng"
+        elif chosen_flavor:
+            clean_name = f"{clean_name} [VỊ {chosen_flavor.upper()}]"
+
+    # 3. Các món có vị chế biến khác (Gà, Sườn, Tôm, Rau, Ốc...)
+    elif chosen_flavor:
+        # Nếu tên món chưa chứa vị đó, đính kèm vào tên món để in chữ to đậm
+        if chosen_flavor.lower() not in lower_name:
+            clean_name = f"{clean_name} [{chosen_flavor.upper()}]"
+
+    return clean_name, clean_port, chosen_flavor
+
+
 def format_kitchen_ticket_text(order_info: dict, items: list, station: str = "HOT_KITCHEN") -> str:
     """
     Tạo văn bản phiếu in bếp khổ 80mm (48 ký tự) cho màn hình monitor và log:
@@ -118,18 +178,21 @@ def format_kitchen_ticket_text(order_info: dict, items: list, station: str = "HO
         modifiers = it.get("modifiers", [])
         portion = it.get("portion") or ""
 
+        # Chuẩn hóa tên món và định lượng theo vị (VD: Mì xào [VỊ BÒ], Định lượng: thịt bò 100g)
+        resolved_name, resolved_portion, flavor = resolve_item_name_and_portion(name, portion, modifiers)
+
         # Dòng 1: Số lượng và tên món nổi bật
-        lines.append(f"[ {qty} ]  {name}")
+        lines.append(f"[ {qty} ]  {resolved_name}")
 
         # Định lượng chính của món để bếp định lượng chế biến
-        if portion:
-            lines.append(f"       * Dinh luong: {portion}")
+        if resolved_portion:
+            lines.append(f"       * Dinh luong: {resolved_portion}")
 
         # Tùy chọn nếu có
         if modifiers and isinstance(modifiers, list):
             mod_str = ", ".join([f"{m.get('name')}: {m.get('value')}" for m in modifiers if isinstance(m, dict)])
             if mod_str:
-                lines.append(f"       * Tuy chon: {mod_str}")
+                lines.append(f"       * VỊ / TÙY CHỌN: {mod_str}")
 
         # Ghi chú chế biến riêng của món
         if note:
@@ -370,13 +433,13 @@ def build_escpos_kitchen_bytes(order_info: dict, items: list, station: str = "HO
         if it.get("status") == "CANCELLED":
             continue
         qty = it.get("quantity", 1)
-        name = remove_vietnamese_accents(it.get("item_name") or it.get("name", "")).upper()
+        raw_name = it.get("item_name") or it.get("name", "")
         note = remove_vietnamese_accents(it.get("note", ""))
         modifiers = it.get("modifiers", [])
-        portion = remove_vietnamese_accents(it.get("portion") or "")
+        raw_portion = it.get("portion") or ""
 
         # Fallback lấy định lượng món từ DB nếu chưa có trong dict
-        if not portion and (it.get("item_id") or it.get("id")):
+        if not raw_portion and (it.get("item_id") or it.get("id")):
             try:
                 from .database import get_db
                 _conn = get_db()
@@ -384,10 +447,15 @@ def build_escpos_kitchen_bytes(order_info: dict, items: list, station: str = "HO
                 _c.execute("SELECT portion FROM menu_items WHERE id = ?", (it.get("item_id") or it.get("id"),))
                 _row = _c.fetchone()
                 if _row and _row["portion"]:
-                    portion = remove_vietnamese_accents(_row["portion"])
+                    raw_portion = _row["portion"]
                 _conn.close()
             except Exception:
                 pass
+
+        # Chuẩn hóa tên món và định lượng theo vị (VD: MI XAO [VI BO], Dinh luong: thit bo 100g)
+        resolved_name, resolved_portion, flavor = resolve_item_name_and_portion(raw_name, raw_portion, modifiers)
+        name = remove_vietnamese_accents(resolved_name).upper()
+        portion = remove_vietnamese_accents(resolved_portion)
 
         # Số lượng và tên món in đậm, chiều cao chuẩn (gọn gàng, không bị kéo cao)
         buf.extend(ESC + b'E\x01') # Bold on
@@ -403,7 +471,9 @@ def build_escpos_kitchen_bytes(order_info: dict, items: list, station: str = "HO
         if modifiers and isinstance(modifiers, list):
             mod_str = ", ".join([f"{remove_vietnamese_accents(str(m.get('name')))}: {remove_vietnamese_accents(str(m.get('value')))}" for m in modifiers if isinstance(m, dict)])
             if mod_str:
-                buf.extend(f"      * Tuy chon: {mod_str}\n".encode("ascii"))
+                buf.extend(ESC + b'E\x01')
+                buf.extend(f"      * VI / TUY CHON: {mod_str}\n".encode("ascii"))
+                buf.extend(ESC + b'E\x00')
 
         if note:
             buf.extend(ESC + b'E\x01')
