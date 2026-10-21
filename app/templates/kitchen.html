@@ -47,6 +47,7 @@
       <!-- User / Logout -->
       <div class="flex items-center gap-1.5 pl-2 border-l border-amber-700 text-xs">
         <span class="text-amber-100 font-bold hidden sm:inline" id="chefName">Bếp Trưởng</span>
+        <button onclick="openChangePasswordModal()" class="text-amber-200 hover:text-white text-xs p-1" title="Đổi mật khẩu cá nhân"><i class="fa-solid fa-key"></i></button>
         <button onclick="logoutKitchen()" class="text-amber-200 hover:text-white text-xs p-1" title="Đăng xuất">
           <i class="fa-solid fa-right-from-bracket"></i>
         </button>
@@ -1750,5 +1751,68 @@
       }
     }
   </script>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: ĐỔI MẬT KHẨU CÁ NHÂN (CHANGE PASSWORD MODAL) -->
+  <!-- ======================================================== -->
+  <div id="changePasswordModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-stone-800 border border-stone-200">
+      <div class="flex justify-between items-center pb-3 border-b border-stone-100">
+        <h3 class="font-extrabold text-base text-stone-900 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs">🔑</span>
+          Đổi Mật Khẩu Cá Nhân
+        </h3>
+        <button onclick="closeChangePasswordModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 font-bold transition">✕</button>
+      </div>
+
+      <p class="text-xs text-stone-500 mt-2 mb-4">
+        Nhập mật khẩu hiện tại để xác thực và thiết lập mật khẩu mới (tối thiểu 6 ký tự).
+      </p>
+
+      <form id="changePasswordForm" onsubmit="submitChangePassword(event)" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Mật khẩu hiện tại *</label>
+          <div class="relative">
+            <input type="password" id="cpCurrentPassword" required placeholder="Nhập mật khẩu đang dùng" class="w-full px-3 py-2.5 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none focus:ring-2 focus:ring-emerald-500 pr-10">
+            <button type="button" onclick="togglePasswordVisibility('cpCurrentPassword', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-1">
+              <i class="fa-solid fa-eye text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Mật khẩu mới * (tối thiểu 6 ký tự)</label>
+          <div class="relative">
+            <input type="password" id="cpNewPassword" required minlength="6" placeholder="Nhập mật khẩu mới" class="w-full px-3 py-2.5 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none focus:ring-2 focus:ring-emerald-500 pr-10">
+            <button type="button" onclick="togglePasswordVisibility('cpNewPassword', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-1">
+              <i class="fa-solid fa-eye text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Xác nhận mật khẩu mới *</label>
+          <div class="relative">
+            <input type="password" id="cpConfirmPassword" required minlength="6" placeholder="Nhập lại mật khẩu mới" class="w-full px-3 py-2.5 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none focus:ring-2 focus:ring-emerald-500 pr-10">
+            <button type="button" onclick="togglePasswordVisibility('cpConfirmPassword', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-1">
+              <i class="fa-solid fa-eye text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="cpErrorMsg" class="hidden p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold"></div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+          <button type="button" onclick="closeChangePasswordModal()" class="px-4 py-2.5 rounded-xl border border-stone-300 text-stone-600 font-bold hover:bg-stone-50 transition">Hủy Bỏ</button>
+          <button type="submit" id="cpSubmitBtn" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-md transition flex items-center gap-1.5">
+            <i class="fa-solid fa-floppy-disk"></i> Cập Nhật Mật Khẩu
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/change_password.js"></script>
+
 </body>
 </html>

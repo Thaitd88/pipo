@@ -137,6 +137,11 @@ class StaffUpdateRequest(BaseModel):
     is_active: Optional[int] = 1
     new_password: Optional[str] = None
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+    confirm_password: Optional[str] = None
+
 # ==========================================
 # 1. ĐĂNG NHẬP / ĐĂNG XUẤT NHÂN VIÊN
 # ==========================================
@@ -216,6 +221,50 @@ def get_current_user(request: Request):
         return {"authenticated": False, "user": None}
     return {"authenticated": True, "user": user}
 
+@router.post("/change-password")
+def change_password(req: ChangePasswordRequest, request: Request):
+    """
+    Cho phép mọi người dùng đã đăng nhập tự đổi mật khẩu cá nhân của chính mình.
+    Yêu cầu nhập đúng mật khẩu hiện tại để xác thực.
+    """
+    user = get_current_user_from_request(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Vui lòng đăng nhập để đổi mật khẩu cá nhân")
+
+    current_pwd = (req.current_password or "").strip()
+    new_pwd = (req.new_password or "").strip()
+    confirm_pwd = (req.confirm_password or "").strip() if req.confirm_password else None
+
+    if not current_pwd:
+        raise HTTPException(status_code=400, detail="Vui lòng nhập mật khẩu hiện tại")
+    if not new_pwd:
+        raise HTTPException(status_code=400, detail="Vui lòng nhập mật khẩu mới")
+    if len(new_pwd) < 6:
+        raise HTTPException(status_code=400, detail="Mật khẩu mới phải có tối thiểu 6 ký tự")
+    if confirm_pwd is not None and confirm_pwd != new_pwd:
+        raise HTTPException(status_code=400, detail="Mật khẩu xác nhận không khớp với mật khẩu mới")
+    if current_pwd == new_pwd:
+        raise HTTPException(status_code=400, detail="Mật khẩu mới không được trùng với mật khẩu hiện tại")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    curr_hash = hash_password(current_pwd)
+    cursor.execute("SELECT id, username, full_name FROM users WHERE id = ? AND password_hash = ?", (user["id"], curr_hash))
+    matched = cursor.fetchone()
+    if not matched:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Mật khẩu hiện tại không đúng. Vui lòng kiểm tra lại!")
+
+    new_hash = hash_password(new_pwd)
+    cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user["id"]))
+    conn.commit()
+    conn.close()
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Đã đổi mật khẩu cho tài khoản '{user['username']}' thành công! Vui lòng ghi nhớ mật khẩu mới."
+    }
+
 # ==========================================
 # 2. QUẢN TRỊ DANH SÁCH NHÂN VIÊN (CRUD)
 # ==========================================
@@ -242,7 +291,7 @@ def create_staff(req: StaffCreateRequest, request: Request):
     if not username or not req.password or not req.full_name:
         raise HTTPException(status_code=400, detail="Vui lòng điền đầy đủ thông tin bắt buộc")
 
-    valid_roles = ["ADMIN", "CASHIER", "CHEF", "WAITER"]
+    valid_roles = ["ADMIN", "CASHIER", "CHEF", "WAITER", "PICKLEBALL"]
     if req.role not in valid_roles:
         raise HTTPException(status_code=400, detail="Vai trò không hợp lệ")
 
@@ -267,7 +316,7 @@ def create_staff(req: StaffCreateRequest, request: Request):
 @router.put("/staff/{user_id}")
 def update_staff(user_id: int, req: StaffUpdateRequest, request: Request):
     require_api_auth(request, allowed_roles=["ADMIN"])
-    valid_roles = ["ADMIN", "CASHIER", "CHEF", "WAITER"]
+    valid_roles = ["ADMIN", "CASHIER", "CHEF", "WAITER", "PICKLEBALL"]
     if req.role not in valid_roles:
         raise HTTPException(status_code=400, detail="Vai trò không hợp lệ")
 
