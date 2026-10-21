@@ -2,6 +2,7 @@
 import re
 import unicodedata
 from datetime import datetime
+from .timezone_utils import now_vn_str
 
 # Khổ in nhiệt 80mm chuẩn (T80W / Xprinter XP-C300H / Epson TM-T82)
 # Font A (12x24 dots): 48 ký tự / dòng (576 dots / 72mm printable width)
@@ -147,7 +148,7 @@ def format_kitchen_ticket_text(order_info: dict, items: list, station: str = "HO
     }
     st_title = station_names.get(station, "PHIEU CHE BIEN")
 
-    now_str = datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
+    now_str = order_info.get("created_at") or now_vn_str("%H:%M:%S - %d/%m/%Y")
     table_name = order_info.get("table_name", "BAN ?")
     area_name = order_info.get("area", "Khu San Vuon")
     order_id = order_info.get("id", 0)
@@ -224,7 +225,7 @@ def format_receipt_ticket_text(table_info: dict, items: list, totals_info: dict 
     div_double = "=" * w
     div_single = "-" * w
 
-    now_str = datetime.now().strftime("%H:%M - %d/%m/%Y")
+    now_str = totals_info.get("created_at") or table_info.get("created_at") or now_vn_str("%H:%M - %d/%m/%Y")
     table_name = table_info.get("name", "BAN ?")
     area_name = table_info.get("area", "Khu San Vuon")
     cashier_name = totals_info.get("cashier_name", "Thu Ngan")
@@ -383,7 +384,7 @@ def build_escpos_kitchen_bytes(order_info: dict, items: list, station: str = "HO
     }
     st_title = station_names.get(station, "PHIEU CHE BIEN")
 
-    now_str = datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
+    now_str = order_info.get("created_at") or now_vn_str("%H:%M:%S - %d/%m/%Y")
     table_name = remove_vietnamese_accents(str(order_info.get("table_name", "BAN ?"))).upper()
     area_name = remove_vietnamese_accents(str(order_info.get("area", "Khu San Vuon")))
     order_id = order_info.get("id", 0)
@@ -518,7 +519,7 @@ def build_escpos_receipt_bytes(table_info: dict, items: list, totals_info: dict 
     div_double = ("=" * w + "\n").encode("ascii")
     div_single = ("-" * w + "\n").encode("ascii")
 
-    now_str = datetime.now().strftime("%H:%M - %d/%m/%Y")
+    now_str = totals_info.get("created_at") or table_info.get("created_at") or now_vn_str("%H:%M - %d/%m/%Y")
     table_name = remove_vietnamese_accents(str(table_info.get("name", "BAN ?"))).upper()
     area_name = remove_vietnamese_accents(str(table_info.get("area", "Khu San Vuon")))
     cashier_name = remove_vietnamese_accents(str(totals_info.get("cashier_name", "Thu Ngan")))

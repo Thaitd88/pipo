@@ -8,6 +8,7 @@ from ..database import get_db, deduct_inventory_for_order_item, restore_inventor
 from ..escpos import format_kitchen_ticket_text, build_escpos_kitchen_bytes, build_escpos_bytes
 from ..printer_service import get_printer_config, send_escpos_to_printer
 from .auth import get_current_user_from_request, require_api_auth
+from ..timezone_utils import now_vn_str, now_vn_time_str
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
 
@@ -119,23 +120,25 @@ async def create_order(payload: dict):
 
     total = subtotal
 
-    # 5. Lưu vào bảng Orders
+    # 5. Lưu vào bảng Orders (Ghi nhận thời gian tạo chuẩn Việt Nam GMT+7)
     import uuid
     new_order_uuid = f"ord_{uuid.uuid4().hex}"
+    now_ts = now_vn_str("%Y-%m-%d %H:%M:%S")
+    now_time = now_vn_time_str("%H:%M:%S")
     cursor.execute("""
-        INSERT INTO orders (order_uuid, session_id, table_id, round_number, subtotal, total, status, payment_status, customer_note)
-        VALUES (?, ?, ?, ?, ?, ?, 'CONFIRMED', 'UNPAID', ?)
-    """, (new_order_uuid, session_id, table_id, round_number, subtotal, total, customer_note))
+        INSERT INTO orders (order_uuid, session_id, table_id, round_number, subtotal, total, status, payment_status, customer_note, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, 'CONFIRMED', 'UNPAID', ?, ?)
+    """, (new_order_uuid, session_id, table_id, round_number, subtotal, total, customer_note, now_ts))
     order_id = cursor.lastrowid
 
     # 6. Lưu vào bảng Order Items
     order_items_to_broadcast = []
     for dit in detailed_items:
         cursor.execute("""
-            INSERT INTO order_items (order_id, item_id, item_name, quantity, unit_price, total_price, station, note, modifiers_json, status, discount_percent, original_price)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'QUEUED', ?, ?)
+            INSERT INTO order_items (order_id, item_id, item_name, quantity, unit_price, total_price, station, note, modifiers_json, status, discount_percent, original_price, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'QUEUED', ?, ?, ?, ?)
         """, (order_id, dit["item_id"], dit["item_name"], dit["quantity"], dit["unit_price"], dit["total_price"], 
-              dit["station"], dit["note"], json.dumps(dit["modifiers"]), dit["discount_percent"], dit["original_price"]))
+              dit["station"], dit["note"], json.dumps(dit["modifiers"]), dit["discount_percent"], dit["original_price"], now_ts, now_ts))
         order_item_id = cursor.lastrowid
         order_items_to_broadcast.append({**dit, "id": order_item_id, "status": "QUEUED"})
 
@@ -152,7 +155,8 @@ async def create_order(payload: dict):
         "table_name": table["name"],
         "area": table["area"],
         "round_number": round_number,
-        "customer_note": customer_note
+        "customer_note": customer_note,
+        "created_at": now_ts
     }
 
     print_jobs_created = []
@@ -210,7 +214,7 @@ async def create_order(payload: dict):
         "round_number": round_number,
         "total": total,
         "customer_note": customer_note,
-        "created_at": datetime.now().strftime("%H:%M:%S"),
+        "created_at": now_vn_time_str("%H:%M:%S"),
         "items": order_items_to_broadcast,
     }
 
@@ -795,7 +799,7 @@ async def create_service_call(payload: dict):
         "table_name": table["name"],
         "call_type": call_type,
         "label": label,
-        "time": datetime.now().strftime("%H:%M:%S")
+        "time": now_vn_time_str("%H:%M:%S")
     }
 
     if ws_broadcaster:

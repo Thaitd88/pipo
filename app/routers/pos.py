@@ -6,6 +6,7 @@ import urllib.parse
 from fastapi import APIRouter, HTTPException, Request
 from datetime import datetime
 from ..database import get_db
+from ..timezone_utils import now_vn_str
 from .auth import require_api_auth, get_current_user_from_request
 
 router = APIRouter(prefix="/api/pos", tags=["POS Cashier"])
@@ -259,7 +260,7 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
         cursor.execute("SELECT * FROM order_items WHERE order_id = ? ORDER BY id ASC", (co["id"],))
         checkout_items.extend([dict(it) for it in cursor.fetchall()])
 
-    now_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now_ts = now_vn_str("%Y-%m-%d %H:%M:%S")
 
     # 1. Đánh dấu đơn là PAID hoặc TẠO MỚI nếu bàn chỉ kê phí phục vụ / tiền sân không gọi món
     import uuid

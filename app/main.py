@@ -1,4 +1,15 @@
 import sys
+import os
+import time
+
+# Thiết lập múi giờ Việt Nam (UTC+7 / GMT+7)
+os.environ["TZ"] = "Asia/Ho_Chi_Minh"
+if hasattr(time, "tzset"):
+    try:
+        time.tzset()
+    except Exception:
+        pass
+
 if sys.platform == "win32":
     try:
         sys.stdout.reconfigure(encoding="utf-8")

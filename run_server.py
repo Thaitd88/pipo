@@ -29,6 +29,14 @@ if sys.platform == "win32":
     except Exception:
         pass
 
+# Thiết lập múi giờ Việt Nam (UTC+7) cho toàn bộ hệ thống
+os.environ["TZ"] = "Asia/Ho_Chi_Minh"
+if hasattr(time, "tzset"):
+    try:
+        time.tzset()
+    except Exception:
+        pass
+
 # Thư mục gốc dự án
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:

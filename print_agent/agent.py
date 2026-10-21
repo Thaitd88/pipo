@@ -47,7 +47,8 @@ def load_config():
         "cloud_ws_url": "wss://pipogarden.com/ws/printer",
         "cloud_api_url": "https://pipogarden.com",
         "local_api_url": "http://127.0.0.1:8000",
-        "sync_interval_sec": 20,
+        "cloud_pos_ws_url": "wss://pipogarden.com/ws/pos",
+        "sync_interval_sec": 3,
         "reconnect_interval_sec": 3,
         "simulate_mode": True,
         "printers": {}
@@ -125,6 +126,9 @@ async def ws_listener(url: str, label: str, config: dict):
 
                             printed_success = False
 
+                            # Tức thì kéo đơn từ Cloud về Local Server để POS hiển thị ngay
+                            asyncio.create_task(sync_orders_now(config))
+
                             # Gửi máy in LAN vật lý nếu được bật
                             printer_cfg = printers.get(station)
                             if not printer_cfg:
@@ -194,52 +198,94 @@ def http_post_json(url: str, data: dict, timeout: float = 5.0):
     with urllib.request.urlopen(req, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))
 
-async def sync_worker(config: dict):
-    """Tiến trình đồng bộ ngầm giữa Local Server và Cloud Server."""
+
+async def sync_orders_now(config: dict):
     cloud_url = config.get("cloud_api_url", "https://pipogarden.com").rstrip("/")
     local_url = config.get("local_api_url", "http://127.0.0.1:8000").rstrip("/")
-    interval = config.get("sync_interval_sec", 20)
+    try:
+        export_cloud = await asyncio.to_thread(http_get_json, f"{cloud_url}/api/sync/export-orders?limit=50", 4.0)
+        if export_cloud.get("count", 0) > 0:
+            pull_res = await asyncio.to_thread(http_post_json, f"{local_url}/api/sync/import-orders", {"orders": export_cloud["orders"]}, 4.0)
+            if pull_res.get("imported", 0) > 0 or pull_res.get("updated", 0) > 0:
+                print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚡ [SYNC KHÁCH 4G] Đã kéo {pull_res.get('imported', 0)} đơn mới về POS Local!")
+    except Exception:
+        pass
 
-    last_sync_time = None
-    internet_was_down = False
+async def sync_reservations_now(config: dict):
+    cloud_url = config.get("cloud_api_url", "https://pipogarden.com").rstrip("/")
+    local_url = config.get("local_api_url", "http://127.0.0.1:8000").rstrip("/")
+    try:
+        export_res = await asyncio.to_thread(http_get_json, f"{cloud_url}/api/sync/export-reservations?limit=30", 4.0)
+        if export_res.get("count", 0) > 0:
+            pull_res = await asyncio.to_thread(http_post_json, f"{local_url}/api/sync/import-reservations", {"reservations": export_res["reservations"]}, 4.0)
+            if pull_res.get("imported", 0) > 0:
+                print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚡ [SYNC ĐẶT BÀN] Đã kéo {pull_res.get('imported')} đơn đặt bàn mới về POS Local!")
+    except Exception:
+        pass
 
-    await asyncio.sleep(5) # Đợi hệ thống khởi động
+async def cloud_pos_listener(config: dict):
+    """Cầu nối thời gian thực: Lắng nghe sự kiện Cloud POS (đơn mới, check-in, gọi phục vụ) để phát ngay tới POS Local."""
+    cloud_pos_ws_url = config.get("cloud_pos_ws_url", "wss://pipogarden.com/ws/pos")
+    local_url = config.get("local_api_url", "http://127.0.0.1:8000").rstrip("/")
+    reconnect_interval = config.get("reconnect_interval_sec", 3)
 
     while True:
         try:
-            # 1. Kiểm tra Internet và kết nối Cloud
-            cloud_status = await asyncio.to_thread(http_get_json, f"{cloud_url}/api/sync/status", 4.0)
-            local_status = await asyncio.to_thread(http_get_json, f"{local_url}/api/sync/status", 2.0)
+            async with websockets.connect(cloud_pos_ws_url, ping_interval=20, ping_timeout=20) as ws:
+                print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚡ [REALTIME POS BRIDGE] Đã kết nối luồng sự kiện Cloud POS!")
+                async for message in ws:
+                    try:
+                        data = json.loads(message)
+                        event = data.get("event")
+                        if event in ["NEW_ORDER", "TABLE_CHECKED_OUT", "ITEM_STATUS_CHANGED", "ORDER_ITEMS_COMPLETED", "TABLE_ITEMS_SERVED"]:
+                            print(f"[{datetime.now().strftime('%H:%M:%S')}] 🛎️ [CLOUD POS] Sự kiện: {event}")
+                            await sync_orders_now(config)
+                            await asyncio.to_thread(http_post_json, f"{local_url}/api/sync/notify-pos-event", data, 2.0)
+                        elif event in ["NEW_RESERVATION", "RESERVATION_UPDATED", "RESERVATION_DELETED"]:
+                            print(f"[{datetime.now().strftime('%H:%M:%S')}] 📅 [CLOUD RES] Sự kiện đặt bàn: {event}")
+                            await sync_reservations_now(config)
+                            await asyncio.to_thread(http_post_json, f"{local_url}/api/sync/notify-pos-event", data, 2.0)
+                        elif event == "SERVICE_CALL":
+                            print(f"[{datetime.now().strftime('%H:%M:%S')}] 🔔 [CLOUD CALL] Khách gọi phục vụ: {data.get('table_name')}")
+                            await asyncio.to_thread(http_post_json, f"{local_url}/api/sync/notify-pos-event", data, 2.0)
+                    except Exception:
+                        pass
+        except (websockets.exceptions.ConnectionClosed, ConnectionRefusedError, OSError):
+            await asyncio.sleep(reconnect_interval)
+        except Exception:
+            await asyncio.sleep(reconnect_interval)
 
-            if internet_was_down:
-                print(f"\n[{datetime.now().strftime('%H:%M:%S')}] 🌐 [SYNC] INTERNET ĐÃ ĐƯỢC KHÔI PHỤC! Đang đồng bộ bù toàn bộ đơn offline...")
-                internet_was_down = False
+async def sync_worker(config: dict):
+    """Tiến trình đồng bộ tuần hoàn bảo đảm CSDL Cloud và Local luôn khớp nhau."""
+    cloud_url = config.get("cloud_api_url", "https://pipogarden.com").rstrip("/")
+    local_url = config.get("local_api_url", "http://127.0.0.1:8000").rstrip("/")
+    interval = config.get("sync_interval_sec", 3)
+    internet_was_down = False
 
-            since_param = f"?since={urllib.parse.quote(last_sync_time)}" if last_sync_time else ""
+    await asyncio.sleep(3)
 
-            # 2. Đẩy đơn từ Local lên Cloud (những đơn bán offline lúc mất mạng)
-            export_local = await asyncio.to_thread(http_get_json, f"{local_url}/api/sync/export-orders{since_param}", 4.0)
+    while True:
+        try:
+            # 1. Kéo đơn & đặt bàn từ Cloud về Local
+            await sync_orders_now(config)
+            await sync_reservations_now(config)
+
+            # 2. Đẩy các đơn bán offline từ Local lên Cloud
+            export_local = await asyncio.to_thread(http_get_json, f"{local_url}/api/sync/export-orders?limit=50", 4.0)
             if export_local.get("count", 0) > 0:
                 push_res = await asyncio.to_thread(http_post_json, f"{cloud_url}/api/sync/import-orders", {"orders": export_local["orders"]}, 5.0)
                 if push_res.get("imported", 0) > 0 or push_res.get("updated", 0) > 0:
                     print(f"[{datetime.now().strftime('%H:%M:%S')}] ⬆️ [SYNC] Local -> Cloud: {push_res.get('message')}")
 
-            # 3. Kéo đơn từ Cloud về Local (những đơn khách 4G đặt trực tiếp trên Cloud)
-            export_cloud = await asyncio.to_thread(http_get_json, f"{cloud_url}/api/sync/export-orders{since_param}", 5.0)
-            if export_cloud.get("count", 0) > 0:
-                pull_res = await asyncio.to_thread(http_post_json, f"{local_url}/api/sync/import-orders", {"orders": export_cloud["orders"]}, 4.0)
-                if pull_res.get("imported", 0) > 0 or pull_res.get("updated", 0) > 0:
-                    print(f"[{datetime.now().strftime('%H:%M:%S')}] ⬇️ [SYNC] Cloud -> Local: {pull_res.get('message')}")
+            if internet_was_down:
+                print(f"[{datetime.now().strftime('%H:%M:%S')}] 🌐 [SYNC] Internet đã phục hồi, đồng bộ Cloud <-> Local hoạt động bình thường.")
+                internet_was_down = False
 
-            # Cập nhật mốc thời gian sync (lùi 10 phút để tránh lệch đồng hồ)
-            from datetime import timedelta
-            last_sync_time = (datetime.now() - timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
-
-        except (urllib.error.URLError, TimeoutError, OSError) as e:
+        except (urllib.error.URLError, TimeoutError, OSError):
             if not internet_was_down:
-                print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚠️ [SYNC] Không có kết nối tới Cloud Vibe Host (Mất Internet hoặc máy chủ bận). Chế độ OFFLINE nội bộ đang bảo vệ nhà hàng!")
+                print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚠️ [SYNC] Tạm thời mất kết nối Cloud. POS Local chạy hoàn toàn độc lập (Offline-First).")
                 internet_was_down = True
-        except Exception as e:
+        except Exception:
             pass
 
         await asyncio.sleep(interval)
@@ -262,6 +308,7 @@ async def main():
     tasks = [
         asyncio.create_task(ws_listener(cloud_ws_url, "CLOUD (4G Khách)", config)),
         asyncio.create_task(ws_listener(server_ws_url, "LOCAL (Mạng LAN)", config)),
+        asyncio.create_task(cloud_pos_listener(config)),
         asyncio.create_task(sync_worker(config)),
     ]
 

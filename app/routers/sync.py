@@ -7,6 +7,7 @@ import json
 import uuid
 
 from ..database import get_db
+from ..timezone_utils import now_vn_str
 
 router = APIRouter(prefix="/api/sync", tags=["Sync"])
 
@@ -32,7 +33,7 @@ def sync_status():
         "status": "READY",
         "order_count": order_count,
         "last_order_time": last_time,
-        "server_time": datetime.now().isoformat()
+        "server_time": now_vn_str("%Y-%m-%d %H:%M:%S")
     }
 
 @router.post("/clear-revenue")
@@ -96,7 +97,7 @@ def export_orders(since: Optional[str] = None, limit: int = 200):
     """
     params = []
     if since:
-        query += " WHERE (o.created_at > ? OR o.completed_at > ?)"
+        query += " WHERE (o.payment_status = 'UNPAID' OR o.created_at > ? OR o.completed_at > ?)"
         params.extend([since, since])
     
     query += " ORDER BY o.id ASC LIMIT ?"
@@ -120,7 +121,7 @@ def export_orders(since: Optional[str] = None, limit: int = 200):
     return {"orders": orders, "count": len(orders)}
 
 @router.post("/import-orders")
-def import_orders(payload: Dict[str, Any]):
+async def import_orders(payload: Dict[str, Any]):
     """
     Nhập các đơn hàng được đồng bộ từ Cloud về Local hoặc ngược lại.
     Áp dụng 3 lớp khử trùng độc lập chống hoàn toàn hiện tượng lặp hóa đơn (Ping-Pong Loop).
@@ -193,6 +194,11 @@ def import_orders(payload: Dict[str, Any]):
             existing_order = cursor.fetchone()
 
         if existing_order:
+            # Nếu đơn là UNPAID, đảm bảo bàn và session luôn ở trạng thái OCCUPIED / ACTIVE
+            if o.get('payment_status') == 'UNPAID':
+                cursor.execute('UPDATE tables SET status = \'OCCUPIED\', current_session_id = ? WHERE id = ?', (local_session_id, local_table_id))
+                cursor.execute('UPDATE table_sessions SET status = \'ACTIVE\' WHERE id = ?', (local_session_id,))
+
             # ĐÃ TỒN TẠI: Cập nhật order_uuid nếu đơn này chưa có
             if incoming_uuid and not existing_order["order_uuid"]:
                 cursor.execute("UPDATE orders SET order_uuid = ? WHERE id = ?", (incoming_uuid, existing_order["id"]))
@@ -205,6 +211,13 @@ def import_orders(payload: Dict[str, Any]):
                     WHERE id = ?
                 """, (o.get("status"), o.get("payment_status"), o.get("completed_at"), o.get("payment_method", "CASH"), existing_order["id"]))
                 updated_count += 1
+
+                # Nếu đơn chuyển sang PAID, kiểm tra giải phóng bàn
+                if o.get("payment_status") == "PAID":
+                    cursor.execute("SELECT COUNT(*) as unpaid FROM orders WHERE table_id = ? AND payment_status = 'UNPAID'", (local_table_id,))
+                    if cursor.fetchone()["unpaid"] == 0:
+                        cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL WHERE id = ?", (local_table_id,))
+                        cursor.execute("UPDATE table_sessions SET status = 'CLOSED' WHERE id = ?", (local_session_id,))
             continue
 
         # 4. CHÈN ĐƠN MỚI NGUYÊN BẢN (KHÔNG LÀM BẨN NOTE VỚI MÃ REF LẶP LẠI)
@@ -225,6 +238,11 @@ def import_orders(payload: Dict[str, Any]):
             o.get("created_at"), o.get("completed_at")
         ))
         new_order_id = cursor.lastrowid
+
+        # Cập nhật bàn về OCCUPIED nếu đơn là UNPAID
+        if o.get("payment_status") == "UNPAID":
+            cursor.execute("UPDATE tables SET status = 'OCCUPIED', current_session_id = ? WHERE id = ?", (local_session_id, local_table_id))
+            cursor.execute("UPDATE table_sessions SET status = 'ACTIVE' WHERE id = ?", (local_session_id,))
 
         # 5. Chèn danh sách món
         for it in o.get("items", []):
@@ -249,6 +267,19 @@ def import_orders(payload: Dict[str, Any]):
 
     conn.commit()
     conn.close()
+
+    if ws_broadcaster and (imported_count > 0 or updated_count > 0):
+        try:
+            await ws_broadcaster.send_to_pos({
+                "event": "NEW_ORDER",
+                "message": f"Đã đồng bộ {imported_count} đơn mới từ Cloud!"
+            })
+            await ws_broadcaster.send_to_kds({
+                "event": "NEW_ORDER",
+                "message": f"Đã đồng bộ {imported_count} đơn mới từ Cloud!"
+            })
+        except Exception:
+            pass
 
     return {
         "status": "SUCCESS",
@@ -310,3 +341,77 @@ def get_code_bundle():
         media_type="application/zip",
         headers={"Content-Disposition": "attachment; filename=pipo_update_bundle.zip"}
     )
+
+@router.get("/export-reservations")
+def export_reservations(since: Optional[str] = None, limit: int = 100):
+    """Xuất danh sách đặt bàn trực tuyến để đồng bộ."""
+    conn = get_db()
+    cursor = conn.cursor()
+    query = "SELECT * FROM reservations"
+    params = []
+    if since:
+        query += " WHERE (status = 'PENDING' OR created_at > ?)"
+        params.append(since)
+    query += " ORDER BY id DESC LIMIT ?"
+    params.append(limit)
+    cursor.execute(query, tuple(params))
+    rows = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    return {"reservations": rows, "count": len(rows)}
+
+@router.post("/import-reservations")
+async def import_reservations(payload: Dict[str, Any]):
+    """Nhập danh sách đặt bàn trực tuyến đồng bộ từ Cloud."""
+    res_list = payload.get("reservations", [])
+    if not res_list:
+        return {"status": "SUCCESS", "imported": 0}
+
+    conn = get_db()
+    cursor = conn.cursor()
+    imported = 0
+    for r in res_list:
+        cursor.execute("""
+            SELECT id FROM reservations 
+            WHERE phone = ? AND booking_date = ? AND booking_time = ?
+        """, (r.get("phone"), r.get("booking_date"), r.get("booking_time")))
+        existing = cursor.fetchone()
+        if not existing:
+            cursor.execute("""
+                INSERT INTO reservations (
+                    guest_name, phone, booking_date, booking_time, guest_count,
+                    service_type, table_id, table_code, area, preorder_items_json,
+                    total_estimated, note, status, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                r.get("guest_name"), r.get("phone"), r.get("booking_date"), r.get("booking_time"),
+                r.get("guest_count", 2), r.get("service_type", "DINING"), r.get("table_id"),
+                r.get("table_code"), r.get("area"), r.get("preorder_items_json", "[]"),
+                r.get("total_estimated", 0), r.get("note"), r.get("status", "PENDING"),
+                r.get("created_at")
+            ))
+            imported += 1
+    conn.commit()
+    conn.close()
+
+    if ws_broadcaster and imported > 0:
+        try:
+            await ws_broadcaster.send_to_pos({
+                "event": "NEW_RESERVATION",
+                "message": f"Có {imported} đơn đặt bàn trực tuyến mới từ Cloud!"
+            })
+        except Exception:
+            pass
+
+    return {"status": "SUCCESS", "imported": imported}
+
+@router.post("/notify-pos-event")
+async def notify_pos_event(payload: Dict[str, Any]):
+    """Nhận sự kiện từ Cloud qua Agent để phát tức thời tới POS local."""
+    if ws_broadcaster:
+        try:
+            await ws_broadcaster.send_to_pos(payload)
+            if payload.get("event") in ["NEW_ORDER", "REVENUE_CLEARED"]:
+                await ws_broadcaster.send_to_kds(payload)
+        except Exception:
+            pass
+    return {"status": "SUCCESS"}
