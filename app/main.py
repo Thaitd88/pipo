@@ -115,6 +115,10 @@ reservations.set_broadcaster(broadcaster)
 sync.set_broadcaster(broadcaster)
 printer.set_broadcaster(broadcaster)
 reports.set_broadcaster(broadcaster)
+try:
+    pickleball.set_broadcaster(broadcaster)
+except Exception:
+    pass
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

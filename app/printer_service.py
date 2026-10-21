@@ -162,13 +162,18 @@ def get_printers_status() -> dict:
     }
 
 def print_kitchen_order(order_info: dict, items: list, station: str = "HOT_KITCHEN", beep: bool = True) -> tuple[bool, str]:
-    """In phiếu chế biến món ăn 80mm xuống Máy in Bếp 192.168.31.251 (kèm còi hú beeper 3 tiếng)."""
+    """In phiếu chế biến món ăn 80mm: Bếp nóng gửi Máy in Bếp 251, Bếp lạnh & Bar gửi Máy in Thu Ngân 252."""
     cfg = get_printer_config()
-    if not cfg["kitchen_enabled"]:
-        return False, "Máy in bếp đang bị tắt trong cấu hình"
+    is_cashier_side = station in ["COLD_KITCHEN", "BAR", "CASHIER"]
+    dest_ip = cfg["cashier_ip"] if is_cashier_side else cfg["kitchen_ip"]
+    dest_port = cfg["cashier_port"] if is_cashier_side else cfg["kitchen_port"]
+    enabled = cfg["cashier_enabled"] if is_cashier_side else cfg["kitchen_enabled"]
+
+    if not enabled:
+        return False, f"Máy in cho trạm {station} đang bị tắt trong cấu hình"
 
     escpos_bytes = build_escpos_kitchen_bytes(order_info, items, station=station, beep=beep)
-    return send_escpos_to_printer(cfg["kitchen_ip"], cfg["kitchen_port"], escpos_bytes)
+    return send_escpos_to_printer(dest_ip, dest_port, escpos_bytes)
 
 def print_cashier_receipt(table_info: dict, items: list, totals_info: dict = None) -> tuple[bool, str]:
     """

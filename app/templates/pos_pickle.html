@@ -348,12 +348,15 @@
       </div>
 
       <!-- Footer Buttons -->
-      <div class="p-4 bg-stone-50 border-t border-stone-200 grid grid-cols-2 gap-2">
-        <button type="button" onclick="closeCheckoutModal()" class="px-4 py-2.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs transition">
-          Hủy Bỏ
+      <div class="p-4 bg-stone-50 border-t border-stone-200 grid grid-cols-3 gap-2">
+        <button type="button" onclick="closeCheckoutModal()" class="px-3 py-2.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs transition">
+          Đóng
         </button>
-        <button type="button" onclick="executeCheckout()" id="btnConfirmCheckout" class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs transition shadow-md flex items-center justify-center gap-1.5">
-          <i class="fa-solid fa-print"></i> Hoàn Tất & In Bill
+        <button type="button" onclick="printPickleTempBill()" id="btnPrintTempBill" class="px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-xs">
+          <i class="fa-solid fa-file-invoice"></i> In Tạm Tính
+        </button>
+        <button type="button" onclick="executeCheckout()" id="btnConfirmCheckout" class="px-3 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs transition shadow-md flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-print"></i> Thu Tiền & In
         </button>
       </div>
     </div>
@@ -956,16 +959,16 @@
     async function submitServiceOrder() {
       if (isPickleServiceSubmitting) return;
       if (!currentTargetCourt) return;
-      isPickleServiceSubmitting = true;
       if (orderCart.length === 0) {
         alert("Vui lòng chọn ít nhất 1 dịch vụ hoặc đồ uống!");
         return;
       }
+      isPickleServiceSubmitting = true;
 
       const btn = document.getElementById("btnSubmitOrder");
       const origHtml = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi & chia máy in...`;
 
       try {
         // 1. Mở session bàn nếu bàn chưa mở
@@ -975,8 +978,9 @@
         const sessData = await sessRes.json();
         const sessionToken = sessData.session_token || (sessData.session && sessData.session.session_token);
 
-        // 2. Gửi order
+        // 2. Gửi order kèm table_id đầy đủ
         const payload = {
+          table_id: currentTargetCourt.id,
           session_token: sessionToken,
           customer_note: "Order từ POS Sân Pickleball",
           items: orderCart.map(it => ({
@@ -998,7 +1002,7 @@
           throw new Error(errData.detail || "Không thể gửi đơn");
         }
 
-        showToast(`✅ Đã thêm dịch vụ vào ${currentTargetCourt.name} thành công!`);
+        showToast(`✅ Đã gửi đơn thành công! Đã tự động chia in bếp nóng / quầy bar thu ngân.`);
         closeServiceOrderModal();
         await loadPickleCourts();
       } catch (err) {
@@ -1007,7 +1011,7 @@
       } finally {
         btn.disabled = false;
         btn.innerHTML = origHtml;
-        isPickleCheckingOut = false;
+        isPickleServiceSubmitting = false;
       }
     }
 
@@ -1070,6 +1074,34 @@
       }
     }
 
+    async function printPickleTempBill() {
+      if (!currentTargetCourt) return;
+      const btn = document.getElementById("btnPrintTempBill");
+      const orig = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang in...`;
+      try {
+        const res = await fetch(`/api/printer/bill/${currentTargetCourt.id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cashier_name: "Thu Ngân Sân Pick",
+            discount_amount: 0,
+            service_fee: 0,
+            payment_method: "CASH"
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Không thể in phiếu tạm tính");
+        showToast(`🖨️ Đã gửi lệnh in tạm tính ${currentTargetCourt.name} ra Máy in Thu Ngân!`);
+      } catch (err) {
+        alert("Lỗi in tạm tính: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+      }
+    }
+
     let isPickleCheckingOut = false;
     async function executeCheckout() {
       if (isPickleCheckingOut) return;
@@ -1118,8 +1150,8 @@
       } finally {
         btn.disabled = false;
         btn.innerHTML = origHtml;
+        isPickleCheckingOut = false;
       }
-      isPickleServiceSubmitting = false;
     }
 
     function printTicketLocally(text) {
@@ -1535,10 +1567,34 @@
       loadPickleCourts();
     }, 10000);
 
+    function connectPickleWebSocket() {
+      try {
+        const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+        const wsUrl = `${protocol}//${location.host}/ws/pos`;
+        const ws = new WebSocket(wsUrl);
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (["NEW_ORDER", "TABLE_CHECKED_OUT", "ITEM_STATUS_CHANGED", "ORDER_ITEMS_COMPLETED", "TABLE_ITEMS_SERVED", "REVENUE_CLEARED"].includes(data.event)) {
+              loadPickleCourts();
+            }
+          } catch (e) {}
+        };
+
+        ws.onclose = () => {
+          setTimeout(connectPickleWebSocket, 3000);
+        };
+      } catch (e) {
+        console.warn("WebSocket init error:", e);
+      }
+    }
+
     // Initial Load
     window.addEventListener("DOMContentLoaded", async () => {
       await loadMenuData();
       await loadPickleCourts();
+      connectPickleWebSocket();
     });
   </script>
   <div id="accountingModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden">

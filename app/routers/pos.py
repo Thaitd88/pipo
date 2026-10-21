@@ -437,8 +437,18 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
             "message": "Cảm ơn quý khách đã dùng bữa tại PiPo Garden! Hẹn gặp lại quý khách."
         })
 
+    total_bill_amount = sum(it["total_price"] for it in checkout_items if it.get("status") != "CANCELLED")
+    final_checkout_total = max(0, total_bill_amount - discount_amount + service_fee)
+
     target_msg = f" (Tính bill với Admin: {billed_admin_name})" if bill_target == "ADMIN" else ""
-    return {"status": "SUCCESS", "message": f"Đã thanh toán và mở lại bàn {table['name']}{target_msg}"}
+    return {
+        "status": "SUCCESS",
+        "message": f"Đã thanh toán và mở lại bàn {table['name']}{target_msg}",
+        "receipt_text": receipt_text if 'receipt_text' in locals() else None,
+        "receipt_b64": receipt_b64 if 'receipt_b64' in locals() else None,
+        "final_total": final_checkout_total,
+        "table_id": table_id
+    }
 
 @router.get("/bills/history")
 async def get_bills_history(limit: int = 60, search: str = ""):

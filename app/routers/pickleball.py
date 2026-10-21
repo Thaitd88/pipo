@@ -12,6 +12,12 @@ from ..database import get_db
 
 router = APIRouter(prefix="/api/pickleball", tags=["Pickleball Booking"])
 
+ws_broadcaster = None
+
+def set_broadcaster(broadcaster):
+    global ws_broadcaster
+    ws_broadcaster = broadcaster
+
 # Danh sách 4 sân có mái che tiêu chuẩn resort
 COURTS_CONFIG = [
     {
@@ -674,14 +680,16 @@ def record_membership_order_and_print(cursor, member: dict, amount: int, payment
     """, (table_id, sess_token, now_ts, now_ts))
     session_id = cursor.lastrowid
 
+    import uuid
+    new_order_uuid = f"ord_{uuid.uuid4().hex}"
     cursor.execute("""
         INSERT INTO orders (
-            session_id, table_id, round_number, subtotal, discount, service_fee, total,
+            order_uuid, session_id, table_id, round_number, subtotal, discount, service_fee, total,
             status, payment_status, payment_method, customer_note,
             created_at, completed_at
-        ) VALUES (?, ?, 1, ?, 0, 0, ?, 'COMPLETED', 'PAID', ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, 1, ?, 0, 0, ?, 'COMPLETED', 'PAID', ?, ?, ?, ?)
     """, (
-        session_id, table_id, amount, amount, payment_method or "CASH",
+        new_order_uuid, session_id, table_id, amount, amount, payment_method or "CASH",
         f"Thu phí hội viên: {member['customer_name']} ({member['member_code']})",
         now_ts, now_ts
     ))
@@ -731,6 +739,37 @@ def record_membership_order_and_print(cursor, member: dict, amount: int, payment
             INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
             VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?)
         """, (order_id, ticket_text))
+        job_id = cursor.lastrowid
+
+        if ws_broadcaster:
+            import asyncio
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    asyncio.create_task(ws_broadcaster.send_to_printers({
+                        "event": "PRINT_JOB",
+                        "job_id": job_id,
+                        "station": "CASHIER",
+                        "job_type": "RECEIPT",
+                        "ticket_text": ticket_text,
+                        "escpos_b64": receipt_b64,
+                        "table_name": table_dict.get("name", "Sân Pickle")
+                    }))
+            except Exception:
+                pass
+
+        is_cloud = os.environ.get("VIBE_PROJECT_ID") or os.environ.get("KUBERNETES_SERVICE_HOST") or (os.name != "nt")
+        if not is_cloud:
+            try:
+                from ..printer_service import get_printer_config, send_escpos_to_printer
+                p_cfg = get_printer_config()
+                if p_cfg.get("auto_cashier", True):
+                    import asyncio
+                    loop = asyncio.get_event_loop()
+                    loop.run_in_executor(None, send_escpos_to_printer, p_cfg["cashier_ip"], p_cfg["cashier_port"], receipt_bytes)
+            except Exception:
+                pass
+
         return order_id, ticket_text, receipt_b64
     except Exception as ex:
         print("[Pickle Membership Print Error]:", ex)

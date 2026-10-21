@@ -8,28 +8,28 @@
   "simulate_mode": false,
   "printers": {
     "HOT_KITCHEN": {
-      "name": "Máy in Bếp Nóng (Xprinter KOT)",
+      "name": "Máy in Bếp Nóng (Xprinter KOT Beeper)",
       "type": "tcp",
       "host": "192.168.31.251",
       "port": 9100,
       "enabled": true
     },
     "COLD_KITCHEN": {
-      "name": "Máy in Bếp Lạnh",
+      "name": "Máy in Bếp Lạnh (In tại Quầy Thu Ngân)",
       "type": "tcp",
-      "host": "192.168.31.251",
+      "host": "192.168.31.252",
       "port": 9100,
       "enabled": true
     },
     "BAR": {
-      "name": "Máy in Quầy Bar / Pha Chế",
+      "name": "Máy in Quầy Bar & Vé Sân Pick (In tại Quầy Thu Ngân)",
       "type": "tcp",
       "host": "192.168.31.252",
       "port": 9100,
       "enabled": true
     },
     "CASHIER": {
-      "name": "Máy in Hóa đơn Thu ngân",
+      "name": "Máy in Hóa Đơn Thu Ngân",
       "type": "tcp",
       "host": "192.168.31.252",
       "port": 9100,

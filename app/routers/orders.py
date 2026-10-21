@@ -32,6 +32,15 @@ async def create_order(payload: dict):
     items = payload.get("items", [])
     customer_note = payload.get("customer_note", "")
 
+    if not table_id and session_token:
+        conn_pre = get_db()
+        c_pre = conn_pre.cursor()
+        c_pre.execute("SELECT table_id FROM table_sessions WHERE session_token = ? AND status = 'ACTIVE'", (session_token,))
+        row_pre = c_pre.fetchone()
+        conn_pre.close()
+        if row_pre:
+            table_id = row_pre["table_id"]
+
     if not table_id or not items:
         raise HTTPException(status_code=400, detail="Thiếu thông tin bàn hoặc danh sách món ăn")
 
@@ -180,8 +189,9 @@ async def create_order(payload: dict):
             p_cfg = get_printer_config()
             if p_cfg.get("auto_kitchen"):
                 for pjob in print_jobs_created:
-                    dest_ip = p_cfg["cashier_ip"] if pjob["station"] == "BAR" else p_cfg["kitchen_ip"]
-                    dest_port = p_cfg["cashier_port"] if pjob["station"] == "BAR" else p_cfg["kitchen_port"]
+                    is_cashier_side = pjob["station"] in ["BAR", "COLD_KITCHEN", "CASHIER"]
+                    dest_ip = p_cfg["cashier_ip"] if is_cashier_side else p_cfg["kitchen_ip"]
+                    dest_port = p_cfg["cashier_port"] if is_cashier_side else p_cfg["kitchen_port"]
                     raw_b = base64.b64decode(pjob["escpos_b64"]) if pjob.get("escpos_b64") else b""
                     if raw_b:
                         import asyncio

@@ -128,8 +128,8 @@ async def ws_listener(url: str, label: str, config: dict):
                             # Gửi máy in LAN vật lý nếu được bật
                             printer_cfg = printers.get(station)
                             if not printer_cfg:
-                                if station in ["BAR", "CASHIER"]:
-                                    printer_cfg = printers.get("BAR") or printers.get("CASHIER")
+                                if station in ["BAR", "CASHIER", "COLD_KITCHEN"]:
+                                    printer_cfg = printers.get("COLD_KITCHEN") or printers.get("CASHIER") or printers.get("BAR")
                                 else:
                                     printer_cfg = printers.get("HOT_KITCHEN")
 
@@ -140,7 +140,7 @@ async def ws_listener(url: str, label: str, config: dict):
                                     printed_success = True
 
                             # Dự phòng: Nếu máy in Thu ngân không phản hồi, thử gửi qua máy in Bếp (192.168.31.251)
-                            if not printed_success and station in ["CASHIER", "BAR"]:
+                            if not printed_success and station in ["CASHIER", "BAR", "COLD_KITCHEN"]:
                                 kitchen_cfg = printers.get("HOT_KITCHEN")
                                 if kitchen_cfg and kitchen_cfg.get("enabled"):
                                     k_host = kitchen_cfg.get("host")
