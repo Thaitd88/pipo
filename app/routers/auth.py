@@ -95,7 +95,7 @@ def check_page_access(request: Request, allowed_roles: Optional[List[str]] = Non
             "CASHIER": "/pos",
             "CHEF": "/kitchen",
             "WAITER": "/pos",
-            "PICKLEBALL": "/pos?mode=pickle"
+            "PICKLEBALL": "/pos-pickle"
         }
         dest = role_default_pages.get(user["role"], "/")
         return RedirectResponse(
@@ -196,7 +196,7 @@ def login(req: LoginRequest, response: Response, request: Request):
         "CASHIER": "/pos",
         "CHEF": "/kitchen",
         "WAITER": "/pos",
-        "PICKLEBALL": "/pos?mode=pickle"
+        "PICKLEBALL": "/pos-pickle"
     }
     redirect_url = role_redirects.get(user["role"], "/admin")
 

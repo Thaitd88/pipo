@@ -1,3 +1,4 @@
+import base64
 # Router for Pickleball Court Booking System at PiPo Garden
 import json
 import random
@@ -646,7 +647,97 @@ def list_memberships(
         "memberships": rows
     }
 
+def record_membership_order_and_print(cursor, member: dict, amount: int, payment_method: str = "CASH"):
+    """
+    Tự động ghi nhận đơn thanh toán vào bảng orders và tạo print_job in hóa đơn thu tiền:
+    - Đưa trực tiếp vào doanh thu hệ thống (Sân Pickle).
+    - Tạo phiếu in hóa đơn cho thu ngân và khách.
+    """
+    now = datetime.now()
+    now_ts = now.strftime("%Y-%m-%d %H:%M:%S")
+
+    court_str = str(member.get("court_id") or "PK-01").upper()
+    cursor.execute("SELECT id, name, table_code, area FROM tables WHERE table_code = ? OR name LIKE ? LIMIT 1", (court_str, f"%{court_str}%"))
+    table_row = cursor.fetchone()
+    if not table_row:
+        cursor.execute("SELECT id, name, table_code, area FROM tables WHERE table_code LIKE 'PK-%' ORDER BY id ASC LIMIT 1")
+        table_row = cursor.fetchone()
+
+    table_id = table_row["id"] if table_row else 29
+    table_dict = dict(table_row) if table_row else {"name": "Sân Pickle", "area": "Sân Pickle", "table_code": "PK-01"}
+
+    import uuid
+    sess_token = f"mbr_{uuid.uuid4().hex[:10]}"
+    cursor.execute("""
+        INSERT INTO table_sessions (table_id, session_token, status, guest_count, opened_at, closed_at)
+        VALUES (?, ?, 'CLOSED', 1, ?, ?)
+    """, (table_id, sess_token, now_ts, now_ts))
+    session_id = cursor.lastrowid
+
+    cursor.execute("""
+        INSERT INTO orders (
+            session_id, table_id, round_number, subtotal, discount, service_fee, total,
+            status, payment_status, payment_method, customer_note,
+            created_at, completed_at
+        ) VALUES (?, ?, 1, ?, 0, 0, ?, 'COMPLETED', 'PAID', ?, ?, ?, ?)
+    """, (
+        session_id, table_id, amount, amount, payment_method or "CASH",
+        f"Thu phí hội viên: {member['customer_name']} ({member['member_code']})",
+        now_ts, now_ts
+    ))
+    order_id = cursor.lastrowid
+
+    type_names = {
+        "SOCIAL_MONTH_ALL": "Hội Viên Social Tháng (Mọi Giờ)",
+        "SOCIAL_MONTH_MORNING": "Hội Viên Social Tháng (Sáng 06h-16h)",
+        "SOCIAL_YEAR": "Hội Viên Social Năm (VIP Cá Nhân)",
+        "FIXED_COURT_MONTHLY": "Đặt Sân Cố Định Theo Tháng"
+    }
+    item_title = f"{type_names.get(member.get('membership_type'), 'Hội Viên Sân')}: {member['customer_name']}"
+
+    cursor.execute("""
+        INSERT INTO order_items (
+            order_id, item_id, item_name, quantity, unit_price, total_price,
+            station, status, note, created_at, updated_at, inventory_deducted
+        ) VALUES (?, 305, ?, 1, ?, ?, 'BAR', 'COMPLETED', ?, ?, ?, 1)
+    """, (
+        order_id, item_title, amount, amount,
+        f"Mã thẻ: {member['member_code']} | Hạn: {member.get('end_date')}",
+        now_ts, now_ts
+    ))
+
+    try:
+        from ..escpos import format_receipt_ticket_text, build_escpos_receipt_bytes
+        receipt_items = [{
+            "item_name": item_title,
+            "quantity": 1,
+            "unit_price": amount,
+            "total_price": amount,
+            "note": f"Mã: {member['member_code']}"
+        }]
+        totals_info = {
+            "title": "HOA DON THU PHI HOI VIEN",
+            "cashier_name": "Thu Ngan San Pickle",
+            "discount": 0,
+            "service_fee": 0,
+            "payment_method": payment_method or "CASH",
+            "bill_target": "CUSTOMER"
+        }
+        ticket_text = format_receipt_ticket_text(table_dict, receipt_items, totals_info=totals_info)
+        receipt_bytes = build_escpos_receipt_bytes(table_dict, receipt_items, totals_info=totals_info)
+        receipt_b64 = base64.b64encode(receipt_bytes).decode("ascii")
+
+        cursor.execute("""
+            INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+            VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?)
+        """, (order_id, ticket_text))
+        return order_id, ticket_text, receipt_b64
+    except Exception as ex:
+        print("[Pickle Membership Print Error]:", ex)
+        return order_id, None, None
+
 @router.post("/memberships")
+
 def create_membership(payload: MembershipCreate):
     """
     Đăng ký mới Hội viên Social Tháng, Năm hoặc Đặt sân cố định theo tháng (cho phép đàm phán giá).
@@ -725,12 +816,24 @@ def create_membership(payload: MembershipCreate):
 
     cursor.execute("SELECT * FROM pickleball_memberships WHERE id = ?", (new_id,))
     created = dict(cursor.fetchone())
+
+    order_id = None
+    receipt_text = None
+    if paid > 0 and p_status == "PAID":
+        try:
+            order_id, receipt_text, _ = record_membership_order_and_print(cursor, created, paid, payload.payment_method or "CASH")
+            conn.commit()
+        except Exception as _e:
+            print("[create_membership order error]:", _e)
+
     conn.close()
 
     return {
         "status": "SUCCESS",
-        "message": f"Đăng ký gói [{member_code}] cho khách {payload.customer_name} thành công!",
-        "membership": created
+        "message": f"Đăng ký gói [{member_code}] cho khách {payload.customer_name} thành công! Đã tạo hóa đơn thu tiền #{order_id or ''} và in bill.",
+        "membership": created,
+        "order_id": order_id,
+        "receipt_text": receipt_text
     }
 
 @router.put("/memberships/{membership_id}")
@@ -812,12 +915,24 @@ def renew_membership(membership_id: int, payload: MembershipRenew):
 
     cursor.execute("SELECT * FROM pickleball_memberships WHERE id = ?", (membership_id,))
     updated = dict(cursor.fetchone())
+
+    order_id = None
+    receipt_text = None
+    if payload.amount_paid > 0:
+        try:
+            order_id, receipt_text, _ = record_membership_order_and_print(cursor, updated, payload.amount_paid, payload.payment_method or "CASH")
+            conn.commit()
+        except Exception as _e:
+            print("[renew_membership order error]:", _e)
+
     conn.close()
 
     return {
         "status": "SUCCESS",
-        "message": f"Đã gia hạn thành công gói [{updated['member_code']}] đến ngày {new_end_date}!",
-        "membership": updated
+        "message": f"Đã gia hạn thành công gói [{updated['member_code']}] đến ngày {new_end_date}! Đã tạo hóa đơn thu tiền #{order_id or ''} và in bill.",
+        "membership": updated,
+        "order_id": order_id,
+        "receipt_text": receipt_text
     }
 
 @router.post("/memberships/{membership_id}/checkin")

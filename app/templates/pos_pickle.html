@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PiPo Pickleball POS | Quản Lý Sân & Bán Vé</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    @media print {
+      body * { visibility: hidden !important; }
+      #printableReceipt, #printableReceipt * { visibility: visible !important; }
+      #printableReceipt {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 80mm !important;
+        padding: 4mm !important;
+        margin: 0 auto !important;
+        background: white !important;
+        color: black !important;
+      }
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-stone-100 text-stone-800 min-h-screen flex flex-col">
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="bg-emerald-950 text-white shadow-md sticky top-0 z-30 border-b border-emerald-800">
+    <div class="px-3 sm:px-6 py-2.5 flex items-center justify-between">
+      <div class="flex items-center space-x-3 min-w-0">
+        <img src="/static/logo.png" alt="PiPo Garden" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-contain bg-white p-0.5 shadow flex-shrink-0">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <h1 class="font-black text-sm sm:text-lg leading-tight truncate">PiPo Pickleball</h1>
+            <span class="text-[10px] bg-amber-500 text-stone-900 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">POS Sân Pick</span>
+          </div>
+          <p class="text-[11px] text-emerald-300 truncate hidden sm:block">4 Sân Pickleball • Quản lý Vé, Dịch Vụ, Hội Viên & In Bill Tự Động</p>
+        </div>
+      </div>
+
+      <!-- User & Quick Nav -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="/pickleball" target="_blank" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-900 hover:bg-emerald-800 text-emerald-200 hover:text-white text-xs font-semibold border border-emerald-700/60 transition" title="Mở trang đặt sân trực tuyến của khách">
+          <i class="fa-solid fa-table-tennis-paddle-ball text-amber-400"></i> Lịch Đặt Web ↗
+        </a>
+
+        {% if user and (user.role == 'ADMIN' or user.role == 'SUPER_ADMIN' or user.role == 'CASHIER') %}
+        <a href="/pos" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-bold transition shadow-xs" title="Chuyển sang POS Quản trị Nhà Hàng F&B">
+          <i class="fa-solid fa-utensils"></i> POS Nhà Hàng
+        </a>
+        {% endif %}
+
+        <!-- User Profile Pill -->
+        <div class="flex items-center gap-2 bg-emerald-900/90 px-3 py-1.5 rounded-xl border border-emerald-700 text-xs">
+          <div class="w-6 h-6 rounded-full bg-emerald-700 flex items-center justify-center text-xs">🎾</div>
+          <div class="text-left hidden sm:block">
+            <div class="font-bold text-white text-xs leading-tight" id="userDisplayName">{{ user.full_name if user else 'Quản Trị Sân Pick' }}</div>
+            <div class="text-[9px] text-emerald-300 font-medium" id="userRoleBadge">{{ user.role if user else 'PICKLEBALL' }}</div>
+          </div>
+          <button onclick="openChangePasswordModal()" class="text-emerald-300 hover:text-white text-xs px-1.5 py-0.5 rounded hover:bg-emerald-800 transition" title="Đổi mật khẩu cá nhân">
+            <i class="fa-solid fa-key"></i>
+          </button>
+          <button onclick="handleLogout()" class="text-rose-300 hover:text-rose-100 text-xs px-1.5 py-0.5 rounded hover:bg-rose-900/40 transition" title="Đăng xuất">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Action Bar -->
+    <div class="px-3 sm:px-6 py-2 bg-emerald-900/80 border-t border-emerald-800/60 flex items-center justify-between gap-2 overflow-x-auto custom-scrollbar">
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button onclick="openMembershipRegisterModal()" class="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs font-black flex items-center gap-1.5 shadow-sm transition">
+          <i class="fa-solid fa-user-plus text-stone-900"></i> + Đăng Ký Hội Viên & Thu Tiền
+        </button>
+        <button onclick="openMembershipListModal()" class="px-3 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-id-card text-emerald-300"></i> Danh Sách Hội Viên
+        </button>
+        <button onclick="openCheckinHistoryModal()" class="px-3 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-clipboard-check text-emerald-300"></i> Điểm Danh Hôm Nay
+        </button>
+        <button onclick="openAccountingModal('PICKLEBALL')" class="px-3 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition" title="Nhập phiếu thu / chi sổ quỹ hàng ngày">
+          <i class="fa-solid fa-money-bill-wave text-amber-300"></i> Thu - Chi Sổ Quỹ
+        </button>
+        <button onclick="openSocialDrinkConfigModal()" class="px-3 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition" title="Cấu hình loại đồ uống tặng kèm vé Social 60k">
+          <i class="fa-solid fa-bottle-water text-emerald-300"></i> Nước Tặng Social
+        </button>
+      </div>
+
+      <!-- Quick Checkin Input -->
+      <div class="flex items-center gap-1.5 bg-emerald-950/90 px-2 py-1 rounded-xl border border-emerald-700/80 flex-shrink-0">
+        <i class="fa-solid fa-magnifying-glass text-emerald-400 text-xs ml-1"></i>
+        <input type="text" id="quickCheckinInput" placeholder="Nhập SĐT hoặc Mã thẻ..." class="bg-transparent border-none text-xs text-white placeholder-emerald-400 focus:outline-none w-36 sm:w-44 px-1" onkeydown="if(event.key==='Enter') executeQuickCheckin()">
+        <button onclick="executeQuickCheckin()" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition">
+          Điểm Danh 1 Chạm
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT: 4 SÂN PICKLEBALL ==================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 space-y-6">
+
+    <!-- Overview Bar & Auto-Refresh -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-stone-200 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl font-black">
+          🎾
+        </div>
+        <div>
+          <h2 class="font-extrabold text-base text-stone-900 flex items-center gap-2">
+            <span>Sơ Đồ 4 Sân Pickleball Tiêu Chuẩn Resort</span>
+            <span id="liveStatusBadge" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping inline-block" title="Trạng thái trực tiếp"></span>
+          </h2>
+          <p class="text-xs text-stone-500">Mái che cao cấp, đèn LED chuẩn thi đấu • Theo dõi phiên chơi, thêm dịch vụ và thanh toán in bill ngay</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="loadPickleCourts()" class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-rotate text-emerald-700" id="refreshIcon"></i> Làm mới
+        </button>
+        <span class="text-xs text-stone-400 font-medium" id="lastUpdatedTime">--:--:--</span>
+      </div>
+    </div>
+
+    <!-- 4 Courts Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="courtsGrid">
+      <!-- Loading Placeholder -->
+      <div class="col-span-full py-16 text-center text-stone-400">
+        <i class="fa-solid fa-spinner fa-spin text-3xl text-emerald-600 mb-2"></i>
+        <p class="text-xs">Đang tải trạng thái 4 sân Pickleball...</p>
+      </div>
+    </div>
+
+    <!-- Quick Pricing Reference Bar -->
+    <div class="bg-gradient-to-r from-emerald-950 to-emerald-900 rounded-2xl p-4 text-white shadow-sm border border-emerald-800">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-tags text-amber-400 text-sm"></i>
+          <h3 class="font-bold text-xs uppercase tracking-wider text-emerald-200">Biểu Phí Sân & Dịch Vụ Chuẩn Áp Dụng</h3>
+        </div>
+        <span class="text-[11px] text-emerald-300">Tự động cấu hình BOM trừ nước tồn kho</span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+        <div class="bg-emerald-900/60 p-2.5 rounded-xl border border-emerald-800/80">
+          <div class="text-[10px] text-emerald-300 font-medium">Social Chiều-Tối (16h-22h)</div>
+          <div class="font-extrabold text-amber-300 text-sm mt-0.5">60.000 đ/người</div>
+          <div class="text-[9.5px] text-emerald-200 mt-0.5">🎁 Tặng 1 chai nước (trừ kho)</div>
+        </div>
+        <div class="bg-emerald-900/60 p-2.5 rounded-xl border border-emerald-800/80">
+          <div class="text-[10px] text-emerald-300 font-medium">Social Buổi Sáng (06h-16h)</div>
+          <div class="font-extrabold text-white text-sm mt-0.5">30.000 đ/người</div>
+          <div class="text-[9.5px] text-emerald-300 mt-0.5">Không kèm nước</div>
+        </div>
+        <div class="bg-emerald-900/60 p-2.5 rounded-xl border border-emerald-800/80">
+          <div class="text-[10px] text-emerald-300 font-medium">Thuê Sân Theo Giờ</div>
+          <div class="font-extrabold text-amber-300 text-sm mt-0.5">200.000 đ/giờ</div>
+          <div class="text-[9.5px] text-emerald-200 mt-0.5">🎁 Tặng 2 chai nước suối</div>
+        </div>
+        <div class="bg-emerald-900/60 p-2.5 rounded-xl border border-emerald-800/80">
+          <div class="text-[10px] text-emerald-300 font-medium">Thuê Vợt Thi Đấu</div>
+          <div class="font-extrabold text-white text-sm mt-0.5">50.000 đ/lượt</div>
+          <div class="text-[9.5px] text-emerald-300 mt-0.5">Vợt sợi Carbon chuẩn Pro</div>
+        </div>
+        <div class="bg-emerald-900/60 p-2.5 rounded-xl border border-emerald-800/80">
+          <div class="text-[10px] text-emerald-300 font-medium">Hội Viên Social Tháng</div>
+          <div class="font-extrabold text-amber-300 text-sm mt-0.5">1.200.000 đ/tháng</div>
+          <div class="text-[9.5px] text-emerald-200 mt-0.5">Mọi khung giờ (Sáng: 600k)</div>
+        </div>
+        <div class="bg-emerald-900/60 p-2.5 rounded-xl border border-emerald-800/80">
+          <div class="text-[10px] text-emerald-300 font-medium">Hội Viên VIP Năm</div>
+          <div class="font-extrabold text-amber-300 text-sm mt-0.5">5.000.000 đ/năm</div>
+          <div class="text-[9.5px] text-emerald-200 mt-0.5">Đặt sân tháng: Giá đàm phán</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================== MODAL: THÊM DỊCH VỤ / NƯỚC UỐNG VÀO SÂN ==================== -->
+  <div id="serviceOrderModal" class="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95">
+      <!-- Modal Header -->
+      <div class="px-5 py-4 bg-emerald-950 text-white flex items-center justify-between border-b border-emerald-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="font-extrabold text-base" id="orderModalCourtName">Sân Pick 01 (PK-01)</h3>
+            <span class="text-[10px] bg-amber-500 text-stone-900 font-black px-2 py-0.5 rounded-full uppercase">Thêm Dịch Vụ & Đồ Uống</span>
+          </div>
+          <p class="text-xs text-emerald-300 mt-0.5">Chọn vé Social, thuê vợt, giờ chơi hoặc đồ uống giải khát</p>
+        </div>
+        <button onclick="closeServiceOrderModal()" class="w-8 h-8 rounded-full bg-emerald-900 hover:bg-emerald-800 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Quick Action Shortcuts for Pickleball -->
+      <div class="bg-stone-50 px-5 py-2.5 border-b border-stone-200 flex items-center gap-2 overflow-x-auto custom-scrollbar">
+        <span class="text-xs font-bold text-stone-500 whitespace-nowrap">Chọn nhanh:</span>
+        <button type="button" onclick="quickAddService(301, 1)" class="px-3 py-1 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-bold whitespace-nowrap transition">
+          +1 Social Chiều (60k)
+        </button>
+        <button type="button" onclick="quickAddService(301, 2)" class="px-3 py-1 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-bold whitespace-nowrap transition">
+          +2 Social Chiều (120k)
+        </button>
+        <button type="button" onclick="quickAddService(301, 4)" class="px-3 py-1 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-bold whitespace-nowrap transition">
+          +4 Social Chiều (240k)
+        </button>
+        <button type="button" onclick="quickAddService(302, 1)" class="px-3 py-1 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-900 text-xs font-bold whitespace-nowrap transition">
+          +1 Social Sáng (30k)
+        </button>
+        <button type="button" onclick="quickAddService(304, 1)" class="px-3 py-1 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold whitespace-nowrap transition">
+          +1 Giờ Thuê Sân (200k)
+        </button>
+        <button type="button" onclick="quickAddService(303, 1)" class="px-3 py-1 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 text-xs font-bold whitespace-nowrap transition">
+          +1 Thuê Vợt (50k)
+        </button>
+      </div>
+
+      <!-- Modal Body (2 Columns: Menu Items & Cart) -->
+      <div class="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-0">
+        <!-- Left: Menu Dishes (Cols 7) -->
+        <div class="md:col-span-7 p-4 overflow-y-auto custom-scrollbar border-r border-stone-200 flex flex-col space-y-3">
+          <!-- Category Filter Pills -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1" id="orderMenuTabs">
+            <button type="button" onclick="filterOrderCategory('ALL')" id="tabCat-ALL" class="cat-pill px-3 py-1 rounded-full text-xs font-bold bg-emerald-800 text-white">
+              Tất Cả
+            </button>
+            <button type="button" onclick="filterOrderCategory(8)" id="tabCat-8" class="cat-pill px-3 py-1 rounded-full text-xs font-bold bg-stone-200 hover:bg-stone-300 text-stone-700">
+              🎾 Dịch Vụ Sân Pick
+            </button>
+            <button type="button" onclick="filterOrderCategory(6)" id="tabCat-6" class="cat-pill px-3 py-1 rounded-full text-xs font-bold bg-stone-200 hover:bg-stone-300 text-stone-700">
+              🍹 Đồ Uống & Nước Giải Khát
+            </button>
+          </div>
+
+          <!-- Items Grid -->
+          <div class="grid grid-cols-2 gap-2.5" id="orderItemsGrid">
+            <!-- Will render items -->
+          </div>
+        </div>
+
+        <!-- Right: Current Cart (Cols 5) -->
+        <div class="md:col-span-5 p-4 bg-stone-50 flex flex-col justify-between overflow-hidden">
+          <div class="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+            <div class="flex items-center justify-between pb-2 border-b border-stone-200">
+              <span class="font-extrabold text-xs text-stone-800 uppercase tracking-wider">Danh Sách Dịch Vụ Đã Chọn</span>
+              <span id="cartCountBadge" class="text-[11px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">0 món</span>
+            </div>
+
+            <div id="cartItemsList" class="space-y-2 py-2">
+              <div class="py-12 text-center text-stone-400 text-xs">
+                <i class="fa-solid fa-basket-shopping text-3xl mb-1 text-stone-300"></i>
+                <p>Chưa chọn dịch vụ nào</p>
+                <p class="text-[10px] text-stone-400 mt-1">Bấm vào các nút chọn nhanh hoặc thực đơn bên trái</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cart Footer -->
+          <div class="pt-3 border-t border-stone-200 space-y-2.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-stone-500">Tổng cộng đợt này:</span>
+              <span class="font-black text-emerald-800 text-base" id="cartTotalPrice">0 đ</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="closeServiceOrderModal()" class="px-3 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs transition">
+                Hủy Bỏ
+              </button>
+              <button type="button" onclick="submitServiceOrder()" id="btnSubmitOrder" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition shadow-sm flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-check"></i> Xác Nhận Thêm
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: THANH TOÁN & IN BILL ==================== -->
+  <div id="checkoutModal" class="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95">
+      <div class="px-5 py-4 bg-emerald-950 text-white flex items-center justify-between border-b border-emerald-800">
+        <div>
+          <h3 class="font-black text-base" id="checkoutCourtTitle">Thanh Toán Sân Pick 01</h3>
+          <p class="text-xs text-emerald-300" id="checkoutSubTitle">In hóa đơn thu tiền và giải phóng sân</p>
+        </div>
+        <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-emerald-900 hover:bg-emerald-800 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+        <!-- Bill Items Summary -->
+        <div class="bg-stone-50 rounded-2xl p-3 border border-stone-200 space-y-2 text-xs" id="checkoutBillItems">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Total Price -->
+        <div class="flex items-center justify-between p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200">
+          <div>
+            <div class="text-xs text-emerald-800 font-bold">Tổng tiền thanh toán:</div>
+            <div class="text-[10px] text-emerald-600">Đã bao gồm dịch vụ và đồ uống</div>
+          </div>
+          <div class="font-black text-xl text-emerald-900" id="checkoutTotalAmount">0 đ</div>
+        </div>
+
+        <!-- Payment Method Options -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-stone-700">Hình thức thanh toán:</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="payment-method-card flex items-center gap-2.5 p-3 rounded-2xl border border-emerald-600 bg-emerald-50/50 cursor-pointer transition">
+              <input type="radio" name="checkoutPaymentMethod" value="CASH" checked class="accent-emerald-700" onchange="toggleCheckoutQR(false)">
+              <div>
+                <div class="font-bold text-xs text-stone-900">💵 Tiền Mặt</div>
+                <div class="text-[10px] text-stone-500">Khách trả tiền mặt tại sân</div>
+              </div>
+            </label>
+            <label class="payment-method-card flex items-center gap-2.5 p-3 rounded-2xl border border-stone-200 hover:border-emerald-500 cursor-pointer transition">
+              <input type="radio" name="checkoutPaymentMethod" value="CHUYEN_KHOAN" class="accent-emerald-700" onchange="toggleCheckoutQR(true)">
+              <div>
+                <div class="font-bold text-xs text-stone-900">📱 VietQR Quét Mã</div>
+                <div class="text-[10px] text-stone-500">MB Bank (Quân Đội)</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- VietQR Box (Hidden by default) -->
+        <div id="checkoutQRContainer" class="hidden text-center p-4 bg-stone-50 rounded-2xl border border-stone-200">
+          <p class="text-xs font-bold text-stone-700 mb-2">Đưa mã này cho khách quét bằng ứng dụng ngân hàng:</p>
+          <img id="checkoutQRImg" src="" alt="VietQR" class="w-48 h-48 mx-auto rounded-xl shadow-xs border border-stone-300">
+          <p class="text-[11px] text-stone-500 mt-2">MB Bank • STK: 075624456 • PiPo Garden</p>
+        </div>
+
+        <!-- Print Receipt Checkbox -->
+        <div class="flex items-center gap-2 p-2 bg-stone-100 rounded-xl">
+          <input type="checkbox" id="chkAutoPrintReceipt" checked class="w-4 h-4 accent-emerald-700 rounded">
+          <label for="chkAutoPrintReceipt" class="text-xs text-stone-700 font-bold cursor-pointer">
+            Tự động in hóa đơn ra máy in thu ngân
+          </label>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="p-4 bg-stone-50 border-t border-stone-200 grid grid-cols-2 gap-2">
+        <button type="button" onclick="closeCheckoutModal()" class="px-4 py-2.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs transition">
+          Hủy Bỏ
+        </button>
+        <button type="button" onclick="executeCheckout()" id="btnConfirmCheckout" class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs transition shadow-md flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-print"></i> Hoàn Tất & In Bill
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: ĐĂNG KÝ HỘI VIÊN MỚI ==================== -->
+  <div id="membershipRegisterModal" class="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95">
+      <div class="px-5 py-4 bg-emerald-950 text-white flex items-center justify-between border-b border-emerald-800">
+        <div>
+          <h3 class="font-black text-base">Đăng Ký Gói Hội Viên & Đặt Sân Tháng</h3>
+          <p class="text-xs text-emerald-300">Tự động tạo hóa đơn doanh thu và in phiếu thu tiền</p>
+        </div>
+        <button onclick="closeMembershipRegisterModal()" class="w-8 h-8 rounded-full bg-emerald-900 hover:bg-emerald-800 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="membershipForm" onsubmit="submitMembershipForm(event)" class="p-5 space-y-3.5 max-h-[80vh] overflow-y-auto custom-scrollbar">
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">Họ tên hội viên / Trưởng nhóm *</label>
+          <input type="text" id="memCustomerName" required placeholder="Ví dụ: Anh Tuấn, Team Phú Quốc..." class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs text-stone-900 focus:outline-emerald-600 focus:bg-white">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">Số điện thoại *</label>
+            <input type="tel" id="memPhone" required placeholder="0901234567" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs text-stone-900 focus:outline-emerald-600 focus:bg-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">Ngày bắt đầu</label>
+            <input type="date" id="memStartDate" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs text-stone-900 focus:outline-emerald-600 focus:bg-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">Loại gói đăng ký *</label>
+          <select id="memTypeSelect" onchange="onMembershipTypeChange()" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs text-stone-900 font-bold focus:outline-emerald-600">
+            <option value="SOCIAL_MONTH_ALL" data-price="1200000" data-months="1">Social Tháng (Mọi Giờ) — 1.200.000 đ/tháng</option>
+            <option value="SOCIAL_MONTH_MORNING" data-price="600000" data-months="1">Social Tháng (Sáng 06h-16h) — 600.000 đ/tháng</option>
+            <option value="SOCIAL_YEAR" data-price="5000000" data-months="12">Social VIP Năm (Cá Nhân) — 5.000.000 đ/năm</option>
+            <option value="FIXED_COURT_MONTHLY" data-price="3000000" data-months="1">Đặt Sân Cố Định Theo Tháng (Giá Đàm Phán)</option>
+          </select>
+        </div>
+
+        <div id="fixedCourtOptions" class="hidden p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
+          <div class="text-[11px] font-bold text-amber-900">Cấu hình Đặt Sân Cố Định Theo Tháng:</div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <label class="text-[10px] text-amber-800">Chọn Sân:</label>
+              <select id="memCourtSelect" class="w-full px-2 py-1.5 bg-white border border-amber-300 rounded-lg text-xs">
+                <option value="1">Sân 1 (Center Court)</option>
+                <option value="2">Sân 2 (Covered)</option>
+                <option value="3">Sân 3 (Covered)</option>
+                <option value="4">Sân 4 (Poolside)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] text-amber-800">Khung giờ cố định:</label>
+              <input type="text" id="memTimeSlotsDesc" placeholder="VD: T3-T5-T7 (18h-20h)" class="w-full px-2 py-1.5 bg-white border border-amber-300 rounded-lg text-xs">
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">Giá thu / Đàm phán (VNĐ) *</label>
+            <input type="number" id="memPriceInput" required value="1200000" step="10000" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-black text-emerald-800 focus:outline-emerald-600 focus:bg-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">Hình thức thanh toán</label>
+            <select id="memPaymentMethod" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs text-stone-900 focus:outline-emerald-600">
+              <option value="CASH">Tiền Mặt</option>
+              <option value="CHUYEN_KHOAN">Chuyển Khoản (VietQR)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">Ghi chú thẻ</label>
+          <input type="text" id="memNotes" placeholder="Ghi chú thêm về thành viên..." class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs text-stone-900 focus:outline-emerald-600 focus:bg-white">
+        </div>
+
+        <div class="pt-3 border-t border-stone-200 grid grid-cols-2 gap-2">
+          <button type="button" onclick="closeMembershipRegisterModal()" class="px-4 py-2.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs transition">
+            Hủy Bỏ
+          </button>
+          <button type="submit" id="btnSubmitMembership" class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs transition shadow-md flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-check"></i> Kích Hoạt & In Phiếu
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: DANH SÁCH HỘI VIÊN & GIA HẠN ==================== -->
+  <div id="membershipListModal" class="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95">
+      <div class="px-5 py-4 bg-emerald-950 text-white flex items-center justify-between border-b border-emerald-800">
+        <div>
+          <h3 class="font-black text-base">Quản Lý Thẻ Hội Viên Pickleball</h3>
+          <p class="text-xs text-emerald-300">Theo dõi thời hạn, lượt check-in và gia hạn 1 chạm</p>
+        </div>
+        <button onclick="closeMembershipListModal()" class="w-8 h-8 rounded-full bg-emerald-900 hover:bg-emerald-800 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Search & Filters -->
+      <div class="p-4 bg-stone-50 border-b border-stone-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-2 flex-1 min-w-[240px]">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-stone-400"></i>
+            <input type="text" id="searchMemInput" oninput="loadMembershipsList()" placeholder="Tìm theo tên, SĐT hoặc mã thẻ..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-stone-300 rounded-xl text-xs focus:outline-emerald-600">
+          </div>
+          <select id="filterMemStatus" onchange="loadMembershipsList()" class="px-3 py-1.5 bg-white border border-stone-300 rounded-xl text-xs font-bold">
+            <option value="ACTIVE">Đang Kích Hoạt</option>
+            <option value="EXPIRED">Đã Hết Hạn</option>
+            <option value="ALL">Tất Cả Thẻ</option>
+          </select>
+        </div>
+        <button onclick="openMembershipRegisterModal()" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1 transition">
+          <i class="fa-solid fa-plus"></i> Đăng Ký Mới
+        </button>
+      </div>
+
+      <!-- Memberships Table -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-4">
+        <div id="membershipsTableContainer">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: LỊCH SỬ ĐIỂM DANH HÔM NAY ==================== -->
+  <div id="checkinHistoryModal" class="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-3xl max-w-xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95">
+      <div class="px-5 py-4 bg-emerald-950 text-white flex items-center justify-between border-b border-emerald-800">
+        <div>
+          <h3 class="font-black text-base">Lượt Điểm Danh Vào Sân Hôm Nay</h3>
+          <p class="text-xs text-emerald-300" id="todayCheckinSub">Danh sách các hội viên đã check-in</p>
+        </div>
+        <button onclick="closeCheckinHistoryModal()" class="w-8 h-8 rounded-full bg-emerald-900 hover:bg-emerald-800 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-4" id="checkinListContainer">
+        <!-- Render checkins -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: CẤU HÌNH NƯỚC TẶNG SOCIAL ==================== -->
+  <div id="socialDrinkModal" class="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden animate-in zoom-in-95">
+      <div class="px-5 py-4 bg-emerald-950 text-white flex items-center justify-between border-b border-emerald-800">
+        <div>
+          <h3 class="font-black text-base">Đồ Uống Tặng Kèm Social 60k</h3>
+          <p class="text-xs text-emerald-300">Chọn loại nước trừ kho khi khách chơi Social chiều</p>
+        </div>
+        <button onclick="closeSocialDrinkModal()" class="w-8 h-8 rounded-full bg-emerald-900 hover:bg-emerald-800 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
+          <div class="text-[11px] text-emerald-800 font-bold mb-1">Món nước đang được gán hiện tại:</div>
+          <div class="font-black text-emerald-950 text-sm" id="currentSocialDrinkName">Đang tải...</div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">Chọn món nước mới từ Menu để gán:</label>
+          <select id="selectSocialDrink" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-bold text-stone-900 focus:outline-emerald-600">
+            <!-- Options populated by JS -->
+          </select>
+          <p class="text-[11px] text-stone-500 mt-1.5">Mỗi lần thanh toán vé Social 60k, hệ thống sẽ tự động trừ 1 đơn vị của loại đồ uống này vào kho.</p>
+        </div>
+
+        <div class="pt-3 border-t border-stone-200 grid grid-cols-2 gap-2">
+          <button type="button" onclick="closeSocialDrinkModal()" class="px-4 py-2.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs transition">
+            Đóng
+          </button>
+          <button type="button" onclick="saveSocialDrinkSetting()" id="btnSaveSocialDrink" class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition">
+            Lưu Cấu Hình
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: ĐỔI MẬT KHẨU CÁ NHÂN ==================== -->
+  <div id="changePasswordModal" class="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full shadow-2xl overflow-hidden animate-in zoom-in-95">
+      <div class="px-5 py-4 bg-emerald-950 text-white flex items-center justify-between border-b border-emerald-800">
+        <div>
+          <h3 class="font-black text-sm">Đổi Mật Khẩu Cá Nhân</h3>
+          <p class="text-[11px] text-emerald-300">Tài khoản: <span class="font-bold text-white">{{ user.username if user else 'sanpick' }}</span></p>
+        </div>
+        <button onclick="closeChangePasswordModal()" class="w-7 h-7 rounded-full bg-emerald-900 hover:bg-emerald-800 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <form id="changePasswordForm" onsubmit="submitChangePassword(event)" class="p-5 space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">Mật khẩu hiện tại *</label>
+          <input type="password" id="currentPwdInput" required placeholder="Nhập mật khẩu hiện tại" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs text-stone-900 focus:outline-emerald-600">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">Mật khẩu mới (tối thiểu 6 ký tự) *</label>
+          <input type="password" id="newPwdInput" required minlength="6" placeholder="Nhập mật khẩu mới" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs text-stone-900 focus:outline-emerald-600">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">Xác nhận mật khẩu mới *</label>
+          <input type="password" id="confirmPwdInput" required minlength="6" placeholder="Nhập lại mật khẩu mới" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs text-stone-900 focus:outline-emerald-600">
+        </div>
+
+        <div class="pt-3 border-t border-stone-200 grid grid-cols-2 gap-2">
+          <button type="button" onclick="closeChangePasswordModal()" class="px-3 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs transition">
+            Hủy Bỏ
+          </button>
+          <button type="submit" id="btnSubmitChangePwd" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition shadow-sm">
+            Lưu Mật Khẩu
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 z-50 bg-stone-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs border border-stone-700 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div id="toastIcon" class="text-base text-emerald-400"><i class="fa-solid fa-circle-check"></i></div>
+    <div id="toastMsg" class="font-medium">Thao tác thành công!</div>
+  </div>
+
+  <!-- Printable Receipt (Hidden during normal view) -->
+  <div id="printableReceipt" class="hidden font-mono text-xs text-black leading-tight"></div>
+
+  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <script>
+    // State variables
+    let pickleCourts = [];
+    let fullMenuItems = [];
+    let currentTargetCourt = null;
+    let orderCart = [];
+    let selectedOrderCat = 'ALL';
+    let currentCheckoutBill = null;
+
+    // Formatting helper
+    function formatVND(amount) {
+      if (!amount || isNaN(amount)) return "0 đ";
+      return new Intl.NumberFormat("vi-VN").format(amount) + " đ";
+    }
+
+    // Toast
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById("toastNotification");
+      const icon = document.getElementById("toastIcon");
+      const text = document.getElementById("toastMsg");
+      if (!toast) return;
+
+      text.innerText = msg;
+      if (isError) {
+        icon.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-400"></i>';
+      } else {
+        icon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+      }
+
+      toast.classList.remove("translate-y-20", "opacity-0", "pointer-events-none");
+      setTimeout(() => {
+        toast.classList.add("translate-y-20", "opacity-0", "pointer-events-none");
+      }, 3500);
+    }
+
+    // Logout
+    async function handleLogout() {
+      if (!confirm("Bạn có chắc chắn muốn đăng xuất?")) return;
+      try {
+        await fetch("/api/auth/logout", { method: "POST" });
+        window.location.href = "/login";
+      } catch (e) {
+        window.location.href = "/login";
+      }
+    }
+
+    // ==================== 1. LOAD 4 SÂN PICKLEBALL ====================
+    async function loadPickleCourts() {
+      const icon = document.getElementById("refreshIcon");
+      if (icon) icon.classList.add("fa-spin");
+
+      try {
+        const res = await fetch("/api/tables");
+        if (!res.ok) throw new Error("Không thể tải danh sách sân");
+        const allTables = await res.json();
+
+        // Lọc đúng 4 sân Pickleball
+        pickleCourts = allTables.filter(t => 
+          (t.table_code && t.table_code.startsWith("PK-")) || 
+          (t.area && t.area.includes("Pickle"))
+        );
+
+        // Đảm bảo sắp xếp đúng PK-01 đến PK-04
+        pickleCourts.sort((a, b) => (a.table_code || "").localeCompare(b.table_code || ""));
+
+        // Lấy chi tiết bill cho các sân đang có khách (OCCUPIED)
+        for (const court of pickleCourts) {
+          if (court.status === 'OCCUPIED') {
+            try {
+              const bRes = await fetch(`/api/pos/table/${court.id}/bill`);
+              if (bRes.ok) {
+                court.billData = await bRes.json();
+              }
+            } catch (err) {
+              console.error("Lỗi lấy bill sân:", court.table_code, err);
+            }
+          } else {
+            court.billData = null;
+          }
+        }
+
+        renderCourtsGrid();
+        document.getElementById("lastUpdatedTime").innerText = new Date().toLocaleTimeString("vi-VN");
+      } catch (err) {
+        console.error("Lỗi loadPickleCourts:", err);
+        showToast("Lỗi khi tải dữ liệu sân: " + err.message, true);
+      } finally {
+        if (icon) icon.classList.remove("fa-spin");
+      }
+    }
+
+    function renderCourtsGrid() {
+      const container = document.getElementById("courtsGrid");
+      if (!container) return;
+
+      if (pickleCourts.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-16 text-center text-stone-400">
+            <i class="fa-solid fa-triangle-exclamation text-3xl text-amber-500 mb-2"></i>
+            <p class="font-bold">Chưa tìm thấy dữ liệu 4 sân Pickleball (PK-01 đến PK-04)</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = pickleCourts.map((c, idx) => {
+        const isOccupied = c.status === 'OCCUPIED';
+        const courtName = c.name || `Sân ${idx + 1}`;
+        const tableCode = c.table_code || `PK-0${idx + 1}`;
+        const bill = c.billData;
+        const totalAmount = bill ? (bill.total || 0) : 0;
+        const itemCount = bill && bill.items ? bill.items.length : 0;
+
+        return `
+          <div class="bg-white rounded-3xl border-2 transition shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden ${isOccupied ? 'border-amber-400 bg-amber-50/20' : 'border-stone-200 hover:border-emerald-500'}">
+            
+            <!-- Card Header -->
+            <div class="p-4 border-b ${isOccupied ? 'border-amber-200 bg-amber-100/50' : 'border-stone-100 bg-stone-50/80'} flex items-start justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-black text-base text-stone-900">${courtName}</span>
+                  <span class="font-mono text-[11px] font-bold px-2 py-0.5 rounded-lg ${isOccupied ? 'bg-amber-500 text-stone-950' : 'bg-emerald-800 text-white'}">${tableCode}</span>
+                </div>
+                <div class="text-[11px] text-stone-500 mt-0.5">Sân có mái che • Chuẩn Pickleball</div>
+              </div>
+
+              <!-- Status Badge -->
+              <span class="px-2.5 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider flex items-center gap-1.5 ${isOccupied ? 'bg-rose-600 text-white animate-pulse' : 'bg-emerald-600 text-white'}">
+                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                <span>${isOccupied ? 'Đang Chơi' : 'Sân Trống'}</span>
+              </span>
+            </div>
+
+            <!-- Card Body -->
+            <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+              ${isOccupied ? `
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-stone-500">Dịch vụ & đồ uống:</span>
+                    <span class="font-bold text-stone-800">${itemCount} món / lượt</span>
+                  </div>
+
+                  <!-- Quick preview first 3 items -->
+                  <div class="bg-white rounded-xl p-2.5 border border-amber-200 text-xs space-y-1">
+                    ${(bill.items || []).slice(0, 3).map(it => `
+                      <div class="flex items-center justify-between text-[11.5px]">
+                        <span class="text-stone-700 truncate max-w-[150px] font-medium">${it.quantity}x ${it.name}</span>
+                        <span class="font-bold text-stone-900">${formatVND(it.price * it.quantity)}</span>
+                      </div>
+                    `).join('')}
+                    ${itemCount > 3 ? `<div class="text-[10px] text-stone-400 italic text-center">+ ${itemCount - 3} món khác...</div>` : ''}
+                  </div>
+
+                  <div class="pt-2 border-t border-amber-200/80 flex items-center justify-between">
+                    <span class="text-xs font-bold text-stone-600">Tạm tính hiện tại:</span>
+                    <span class="font-black text-amber-800 text-lg">${formatVND(totalAmount)}</span>
+                  </div>
+                </div>
+              ` : `
+                <div class="py-8 text-center text-stone-400 space-y-1.5">
+                  <div class="w-12 h-12 mx-auto rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-2xl font-black">
+                    🎾
+                  </div>
+                  <div class="font-bold text-stone-700 text-xs">Sân Sẵn Sàng Đón Khách</div>
+                  <div class="text-[11px] text-stone-400">Bấm thêm dịch vụ để bắt đầu phiên chơi</div>
+                </div>
+              `}
+            </div>
+
+            <!-- Card Actions -->
+            <div class="p-3 bg-stone-50 border-t border-stone-200/80 grid ${isOccupied ? 'grid-cols-2' : 'grid-cols-1'} gap-2">
+              <button onclick="openServiceOrderModal(${c.id})" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition shadow-xs flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-plus"></i> ${isOccupied ? 'Thêm Món / Giờ' : 'Vào Sân / Bán Vé'}
+              </button>
+
+              ${isOccupied ? `
+                <button onclick="openCheckoutModal(${c.id})" class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-xs transition shadow-xs flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-receipt"></i> Thanh Toán
+                </button>
+              ` : ''}
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==================== 2. MENU DATA & QUICK ADD ====================
+    async function loadMenuData() {
+      try {
+        const res = await fetch("/api/menu");
+        if (!res.ok) throw new Error("Không thể tải menu");
+        const cats = await res.json();
+        fullMenuItems = [];
+        cats.forEach(c => {
+          (c.items || []).forEach(it => {
+            fullMenuItems.push({
+              ...it,
+              category_id: c.id,
+              category_name: c.name
+            });
+          });
+        });
+      } catch (err) {
+        console.error("Lỗi loadMenuData:", err);
+      }
+    }
+
+    function openServiceOrderModal(courtId) {
+      const court = pickleCourts.find(c => c.id === courtId);
+      if (!court) return;
+      currentTargetCourt = court;
+      orderCart = [];
+
+      document.getElementById("orderModalCourtName").innerText = `${court.name} (${court.table_code})`;
+      selectedOrderCat = 'ALL';
+      renderOrderDishes();
+      renderOrderCart();
+
+      document.getElementById("serviceOrderModal").classList.remove("hidden");
+    }
+
+    function closeServiceOrderModal() {
+      document.getElementById("serviceOrderModal").classList.add("hidden");
+      currentTargetCourt = null;
+      orderCart = [];
+    }
+
+    function filterOrderCategory(catId) {
+      selectedOrderCat = catId;
+      document.querySelectorAll(".cat-pill").forEach(el => {
+        el.className = "cat-pill px-3 py-1 rounded-full text-xs font-bold bg-stone-200 hover:bg-stone-300 text-stone-700";
+      });
+      const targetBtn = document.getElementById(`tabCat-${catId}`);
+      if (targetBtn) {
+        targetBtn.className = "cat-pill px-3 py-1 rounded-full text-xs font-bold bg-emerald-800 text-white";
+      }
+      renderOrderDishes();
+    }
+
+    function renderOrderDishes() {
+      const container = document.getElementById("orderItemsGrid");
+      if (!container) return;
+
+      // Sân Pickleball chỉ phục vụ Category 8 (Dịch Vụ Sân) và Category 6 (Đồ Uống)
+      let dishes = fullMenuItems.filter(it => it.category_id === 8 || it.category_id === 6);
+
+      if (selectedOrderCat !== 'ALL') {
+        dishes = dishes.filter(it => it.category_id == selectedOrderCat);
+      }
+
+      if (dishes.length === 0) {
+        container.innerHTML = `<div class="col-span-full py-8 text-center text-stone-400 text-xs">Không có món ăn trong danh mục này</div>`;
+        return;
+      }
+
+      container.innerHTML = dishes.map(it => {
+        const cartIt = orderCart.find(ci => ci.item_id === it.id);
+        const qty = cartIt ? cartIt.quantity : 0;
+        const isPickleService = it.category_id === 8;
+
+        return `
+          <div onclick="addDishToCart(${it.id})" class="p-2.5 rounded-2xl border transition cursor-pointer flex flex-col justify-between group shadow-2xs ${qty > 0 ? 'border-emerald-600 bg-emerald-50/50 ring-1 ring-emerald-600' : 'border-stone-200 hover:border-emerald-500 bg-white'}">
+            <div>
+              <div class="flex items-start justify-between gap-1">
+                <span class="font-bold text-xs text-stone-900 group-hover:text-emerald-800 leading-tight">${it.name}</span>
+                ${qty > 0 ? `<span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-black text-[11px] flex items-center justify-center flex-shrink-0">${qty}</span>` : ''}
+              </div>
+              <div class="text-[10px] text-stone-400 mt-0.5 line-clamp-1">${it.category_name}</div>
+            </div>
+
+            <div class="mt-2 pt-1.5 border-t border-stone-100 flex items-center justify-between">
+              <span class="font-black text-xs text-emerald-800">${formatVND(it.price)}</span>
+              <button type="button" class="w-6 h-6 rounded-lg bg-emerald-100 group-hover:bg-emerald-600 text-emerald-800 group-hover:text-white flex items-center justify-center text-xs font-bold transition">
+                +
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function addDishToCart(dishId, quantity = 1) {
+      const dish = fullMenuItems.find(it => it.id === dishId);
+      if (!dish) return;
+
+      const existing = orderCart.find(it => it.item_id === dishId);
+      if (existing) {
+        existing.quantity += quantity;
+      } else {
+        orderCart.push({
+          item_id: dish.id,
+          name: dish.name,
+          price: dish.price,
+          quantity: quantity,
+          note: ""
+        });
+      }
+      renderOrderCart();
+      renderOrderDishes();
+    }
+
+    function quickAddService(dishId, qty) {
+      addDishToCart(dishId, qty);
+    }
+
+    function updateCartQty(idx, delta) {
+      if (!orderCart[idx]) return;
+      orderCart[idx].quantity += delta;
+      if (orderCart[idx].quantity <= 0) {
+        orderCart.splice(idx, 1);
+      }
+      renderOrderCart();
+      renderOrderDishes();
+    }
+
+    function renderOrderCart() {
+      const container = document.getElementById("cartItemsList");
+      const badge = document.getElementById("cartCountBadge");
+      const totalEl = document.getElementById("cartTotalPrice");
+      if (!container) return;
+
+      const totalQty = orderCart.reduce((sum, it) => sum + it.quantity, 0);
+      const totalPrice = orderCart.reduce((sum, it) => sum + (it.price * it.quantity), 0);
+
+      badge.innerText = `${totalQty} món`;
+      totalEl.innerText = formatVND(totalPrice);
+
+      if (orderCart.length === 0) {
+        container.innerHTML = `
+          <div class="py-12 text-center text-stone-400 text-xs">
+            <i class="fa-solid fa-basket-shopping text-3xl mb-1 text-stone-300"></i>
+            <p>Chưa chọn dịch vụ nào</p>
+            <p class="text-[10px] text-stone-400 mt-1">Bấm vào các nút chọn nhanh hoặc thực đơn bên trái</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = orderCart.map((it, idx) => `
+        <div class="bg-white rounded-2xl p-2.5 border border-stone-200 text-xs space-y-1.5">
+          <div class="flex items-start justify-between gap-1">
+            <span class="font-bold text-stone-900 leading-tight">${it.name}</span>
+            <span class="font-black text-emerald-800">${formatVND(it.price * it.quantity)}</span>
+          </div>
+          <div class="flex items-center justify-between pt-1 border-t border-stone-100">
+            <span class="text-[11px] text-stone-500 font-mono">${formatVND(it.price)}/lượt</span>
+            <div class="flex items-center bg-stone-100 border border-stone-300 rounded-lg overflow-hidden">
+              <button type="button" onclick="updateCartQty(${idx}, -1)" class="w-6 h-6 flex items-center justify-center text-stone-600 hover:bg-stone-200 font-bold">-</button>
+              <span class="w-7 text-center font-bold text-xs text-stone-900">${it.quantity}</span>
+              <button type="button" onclick="updateCartQty(${idx}, 1)" class="w-6 h-6 flex items-center justify-center text-stone-600 hover:bg-stone-200 font-bold">+</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function submitServiceOrder() {
+      if (!currentTargetCourt) return;
+      if (orderCart.length === 0) {
+        alert("Vui lòng chọn ít nhất 1 dịch vụ hoặc đồ uống!");
+        return;
+      }
+
+      const btn = document.getElementById("btnSubmitOrder");
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...`;
+
+      try {
+        // 1. Mở session bàn nếu bàn chưa mở
+        const sessRes = await fetch(`/api/tables/${currentTargetCourt.table_code}/open-session`, {
+          method: "POST"
+        });
+        const sessData = await sessRes.json();
+        const sessionToken = sessData.session_token || (sessData.session && sessData.session.session_token);
+
+        // 2. Gửi order
+        const payload = {
+          session_token: sessionToken,
+          customer_note: "Order từ POS Sân Pickleball",
+          items: orderCart.map(it => ({
+            item_id: it.item_id,
+            quantity: it.quantity,
+            note: it.note || null,
+            modifiers: []
+          }))
+        };
+
+        const ordRes = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!ordRes.ok) {
+          const errData = await ordRes.json();
+          throw new Error(errData.detail || "Không thể gửi đơn");
+        }
+
+        showToast(`✅ Đã thêm dịch vụ vào ${currentTargetCourt.name} thành công!`);
+        closeServiceOrderModal();
+        await loadPickleCourts();
+      } catch (err) {
+        console.error("Lỗi submitServiceOrder:", err);
+        alert("Lỗi khi thêm dịch vụ: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    }
+
+    // ==================== 3. THANH TOÁN & IN BILL ====================
+    async function openCheckoutModal(courtId) {
+      const court = pickleCourts.find(c => c.id === courtId);
+      if (!court) return;
+
+      try {
+        const res = await fetch(`/api/pos/table/${court.id}/bill`);
+        if (!res.ok) throw new Error("Không thể tải hóa đơn của sân");
+        currentCheckoutBill = await res.json();
+        currentTargetCourt = court;
+
+        document.getElementById("checkoutCourtTitle").innerText = `Thanh Toán ${court.name} (${court.table_code})`;
+        document.getElementById("checkoutTotalAmount").innerText = formatVND(currentCheckoutBill.total || 0);
+
+        // Render Bill Items
+        const itemsList = document.getElementById("checkoutBillItems");
+        const items = currentCheckoutBill.items || [];
+        itemsList.innerHTML = items.map(it => `
+          <div class="flex items-center justify-between py-1 border-b border-stone-200/60 last:border-none">
+            <div>
+              <span class="font-bold text-stone-800">${it.quantity}x ${it.name}</span>
+              ${it.note ? `<div class="text-[10px] text-stone-500 italic">${it.note}</div>` : ''}
+            </div>
+            <span class="font-black text-stone-900">${formatVND(it.price * it.quantity)}</span>
+          </div>
+        `).join('');
+
+        // Prepare VietQR Image URL
+        const amount = currentCheckoutBill.total || 0;
+        const addInfo = encodeURIComponent(`TT PiPo Ban ${court.table_code.replace('-', '')}`);
+        const qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${amount}&addInfo=${addInfo}&accountName=PIPO%20GARDEN`;
+        document.getElementById("checkoutQRImg").src = qrUrl;
+
+        // Reset radio to Cash
+        const cashRadio = document.querySelector('input[name="checkoutPaymentMethod"][value="CASH"]');
+        if (cashRadio) cashRadio.checked = true;
+        toggleCheckoutQR(false);
+
+        document.getElementById("checkoutModal").classList.remove("hidden");
+      } catch (err) {
+        alert("Lỗi tải thông tin thanh toán: " + err.message);
+      }
+    }
+
+    function closeCheckoutModal() {
+      document.getElementById("checkoutModal").classList.add("hidden");
+      currentCheckoutBill = null;
+      currentTargetCourt = null;
+    }
+
+    function toggleCheckoutQR(show) {
+      const container = document.getElementById("checkoutQRContainer");
+      if (show) {
+        container.classList.remove("hidden");
+      } else {
+        container.classList.add("hidden");
+      }
+    }
+
+    async function executeCheckout() {
+      if (!currentTargetCourt) return;
+      const paymentMethod = document.querySelector('input[name="checkoutPaymentMethod"]:checked')?.value || "CASH";
+
+      const btn = document.getElementById("btnConfirmCheckout");
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang thanh toán & in bill...`;
+
+      try {
+        const payload = {
+          discount_percent: 0,
+          discount_amount: 0,
+          discount_reason: "",
+          service_fee_percent: 0,
+          payment_method: paymentMethod,
+          bill_target: "CUSTOMER"
+        };
+
+        const res = await fetch(`/api/pos/table/${currentTargetCourt.id}/checkout`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Không thể hoàn tất thanh toán");
+        }
+
+        // Tự động in hóa đơn nếu checkbox được bật
+        const autoPrint = document.getElementById("chkAutoPrintReceipt")?.checked;
+        if (autoPrint && data.receipt_text) {
+          printTicketLocally(data.receipt_text);
+        }
+
+        showToast(`✅ Đã thanh toán ${currentTargetCourt.name} (${formatVND(data.final_total || 0)}) & giải phóng sân thành công!`);
+        closeCheckoutModal();
+        await loadPickleCourts();
+      } catch (err) {
+        console.error("Lỗi executeCheckout:", err);
+        alert("Lỗi thanh toán: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    }
+
+    function printTicketLocally(text) {
+      const printBox = document.getElementById("printableReceipt");
+      if (!printBox) return;
+      printBox.innerText = text;
+      window.print();
+    }
+
+    // ==================== 4. CHECK-IN 1 CHẠM & HỘI VIÊN ====================
+    async function executeQuickCheckin() {
+      const input = document.getElementById("quickCheckinInput");
+      const val = (input?.value || "").trim();
+      if (!val) {
+        alert("Vui lòng nhập Số điện thoại hoặc Mã thẻ của hội viên để điểm danh!");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/pickleball/checkin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone: val })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Không thể điểm danh");
+        }
+
+        alert(`🎉 ${data.message}`);
+        input.value = "";
+        showToast(`✅ Điểm danh: ${data.customer_name} (Lượt ${data.checkin_count})`);
+      } catch (err) {
+        alert("❌ Điểm danh thất bại: " + err.message);
+      }
+    }
+
+    function openMembershipRegisterModal() {
+      document.getElementById("memCustomerName").value = "";
+      document.getElementById("memPhone").value = "";
+      document.getElementById("memStartDate").value = new Date().toISOString().split('T')[0];
+      document.getElementById("memNotes").value = "";
+      onMembershipTypeChange();
+      document.getElementById("membershipRegisterModal").classList.remove("hidden");
+    }
+
+    function closeMembershipRegisterModal() {
+      document.getElementById("membershipRegisterModal").classList.add("hidden");
+    }
+
+    function onMembershipTypeChange() {
+      const sel = document.getElementById("memTypeSelect");
+      const opt = sel.options[sel.selectedIndex];
+      const price = opt.getAttribute("data-price") || 1200000;
+      const typeVal = sel.value;
+
+      document.getElementById("memPriceInput").value = price;
+      const fixedBox = document.getElementById("fixedCourtOptions");
+      if (typeVal === "FIXED_COURT_MONTHLY") {
+        fixedBox.classList.remove("hidden");
+      } else {
+        fixedBox.classList.add("hidden");
+      }
+    }
+
+    async function submitMembershipForm(e) {
+      e.preventDefault();
+      const name = document.getElementById("memCustomerName").value.trim();
+      const phone = document.getElementById("memPhone").value.trim();
+      const typeVal = document.getElementById("memTypeSelect").value;
+      const startDate = document.getElementById("memStartDate").value;
+      const price = parseInt(document.getElementById("memPriceInput").value) || 0;
+      const paymentMethod = document.getElementById("memPaymentMethod").value;
+      const notes = document.getElementById("memNotes").value.trim();
+
+      let courtId = null;
+      let timeSlotsDesc = "";
+      if (typeVal === "FIXED_COURT_MONTHLY") {
+        courtId = parseInt(document.getElementById("memCourtSelect").value) || 1;
+        timeSlotsDesc = document.getElementById("memTimeSlotsDesc").value.trim();
+      }
+
+      const btn = document.getElementById("btnSubmitMembership");
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang kích hoạt & in bill...`;
+
+      try {
+        const payload = {
+          customer_name: name,
+          phone: phone,
+          membership_type: typeVal,
+          court_id: courtId,
+          time_slots_desc: timeSlotsDesc,
+          start_date: startDate,
+          price: price,
+          paid_amount: price,
+          payment_status: "PAID",
+          payment_method: paymentMethod,
+          notes: notes
+        };
+
+        const res = await fetch("/api/pickleball/memberships", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Không thể đăng ký gói");
+
+        if (data.receipt_text) {
+          printTicketLocally(data.receipt_text);
+        }
+
+        alert(`🎉 ${data.message}`);
+        closeMembershipRegisterModal();
+        showToast(`✅ Đã kích hoạt hội viên [${data.membership?.member_code}] & in bill!`);
+      } catch (err) {
+        alert("Lỗi đăng ký hội viên: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    }
+
+    // ==================== 5. DANH SÁCH HỘI VIÊN & GIA HẠN ====================
+    function openMembershipListModal() {
+      document.getElementById("membershipListModal").classList.remove("hidden");
+      loadMembershipsList();
+    }
+
+    function closeMembershipListModal() {
+      document.getElementById("membershipListModal").classList.add("hidden");
+    }
+
+    async function loadMembershipsList() {
+      const container = document.getElementById("membershipsTableContainer");
+      const search = (document.getElementById("searchMemInput")?.value || "").trim();
+      const status = document.getElementById("filterMemStatus")?.value || "ACTIVE";
+
+      container.innerHTML = `<div class="py-12 text-center text-stone-400 text-xs"><i class="fa-solid fa-spinner fa-spin text-2xl text-emerald-600 mb-2"></i><p>Đang tải danh sách thẻ...</p></div>`;
+
+      try {
+        const url = `/api/pickleball/memberships?status=${status}&search=${encodeURIComponent(search)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const members = data.memberships || [];
+
+        if (members.length === 0) {
+          container.innerHTML = `<div class="py-12 text-center text-stone-400 text-xs">Không tìm thấy hội viên nào</div>`;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-stone-200 bg-stone-50 text-stone-500 uppercase text-[10px] tracking-wider">
+                  <th class="py-2.5 px-3">Mã Thẻ</th>
+                  <th class="py-2.5 px-3">Hội Viên</th>
+                  <th class="py-2.5 px-3">Loại Gói</th>
+                  <th class="py-2.5 px-3">Thời Hạn</th>
+                  <th class="py-2.5 px-3 text-center">Lượt Chơi</th>
+                  <th class="py-2.5 px-3 text-right">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-stone-100 font-medium">
+                ${members.map(m => {
+                  const isExpiring = m.is_expiring_soon;
+                  const isExpired = m.status === 'EXPIRED' || m.days_remaining < 0;
+
+                  return `
+                    <tr class="hover:bg-stone-50/80 transition">
+                      <td class="py-2.5 px-3 font-mono font-bold text-stone-900">${m.member_code}</td>
+                      <td class="py-2.5 px-3">
+                        <div class="font-bold text-stone-900">${m.customer_name}</div>
+                        <div class="text-[10px] text-stone-500 font-mono">${m.phone}</div>
+                      </td>
+                      <td class="py-2.5 px-3">
+                        <span class="px-2 py-0.5 rounded-lg text-[10.5px] font-bold ${m.membership_type.includes('YEAR') ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-900'}">
+                          ${m.membership_type}
+                        </span>
+                      </td>
+                      <td class="py-2.5 px-3">
+                        <div class="text-stone-800">${m.end_date}</div>
+                        ${isExpired ? `
+                          <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.2 rounded">Đã hết hạn</span>
+                        ` : isExpiring ? `
+                          <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded animate-pulse">Còn ${m.days_remaining} ngày</span>
+                        ` : `
+                          <span class="text-[10px] text-stone-500">Còn ${m.days_remaining} ngày</span>
+                        `}
+                      </td>
+                      <td class="py-2.5 px-3 text-center font-bold text-emerald-800">${m.checkin_count || 0}</td>
+                      <td class="py-2.5 px-3 text-right space-x-1.5">
+                        <button onclick="quickCheckinById(${m.id}, '${m.customer_name}')" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition shadow-2xs">
+                          Điểm danh
+                        </button>
+                        <button onclick="renewMembershipById(${m.id}, '${m.customer_name}', '${m.membership_type}')" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-[11px] transition shadow-2xs">
+                          Gia hạn
+                        </button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = `<div class="py-8 text-center text-rose-500 text-xs">Lỗi tải danh sách: ${err.message}</div>`;
+      }
+    }
+
+    async function quickCheckinById(id, name) {
+      try {
+        const res = await fetch(`/api/pickleball/memberships/${id}/checkin`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({})
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Không thể điểm danh");
+        alert(`🎉 ${data.message}`);
+        loadMembershipsList();
+      } catch (err) {
+        alert("❌ Điểm danh thất bại: " + err.message);
+      }
+    }
+
+    async function renewMembershipById(id, name, type) {
+      const defaultAmount = type.includes('YEAR') ? 5000000 : (type.includes('MORNING') ? 600000 : 1200000);
+      const amountStr = prompt(`Nhập số tiền thu để gia hạn cho [${name}]:`, defaultAmount);
+      if (amountStr === null) return;
+      const amount = parseInt(amountStr) || 0;
+      if (amount <= 0) {
+        alert("Số tiền không hợp lệ!");
+        return;
+      }
+
+      try {
+        const payload = {
+          duration_months: type.includes('YEAR') ? 12 : 1,
+          amount_paid: amount,
+          payment_method: "CASH",
+          notes: "Gia hạn từ POS Sân Pickle"
+        };
+        const res = await fetch(`/api/pickleball/memberships/${id}/renew`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Không thể gia hạn");
+
+        if (data.receipt_text) {
+          printTicketLocally(data.receipt_text);
+        }
+
+        alert(`🎉 ${data.message}`);
+        loadMembershipsList();
+      } catch (err) {
+        alert("Lỗi gia hạn: " + err.message);
+      }
+    }
+
+    // ==================== 6. CHECK-IN HISTORY & SOCIAL DRINK ====================
+    function openCheckinHistoryModal() {
+      document.getElementById("checkinHistoryModal").classList.remove("hidden");
+      loadCheckinHistory();
+    }
+
+    function closeCheckinHistoryModal() {
+      document.getElementById("checkinHistoryModal").classList.add("hidden");
+    }
+
+    async function loadCheckinHistory() {
+      const container = document.getElementById("checkinListContainer");
+      container.innerHTML = `<div class="py-12 text-center text-stone-400 text-xs"><i class="fa-solid fa-spinner fa-spin text-2xl text-emerald-600 mb-2"></i><p>Đang tải lượt check-in...</p></div>`;
+
+      try {
+        const res = await fetch("/api/pickleball/checkins");
+        const data = await res.json();
+        const checkins = data.checkins || [];
+
+        if (checkins.length === 0) {
+          container.innerHTML = `<div class="py-12 text-center text-stone-400 text-xs">Hôm nay chưa có lượt check-in nào</div>`;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="space-y-2">
+            ${checkins.map(c => `
+              <div class="bg-stone-50 rounded-2xl p-3 border border-stone-200 flex items-center justify-between text-xs">
+                <div>
+                  <div class="font-bold text-stone-900">${c.member_name} <span class="font-mono text-[11px] text-stone-500">(${c.member_code || c.phone})</span></div>
+                  <div class="text-[10px] text-stone-500">${c.membership_type}</div>
+                </div>
+                <div class="text-right">
+                  <div class="font-bold text-emerald-800">${c.checked_in_at.split(' ')[1] || c.checked_in_at}</div>
+                  <div class="text-[10px] text-stone-400">Giờ vào sân</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = `<div class="py-8 text-center text-rose-500 text-xs">Lỗi: ${err.message}</div>`;
+      }
+    }
+
+    // Social Drink Config
+    async function openSocialDrinkConfigModal() {
+      document.getElementById("socialDrinkModal").classList.remove("hidden");
+      try {
+        const res = await fetch("/api/pickleball/settings/social-drink");
+        const data = await res.json();
+
+        document.getElementById("currentSocialDrinkName").innerText = data.current_drink 
+          ? `${data.current_drink.name} (${formatVND(data.current_drink.price)})`
+          : "Chưa cấu hình (Mặc định Nước Suối)";
+
+        const select = document.getElementById("selectSocialDrink");
+        select.innerHTML = (data.available_drinks || []).map(d => `
+          <option value="${d.id}" ${data.current_drink && data.current_drink.id === d.id ? 'selected' : ''}>
+            ${d.name} — ${formatVND(d.price)} (${d.portion || 'Chai/Lon'})
+          </option>
+        `).join('');
+      } catch (err) {
+        alert("Lỗi tải cấu hình đồ uống: " + err.message);
+      }
+    }
+
+    function closeSocialDrinkModal() {
+      document.getElementById("socialDrinkModal").classList.add("hidden");
+    }
+
+    async function saveSocialDrinkSetting() {
+      const select = document.getElementById("selectSocialDrink");
+      const drinkId = parseInt(select.value);
+      if (!drinkId) return;
+
+      const btn = document.getElementById("btnSaveSocialDrink");
+      btn.disabled = true;
+      try {
+        const res = await fetch("/api/pickleball/settings/social-drink", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ drink_item_id: drinkId })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Không thể lưu");
+
+        alert(`✅ ${data.message}`);
+        closeSocialDrinkModal();
+      } catch (err) {
+        alert("Lỗi lưu cấu hình: " + err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ==================== 7. CHANGE PASSWORD ====================
+    function openChangePasswordModal() {
+      document.getElementById("currentPwdInput").value = "";
+      document.getElementById("newPwdInput").value = "";
+      document.getElementById("confirmPwdInput").value = "";
+      document.getElementById("changePasswordModal").classList.remove("hidden");
+    }
+
+    function closeChangePasswordModal() {
+      document.getElementById("changePasswordModal").classList.add("hidden");
+    }
+
+    async function submitChangePassword(e) {
+      e.preventDefault();
+      const currentPwd = document.getElementById("currentPwdInput").value;
+      const newPwd = document.getElementById("newPwdInput").value;
+      const confirmPwd = document.getElementById("confirmPwdInput").value;
+
+      if (newPwd !== confirmPwd) {
+        alert("Mật khẩu xác nhận không khớp!");
+        return;
+      }
+
+      const btn = document.getElementById("btnSubmitChangePwd");
+      btn.disabled = true;
+      try {
+        const res = await fetch("/api/auth/change-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            current_password: currentPwd,
+            new_password: newPwd,
+            confirm_password: confirmPwd
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Đổi mật khẩu thất bại");
+
+        alert("🎉 Đổi mật khẩu thành công! Vui lòng ghi nhớ mật khẩu mới của bạn.");
+        closeChangePasswordModal();
+      } catch (err) {
+        alert("❌ Lỗi: " + err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Auto-refresh courts every 10 seconds
+    setInterval(() => {
+      loadPickleCourts();
+    }, 10000);
+
+    // Initial Load
+    window.addEventListener("DOMContentLoaded", async () => {
+      await loadMenuData();
+      await loadPickleCourts();
+    });
+  </script>
+  <div id="accountingModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-stone-200 overflow-hidden">
+      <div class="px-5 py-4 bg-emerald-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-700 flex items-center justify-center text-xl text-amber-300">
+            <i class="fa-solid fa-money-bill-transfer"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base leading-tight">Sổ Quỹ Thu - Chi (Capex & Opex)</h3>
+            <p class="text-xs text-emerald-200">Nhập liệu thu chi hàng ngày cho Thu Ngân & Quản Trị Sân Pick</p>
+          </div>
+        </div>
+        <button onclick="closeAccountingModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition text-sm">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="flex border-b border-stone-200 bg-stone-50 px-5 pt-2 gap-2 text-xs font-bold">
+        <button type="button" onclick="switchAccountingTab('form')" id="accTabBtn-form" class="px-4 py-2.5 rounded-t-xl bg-white border-t-2 border-emerald-700 text-emerald-900 shadow-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-pen-to-square"></i> Lập Phiếu Thu / Chi
+        </button>
+        <button type="button" onclick="switchAccountingTab('history')" id="accTabBtn-history" class="px-4 py-2.5 rounded-t-xl text-stone-500 hover:text-stone-800 flex items-center gap-1.5">
+          <i class="fa-solid fa-receipt"></i> Sổ Quỹ Hôm Nay
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto flex-1 space-y-4 text-xs">
+        <!-- TAB 1: FORM LẬP PHIẾU -->
+        <form id="accountingForm" onsubmit="submitAccountingTransaction(event)" class="space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Loại giao dịch <span class="text-rose-500">*</span></label>
+              <select id="accTransType" onchange="onAccTransTypeChange()" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs font-bold bg-white">
+                <option value="EXPENSE" selected>💸 PHIẾU CHI (Tiền ra)</option>
+                <option value="INCOME">💰 PHIẾU THU (Tiền vào)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Phân loại chi phí <span class="text-rose-500">*</span></label>
+              <select id="accCostCategory" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs font-bold bg-white">
+                <option value="OPEX">⚙️ OPEX - Chi phí vận hành thường xuyên</option>
+                <option value="CAPEX">🏗️ CAPEX - Chi phí đầu tư tài sản / Vốn lớn</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Bộ phận phát sinh <span class="text-rose-500">*</span></label>
+              <select id="accDepartment" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs bg-white font-bold">
+                <option value="PICKLEBALL">🎾 Sân Pickleball</option>
+                <option value="RESTAURANT">🍽️ Nhà Hàng (Bếp / Bar / Sảnh)</option>
+                <option value="GENERAL">🏢 Chung Toàn Cơ Sở</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Khoản mục chi tiết <span class="text-rose-500">*</span></label>
+              <select id="accExpenseType" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs bg-white"></select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Số tiền (VNĐ) <span class="text-rose-500">*</span></label>
+              <input type="number" id="accAmount" required min="1000" step="1000" placeholder="Ví dụ: 150000" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-sm font-black text-emerald-800 bg-white">
+            </div>
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Phương thức thanh toán</label>
+              <select id="accPaymentMethod" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs bg-white">
+                <option value="CASH">Tiền mặt</option>
+                <option value="TRANSFER">Chuyển khoản</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Người nhận tiền / Người nộp tiền</label>
+            <input type="text" id="accRecipientPayer" placeholder="Tên nhân viên hoặc nhà cung cấp nhận tiền..." class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs bg-white">
+          </div>
+
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Lý do / Diễn giải chi tiết <span class="text-rose-500">*</span></label>
+            <textarea id="accDescription" required rows="2" placeholder="Ví dụ: Mua đá lạnh 2 bao, mua bóng pickleball mới..." class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs bg-white"></textarea>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-md transition flex items-center gap-1.5">
+              <i class="fa-solid fa-check"></i> Lưu & Xuất Phiếu Vào Sổ Quỹ
+            </button>
+          </div>
+        </form>
+
+        <!-- TAB 2: LỊCH SỬ THU CHI HÔM NAY -->
+        <div id="accTabContent-history" class="space-y-3 hidden">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+            <div class="bg-stone-100 p-2.5 rounded-xl border border-stone-200">
+              <div class="text-[10px] text-stone-500">Doanh thu POS</div>
+              <div class="font-extrabold text-emerald-700 text-sm" id="accKpiPos">0 đ</div>
+            </div>
+            <div class="bg-stone-100 p-2.5 rounded-xl border border-stone-200">
+              <div class="text-[10px] text-stone-500">Chi OPEX</div>
+              <div class="font-extrabold text-amber-600 text-sm" id="accKpiOpex">0 đ</div>
+            </div>
+            <div class="bg-stone-100 p-2.5 rounded-xl border border-stone-200">
+              <div class="text-[10px] text-stone-500">Chi CAPEX</div>
+              <div class="font-extrabold text-purple-700 text-sm" id="accKpiCapex">0 đ</div>
+            </div>
+            <div class="bg-stone-100 p-2.5 rounded-xl border border-stone-200">
+              <div class="text-[10px] text-stone-500">Tiền mặt két ước tính</div>
+              <div class="font-extrabold text-sky-700 text-sm" id="accKpiDrawer">0 đ</div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-stone-200">
+            <table class="w-full text-left text-stone-700 divide-y divide-stone-200">
+              <thead class="bg-stone-100 text-stone-500 font-bold uppercase text-[10px]">
+                <tr>
+                  <th class="px-3 py-2">Mã phiếu</th>
+                  <th class="px-3 py-2">Loại</th>
+                  <th class="px-3 py-2">Khoản mục</th>
+                  <th class="px-3 py-2">Số tiền</th>
+                  <th class="px-3 py-2">Người nhận/nộp</th>
+                  <th class="px-3 py-2">Lý do</th>
+                </tr>
+              </thead>
+              <tbody id="accTransactionsTableBody" class="divide-y divide-stone-100 text-xs bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/pos_accounting.js"></script>
+</body>
+</html>

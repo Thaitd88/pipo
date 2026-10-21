@@ -1,5 +1,5 @@
 # Menu router for PiPo Garden with Multi-Language Support
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Query
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 import json
@@ -81,14 +81,16 @@ def format_bom_qty(qty: float, unit: str) -> str:
         return f"{qty:g} {unit}"
 
 @router.get("")
-def get_full_menu():
+def get_full_menu(for_customer: bool = Query(False), scope: Optional[str] = Query(None)):
     """Lấy danh mục và toàn bộ món ăn kèm dữ liệu đa ngôn ngữ và định lượng NVL (BOM)."""
     conn = get_db()
     cursor = conn.cursor()
     
-    # 1. Lấy danh mục đang kích hoạt
+    # 1. Lấy danh mục đang kích hoạt (nếu là khách xem thì ẩn danh mục Dịch vụ Sân Pickleball)
     cursor.execute("SELECT * FROM categories WHERE is_active = 1 ORDER BY display_order")
     categories = [dict(c) for c in cursor.fetchall()]
+    if for_customer or scope == "customer":
+        categories = [c for c in categories if c["id"] != 8 and "sân" not in c["name"].lower()]
     
     # 2. Lấy toàn bộ món ăn
     cursor.execute("""

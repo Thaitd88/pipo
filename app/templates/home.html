@@ -2377,9 +2377,10 @@
     async function fetchMenuForPreorder() {
       const grid = document.getElementById("preorderDishesGrid");
       try {
-        const res = await fetch("/api/menu");
+        const res = await fetch("/api/menu?for_customer=true");
         if (!res.ok) throw new Error("Fetch menu failed");
-        const categories = await res.json();
+        let categories = await res.json();
+        categories = (Array.isArray(categories) ? categories : (categories.categories || [])).filter(c => c.id !== 8 && !(c.name || '').toLowerCase().includes("dịch vụ sân"));
         
         allMenuItems = [];
         categories.forEach(cat => {

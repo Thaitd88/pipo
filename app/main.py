@@ -467,6 +467,14 @@ def pos_page(request: Request):
         return auth_check
     return templates.TemplateResponse(request=request, name="pos.html", context={"user": auth_check})
 
+@app.get("/pos-pickle", response_class=HTMLResponse)
+def pos_pickle_page(request: Request):
+    """Trang POS chuyên biệt Sân Pickleball: Bắt buộc đăng nhập, cho phép PICKLEBALL, CASHIER, ADMIN."""
+    auth_check = check_page_access(request, allowed_roles=["ADMIN", "CASHIER", "PICKLEBALL"])
+    if isinstance(auth_check, RedirectResponse):
+        return auth_check
+    return templates.TemplateResponse(request=request, name="pos_pickle.html", context={"user": auth_check})
+
 @app.get("/print-qrcodes", response_class=HTMLResponse)
 def print_qrcodes_page(request: Request):
     """Trang xuất và in toàn bộ mã QR của tất cả các bàn chuẩn khổ A4."""

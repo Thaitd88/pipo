@@ -131,6 +131,7 @@
             <div class="text-xs text-stone-500 font-medium">Doanh thu Hôm nay</div>
             <div class="text-2xl font-black text-emerald-700 mt-1" id="kpiTodayRev">0 đ</div>
             <div class="text-[11px] text-stone-400 mt-0.5" id="kpiTodayOrders">0 đơn đã thanh toán</div>
+            <div class="text-[10.5px] text-stone-600 mt-1 pt-1 border-t border-stone-100 flex items-center justify-between" id="kpiTodaySubBreakdown"><span>F&B: 0 đ</span><span>Pick: 0 đ</span></div>
           </div>
           <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl">
             <i class="fa-solid fa-calendar-day"></i>
@@ -142,6 +143,7 @@
             <div class="text-xs text-stone-500 font-medium">Doanh thu Tháng này</div>
             <div class="text-2xl font-black text-amber-600 mt-1" id="kpiMonthRev">0 đ</div>
             <div class="text-[11px] text-stone-400 mt-0.5" id="kpiMonthOrders">0 đơn trong tháng</div>
+            <div class="text-[10.5px] text-stone-600 mt-1 pt-1 border-t border-stone-100 flex items-center justify-between" id="kpiMonthSubBreakdown"><span>F&B: 0 đ</span><span>Pick: 0 đ</span></div>
           </div>
           <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
             <i class="fa-solid fa-calendar-days"></i>
@@ -153,6 +155,7 @@
             <div class="text-xs text-stone-500 font-medium">Doanh thu Năm nay</div>
             <div class="text-2xl font-black text-teal-700 mt-1" id="kpiYearRev">0 đ</div>
             <div class="text-[11px] text-stone-400 mt-0.5" id="kpiYearOrders">Tổng đơn năm</div>
+            <div class="text-[10.5px] text-stone-600 mt-1 pt-1 border-t border-stone-100 flex items-center justify-between" id="kpiYearSubBreakdown"><span>F&B: 0 đ</span><span>Pick: 0 đ</span></div>
           </div>
           <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center text-xl">
             <i class="fa-solid fa-chart-pie"></i>
@@ -265,6 +268,14 @@
               <input type="date" id="inputFilterDate" class="text-xs p-2 rounded-xl border border-stone-300 font-medium bg-white">
             </div>
 
+            <div>
+              <select id="filterReportDepartment" onchange="fetchDetailReport()" class="text-xs p-2 rounded-xl border border-stone-300 font-bold bg-white text-stone-800">
+                <option value="ALL">🏢 Toàn Bộ Hệ Thống (Tất Cả)</option>
+                <option value="RESTAURANT">🍽️ Nhà Hàng & F&B</option>
+                <option value="PICKLEBALL">🎾 Sân Pickleball</option>
+              </select>
+            </div>
+
             <button onclick="fetchDetailReport()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
               <i class="fa-solid fa-magnifying-glass"></i> Xem Báo Cáo
             </button>
@@ -280,7 +291,10 @@
             <div>
               <div class="text-xs text-emerald-200 font-semibold uppercase tracking-wider" id="detailPeriodTitle">Kỳ Báo Cáo</div>
               <div class="text-2xl font-black mt-1" id="detailTotalRev">0 đ</div>
-              <div class="text-xs text-emerald-100 mt-1">Tổng doanh thu thực nhận đã thanh toán</div>
+              <div class="text-xs text-emerald-100 mt-1 flex items-center gap-2 flex-wrap">
+                <span id="detailFbRevBadge" class="bg-black/20 px-2 py-0.5 rounded-lg font-bold">🍽️ F&B: 0 đ</span>
+                <span id="detailPickleRevBadge" class="bg-amber-400 text-stone-900 px-2 py-0.5 rounded-lg font-black">🎾 Sân Pick: 0 đ</span>
+              </div>
             </div>
             <div class="flex gap-2.5 text-center flex-wrap">
               <div class="bg-white/10 px-3.5 py-2 rounded-xl backdrop-blur-xs">
@@ -1911,12 +1925,24 @@
         // Cập nhật 4 KPI Cards
         document.getElementById("kpiTodayRev").innerText = formatVND(data.today ? data.today.revenue : 0);
         document.getElementById("kpiTodayOrders").innerText = `${data.today ? data.today.orders : 0} đơn đã thanh toán`;
+        const kpiTodaySub = document.getElementById("kpiTodaySubBreakdown");
+        if (kpiTodaySub && data.today) {
+          kpiTodaySub.innerHTML = `<span>🍽️ F&B: <b>${formatVND(data.today.fb_revenue || 0)}</b></span><span>🎾 Pick: <b>${formatVND(data.today.pickle_revenue || 0)}</b></span>`;
+        }
 
         document.getElementById("kpiMonthRev").innerText = formatVND(data.this_month ? data.this_month.revenue : 0);
         document.getElementById("kpiMonthOrders").innerText = `${data.this_month ? data.this_month.orders : 0} đơn trong tháng`;
+        const kpiMonthSub = document.getElementById("kpiMonthSubBreakdown");
+        if (kpiMonthSub && data.this_month) {
+          kpiMonthSub.innerHTML = `<span>🍽️ F&B: <b>${formatVND(data.this_month.fb_revenue || 0)}</b></span><span>🎾 Pick: <b>${formatVND(data.this_month.pickle_revenue || 0)}</b></span>`;
+        }
 
         document.getElementById("kpiYearRev").innerText = formatVND(data.this_year ? data.this_year.revenue : 0);
         document.getElementById("kpiYearOrders").innerText = `${data.this_year ? data.this_year.orders : 0} đơn cả năm`;
+        const kpiYearSub = document.getElementById("kpiYearSubBreakdown");
+        if (kpiYearSub && data.this_year) {
+          kpiYearSub.innerHTML = `<span>🍽️ F&B: <b>${formatVND(data.this_year.fb_revenue || 0)}</b></span><span>🎾 Pick: <b>${formatVND(data.this_year.pickle_revenue || 0)}</b></span>`;
+        }
 
         document.getElementById("kpiAov").innerText = formatVND(data.aov || 0);
 
@@ -2089,8 +2115,9 @@
       const filterEl = document.getElementById("inputFilterDate");
       if (filterEl && !filterEl.value) { filterEl.value = new Date().toISOString().split("T")[0]; }
       const dateVal = filterEl ? filterEl.value : "";
+      const deptVal = document.getElementById("filterReportDepartment")?.value || "ALL";
       try {
-        const res = await fetch(`/api/reports/detail?period_type=${currentDetailPeriod}&date_val=${dateVal}`);
+        const res = await fetch(`/api/reports/detail?period_type=${currentDetailPeriod}&date_val=${dateVal}&department=${deptVal}`);
         const data = await res.json();
 
         const periodLabels = {
@@ -2101,6 +2128,10 @@
 
         document.getElementById("detailPeriodTitle").innerText = periodLabels[data.period_type] || data.date_val;
         document.getElementById("detailTotalRev").innerText = formatVND(data.summary.total_revenue);
+        const fbBadge = document.getElementById("detailFbRevBadge");
+        if (fbBadge) fbBadge.innerText = `🍽️ F&B: ${formatVND(data.summary.fb_revenue || 0)}`;
+        const pickleBadge = document.getElementById("detailPickleRevBadge");
+        if (pickleBadge) pickleBadge.innerText = `🎾 Sân Pick: ${formatVND(data.summary.pickle_revenue || 0)}`;
         if (document.getElementById("detailCashRev")) {
           document.getElementById("detailCashRev").innerText = formatVND(data.summary.cash_revenue || 0);
         }
@@ -2144,7 +2175,10 @@
               <td class="py-3 px-4 font-mono font-bold text-emerald-800">#${o.id}</td>
               <td class="py-3 px-4 text-stone-500 whitespace-nowrap">${o.created_at}</td>
               <td class="py-3 px-4">
-                <div class="font-bold text-stone-900">${o.table_name}</div>
+                <div class="font-bold text-stone-900 flex items-center gap-1.5">
+                  <span>${o.table_name}</span>
+                  ${(o.area && o.area.includes('Pickle')) || (o.table_code && o.table_code.startsWith('PK-')) ? '<span class="px-1.5 py-0.2 rounded text-[9.5px] font-black bg-amber-400 text-stone-900">SÂN PICK</span>' : ''}
+                </div>
                 <div class="text-[10px] text-stone-400">${o.area}</div>
               </td>
               <td class="py-3 px-4 max-w-xs">
@@ -2700,242 +2734,7 @@
             <h3>${name} • ${area}</h3>
             <img src="${imgSrc}" class="qr" onload="window.print(); window.close();" />
             <p>Quét mã để xem menu 5 ngôn ngữ và gọi món tự động</p>
-          
-  <!-- ======================================================== -->
-  <!-- MODAL: THÊM HỘI VIÊN MỚI (ADMIN) -->
-  <!-- ======================================================== -->
-  <div id="adminAddMemberModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl text-stone-800 border border-stone-200 space-y-4">
-      <div class="flex justify-between items-center pb-3 border-b border-stone-100">
-        <h3 class="font-extrabold text-base text-stone-900 flex items-center gap-2">
-          <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-xs">🎾</span>
-          Đăng Ký Hội Viên & Đặt Sân Tháng
-        </h3>
-        <button onclick="closeAdminAddMemberModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 font-bold transition">✕</button>
-      </div>
-
-      <form id="adminAddMemberForm" onsubmit="submitAdminAddMember(event)" class="space-y-3 text-xs">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-stone-700 mb-1">Họ Tên Khách Hàng *</label>
-            <input type="text" id="admMbrName" required placeholder="VD: Nguyễn Văn A" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none focus:ring-2 focus:ring-sky-500">
-          </div>
-          <div>
-            <label class="block font-bold text-stone-700 mb-1">Số Điện Thoại *</label>
-            <input type="text" id="admMbrPhone" required placeholder="VD: 0912345678" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none focus:ring-2 focus:ring-sky-500">
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-bold text-stone-700 mb-1">Gói Dịch Vụ Hội Viên *</label>
-          <select id="admMbrType" onchange="onAdmMbrTypeChange()" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-800 outline-none focus:ring-2 focus:ring-sky-500">
-            <option value="SOCIAL_MONTH_ALL">Social Tháng - Mọi giờ (1.200.000 đ)</option>
-            <option value="SOCIAL_MONTH_MORNING">Social Tháng - Chỉ sáng 06h-16h (600.000 đ)</option>
-            <option value="SOCIAL_YEAR">Social Cá Nhân Theo Năm (5.000.000 đ)</option>
-            <option value="FIXED_COURT_MONTHLY">Đặt Sân Cố Định Theo Tháng (Giá Đàm Phán)</option>
-          </select>
-        </div>
-
-        <div id="admMbrCourtBox" class="grid grid-cols-2 gap-3 hidden">
-          <div>
-            <label class="block font-bold text-stone-700 mb-1">Sân Cố Định</label>
-            <select id="admMbrCourtId" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold">
-              <option value="PK-01">Sân 1 (PK-01)</option>
-              <option value="PK-02">Sân 2 (PK-02)</option>
-              <option value="PK-03">Sân 3 (PK-03)</option>
-              <option value="PK-04">Sân 4 (PK-04)</option>
-            </select>
-          </div>
-          <div id="admMbrTimeBox">
-            <label class="block font-bold text-stone-700 mb-1">Khung Giờ Cố Định</label>
-            <input type="text" id="admMbrTimeSlots" placeholder="VD: T3, T5, T7 (18h-20h)" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="block font-bold text-stone-700 mb-1">Ngày Bắt Đầu</label>
-            <input type="date" id="admMbrStartDate" class="w-full px-2.5 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none">
-          </div>
-          <div>
-            <label class="block font-bold text-stone-700 mb-1">Thời Gian (Tháng)</label>
-            <input type="number" id="admMbrDuration" value="1" min="1" max="36" class="w-full px-2.5 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none">
-          </div>
-          <div>
-            <label class="block font-bold text-stone-700 mb-1">Số Tiền Thu (VNĐ)</label>
-            <input type="number" id="admMbrPrice" value="1200000" step="10000" class="w-full px-2.5 py-2 bg-stone-50 border border-stone-300 rounded-xl font-black text-sky-800 outline-none">
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-bold text-stone-700 mb-1">Trạng Thái Thanh Toán</label>
-          <select id="admMbrPaymentStatus" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold">
-            <option value="PAID">✓ Đã thanh toán đủ</option>
-            <option value="UNPAID">Chưa thanh toán (Ghi nợ)</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block font-bold text-stone-700 mb-1">Ghi Chú</label>
-          <input type="text" id="admMbrNotes" placeholder="Ghi chú thêm về nhóm hoặc thỏa thuận..." class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none">
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
-          <button type="button" onclick="closeAdminAddMemberModal()" class="px-4 py-2.5 rounded-xl border border-stone-300 text-stone-600 font-bold hover:bg-stone-50 transition">Hủy Bỏ</button>
-          <button type="submit" class="px-5 py-2.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white font-bold shadow-md transition flex items-center gap-1.5">
-            <i class="fa-solid fa-check"></i> Lưu Thẻ Hội Viên
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ======================================================== -->
-  <!-- MODAL: LẬP PHIẾU THU / CHI CAPEX - OPEX (ADMIN) -->
-  <!-- ======================================================== -->
-  <div id="adminAddTransactionModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl text-stone-800 border border-stone-200 space-y-4">
-      <div class="flex justify-between items-center pb-3 border-b border-stone-100">
-        <h3 class="font-extrabold text-base text-stone-900 flex items-center gap-2">
-          <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs">📝</span>
-          Lập Phiếu Thu / Chi Kế Toán (Capex & Opex)
-        </h3>
-        <button onclick="closeAdminAddTransactionModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 font-bold transition">✕</button>
-      </div>
-
-      <form id="adminAddTransactionForm" onsubmit="submitAdminAddTransaction(event)" class="space-y-3 text-xs">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-stone-700 mb-1">Loại Phiếu *</label>
-            <select id="admTxType" onchange="updateAdminTxExpenseOptions()" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-black text-rose-700 outline-none">
-              <option value="EXPENSE">Phiếu Chi (Khoản tiền ra)</option>
-              <option value="INCOME">Phiếu Thu (Khoản tiền vào)</option>
-            </select>
-          </div>
-          <div id="admTxCostCatWrapper">
-            <label class="block font-bold text-stone-700 mb-1">Phân Loại Chi Phí *</label>
-            <select id="admTxCostCategory" onchange="updateAdminTxExpenseOptions()" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-800 outline-none">
-              <option value="OPEX">OPEX - Vận Hành Thường Xuyên</option>
-              <option value="CAPEX">CAPEX - Đầu Tư Tài Sản Vốn</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-stone-700 mb-1">Bộ Phận Phát Sinh *</label>
-            <select id="admTxDepartment" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-800 outline-none">
-              <option value="RESTAURANT">Nhà Hàng & F&B</option>
-              <option value="PICKLEBALL">Sân Pickleball</option>
-              <option value="GENERAL">Chung Toàn Hệ Thống</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-bold text-stone-700 mb-1">Phương Thức Thanh Toán</label>
-            <select id="admTxPayMethod" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold">
-              <option value="CASH">Tiền mặt</option>
-              <option value="BANK_TRANSFER">Chuyển khoản</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-bold text-stone-700 mb-1">Khoản Mục Chi Tiết *</label>
-          <select id="admTxExpenseType" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-800 outline-none"></select>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-stone-700 mb-1">Số Tiền (VNĐ) *</label>
-            <input type="number" id="admTxAmount" required min="1000" step="1000" placeholder="VD: 500000" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-black text-rose-700 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-          </div>
-          <div>
-            <label class="block font-bold text-stone-700 mb-1">Người Nhận / Người Nộp</label>
-            <input type="text" id="admTxRecipient" placeholder="VD: Tiền chợ chị Lan, Điện lực..." class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none">
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-bold text-stone-700 mb-1">Diễn Giải / Nội Dung Chi Tiết</label>
-          <textarea id="admTxDesc" rows="2" placeholder="Ghi chú chi tiết lý do chi / thu..." class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none resize-none"></textarea>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
-          <button type="button" onclick="closeAdminAddTransactionModal()" class="px-4 py-2.5 rounded-xl border border-stone-300 text-stone-600 font-bold hover:bg-stone-50 transition">Hủy Bỏ</button>
-          <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-md transition flex items-center gap-1.5">
-            <i class="fa-solid fa-floppy-disk"></i> Lưu Phiếu Thu / Chi
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script src="/static/js/admin_pickle_accounting.js"></script>
-
-
-  <!-- ======================================================== -->
-  <!-- MODAL: ĐỔI MẬT KHẨU CÁ NHÂN (CHANGE PASSWORD MODAL) -->
-  <!-- ======================================================== -->
-  <div id="changePasswordModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-stone-800 border border-stone-200">
-      <div class="flex justify-between items-center pb-3 border-b border-stone-100">
-        <h3 class="font-extrabold text-base text-stone-900 flex items-center gap-2">
-          <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs">🔑</span>
-          Đổi Mật Khẩu Cá Nhân
-        </h3>
-        <button onclick="closeChangePasswordModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 font-bold transition">✕</button>
-      </div>
-
-      <p class="text-xs text-stone-500 mt-2 mb-4">
-        Nhập mật khẩu hiện tại để xác thực và thiết lập mật khẩu mới (tối thiểu 6 ký tự).
-      </p>
-
-      <form id="changePasswordForm" onsubmit="submitChangePassword(event)" class="space-y-3.5 text-xs">
-        <div>
-          <label class="block font-bold text-stone-700 mb-1">Mật khẩu hiện tại *</label>
-          <div class="relative">
-            <input type="password" id="cpCurrentPassword" required placeholder="Nhập mật khẩu đang dùng" class="w-full px-3 py-2.5 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none focus:ring-2 focus:ring-emerald-500 pr-10">
-            <button type="button" onclick="togglePasswordVisibility('cpCurrentPassword', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-1">
-              <i class="fa-solid fa-eye text-xs"></i>
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-bold text-stone-700 mb-1">Mật khẩu mới * (tối thiểu 6 ký tự)</label>
-          <div class="relative">
-            <input type="password" id="cpNewPassword" required minlength="6" placeholder="Nhập mật khẩu mới" class="w-full px-3 py-2.5 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none focus:ring-2 focus:ring-emerald-500 pr-10">
-            <button type="button" onclick="togglePasswordVisibility('cpNewPassword', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-1">
-              <i class="fa-solid fa-eye text-xs"></i>
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-bold text-stone-700 mb-1">Xác nhận mật khẩu mới *</label>
-          <div class="relative">
-            <input type="password" id="cpConfirmPassword" required minlength="6" placeholder="Nhập lại mật khẩu mới" class="w-full px-3 py-2.5 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none focus:ring-2 focus:ring-emerald-500 pr-10">
-            <button type="button" onclick="togglePasswordVisibility('cpConfirmPassword', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-1">
-              <i class="fa-solid fa-eye text-xs"></i>
-            </button>
-          </div>
-        </div>
-
-        <div id="cpErrorMsg" class="hidden p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold"></div>
-
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
-          <button type="button" onclick="closeChangePasswordModal()" class="px-4 py-2.5 rounded-xl border border-stone-300 text-stone-600 font-bold hover:bg-stone-50 transition">Hủy Bỏ</button>
-          <button type="submit" id="cpSubmitBtn" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-md transition flex items-center gap-1.5">
-            <i class="fa-solid fa-floppy-disk"></i> Cập Nhật Mật Khẩu
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script src="/static/js/change_password.js"></script>
-
-</body>
+          </body>
         </html>
       `);
       printWin.document.close();

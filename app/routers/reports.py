@@ -17,7 +17,7 @@ def set_broadcaster(b):
 @router.get("/overview")
 def get_revenue_overview(request: Request):
     """Báo cáo tổng quan KPI doanh thu, biểu đồ xu hướng và top món bán chạy."""
-    require_api_auth(request, allowed_roles=["ADMIN", "CASHIER"])
+    require_api_auth(request, allowed_roles=["ADMIN", "CASHIER", "PICKLEBALL"])
     conn = get_db()
     cursor = conn.cursor()
 
@@ -56,7 +56,38 @@ def get_revenue_overview(request: Request):
     year_rev = year_data["rev"]
     year_orders = year_data["orders_cnt"]
 
-    # 4. Giá trị đơn trung bình (AOV)
+    # 4. Phân tách doanh thu F&B Nhà Hàng vs Sân Pickleball
+    cursor.execute("""
+        SELECT 
+            COALESCE(SUM(CASE WHEN t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%' THEN o.total ELSE 0 END), 0) as pickle_rev,
+            COALESCE(SUM(CASE WHEN NOT (t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%') THEN o.total ELSE 0 END), 0) as fb_rev
+        FROM orders o
+        LEFT JOIN tables t ON o.table_id = t.id
+        WHERE o.payment_status = 'PAID' AND DATE(o.created_at) = ?
+    """, (today_str,))
+    today_split = cursor.fetchone()
+
+    cursor.execute("""
+        SELECT 
+            COALESCE(SUM(CASE WHEN t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%' THEN o.total ELSE 0 END), 0) as pickle_rev,
+            COALESCE(SUM(CASE WHEN NOT (t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%') THEN o.total ELSE 0 END), 0) as fb_rev
+        FROM orders o
+        LEFT JOIN tables t ON o.table_id = t.id
+        WHERE o.payment_status = 'PAID' AND strftime('%Y-%m', o.created_at) = ?
+    """, (this_month_str,))
+    month_split = cursor.fetchone()
+
+    cursor.execute("""
+        SELECT 
+            COALESCE(SUM(CASE WHEN t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%' THEN o.total ELSE 0 END), 0) as pickle_rev,
+            COALESCE(SUM(CASE WHEN NOT (t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%') THEN o.total ELSE 0 END), 0) as fb_rev
+        FROM orders o
+        LEFT JOIN tables t ON o.table_id = t.id
+        WHERE o.payment_status = 'PAID' AND strftime('%Y', o.created_at) = ?
+    """, (this_year_str,))
+    year_split = cursor.fetchone()
+
+    # 4b. Giá trị đơn trung bình (AOV)
     aov = int(month_rev / month_orders) if month_orders > 0 else 0
 
     # 5. Biểu đồ doanh thu 7 ngày gần nhất
@@ -147,9 +178,9 @@ def get_revenue_overview(request: Request):
     conn.close()
 
     return {
-        "today": {"revenue": today_rev, "orders": today_orders},
-        "this_month": {"revenue": month_rev, "orders": month_orders},
-        "this_year": {"revenue": year_rev, "orders": year_orders},
+        "today": {"revenue": today_rev, "orders": today_orders, "pickle_revenue": today_split["pickle_rev"], "fb_revenue": today_split["fb_rev"]},
+        "this_month": {"revenue": month_rev, "orders": month_orders, "pickle_revenue": month_split["pickle_rev"], "fb_revenue": month_split["fb_rev"]},
+        "this_year": {"revenue": year_rev, "orders": year_orders, "pickle_revenue": year_split["pickle_rev"], "fb_revenue": year_split["fb_rev"]},
         "funds": {
             "cash_revenue": method_row.get("cash_rev", 0),
             "transfer_revenue": method_row.get("transfer_rev", 0),
@@ -168,10 +199,11 @@ def get_revenue_overview(request: Request):
 def get_revenue_detail(
     request: Request,
     period_type: str = Query("DAY", pattern="^(DAY|MONTH|YEAR)$"),
-    date_val: str = Query(None) # YYYY-MM-DD nếu DAY, YYYY-MM nếu MONTH, YYYY nếu YEAR
+    date_val: str = Query(None), # YYYY-MM-DD nếu DAY, YYYY-MM nếu MONTH, YYYY nếu YEAR
+    department: str = Query("ALL") # ALL, RESTAURANT, PICKLEBALL
 ):
     """Báo cáo chi tiết danh sách hóa đơn theo ngày, tháng hoặc năm."""
-    require_api_auth(request, allowed_roles=["ADMIN", "CASHIER"])
+    require_api_auth(request, allowed_roles=["ADMIN", "CASHIER", "PICKLEBALL"])
     conn = get_db()
     cursor = conn.cursor()
 
@@ -195,6 +227,13 @@ def get_revenue_detail(
         where_clause = "strftime('%Y', o.created_at) = ?"
         param = date_val
 
+    # Áp dụng bộ lọc phân hệ (Nhà hàng vs Sân Pickle)
+    dept_clause = ""
+    if department == "PICKLEBALL":
+        dept_clause = " AND (t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%')"
+    elif department == "RESTAURANT":
+        dept_clause = " AND NOT (t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%')"
+
     # 1. Thống kê tổng hợp kỳ báo cáo (gồm Quỹ tiền mặt, Doanh thu chuyển khoản, Nội bộ & Phí phục vụ)
     cursor.execute(f"""
         SELECT COALESCE(SUM(o.total), 0) as total_revenue,
@@ -203,9 +242,12 @@ def get_revenue_detail(
                COALESCE(SUM(o.service_fee), 0) as total_service_fee,
                COALESCE(SUM(CASE WHEN UPPER(COALESCE(o.payment_method, 'CASH')) = 'CASH' AND COALESCE(o.bill_target, 'CUSTOMER') != 'ADMIN' THEN o.total ELSE 0 END), 0) as cash_revenue,
                COALESCE(SUM(CASE WHEN UPPER(o.payment_method) IN ('TRANSFER', 'VIETQR') AND COALESCE(o.bill_target, 'CUSTOMER') != 'ADMIN' THEN o.total ELSE 0 END), 0) as transfer_revenue,
-               COALESCE(SUM(CASE WHEN UPPER(o.payment_method) = 'INTERNAL' OR COALESCE(o.bill_target, 'CUSTOMER') = 'ADMIN' THEN o.total ELSE 0 END), 0) as internal_revenue
+               COALESCE(SUM(CASE WHEN UPPER(o.payment_method) = 'INTERNAL' OR COALESCE(o.bill_target, 'CUSTOMER') = 'ADMIN' THEN o.total ELSE 0 END), 0) as internal_revenue,
+               COALESCE(SUM(CASE WHEN t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%' THEN o.total ELSE 0 END), 0) as pickleball_revenue,
+               COALESCE(SUM(CASE WHEN NOT (t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%') THEN o.total ELSE 0 END), 0) as restaurant_revenue
         FROM orders o
-        WHERE o.payment_status = 'PAID' AND {where_clause}
+        LEFT JOIN tables t ON o.table_id = t.id
+        WHERE o.payment_status = 'PAID' AND {where_clause} {dept_clause}
     """, (param,))
     summary = dict(cursor.fetchone() or {})
 
@@ -213,10 +255,12 @@ def get_revenue_detail(
     cursor.execute(f"""
         SELECT o.id, o.round_number, o.subtotal, o.discount, o.service_fee, o.total,
                o.payment_method, o.bill_target, o.billed_admin_name, o.created_at, o.completed_at,
-               t.name as table_name, t.table_code, t.area
+               COALESCE(t.name, 'Sân Pickle') as table_name,
+               COALESCE(t.table_code, 'PK-01') as table_code,
+               COALESCE(t.area, 'Sân Pickle') as area
         FROM orders o
-        JOIN tables t ON o.table_id = t.id
-        WHERE o.payment_status = 'PAID' AND {where_clause}
+        LEFT JOIN tables t ON o.table_id = t.id
+        WHERE o.payment_status = 'PAID' AND {where_clause} {dept_clause}
         ORDER BY o.created_at DESC
     """, (param,))
     orders_rows = cursor.fetchall()

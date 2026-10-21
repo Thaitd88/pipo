@@ -425,7 +425,7 @@ async def complete_all_order_items(order_id: int):
 @router.get("/cancel-requests")
 def get_pending_cancel_requests(request: Request):
     """Lấy danh sách các món đang chờ Bếp xác nhận thu hồi (CANCEL_PENDING)."""
-    require_api_auth(request, allowed_roles=["ADMIN", "CHEF", "CASHIER", "WAITER"])
+    require_api_auth(request, allowed_roles=["ADMIN", "CHEF", "CASHIER", "WAITER", "PICKLEBALL"])
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
@@ -449,7 +449,7 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
     - Nếu Bếp chưa ra món (QUEUED, COOKING): HỦY NGAY LẬP TỨC, hoàn kho (nếu đã trừ) và cập nhật hóa đơn.
     - Nếu Bếp đã ra món (READY) hoặc đã bưng ra bàn (SERVED): Chuyển thành CANCEL_PENDING, gửi yêu cầu tới Bếp xác nhận thu hồi.
     """
-    user = require_api_auth(request, allowed_roles=["ADMIN", "CASHIER", "WAITER"])
+    user = require_api_auth(request, allowed_roles=["ADMIN", "CASHIER", "WAITER", "PICKLEBALL"])
     reason = payload.get("reason", "Khách hủy món").strip()
     cancel_qty = payload.get("cancel_quantity")
     note = payload.get("note", "").strip()
@@ -624,7 +624,7 @@ async def kitchen_confirm_cancel(order_item_id: int, payload: dict, request: Req
     - action: 'APPROVE' (Duyệt trả món) -> Chuyển CANCELLED, trừ tiền bill, hoàn kho nếu chọn.
     - action: 'REJECT' (Từ chối trả món) -> Khôi phục trạng thái SERVED/READY.
     """
-    user = require_api_auth(request, allowed_roles=["ADMIN", "CHEF", "CASHIER", "WAITER"])
+    user = require_api_auth(request, allowed_roles=["ADMIN", "CHEF", "CASHIER", "WAITER", "PICKLEBALL"])
     action = payload.get("action", "APPROVE").upper() # APPROVE or REJECT
     rejection_note = (payload.get("rejection_reason") or payload.get("note") or "").strip()
     restore_stock = payload.get("restore_inventory", True)

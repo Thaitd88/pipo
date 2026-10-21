@@ -384,10 +384,10 @@ PICKLEBALL_SERVICES = [
     },
     {
         "id": 304,
-        "name": "Thuê Sân Theo Giờ",
+        "name": "Thuê Sân Theo Giờ (200k/giờ, tặng 2 nước)",
         "price": 200000,
-        "portion": "1 giờ / sân",
-        "description": "Bao trọn 01 sân thi đấu tiêu chuẩn có mái che thoáng mát, mặt sân cao su giảm chấn chuẩn quốc tế.",
+        "portion": "1 giờ / sân (kèm 2 nước)",
+        "description": "Bao trọn 01 sân thi đấu tiêu chuẩn có mái che thoáng mát, tặng kèm 02 chai nước suối giải khát.",
         "category_id": 8,
         "main_menu_type": "PICKLE",
         "station": "BAR"

@@ -215,7 +215,7 @@ def get_table_bill(table_id: int):
 
 @router.post("/table/{table_id}/checkout")
 async def checkout_table(table_id: int, request: Request, payload: dict = None):
-    user = require_api_auth(request, allowed_roles=["ADMIN", "CASHIER", "WAITER"])
+    user = require_api_auth(request, allowed_roles=["ADMIN", "CASHIER", "WAITER", "PICKLEBALL"])
     if payload is None:
         try:
             payload = await request.json()

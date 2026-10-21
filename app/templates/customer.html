@@ -1082,8 +1082,11 @@
     // 2. Tải menu từ Server
     async function fetchMenu() {
       try {
-        const res = await fetch("/api/menu");
+        const res = await fetch("/api/menu?for_customer=true");
         menuData = await res.json();
+        if (menuData && menuData.categories) {
+          menuData.categories = menuData.categories.filter(c => c.id !== 8 && !c.name.toLowerCase().includes("dịch vụ sân"));
+        }
         renderCategories();
         renderMenu();
       } catch (err) {

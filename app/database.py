@@ -1825,6 +1825,20 @@ def get_dynamic_bom_for_item(cursor, menu_item_id: int, modifiers_json: str = No
             }]
         return []
 
+# 0b. Thuê Sân Theo Giờ (ID 304 hoặc chứa 'thuê sân' / 'thue san') -> Tặng 2 chai nước suối (trừ 2 chai NVL41)
+    if menu_item_id == 304 or ("thuê sân" in full_check or "thue san" in full_check) and ("giờ" in full_check or "gio" in full_check or "200" in full_check):
+        cursor.execute("SELECT id, name, unit, cost_price FROM inventory_items WHERE code = 'NVL41' OR name LIKE '%Nước Suối%' LIMIT 1")
+        ing_row = cursor.fetchone()
+        if ing_row:
+            return [{
+                "ingredient_id": ing_row["id"],
+                "bom_qty": 2.0,
+                "ing_name": ing_row["name"],
+                "unit": ing_row["unit"],
+                "cost_price": ing_row["cost_price"] or 4000
+            }]
+        return []
+
     # 1. Mì xào (ID 181)
     if menu_item_id == 181 or "mì xào" in full_check or "mi xao" in full_check or "mỳ xào" in full_check:
         if "bò" in full_check or "bo" in full_check:
