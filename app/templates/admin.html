@@ -96,6 +96,12 @@
       <button onclick="switchTab('kitchen')" id="tabBtn-kitchen" class="admin-tab flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition whitespace-nowrap text-xs">
         <i class="fa-solid fa-tv"></i> Giám Sát Bếp
       </button>
+            <button onclick="switchTab('pickleball')" id="tabBtn-pickleball" class="admin-tab flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition whitespace-nowrap text-xs">
+        <i class="fa-solid fa-table-tennis-paddle-ball text-sky-600"></i> Sân Pickleball & Hội Viên
+      </button>
+      <button onclick="switchTab('accounting')" id="tabBtn-accounting" class="admin-tab flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition whitespace-nowrap text-xs">
+        <i class="fa-solid fa-calculator text-emerald-600"></i> Kế Toán & Lãi Lỗ (P&L)
+      </button>
       <button onclick="switchTab('staff')" id="tabBtn-staff" class="admin-tab flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-bold flex items-center gap-1.5 transition whitespace-nowrap text-xs">
         <i class="fa-solid fa-users-gear"></i> Nhân Viên
       </button>
@@ -823,6 +829,307 @@
 
       </form>
     </div>
+  
+    <!-- ======================================================== -->
+    <!-- TAB: SÂN PICKLEBALL & QUẢN TRỊ HỘI VIÊN -->
+    <!-- ======================================================== -->
+    <div id="tabContent-pickleball" class="tab-pane space-y-6 hidden">
+      <!-- Header banner -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+        <div>
+          <h2 class="text-xl font-black text-stone-900 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-sm shadow-xs">🎾</span>
+            Quản Lý Sân Pickleball & Hội Viên
+          </h2>
+          <p class="text-xs text-stone-500 mt-1">Theo dõi hội viên tháng/năm, đặt sân cố định, điểm danh check-in và cấu hình đồ uống tặng kèm.</p>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="openAdminAddMemberModal()" class="px-4 py-2 rounded-xl bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs shadow-xs transition flex items-center gap-2">
+            <i class="fa-solid fa-user-plus"></i> + Thêm Hội Viên Mới
+          </button>
+          <button onclick="loadAdminPickleball()" class="px-3 py-2 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 text-xs font-bold transition flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate"></i> Làm mới
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Thẻ KPI thống kê -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
+          <div class="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Tổng Hội Viên</div>
+          <div id="admPStatTotal" class="text-2xl font-black text-stone-900 mt-1">0</div>
+          <div class="text-[10px] text-stone-400 mt-0.5">Tất cả gói đăng ký</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
+          <div class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Đang Hiệu Lực</div>
+          <div id="admPStatActive" class="text-2xl font-black text-emerald-700 mt-1">0</div>
+          <div class="text-[10px] text-emerald-600/80 mt-0.5">Còn hạn hoạt động</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
+          <div class="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Sắp Hết Hạn</div>
+          <div id="admPStatExpiring" class="text-2xl font-black text-amber-600 mt-1">0</div>
+          <div class="text-[10px] text-amber-500 mt-0.5">Trong vòng 5 ngày tới</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
+          <div class="text-[11px] font-bold text-rose-600 uppercase tracking-wider">Đã Hết Hạn</div>
+          <div id="admPStatExpired" class="text-2xl font-black text-rose-600 mt-1">0</div>
+          <div class="text-[10px] text-rose-500 mt-0.5">Cần nhắc gia hạn</div>
+        </div>
+      </div>
+
+      <!-- Cấu hình Đồ Uống Tặng Kèm Vé Social Chiều (60k) -->
+      <div class="bg-sky-50/70 border border-sky-200 rounded-2xl p-4 sm:p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">🥤</span>
+            <div>
+              <div class="font-extrabold text-sky-950 text-sm">Cài Đặt Đồ Uống Đi Kèm Vé Social Chiều (60.000 đ)</div>
+              <div class="text-xs text-sky-800 mt-0.5">
+                Món đang gán: <span id="admCurrentSocialDrink" class="font-black text-sky-900 bg-sky-200/70 px-2 py-0.5 rounded-md">Đang tải...</span>
+                <span class="text-stone-500 text-[11px] ml-1">(Khi thanh toán vé Social 60k, hệ thống tự động trừ kho 1 chai của món này)</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="admSelectSocialDrink" class="px-3 py-2 bg-white border border-sky-300 rounded-xl text-xs font-bold text-stone-800 shadow-xs focus:ring-2 focus:ring-sky-500"></select>
+            <button onclick="saveAdminSocialDrink()" class="px-3.5 py-2 rounded-xl bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 whitespace-nowrap">
+              <i class="fa-solid fa-floppy-disk"></i> Lưu Đồ Uống
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danh sách Hội viên & Điểm danh hôm nay (Grid 3:1) -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Bảng danh sách Hội viên (3 cột) -->
+        <div class="lg:col-span-3 bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
+          <div class="p-4 border-b border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-stone-50/50">
+            <div class="font-black text-stone-800 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-id-card text-sky-700"></i> Danh Sách Hội Viên & Khách Đặt Sân Tháng
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="text" id="admPickleSearchInput" oninput="filterAdminMembersTable()" placeholder="🔍 Tìm tên, SĐT, mã thẻ..." class="px-3 py-1.5 bg-white border border-stone-300 rounded-xl text-xs w-48 focus:ring-2 focus:ring-sky-500 outline-none">
+              <select id="admPickleStatusFilter" onchange="loadAdminMemberships()" class="px-2.5 py-1.5 bg-white border border-stone-300 rounded-xl text-xs font-bold text-stone-700">
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="ACTIVE">Còn hiệu lực</option>
+                <option value="EXPIRING_SOON">Sắp hết hạn</option>
+                <option value="EXPIRED">Đã hết hạn</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-stone-100/70 border-b border-stone-200 text-stone-600 font-bold uppercase text-[10px] tracking-wider">
+                  <th class="px-3.5 py-3">Mã Thẻ</th>
+                  <th class="px-3.5 py-3">Khách Hàng</th>
+                  <th class="px-3.5 py-3">Gói Dịch Vụ / Khung Giờ</th>
+                  <th class="px-3.5 py-3">Thời Hạn</th>
+                  <th class="px-3.5 py-3">Trạng Thái</th>
+                  <th class="px-3.5 py-3 text-center">Lượt Chơi</th>
+                  <th class="px-3.5 py-3">Số Tiền</th>
+                  <th class="px-3.5 py-3 text-center">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="admPickleMembersTableBody" class="divide-y divide-stone-100">
+                <tr><td colspan="8" class="py-10 text-center text-stone-400">Đang tải dữ liệu hội viên...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Nhật ký Check-in hôm nay (1 cột) -->
+        <div class="bg-white rounded-2xl border border-stone-200 shadow-xs p-4 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+            <h3 class="font-extrabold text-stone-900 text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-clock-rotate-left text-sky-600"></i> Check-in Hôm Nay
+            </h3>
+            <button onclick="loadAdminCheckins()" class="text-stone-400 hover:text-stone-700 text-xs" title="Làm mới"><i class="fa-solid fa-rotate"></i></button>
+          </div>
+          <div id="admPickleTodayCheckins" class="mt-3 space-y-2 overflow-y-auto max-h-[500px]">
+            <div class="p-3 text-stone-400 italic text-xs text-center">Đang tải lượt check-in...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB: KẾ TOÁN & BÁO CÁO LÃI LỖ (P&L - CAPEX & OPEX) -->
+    <!-- ======================================================== -->
+    <div id="tabContent-accounting" class="tab-pane space-y-6 hidden">
+      <!-- Header bar & Filters -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+        <div>
+          <h2 class="text-xl font-black text-stone-900 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-sm shadow-xs">📊</span>
+            Báo Cáo Tài Chính & Lãi Lỗ (P&L - Capex & Opex)
+          </h2>
+          <p class="text-xs text-stone-500 mt-1">Theo dõi doanh thu F&B, Sân Pickleball, giá vốn COGS, chi phí vận hành OPEX và chi phí đầu tư tài sản CAPEX.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Quick periods -->
+          <div class="flex items-center bg-stone-100 p-1 rounded-xl text-xs font-bold text-stone-600">
+            <button onclick="setPnlQuickPeriod('today')" class="px-2.5 py-1 rounded-lg hover:bg-white hover:text-stone-900 transition">Hôm nay</button>
+            <button onclick="setPnlQuickPeriod('this_week')" class="px-2.5 py-1 rounded-lg hover:bg-white hover:text-stone-900 transition">Tuần này</button>
+            <button onclick="setPnlQuickPeriod('this_month')" class="px-2.5 py-1 rounded-lg hover:bg-white hover:text-stone-900 transition">Tháng này</button>
+            <button onclick="setPnlQuickPeriod('last_month')" class="px-2.5 py-1 rounded-lg hover:bg-white hover:text-stone-900 transition">Tháng trước</button>
+          </div>
+
+          <!-- Date inputs -->
+          <div class="flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-2 py-1 rounded-xl text-xs">
+            <input type="date" id="pnlFromDate" onchange="loadAccountingPnL(); loadAccountingLedger();" class="bg-transparent font-medium text-stone-700 outline-none">
+            <span class="text-stone-400">→</span>
+            <input type="date" id="pnlToDate" onchange="loadAccountingPnL(); loadAccountingLedger();" class="bg-transparent font-medium text-stone-700 outline-none">
+          </div>
+
+          <!-- Department filter -->
+          <select id="pnlDepartmentFilter" onchange="loadAccountingPnL(); loadAccountingLedger();" class="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-stone-700">
+            <option value="ALL">Toàn Hệ Thống</option>
+            <option value="RESTAURANT">Nhà Hàng & F&B</option>
+            <option value="PICKLEBALL">Sân Pickleball</option>
+            <option value="GENERAL">Chi Phí Chung</option>
+          </select>
+
+          <!-- Button Lập phiếu -->
+          <button onclick="openAdminAddTransactionModal()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition flex items-center gap-2">
+            <i class="fa-solid fa-receipt"></i> + Lập Phiếu Thu / Chi
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards (5 Cột) -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        <!-- 1. DOANH THU -->
+        <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
+          <div class="text-[11px] font-bold text-stone-500 uppercase tracking-wider flex items-center justify-between">
+            <span>Tổng Doanh Thu</span>
+            <i class="fa-solid fa-arrow-trend-up text-emerald-600"></i>
+          </div>
+          <div id="pnlKpiTotalRev" class="text-xl font-black text-stone-900 mt-1">0 đ</div>
+          <div class="mt-2 pt-2 border-t border-stone-100 text-[10px] space-y-0.5 text-stone-500">
+            <div class="flex justify-between"><span>F&B Nhà Hàng:</span> <b id="pnlKpiFbRev" class="text-stone-800">0 đ</b></div>
+            <div class="flex justify-between"><span>Sân Pickleball:</span> <b id="pnlKpiPickleRev" class="text-sky-700">0 đ</b></div>
+            <div class="flex justify-between"><span>Thu nhập khác:</span> <b id="pnlKpiOtherInc" class="text-stone-600">0 đ</b></div>
+          </div>
+        </div>
+
+        <!-- 2. GIÁ VỐN & LN GỘP -->
+        <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
+          <div class="text-[11px] font-bold text-amber-700 uppercase tracking-wider flex items-center justify-between">
+            <span>Lợi Nhuận Gộp</span>
+            <span id="pnlKpiGrossMargin" class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-black">0%</span>
+          </div>
+          <div id="pnlKpiGrossProfit" class="text-xl font-black text-amber-900 mt-1">0 đ</div>
+          <div class="mt-2 pt-2 border-t border-stone-100 text-[10px] space-y-0.5 text-stone-500">
+            <div class="flex justify-between"><span>Giá vốn NVL (COGS):</span> <b id="pnlKpiCogs" class="text-rose-700">0 đ</b></div>
+            <div class="text-[10px] text-stone-400 italic mt-1">= Tổng Doanh Thu - Giá Vốn NVL</div>
+          </div>
+        </div>
+
+        <!-- 3. OPEX & EBITDA -->
+        <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
+          <div class="text-[11px] font-bold text-sky-700 uppercase tracking-wider flex items-center justify-between">
+            <span>LN Hoạt Động (EBITDA)</span>
+            <span id="pnlKpiEbitdaMargin" class="text-[10px] bg-sky-100 text-sky-800 px-1.5 py-0.2 rounded font-black">0%</span>
+          </div>
+          <div id="pnlKpiEbitda" class="text-xl font-black text-sky-950 mt-1">0 đ</div>
+          <div class="mt-2 pt-2 border-t border-stone-100 text-[10px] space-y-0.5 text-stone-500">
+            <div class="flex justify-between"><span>Chi phí Vận hành (OPEX):</span> <b id="pnlKpiOpex" class="text-amber-700">0 đ</b></div>
+            <div class="text-[10px] text-stone-400 italic mt-1">= LN Gộp - Chi Phí Vận Hành</div>
+          </div>
+        </div>
+
+        <!-- 4. CAPEX (CHI PHÍ ĐẦU TƯ) -->
+        <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
+          <div class="text-[11px] font-bold text-purple-700 uppercase tracking-wider flex items-center justify-between">
+            <span>Đầu Tư Vốn (CAPEX)</span>
+            <i class="fa-solid fa-building-wheat text-purple-500"></i>
+          </div>
+          <div id="pnlKpiCapex" class="text-xl font-black text-purple-900 mt-1">0 đ</div>
+          <div class="mt-2 pt-2 border-t border-stone-100 text-[10px] space-y-0.5 text-stone-500">
+            <div>Sân, đèn, thiết bị bếp, CNTT...</div>
+            <div class="text-[10px] text-stone-400 italic mt-1">Không tính vào giá thành ngày</div>
+          </div>
+        </div>
+
+        <!-- 5. DÒNG TIỀN THUẦN (NET CASHFLOW) -->
+        <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 shadow-xs">
+          <div class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider flex items-center justify-between">
+            <span>Dòng Tiền Thuần (Net)</span>
+            <i class="fa-solid fa-money-bill-transfer text-emerald-700"></i>
+          </div>
+          <div id="pnlKpiNetCashflow" class="text-xl font-black text-emerald-950 mt-1">0 đ</div>
+          <div class="mt-2 pt-2 border-t border-emerald-200 text-[10px] space-y-0.5 text-emerald-800/80">
+            <div>Tổng thực thu - Thực chi (gồm Capex)</div>
+            <div class="text-[10px] text-emerald-700 italic mt-1">Dòng tiền thực vào / ra quỹ</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chi tiết phân bổ OPEX & CAPEX (2 cột) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Phân bổ Chi phí Vận hành OPEX -->
+        <div class="bg-white rounded-2xl border border-stone-200 shadow-xs p-5">
+          <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+            <h3 class="font-extrabold text-stone-900 text-sm flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Phân Bổ Chi Phí Vận Hành (OPEX)
+            </h3>
+            <span class="text-[10px] font-bold text-stone-400 uppercase">Chi phí thường xuyên</span>
+          </div>
+          <div id="pnlOpexBreakdown" class="mt-3 divide-y divide-stone-100 max-h-64 overflow-y-auto">
+            <div class="p-3 text-stone-400 italic text-xs">Đang tải...</div>
+          </div>
+        </div>
+
+        <!-- Phân bổ Chi phí Đầu tư Vốn CAPEX -->
+        <div class="bg-white rounded-2xl border border-stone-200 shadow-xs p-5">
+          <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+            <h3 class="font-extrabold text-stone-900 text-sm flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Phân Bổ Đầu Tư Tài Sản (CAPEX)
+            </h3>
+            <span class="text-[10px] font-bold text-stone-400 uppercase">Chi phí tài sản vốn</span>
+          </div>
+          <div id="pnlCapexBreakdown" class="mt-3 divide-y divide-stone-100 max-h-64 overflow-y-auto">
+            <div class="p-3 text-stone-400 italic text-xs">Đang tải...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sổ Quỹ Thu Chi Chi Tiết (Ledger Table) -->
+      <div class="bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
+        <div class="p-4 border-b border-stone-200 flex items-center justify-between bg-stone-50/50">
+          <div class="font-black text-stone-800 text-sm flex items-center gap-2">
+            <i class="fa-solid fa-book-journal-whills text-emerald-700"></i> Sổ Nhật Ký Thu - Chi Hàng Ngày
+          </div>
+          <div class="text-xs text-stone-500">
+            Nhân viên Thu Ngân & Sân Pick có thể ghi nhận phiếu thu chi trực tiếp tại POS.
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-stone-100/70 border-b border-stone-200 text-stone-600 font-bold uppercase text-[10px] tracking-wider">
+                <th class="px-3.5 py-3">Mã Phiếu</th>
+                <th class="px-3.5 py-3">Loại</th>
+                <th class="px-3.5 py-3">Bộ Phận</th>
+                <th class="px-3.5 py-3">Khoản Mục Chi Tiết</th>
+                <th class="px-3.5 py-3">Số Tiền</th>
+                <th class="px-3.5 py-3">Người Nhận / Nộp</th>
+                <th class="px-3.5 py-3">Diễn Giải Nội Dung</th>
+                <th class="px-3.5 py-3 text-center">Xóa</th>
+              </tr>
+            </thead>
+            <tbody id="admTransactionsTableBody" class="divide-y divide-stone-100">
+              <tr><td colspan="8" class="py-10 text-center text-stone-400">Đang tải dữ liệu thu chi...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- ======================================================== -->
@@ -1561,6 +1868,8 @@
       if (tab === 'cms') loadAdminCMS();
       if (tab === 'kitchen') loadKitchenMonitor();
       if (tab === 'staff') loadStaffList();
+      if (tab === 'pickleball') loadAdminPickleball();
+      if (tab === 'accounting') loadAdminAccounting();
     }
 
     function logoutAdmin() {
@@ -2388,7 +2697,179 @@
             <h3>${name} • ${area}</h3>
             <img src="${imgSrc}" class="qr" onload="window.print(); window.close();" />
             <p>Quét mã để xem menu 5 ngôn ngữ và gọi món tự động</p>
-          </body>
+          
+  <!-- ======================================================== -->
+  <!-- MODAL: THÊM HỘI VIÊN MỚI (ADMIN) -->
+  <!-- ======================================================== -->
+  <div id="adminAddMemberModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl text-stone-800 border border-stone-200 space-y-4">
+      <div class="flex justify-between items-center pb-3 border-b border-stone-100">
+        <h3 class="font-extrabold text-base text-stone-900 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-xs">🎾</span>
+          Đăng Ký Hội Viên & Đặt Sân Tháng
+        </h3>
+        <button onclick="closeAdminAddMemberModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 font-bold transition">✕</button>
+      </div>
+
+      <form id="adminAddMemberForm" onsubmit="submitAdminAddMember(event)" class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Họ Tên Khách Hàng *</label>
+            <input type="text" id="admMbrName" required placeholder="VD: Nguyễn Văn A" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none focus:ring-2 focus:ring-sky-500">
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Số Điện Thoại *</label>
+            <input type="text" id="admMbrPhone" required placeholder="VD: 0912345678" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none focus:ring-2 focus:ring-sky-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Gói Dịch Vụ Hội Viên *</label>
+          <select id="admMbrType" onchange="onAdmMbrTypeChange()" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-800 outline-none focus:ring-2 focus:ring-sky-500">
+            <option value="SOCIAL_MONTH_ALL">Social Tháng - Mọi giờ (1.200.000 đ)</option>
+            <option value="SOCIAL_MONTH_MORNING">Social Tháng - Chỉ sáng 06h-16h (600.000 đ)</option>
+            <option value="SOCIAL_YEAR">Social Cá Nhân Theo Năm (5.000.000 đ)</option>
+            <option value="FIXED_COURT_MONTHLY">Đặt Sân Cố Định Theo Tháng (Giá Đàm Phán)</option>
+          </select>
+        </div>
+
+        <div id="admMbrCourtBox" class="grid grid-cols-2 gap-3 hidden">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Sân Cố Định</label>
+            <select id="admMbrCourtId" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold">
+              <option value="PK-01">Sân 1 (PK-01)</option>
+              <option value="PK-02">Sân 2 (PK-02)</option>
+              <option value="PK-03">Sân 3 (PK-03)</option>
+              <option value="PK-04">Sân 4 (PK-04)</option>
+            </select>
+          </div>
+          <div id="admMbrTimeBox">
+            <label class="block font-bold text-stone-700 mb-1">Khung Giờ Cố Định</label>
+            <input type="text" id="admMbrTimeSlots" placeholder="VD: T3, T5, T7 (18h-20h)" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Ngày Bắt Đầu</label>
+            <input type="date" id="admMbrStartDate" class="w-full px-2.5 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none">
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Thời Gian (Tháng)</label>
+            <input type="number" id="admMbrDuration" value="1" min="1" max="36" class="w-full px-2.5 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none">
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Số Tiền Thu (VNĐ)</label>
+            <input type="number" id="admMbrPrice" value="1200000" step="10000" class="w-full px-2.5 py-2 bg-stone-50 border border-stone-300 rounded-xl font-black text-sky-800 outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Trạng Thái Thanh Toán</label>
+          <select id="admMbrPaymentStatus" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold">
+            <option value="PAID">✓ Đã thanh toán đủ</option>
+            <option value="UNPAID">Chưa thanh toán (Ghi nợ)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Ghi Chú</label>
+          <input type="text" id="admMbrNotes" placeholder="Ghi chú thêm về nhóm hoặc thỏa thuận..." class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+          <button type="button" onclick="closeAdminAddMemberModal()" class="px-4 py-2.5 rounded-xl border border-stone-300 text-stone-600 font-bold hover:bg-stone-50 transition">Hủy Bỏ</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white font-bold shadow-md transition flex items-center gap-1.5">
+            <i class="fa-solid fa-check"></i> Lưu Thẻ Hội Viên
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: LẬP PHIẾU THU / CHI CAPEX - OPEX (ADMIN) -->
+  <!-- ======================================================== -->
+  <div id="adminAddTransactionModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl text-stone-800 border border-stone-200 space-y-4">
+      <div class="flex justify-between items-center pb-3 border-b border-stone-100">
+        <h3 class="font-extrabold text-base text-stone-900 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs">📝</span>
+          Lập Phiếu Thu / Chi Kế Toán (Capex & Opex)
+        </h3>
+        <button onclick="closeAdminAddTransactionModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 font-bold transition">✕</button>
+      </div>
+
+      <form id="adminAddTransactionForm" onsubmit="submitAdminAddTransaction(event)" class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Loại Phiếu *</label>
+            <select id="admTxType" onchange="updateAdminTxExpenseOptions()" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-black text-rose-700 outline-none">
+              <option value="EXPENSE">Phiếu Chi (Khoản tiền ra)</option>
+              <option value="INCOME">Phiếu Thu (Khoản tiền vào)</option>
+            </select>
+          </div>
+          <div id="admTxCostCatWrapper">
+            <label class="block font-bold text-stone-700 mb-1">Phân Loại Chi Phí *</label>
+            <select id="admTxCostCategory" onchange="updateAdminTxExpenseOptions()" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-800 outline-none">
+              <option value="OPEX">OPEX - Vận Hành Thường Xuyên</option>
+              <option value="CAPEX">CAPEX - Đầu Tư Tài Sản Vốn</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Bộ Phận Phát Sinh *</label>
+            <select id="admTxDepartment" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-800 outline-none">
+              <option value="RESTAURANT">Nhà Hàng & F&B</option>
+              <option value="PICKLEBALL">Sân Pickleball</option>
+              <option value="GENERAL">Chung Toàn Hệ Thống</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Phương Thức Thanh Toán</label>
+            <select id="admTxPayMethod" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold">
+              <option value="CASH">Tiền mặt</option>
+              <option value="BANK_TRANSFER">Chuyển khoản</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Khoản Mục Chi Tiết *</label>
+          <select id="admTxExpenseType" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-800 outline-none"></select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Số Tiền (VNĐ) *</label>
+            <input type="number" id="admTxAmount" required min="1000" step="1000" placeholder="VD: 500000" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-black text-rose-700 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Người Nhận / Người Nộp</label>
+            <input type="text" id="admTxRecipient" placeholder="VD: Tiền chợ chị Lan, Điện lực..." class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Diễn Giải / Nội Dung Chi Tiết</label>
+          <textarea id="admTxDesc" rows="2" placeholder="Ghi chú chi tiết lý do chi / thu..." class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none resize-none"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+          <button type="button" onclick="closeAdminAddTransactionModal()" class="px-4 py-2.5 rounded-xl border border-stone-300 text-stone-600 font-bold hover:bg-stone-50 transition">Hủy Bỏ</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-md transition flex items-center gap-1.5">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Phiếu Thu / Chi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/admin_pickle_accounting.js"></script>
+
+</body>
         </html>
       `);
       printWin.document.close();
@@ -4186,5 +4667,177 @@
       }, 5000);
     });
   </script>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: THÊM HỘI VIÊN MỚI (ADMIN) -->
+  <!-- ======================================================== -->
+  <div id="adminAddMemberModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl text-stone-800 border border-stone-200 space-y-4">
+      <div class="flex justify-between items-center pb-3 border-b border-stone-100">
+        <h3 class="font-extrabold text-base text-stone-900 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-xs">🎾</span>
+          Đăng Ký Hội Viên & Đặt Sân Tháng
+        </h3>
+        <button onclick="closeAdminAddMemberModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 font-bold transition">✕</button>
+      </div>
+
+      <form id="adminAddMemberForm" onsubmit="submitAdminAddMember(event)" class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Họ Tên Khách Hàng *</label>
+            <input type="text" id="admMbrName" required placeholder="VD: Nguyễn Văn A" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none focus:ring-2 focus:ring-sky-500">
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Số Điện Thoại *</label>
+            <input type="text" id="admMbrPhone" required placeholder="VD: 0912345678" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none focus:ring-2 focus:ring-sky-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Gói Dịch Vụ Hội Viên *</label>
+          <select id="admMbrType" onchange="onAdmMbrTypeChange()" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-800 outline-none focus:ring-2 focus:ring-sky-500">
+            <option value="SOCIAL_MONTH_ALL">Social Tháng - Mọi giờ (1.200.000 đ)</option>
+            <option value="SOCIAL_MONTH_MORNING">Social Tháng - Chỉ sáng 06h-16h (600.000 đ)</option>
+            <option value="SOCIAL_YEAR">Social Cá Nhân Theo Năm (5.000.000 đ)</option>
+            <option value="FIXED_COURT_MONTHLY">Đặt Sân Cố Định Theo Tháng (Giá Đàm Phán)</option>
+          </select>
+        </div>
+
+        <div id="admMbrCourtBox" class="grid grid-cols-2 gap-3 hidden">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Sân Cố Định</label>
+            <select id="admMbrCourtId" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold">
+              <option value="PK-01">Sân 1 (PK-01)</option>
+              <option value="PK-02">Sân 2 (PK-02)</option>
+              <option value="PK-03">Sân 3 (PK-03)</option>
+              <option value="PK-04">Sân 4 (PK-04)</option>
+            </select>
+          </div>
+          <div id="admMbrTimeBox">
+            <label class="block font-bold text-stone-700 mb-1">Khung Giờ Cố Định</label>
+            <input type="text" id="admMbrTimeSlots" placeholder="VD: T3, T5, T7 (18h-20h)" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Ngày Bắt Đầu</label>
+            <input type="date" id="admMbrStartDate" class="w-full px-2.5 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none">
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Thời Gian (Tháng)</label>
+            <input type="number" id="admMbrDuration" value="1" min="1" max="36" class="w-full px-2.5 py-2 bg-stone-50 border border-stone-300 rounded-xl font-semibold outline-none">
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Số Tiền Thu (VNĐ)</label>
+            <input type="number" id="admMbrPrice" value="1200000" step="10000" class="w-full px-2.5 py-2 bg-stone-50 border border-stone-300 rounded-xl font-black text-sky-800 outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Trạng Thái Thanh Toán</label>
+          <select id="admMbrPaymentStatus" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold">
+            <option value="PAID">✓ Đã thanh toán đủ</option>
+            <option value="UNPAID">Chưa thanh toán (Ghi nợ)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Ghi Chú</label>
+          <input type="text" id="admMbrNotes" placeholder="Ghi chú thêm về nhóm hoặc thỏa thuận..." class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+          <button type="button" onclick="closeAdminAddMemberModal()" class="px-4 py-2.5 rounded-xl border border-stone-300 text-stone-600 font-bold hover:bg-stone-50 transition">Hủy Bỏ</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white font-bold shadow-md transition flex items-center gap-1.5">
+            <i class="fa-solid fa-check"></i> Lưu Thẻ Hội Viên
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: LẬP PHIẾU THU / CHI CAPEX - OPEX (ADMIN) -->
+  <!-- ======================================================== -->
+  <div id="adminAddTransactionModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl text-stone-800 border border-stone-200 space-y-4">
+      <div class="flex justify-between items-center pb-3 border-b border-stone-100">
+        <h3 class="font-extrabold text-base text-stone-900 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs">📝</span>
+          Lập Phiếu Thu / Chi Kế Toán (Capex & Opex)
+        </h3>
+        <button onclick="closeAdminAddTransactionModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 font-bold transition">✕</button>
+      </div>
+
+      <form id="adminAddTransactionForm" onsubmit="submitAdminAddTransaction(event)" class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Loại Phiếu *</label>
+            <select id="admTxType" onchange="updateAdminTxExpenseOptions()" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-black text-rose-700 outline-none">
+              <option value="EXPENSE">Phiếu Chi (Khoản tiền ra)</option>
+              <option value="INCOME">Phiếu Thu (Khoản tiền vào)</option>
+            </select>
+          </div>
+          <div id="admTxCostCatWrapper">
+            <label class="block font-bold text-stone-700 mb-1">Phân Loại Chi Phí *</label>
+            <select id="admTxCostCategory" onchange="updateAdminTxExpenseOptions()" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-800 outline-none">
+              <option value="OPEX">OPEX - Vận Hành Thường Xuyên</option>
+              <option value="CAPEX">CAPEX - Đầu Tư Tài Sản Vốn</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Bộ Phận Phát Sinh *</label>
+            <select id="admTxDepartment" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-800 outline-none">
+              <option value="RESTAURANT">Nhà Hàng & F&B</option>
+              <option value="PICKLEBALL">Sân Pickleball</option>
+              <option value="GENERAL">Chung Toàn Hệ Thống</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Phương Thức Thanh Toán</label>
+            <select id="admTxPayMethod" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold">
+              <option value="CASH">Tiền mặt</option>
+              <option value="BANK_TRANSFER">Chuyển khoản</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Khoản Mục Chi Tiết *</label>
+          <select id="admTxExpenseType" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-800 outline-none"></select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Số Tiền (VNĐ) *</label>
+            <input type="number" id="admTxAmount" required min="1000" step="1000" placeholder="VD: 500000" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-black text-rose-700 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Người Nhận / Người Nộp</label>
+            <input type="text" id="admTxRecipient" placeholder="VD: Tiền chợ chị Lan, Điện lực..." class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Diễn Giải / Nội Dung Chi Tiết</label>
+          <textarea id="admTxDesc" rows="2" placeholder="Ghi chú chi tiết lý do chi / thu..." class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-medium outline-none resize-none"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+          <button type="button" onclick="closeAdminAddTransactionModal()" class="px-4 py-2.5 rounded-xl border border-stone-300 text-stone-600 font-bold hover:bg-stone-50 transition">Hủy Bỏ</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-md transition flex items-center gap-1.5">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Phiếu Thu / Chi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/admin_pickle_accounting.js"></script>
+
 </body>
 </html>

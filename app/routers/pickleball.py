@@ -2,9 +2,10 @@
 import json
 import random
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
+from .auth import require_api_auth
 from pydantic import BaseModel, Field
 from ..database import get_db
 
@@ -536,3 +537,465 @@ def get_pickleball_schedule(date: Optional[str] = None):
         "schedule": schedule
     }
 
+
+# =========================================================================
+# QUẢN LÝ HỘI VIÊN, GÓI SOCIAL THÁNG/NĂM & ĐẶT SÂN CỐ ĐỊNH (MEMBERSHIPS)
+# =========================================================================
+
+class MembershipCreate(BaseModel):
+    customer_name: str
+    phone: str
+    membership_type: str # SOCIAL_MONTH_ALL, SOCIAL_MONTH_MORNING, SOCIAL_YEAR, FIXED_COURT_MONTHLY
+    court_id: Optional[Any] = None
+    time_slots_desc: Optional[str] = ""
+    start_date: Optional[str] = None # YYYY-MM-DD
+    end_date: Optional[str] = "" # If empty, auto calculate
+    price: Optional[int] = None # Cho phép nhập giá đàm phán
+    duration_months: Optional[int] = 1 # Số tháng đăng ký
+    paid_amount: Optional[int] = None
+    payment_status: Optional[str] = "PAID" # PAID, PARTIAL, UNPAID
+    payment_method: Optional[str] = "CASH" # CASH, TRANSFER
+    notes: Optional[str] = ""
+
+class MembershipUpdate(BaseModel):
+    customer_name: Optional[str] = None
+    phone: Optional[str] = None
+    status: Optional[str] = None # ACTIVE, EXPIRED, SUSPENDED
+    end_date: Optional[str] = None
+    price: Optional[int] = None
+    paid_amount: Optional[int] = None
+    payment_status: Optional[str] = None
+    time_slots_desc: Optional[str] = None
+    notes: Optional[str] = None
+
+class MembershipRenew(BaseModel):
+    duration_months: Optional[int] = 1 # 1 or 12
+    amount_paid: int
+    payment_method: Optional[str] = "CASH"
+    notes: Optional[str] = ""
+
+class CheckinCreate(BaseModel):
+    membership_id: Optional[int] = None
+    phone: Optional[str] = None
+    notes: Optional[str] = ""
+
+class SocialDrinkUpdate(BaseModel):
+    drink_item_id: int
+
+@router.get("/memberships")
+def list_memberships(
+    status: Optional[str] = None,
+    membership_type: Optional[str] = None,
+    search: Optional[str] = None,
+    limit: int = 100
+):
+    """
+    Danh sách các hội viên Social Tháng/Năm và nhóm đặt sân cố định.
+    Hỗ trợ tìm kiếm theo Tên, Số điện thoại hoặc Mã thẻ.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Tự động cập nhật trạng thái EXPIRED cho các gói đã quá ngày kết thúc
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    cursor.execute("""
+        UPDATE pickleball_memberships 
+        SET status = 'EXPIRED' 
+        WHERE status = 'ACTIVE' AND end_date < ?
+    """, (today_str,))
+    conn.commit()
+
+    query = "SELECT * FROM pickleball_memberships WHERE 1=1"
+    params = []
+
+    if status and status != "ALL":
+        query += " AND status = ?"
+        params.append(status.upper().strip())
+
+    if membership_type and membership_type != "ALL":
+        query += " AND membership_type = ?"
+        params.append(membership_type.strip())
+
+    if search:
+        s = f"%{search.strip()}%"
+        query += " AND (customer_name LIKE ? OR phone LIKE ? OR member_code LIKE ?)"
+        params.extend([s, s, s])
+
+    query += " ORDER BY id DESC LIMIT ?"
+    params.append(limit)
+
+    cursor.execute(query, tuple(params))
+    rows = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+
+    # Tính toán số ngày còn lại của gói
+    today_dt = datetime.now().date()
+    for r in rows:
+        try:
+            end_dt = datetime.strptime(r["end_date"], "%Y-%m-%d").date()
+            diff = (end_dt - today_dt).days
+            r["days_remaining"] = diff
+            r["is_expiring_soon"] = 0 <= diff <= 5
+        except Exception:
+            r["days_remaining"] = 0
+            r["is_expiring_soon"] = False
+
+    return {
+        "status": "SUCCESS",
+        "count": len(rows),
+        "memberships": rows
+    }
+
+@router.post("/memberships")
+def create_membership(payload: MembershipCreate):
+    """
+    Đăng ký mới Hội viên Social Tháng, Năm hoặc Đặt sân cố định theo tháng (cho phép đàm phán giá).
+    """
+    if not payload.customer_name.strip():
+        raise HTTPException(status_code=400, detail="Vui lòng nhập họ tên hội viên hoặc nhóm trưởng.")
+    if not payload.phone.strip():
+        raise HTTPException(status_code=400, detail="Vui lòng nhập số điện thoại liên hệ.")
+
+    # Tự động tính toán ngày kết thúc nếu chưa truyền
+    # Tự động tính toán ngày bắt đầu & kết thúc nếu chưa truyền
+    start_date_str = payload.start_date or datetime.now().strftime("%Y-%m-%d")
+    start_dt = datetime.strptime(start_date_str, "%Y-%m-%d")
+    duration = payload.duration_months or (12 if "YEAR" in payload.membership_type.upper() else 1)
+
+    if not payload.end_date:
+        end_dt = start_dt + timedelta(days=duration * 30 if duration < 12 else 365)
+        end_date = end_dt.strftime("%Y-%m-%d")
+    else:
+        end_date = payload.end_date
+
+    # Xác định giá nếu chưa có
+    final_price = payload.price
+    if final_price is None:
+        if payload.paid_amount is not None:
+            final_price = payload.paid_amount
+        else:
+            defaults = {
+                "SOCIAL_MONTH_ALL": 1200000,
+                "SOCIAL_MONTH_MORNING": 600000,
+                "SOCIAL_YEAR": 5000000,
+                "FIXED_COURT_MONTHLY": 0
+            }
+            final_price = defaults.get(payload.membership_type, 0)
+
+    now = datetime.now()
+    date_code = now.strftime("%y%m")
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Sinh mã hội viên tự tăng: MBR-2610-001
+    cursor.execute("SELECT COUNT(*) as cnt FROM pickleball_memberships WHERE member_code LIKE ?", (f"MBR-{date_code}-%",))
+    seq = cursor.fetchone()["cnt"] + 1
+    member_code = f"MBR-{date_code}-{seq:03d}"
+
+    paid = payload.paid_amount if payload.paid_amount is not None else final_price
+    p_status = payload.payment_status or ("PAID" if paid >= final_price else ("PARTIAL" if paid > 0 else "UNPAID"))
+
+    cursor.execute("""
+        INSERT INTO pickleball_memberships (
+            member_code, customer_name, phone, membership_type,
+            court_id, time_slots_desc, start_date, end_date,
+            price, paid_amount, payment_status, payment_method,
+            status, notes, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?)
+    """, (
+        member_code,
+        payload.customer_name.strip(),
+        payload.phone.strip(),
+        payload.membership_type,
+        str(payload.court_id) if payload.court_id is not None else None,
+        payload.time_slots_desc or "",
+        start_date_str,
+        end_date,
+        final_price,
+        paid,
+        p_status,
+        payload.payment_method or "CASH",
+        payload.notes or "",
+        now.strftime("%Y-%m-%d %H:%M:%S"),
+        now.strftime("%Y-%m-%d %H:%M:%S")
+    ))
+    new_id = cursor.lastrowid
+    conn.commit()
+
+    cursor.execute("SELECT * FROM pickleball_memberships WHERE id = ?", (new_id,))
+    created = dict(cursor.fetchone())
+    conn.close()
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Đăng ký gói [{member_code}] cho khách {payload.customer_name} thành công!",
+        "membership": created
+    }
+
+@router.put("/memberships/{membership_id}")
+def update_membership(membership_id: int, payload: MembershipUpdate):
+    """Cập nhật thông tin hội viên / trạng thái thanh toán / ghi chú."""
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM pickleball_memberships WHERE id = ?", (membership_id,))
+    existing = cursor.fetchone()
+    if not existing:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Không tìm thấy thông tin hội viên.")
+
+    updates = []
+    params = []
+    for k, v in payload.dict(exclude_unset=True).items():
+        if v is not None:
+            updates.append(f"{k} = ?")
+            params.append(v)
+
+    if updates:
+        updates.append("updated_at = ?")
+        params.append(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        params.append(membership_id)
+        cursor.execute(f"UPDATE pickleball_memberships SET {', '.join(updates)} WHERE id = ?", tuple(params))
+        conn.commit()
+
+    cursor.execute("SELECT * FROM pickleball_memberships WHERE id = ?", (membership_id,))
+    updated = dict(cursor.fetchone())
+    conn.close()
+
+    return {
+        "status": "SUCCESS",
+        "message": "Cập nhật thông tin hội viên thành công!",
+        "membership": updated
+    }
+
+@router.post("/memberships/{membership_id}/renew")
+def renew_membership(membership_id: int, payload: MembershipRenew):
+    """
+    Gia hạn gói hội viên thêm 1 tháng hoặc 1 năm.
+    Tự động cộng nối tiếp từ hạn cũ (hoặc từ hôm nay nếu đã hết hạn lâu).
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM pickleball_memberships WHERE id = ?", (membership_id,))
+    mbr = cursor.fetchone()
+    if not mbr:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Không tìm thấy hội viên.")
+
+    mbr_dict = dict(mbr)
+    today = datetime.now().date()
+    try:
+        current_end = datetime.strptime(mbr_dict["end_date"], "%Y-%m-%d").date()
+    except Exception:
+        current_end = today
+
+    base_date = current_end if current_end >= today else today
+    days_to_add = 365 if payload.duration_months == 12 or "YEAR" in mbr_dict["membership_type"] else (payload.duration_months * 30)
+    new_end_date = (base_date + timedelta(days=days_to_add)).strftime("%Y-%m-%d")
+
+    new_paid = (mbr_dict["paid_amount"] or 0) + payload.amount_paid
+    new_price = (mbr_dict["price"] or 0) + payload.amount_paid
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    cursor.execute("""
+        UPDATE pickleball_memberships 
+        SET end_date = ?, 
+            status = 'ACTIVE',
+            price = ?,
+            paid_amount = ?,
+            payment_status = 'PAID',
+            updated_at = ?
+        WHERE id = ?
+    """, (new_end_date, new_price, new_paid, now_str, membership_id))
+    conn.commit()
+
+    cursor.execute("SELECT * FROM pickleball_memberships WHERE id = ?", (membership_id,))
+    updated = dict(cursor.fetchone())
+    conn.close()
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Đã gia hạn thành công gói [{updated['member_code']}] đến ngày {new_end_date}!",
+        "membership": updated
+    }
+
+@router.post("/memberships/{membership_id}/checkin")
+@router.post("/checkin")
+def checkin_member(payload: CheckinCreate, membership_id: Optional[int] = None):
+    """
+    Điểm danh / Check-in hội viên vào sân:
+    Có thể check-in theo ID hoặc tìm nhanh theo Số điện thoại.
+    Tự động kiểm tra hạn sử dụng và ghi nhận lượt chơi.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+
+    target_id = membership_id or payload.membership_id
+    if not target_id and payload.phone:
+        clean_phone = payload.phone.strip()
+        cursor.execute("SELECT id FROM pickleball_memberships WHERE phone LIKE ? AND status = 'ACTIVE' ORDER BY id DESC LIMIT 1", (f"%{clean_phone}%",))
+        row = cursor.fetchone()
+        if row:
+            target_id = row["id"]
+
+    if not target_id:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Không tìm thấy thẻ hội viên phù hợp để check-in.")
+
+    cursor.execute("SELECT * FROM pickleball_memberships WHERE id = ?", (target_id,))
+    mbr = cursor.fetchone()
+    if not mbr:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Thẻ hội viên không tồn tại.")
+
+    mbr_dict = dict(mbr)
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    now_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Kiểm tra hạn sử dụng
+    if mbr_dict["end_date"] < today_str:
+        cursor.execute("UPDATE pickleball_memberships SET status = 'EXPIRED' WHERE id = ?", (target_id,))
+        conn.commit()
+        conn.close()
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Thẻ của khách [{mbr_dict['customer_name']}] đã HẾT HẠN vào ngày {mbr_dict['end_date']}. Vui lòng gia hạn gói!"
+        )
+
+    # Ghi nhận lượt check-in
+    cursor.execute("""
+        INSERT INTO pickleball_checkins (membership_id, member_name, phone, membership_type, checked_in_at, notes)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (target_id, mbr_dict["customer_name"], mbr_dict["phone"], mbr_dict["membership_type"], now_ts, payload.notes or ""))
+
+    # Cập nhật số lượt và thời gian checkin gần nhất
+    new_count = (mbr_dict["checkin_count"] or 0) + 1
+    cursor.execute("""
+        UPDATE pickleball_memberships 
+        SET checkin_count = ?, last_checkin_at = ?, updated_at = ?
+        WHERE id = ?
+    """, (new_count, now_ts, now_ts, target_id))
+    conn.commit()
+    conn.close()
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Check-in thành công cho [{mbr_dict['customer_name']}]! Lượt chơi thứ {new_count} (Hạn đến {mbr_dict['end_date']}).",
+        "customer_name": mbr_dict["customer_name"],
+        "membership_type": mbr_dict["membership_type"],
+        "checkin_count": new_count,
+        "end_date": mbr_dict["end_date"]
+    }
+
+@router.get("/checkins")
+def list_today_checkins(date: Optional[str] = None, limit: int = 50):
+    """Lấy danh sách các lượt check-in vào sân hôm nay."""
+    if not date:
+        date = datetime.now().strftime("%Y-%m-%d")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT c.*, m.member_code 
+        FROM pickleball_checkins c
+        LEFT JOIN pickleball_memberships m ON c.membership_id = m.id
+        WHERE DATE(c.checked_in_at) = ?
+        ORDER BY c.id DESC LIMIT ?
+    """, (date, limit))
+    rows = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+
+    return {
+        "status": "SUCCESS",
+        "date": date,
+        "total_checkins": len(rows),
+        "checkins": rows
+    }
+
+# =========================================================================
+# CẤU HÌNH LOẠI ĐỒ UỐNG ĐI KÈM VÉ SOCIAL (60K KÈM NƯỚC)
+# =========================================================================
+
+@router.get("/settings/social-drink")
+def get_social_drink_setting():
+    """Lấy thông tin đồ uống đang được gán kèm vé Social 60k và danh sách các đồ uống để chọn."""
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT value FROM system_settings WHERE key = 'pickle_social_included_drink_id'")
+    row = cursor.fetchone()
+    current_drink_id = int(row["value"]) if (row and row["value"] and row["value"].isdigit()) else 183
+
+    # Thông tin món nước hiện tại
+    cursor.execute("SELECT id, name, price, portion, image_url FROM menu_items WHERE id = ?", (current_drink_id,))
+    current_drink = cursor.fetchone()
+
+    # Danh sách tất cả đồ uống khả dụng trong menu để người dùng chọn gán
+    cursor.execute("""
+        SELECT m.id, m.name, m.price, m.portion, c.name as category_name
+        FROM menu_items m
+        LEFT JOIN categories c ON m.category_id = c.id
+        WHERE m.category_id = 6 OR m.main_menu_type LIKE '%PICKLE%' OR m.name LIKE '%nước%' OR m.name LIKE '%bia%' OR m.name LIKE '%trà%'
+        ORDER BY m.id ASC
+    """)
+    available_drinks = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+
+    return {
+        "status": "SUCCESS",
+        "included_drink_id": current_drink_id,
+        "current_drink": dict(current_drink) if current_drink else {"id": 183, "name": "Nước suối", "price": 10000},
+        "available_drinks": available_drinks
+    }
+
+@router.post("/settings/social-drink")
+def update_social_drink_setting(payload: SocialDrinkUpdate):
+    """Cập nhật loại đồ uống đi kèm vé Social 60k để tự động trừ kho khi bán vé."""
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, name FROM menu_items WHERE id = ?", (payload.drink_item_id,))
+    drink = cursor.fetchone()
+    if not drink:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Không tìm thấy món đồ uống trong thực đơn.")
+
+    cursor.execute("""
+        INSERT INTO system_settings (key, value)
+        VALUES ('pickle_social_included_drink_id', ?)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value
+    """, (str(payload.drink_item_id),))
+    conn.commit()
+    conn.close()
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Đã gán đồ uống kèm vé Social thành công: [{drink['name']}]. Khi khách thanh toán vé Social 60k, hệ thống sẽ tự động trừ kho món này!",
+        "included_drink_id": payload.drink_item_id,
+        "drink_name": drink["name"]
+    }
+
+
+
+@router.delete("/memberships/{membership_id}")
+def delete_membership(membership_id: int, request: Request):
+    """Xóa thẻ hội viên (Dành riêng cho Admin)."""
+    user = require_api_auth(request, allowed_roles=["ADMIN", "SUPER_ADMIN"])
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT member_code, customer_name FROM pickleball_memberships WHERE id = ?", (membership_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Không tìm thấy thông tin hội viên.")
+
+    cursor.execute("DELETE FROM pickleball_checkins WHERE membership_id = ?", (membership_id,))
+    cursor.execute("DELETE FROM pickleball_memberships WHERE id = ?", (membership_id,))
+    conn.commit()
+    conn.close()
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Đã xóa hội viên [{row['customer_name']}] ({row['member_code']}) thành công."
+    }

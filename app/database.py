@@ -57,6 +57,66 @@ def init_db():
     )
     """)
 
+    # 17. Quản Lý Hội Viên & Khách Đặt Sân Cố Định Pickleball
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS pickleball_memberships (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        member_code TEXT UNIQUE NOT NULL,
+        customer_name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        membership_type TEXT NOT NULL,
+        court_id INTEGER,
+        time_slots_desc TEXT DEFAULT '',
+        start_date DATE NOT NULL,
+        end_date DATE NOT NULL,
+        price INTEGER NOT NULL DEFAULT 0,
+        paid_amount INTEGER NOT NULL DEFAULT 0,
+        payment_status TEXT DEFAULT 'PAID',
+        payment_method TEXT DEFAULT 'CASH',
+        checkin_count INTEGER DEFAULT 0,
+        last_checkin_at DATETIME,
+        status TEXT DEFAULT 'ACTIVE',
+        notes TEXT DEFAULT '',
+        created_by TEXT DEFAULT '',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    # 18. Lịch Sử Điểm Danh / Check-in Vào Sân Pickleball
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS pickleball_checkins (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        membership_id INTEGER NOT NULL,
+        member_name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        membership_type TEXT NOT NULL,
+        checked_in_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        checked_in_by TEXT DEFAULT '',
+        notes TEXT DEFAULT '',
+        FOREIGN KEY (membership_id) REFERENCES pickleball_memberships(id)
+    )
+    """)
+
+    # 19. Sổ Quỹ Thu - Chi Kế Toán (Capex & Opex)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS accounting_transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        transaction_code TEXT UNIQUE NOT NULL,
+        transaction_type TEXT NOT NULL,
+        cost_category TEXT NOT NULL,
+        department TEXT NOT NULL,
+        expense_type TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        payment_method TEXT DEFAULT 'CASH',
+        recipient_payer TEXT DEFAULT '',
+        description TEXT NOT NULL,
+        receipt_url TEXT DEFAULT '',
+        created_by TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
     # 2. Table Sessions
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS table_sessions (
@@ -1431,6 +1491,7 @@ def seed_default_users(conn):
         ("thungan", hash_password("123456"), "Trần Thị Thu Ngân", "CASHIER", "0912345678"),
         ("bep", hash_password("123456"), "Lê Hoàng Bếp Trưởng", "CHEF", "0923456789"),
         ("phucvu", hash_password("123456"), "Phạm Minh Phục Vụ", "WAITER", "0934567890"),
+        ("sanpick", hash_password("123456"), "Quản Trị Sân Pickleball", "PICKLEBALL", "0838993316"),
     ]
     for username, pwd_hash, full_name, role, phone in default_staff:
         cursor.execute("""
@@ -1730,6 +1791,39 @@ def get_dynamic_bom_for_item(cursor, menu_item_id: int, modifiers_json: str = No
         pass
 
     full_check = (str(item_name or "").lower() + " " + mod_text).strip()
+
+    # 0. Vé Social Chiều Sân Pickleball (16h-22h kèm nước) -> Trừ 1 đồ uống được gán trong cấu hình!
+    if "social" in full_check and ("chiều" in full_check or "chieu" in full_check or "tối" in full_check or "toi" in full_check or "16" in full_check or "kèm nước" in full_check or "kem nuoc" in full_check):
+        cursor.execute("SELECT value FROM system_settings WHERE key = 'pickle_social_included_drink_id'")
+        cfg_row = cursor.fetchone()
+        drink_id = 183
+        if cfg_row and cfg_row["value"]:
+            try:
+                drink_id = int(cfg_row["value"])
+            except Exception:
+                drink_id = 183
+
+        cursor.execute("""
+            SELECT rb.ingredient_id, rb.quantity as bom_qty, ii.name as ing_name, ii.unit, ii.cost_price
+            FROM recipe_bom rb
+            JOIN inventory_items ii ON rb.ingredient_id = ii.id
+            WHERE rb.menu_item_id = ?
+        """, (drink_id,))
+        recipes = cursor.fetchall()
+        if recipes:
+            return [dict(r) for r in recipes]
+
+        cursor.execute("SELECT id, name, unit, cost_price FROM inventory_items WHERE code = 'NVL41' OR name LIKE '%Nước Suối%' LIMIT 1")
+        ing_row = cursor.fetchone()
+        if ing_row:
+            return [{
+                "ingredient_id": ing_row["id"],
+                "bom_qty": 1.0,
+                "ing_name": ing_row["name"],
+                "unit": ing_row["unit"],
+                "cost_price": ing_row["cost_price"] or 4000
+            }]
+        return []
 
     # 1. Mì xào (ID 181)
     if menu_item_id == 181 or "mì xào" in full_check or "mi xao" in full_check or "mỳ xào" in full_check:

@@ -327,12 +327,19 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
                 WHERE id = ?
             """, (now_ts, payment_method, bill_target, billed_admin_id, billed_admin_name, other_order["id"]))
 
-    # 2. Đánh dấu tất cả món của các đơn bàn này là SERVED (đã phục vụ xong)
+    # 2. Đánh dấu tất cả món của các đơn bàn này là SERVED và tự động trừ kho NVL (kèm nước Social, v.v.)
     cursor.execute("""
         UPDATE order_items 
         SET status = 'SERVED'
         WHERE order_id IN (SELECT id FROM orders WHERE table_id = ?)
     """, (table_id,))
+
+    try:
+        from ..database import deduct_inventory_for_order_item
+        for it in checkout_items:
+            deduct_inventory_for_order_item(conn, it["id"])
+    except Exception as _deduct_err:
+        print("[POS Checkout] Loi tu dong tru kho:", _deduct_err)
 
     # 3. Đóng toàn bộ session của bàn
     cursor.execute("UPDATE table_sessions SET status = 'CLOSED', closed_at = CURRENT_TIMESTAMP WHERE table_id = ?", (table_id,))

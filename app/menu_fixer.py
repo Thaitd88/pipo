@@ -1,7 +1,7 @@
 """
 app/menu_fixer.py
-Chuẩn hóa Menu, Vị chế biến, Định lượng BOM và Bản dịch 4 ngôn ngữ (EN, ZH, KO, RU)
-cho 40 món ăn và 7 danh mục của PiPo Garden Restaurant.
+Chuẩn hóa Menu, Vị chế biến, Định lượng BOM, Dịch Vụ Sân Pickleball và Bản dịch 4 ngôn ngữ (EN, ZH, KO, RU)
+cho 48 món ăn và 8 danh mục của PiPo Garden Restaurant.
 Được tự động kích hoạt mỗi khi server khởi động trên cả Cloud Host (pipogarden.com)
 lẫn máy Local Thu ngân.
 """
@@ -39,7 +39,7 @@ TRANSLATIONS_DICT = {
     144: {
         "en": {"name": "Baby Bok Choy in Oyster Sauce / Boiled", "description": "Tender bok choy drizzled with rich oyster sauce or lightly boiled."},
         "zh": {"name": "鲜嫩上海青 (蚝油 / 白灼)", "description": "翠绿爽脆的上海青，配浓郁蚝油汁或白灼清甜。"},
-        "ko": {"name": "청경채 요리 (굴소스 볶음 / 데침)", "description": "신선한 청경채 굴소스 볶음 또는 깔끔한 데침 채소 요리."},
+        "ko": {"name": "청경채 요리 (굴소스 볶음 / 데침)", "description": "신선한 청경채 굴소스 볶음 hoặc 깔끔한 데침 채소 요리."},
         "ru": {"name": "Бок-чой (под устричным соусом / отварной)", "description": "Нежная капуста бок-чой под устричным соусом или на пару."}
     },
     146: {
@@ -287,6 +287,56 @@ TRANSLATIONS_DICT = {
         "zh": {"name": "PiPo花园特色综合烤串 (4大串)", "description": "精选鲜肉与时令蔬菜搭配秘制香料炭火炙烤。"},
         "ko": {"name": "피포 가든 모듬 꼬치구이 (4꼬치)", "description": "신선한 육류와 채소를 특제 양념에 재워 숯불에 구운 모듬 꼬치."},
         "ru": {"name": "Ассорти шашлычков PiPo Garden (4 шпажки)", "description": "Большие шпажки с маринованным мясом и овощами на углях."}
+    },
+
+    # 8. DỊCH VỤ SÂN PICKLEBALL
+    301: {
+        "en": {"name": "Social Pickleball Ticket (16:00-22:00 + Drink)", "description": "Evening session social pickleball pass including 1 chilled bottled beverage."},
+        "zh": {"name": "匹克球下午/晚场畅打票 (16:00-22:00 含饮品)", "description": "黄金时段匹克球体验票，免费附赠1瓶冰镇饮料。"},
+        "ko": {"name": "피클볼 소셜 오후/야간권 (16:00-22:00 + 음료 1병)", "description": "오후 및 야간 소셜 피클볼 이용권 (시원한 음료 1병 무료 제공)."},
+        "ru": {"name": "Билет на вечерний пиклбол (16:00-22:00 + напиток)", "description": "Вечерняя сессия игры в пиклбол, включая 1 прохладительный напиток."}
+    },
+    302: {
+        "en": {"name": "Morning Social Pickleball Ticket (06:00-16:00)", "description": "Morning social pickleball play pass (without included drink)."},
+        "zh": {"name": "匹克球早场畅打票 (06:00-16:00)", "description": "早间匹克球单次畅打体验（不含饮品）。"},
+        "ko": {"name": "피클볼 소셜 오전권 (06:00-16:00)", "description": "오전 시간대 피클볼 소셜 이용권 (음료 미포함)."},
+        "ru": {"name": "Билет на утренний пиклбол (06:00-16:00)", "description": "Утренний сеанс пиклбола (без напитка)."}
+    },
+    303: {
+        "en": {"name": "Pickleball Paddle Rental", "description": "High-grade carbon fiber pickleball paddle rental per session."},
+        "zh": {"name": "匹克球碳纤维球拍租借", "description": "专业级超轻碳纤维匹克球拍单次租借。"},
+        "ko": {"name": "피클볼 고급 라켓 대여", "description": "경기용 카본 피클볼 라켓 1회 대여 서비스."},
+        "ru": {"name": "Аренда ракетки для пиклбола", "description": "Аренда профессиональной карбоновой ракетки на 1 сессию."}
+    },
+    304: {
+        "en": {"name": "Hourly Court Rental (1 Hour)", "description": "Covered professional resort pickleball court rental per hour."},
+        "zh": {"name": "匹克球包场每小时 (1小时)", "description": "标准防滑避震遮阳匹克球场时租服务。"},
+        "ko": {"name": "피클볼 코트 시간당 대여 (1시간)", "description": "리조트 표준 규격 지붕형 피클볼 코트 1시간 대관."},
+        "ru": {"name": "Аренда корта почасово (1 час)", "description": "Аренда профессионального крытого корта для пиклбола на 1 час."}
+    },
+    305: {
+        "en": {"name": "Monthly Social Pass (All Hours Unlimited)", "description": "30-day all-hours unlimited access to social pickleball sessions."},
+        "zh": {"name": "全时段匹克球月卡会员 (30天不限时)", "description": "30天全时段自由畅打，随时上场尽情挥拍。"},
+        "ko": {"name": "올타임 피클볼 월회원권 (30일 무제한)", "description": "시간 제한 없이 한 달 동안 자유롭게 이용 가능한 소셜 월회원권."},
+        "ru": {"name": "Безлимитный абонемент на месяц (все часы)", "description": "Абонемент на 30 дней без ограничений по времени."}
+    },
+    306: {
+        "en": {"name": "Morning-Only Monthly Social Pass", "description": "30-day morning session (06:00-16:00) social pickleball pass."},
+        "zh": {"name": "早场匹克球月卡会员 (06:00-16:00)", "description": "30天早间时段专属优惠月卡，健康晨练首选。"},
+        "ko": {"name": "모닝 피클볼 월회원권 (06:00-16:00)", "description": "매일 오전 시간대(06시~16시) 전용 알뜰 월회원권."},
+        "ru": {"name": "Утренний абонемент на месяц (06:00-16:00)", "description": "Абонемент на 30 дней на утренние часы с 06:00 до 16:00."}
+    },
+    307: {
+        "en": {"name": "Annual Individual VIP Social Pass", "description": "365-day individual VIP pass with unlimited year-round pickleball access."},
+        "zh": {"name": "个人尊享匹克球年度VIP会员 (365天)", "description": "全年365天无限制畅打VIP会员资格，享专属球友礼遇。"},
+        "ko": {"name": "개인 연간 VIP 회원권 (365일)", "description": "365일 1년 내내 언제든 즐기는 개인 연간 최고급 VIP 멤버십."},
+        "ru": {"name": "Годовой VIP абонемент (365 дней)", "description": "Индивидуальный годовой VIP абонемент на 365 дней без ограничений."}
+    },
+    308: {
+        "en": {"name": "Fixed Monthly Court Booking (Custom Rate)", "description": "Dedicated recurring monthly time slot booking at negotiated rate."},
+        "zh": {"name": "固定时段包场月订 (协议价)", "description": "企业或俱乐部专属固定每周时段包场，价格协商定制。"},
+        "ko": {"name": "고정 시간 코트 월대관 (협의 가격)", "description": "지정 요일/시간대 전용 코트 고정 월대관 (맞춤 협의가)."},
+        "ru": {"name": "Фиксированная бронь корта на месяц (договорная цена)", "description": "Фиксированное бронирование корта на месяц по договорной цене."}
     }
 }
 
@@ -297,12 +347,96 @@ CATEGORY_TRANSLATIONS = {
     4: {"en": "Fresh Seafood", "zh": "鲜美海鲜特撰", "ko": "신선한 해산물 요리", "ru": "Свежие морепродукты"},
     5: {"en": "Rice & Noodles", "zh": "主食精选 (黄金炒饭/炒面)", "ko": "식사류 (볶음밥 & 볶음면)", "ru": "Рис и жареная лапша"},
     6: {"en": "Beverages & Drinks", "zh": "冷饮果汁 & 啤酒", "ko": "시원한 음료 & 맥주", "ru": "Прохладительные напитки и пиво"},
-    7: {"en": "Garden Hot BBQ", "zh": "炭火热烤 (花园BBQ)", "ko": "가든 숯불 핫 BBQ", "ru": "Горячее барбекю в саду"}
+    7: {"en": "Garden Hot BBQ", "zh": "炭火热烤 (花园BBQ)", "ko": "가든 숯불 핫 BBQ", "ru": "Горячее барбекю в саду"},
+    8: {"en": "Pickleball Court Services", "zh": "匹克球球场服务", "ko": "피클볼 코트 서비스", "ru": "Услуги корта пиклбол"}
 }
+
+PICKLEBALL_SERVICES = [
+    {
+        "id": 301,
+        "name": "Vé Social Chiều (16h-22h kèm nước)",
+        "price": 60000,
+        "portion": "1 lượt chơi + 1 nước",
+        "description": "Suất chơi Pickleball Social khung giờ vàng (16h - 22h). Đã bao gồm 01 chai nước uống giải khát mát lạnh.",
+        "category_id": 8,
+        "main_menu_type": "PICKLE",
+        "station": "BAR"
+    },
+    {
+        "id": 302,
+        "name": "Vé Social Sáng (06h-16h)",
+        "price": 30000,
+        "portion": "1 lượt chơi sáng",
+        "description": "Suất chơi Pickleball Social khung giờ sáng và trưa (06h - 16h). Thể thao năng động đầu ngày.",
+        "category_id": 8,
+        "main_menu_type": "PICKLE",
+        "station": "BAR"
+    },
+    {
+        "id": 303,
+        "name": "Thuê Vợt Pickleball",
+        "price": 50000,
+        "portion": "1 cây / lượt",
+        "description": "Thuê vợt carbon thi đấu cao cấp siêu nhẹ, êm tay, tặng kèm bóng tập trong suốt buổi chơi.",
+        "category_id": 8,
+        "main_menu_type": "PICKLE",
+        "station": "BAR"
+    },
+    {
+        "id": 304,
+        "name": "Thuê Sân Theo Giờ",
+        "price": 200000,
+        "portion": "1 giờ / sân",
+        "description": "Bao trọn 01 sân thi đấu tiêu chuẩn có mái che thoáng mát, mặt sân cao su giảm chấn chuẩn quốc tế.",
+        "category_id": 8,
+        "main_menu_type": "PICKLE",
+        "station": "BAR"
+    },
+    {
+        "id": 305,
+        "name": "Gói Social Tháng (Mọi Khung Giờ)",
+        "price": 1200000,
+        "portion": "30 ngày không giới hạn giờ",
+        "description": "Thẻ hội viên Social tháng không giới hạn khung giờ, chơi thỏa thích bất kỳ lúc nào trong ngày (06h - 22h).",
+        "category_id": 8,
+        "main_menu_type": "PICKLE",
+        "station": "BAR"
+    },
+    {
+        "id": 306,
+        "name": "Gói Social Tháng (Chỉ Buổi Sáng)",
+        "price": 600000,
+        "portion": "30 ngày (06h - 16h)",
+        "description": "Thẻ hội viên Social tháng khung giờ sáng (06h - 16h) dành cho người yêu thích rèn luyện thể lực đầu ngày.",
+        "category_id": 8,
+        "main_menu_type": "PICKLE",
+        "station": "BAR"
+    },
+    {
+        "id": 307,
+        "name": "Gói Social Năm (Cá Nhân)",
+        "price": 5000000,
+        "portion": "365 ngày cá nhân",
+        "description": "Thẻ hội viên VIP cá nhân 1 năm (365 ngày). Chơi không giới hạn giờ, ưu tiên xếp sân và quyền lợi CLB.",
+        "category_id": 8,
+        "main_menu_type": "PICKLE",
+        "station": "BAR"
+    },
+    {
+        "id": 308,
+        "name": "Đặt Sân Cố Định Tháng (Đàm Phán)",
+        "price": 0,
+        "portion": "Theo giá thỏa thuận",
+        "description": "Đặt cố định sân và khung giờ theo tháng (ví dụ 18h-20h T2-T4-T6). Giá thỏa thuận linh hoạt.",
+        "category_id": 8,
+        "main_menu_type": "PICKLE",
+        "station": "BAR"
+    }
+]
 
 def apply_menu_bom_and_translations_fix(conn=None):
     """
-    Áp dụng toàn bộ chuẩn hóa menu, định lượng, BOM và dịch đa ngôn ngữ.
+    Áp dụng toàn bộ chuẩn hóa menu, định lượng, BOM, dịch vụ sân Pickleball và dịch đa ngôn ngữ.
     Hoàn toàn idempotent (chạy nhiều lần an toàn tuyệt đối).
     """
     should_close = False
@@ -329,20 +463,62 @@ def apply_menu_bom_and_translations_fix(conn=None):
         cursor.execute("UPDATE menu_items SET portion = 'Mì 2 vắt, Bò hoặc Hải sản 100g' WHERE id = 181")
         cursor.execute("UPDATE menu_items SET portion = 'Cơm 250g, Ghẹ / Hải sản / Bò 80-100g' WHERE id = 180")
 
-        # 4. Cập nhật bản dịch chuẩn 4 thứ tiếng cho tất cả món ăn
+        # 4. Đảm bảo Danh mục 8: Dịch Vụ Sân Pickleball
+        cursor.execute("""
+            INSERT INTO categories (id, name, icon, display_order, is_active, translations_json)
+            VALUES (8, 'Dịch Vụ Sân Pickleball', '🎾', 8, 1, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                name = excluded.name,
+                icon = excluded.icon,
+                display_order = excluded.display_order,
+                is_active = excluded.is_active,
+                translations_json = excluded.translations_json
+        """, (json.dumps(CATEGORY_TRANSLATIONS[8], ensure_ascii=False),))
+
+        # 5. Đảm bảo các món Dịch vụ Sân Pickleball (IDs 301 - 308)
+        for svc in PICKLEBALL_SERVICES:
+            trans_json = json.dumps(TRANSLATIONS_DICT.get(svc["id"], {}), ensure_ascii=False)
+            cursor.execute("""
+                INSERT INTO menu_items (
+                    id, category_id, name, price, portion, description,
+                    image_url, station, options_json, translations_json,
+                    is_available, out_of_ingredients, main_menu_type
+                ) VALUES (?, ?, ?, ?, ?, ?, '/static/logo.png', ?, '[]', ?, 1, 0, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    name = excluded.name,
+                    price = excluded.price,
+                    portion = excluded.portion,
+                    description = excluded.description,
+                    category_id = excluded.category_id,
+                    main_menu_type = excluded.main_menu_type,
+                    station = excluded.station,
+                    translations_json = excluded.translations_json,
+                    is_available = 1
+            """, (
+                svc["id"], svc["category_id"], svc["name"], svc["price"],
+                svc["portion"], svc["description"], svc["station"], trans_json, svc["main_menu_type"]
+            ))
+
+        # 6. Đảm bảo cấu hình đồ uống đi kèm vé Social (mặc định 183: Nước suối)
+        cursor.execute("""
+            INSERT OR IGNORE INTO system_settings (key, value)
+            VALUES ('pickle_social_included_drink_id', '183')
+        """)
+
+        # 7. Cập nhật bản dịch chuẩn 4 thứ tiếng cho tất cả món ăn
         for dish_id, trans in TRANSLATIONS_DICT.items():
             cursor.execute("UPDATE menu_items SET translations_json = ? WHERE id = ?", (
                 json.dumps(trans, ensure_ascii=False), dish_id
             ))
 
-        # 5. Cập nhật bản dịch 4 thứ tiếng cho tất cả danh mục
+        # 8. Cập nhật bản dịch 4 thứ tiếng cho tất cả danh mục
         for cat_id, trans in CATEGORY_TRANSLATIONS.items():
             cursor.execute("UPDATE categories SET translations_json = ? WHERE id = ?", (
                 json.dumps(trans, ensure_ascii=False), cat_id
             ))
 
         conn.commit()
-        print("[PiPo Menu Fixer] Da dong bo thanh cong Menu, Dinh luong, BOM va Ban dich 4 ngon ngu!")
+        print("[PiPo Menu Fixer] Da dong bo thanh cong Menu, Dinh luong, BOM, Dich vu San Pickleball va Ban dich 4 ngon ngu!")
     except Exception as e:
         print("[PiPo Menu Fixer] Loi khi dong bo menu:", e)
     finally:

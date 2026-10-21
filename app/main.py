@@ -17,7 +17,7 @@ import json
 from typing import Dict, List, Set
 
 from .database import init_db, get_db
-from .routers import tables, menu, orders, pos, auth, reports, inventory, sync, reservations, homepage_cms, pickleball, printer
+from .routers import tables, menu, orders, pos, auth, reports, inventory, sync, reservations, homepage_cms, pickleball, printer, accounting
 from .routers.auth import check_page_access, get_current_user_from_request
 
 # Connection Broadcaster
@@ -168,6 +168,7 @@ app.include_router(reservations.router)
 app.include_router(homepage_cms.router)
 app.include_router(pickleball.router)
 app.include_router(printer.router)
+app.include_router(accounting.router)
 
 # PWA Progressive Web App Endpoints
 @app.get("/manifest.json")
@@ -460,8 +461,8 @@ def inventory_page(request: Request):
 
 @app.get("/pos", response_class=HTMLResponse)
 def pos_page(request: Request):
-    """Trang Quản trị, Thu ngân & Phục vụ: Bắt buộc đăng nhập, cho phép ADMIN, CASHIER, WAITER."""
-    auth_check = check_page_access(request, allowed_roles=["ADMIN", "CASHIER", "WAITER"])
+    """Trang Quản trị, Thu ngân & Phục vụ: Bắt buộc đăng nhập, cho phép ADMIN, CASHIER, WAITER, PICKLEBALL."""
+    auth_check = check_page_access(request, allowed_roles=["ADMIN", "CASHIER", "WAITER", "PICKLEBALL"])
     if isinstance(auth_check, RedirectResponse):
         return auth_check
     return templates.TemplateResponse(request=request, name="pos.html", context={"user": auth_check})
