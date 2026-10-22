@@ -266,17 +266,63 @@
           </div>
 
           <!-- Cart Footer -->
-          <div class="pt-3 border-t border-stone-200 space-y-2.5">
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-stone-500">Tổng cộng đợt này:</span>
-              <span class="font-black text-emerald-800 text-base" id="cartTotalPrice">0 đ</span>
+          <div class="pt-2.5 border-t border-stone-200 space-y-2">
+            <!-- Tổng cộng tiền giỏ hàng -->
+            <div class="flex items-center justify-between text-xs px-1">
+              <span class="text-stone-500 font-bold uppercase tracking-wider text-[11px]">Tổng cộng đợt này:</span>
+              <span class="font-black text-emerald-800 text-lg" id="cartTotalPrice">0 đ</span>
             </div>
-            <div class="grid grid-cols-2 gap-2">
-              <button type="button" onclick="closeServiceOrderModal()" class="px-3 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs transition">
+
+            <!-- Hình thức thanh toán: Tiền mặt, Khách CK, Tính Admin -->
+            <div class="space-y-1">
+              <label class="block text-[11px] font-bold text-stone-700 uppercase tracking-wider">Hình thức thanh toán:</label>
+              <div class="grid grid-cols-3 gap-1.5">
+                <label class="payment-method-card flex flex-col items-center justify-center p-2 rounded-xl border-2 border-stone-200 hover:border-emerald-500 cursor-pointer transition text-center text-xs has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50/80 has-[:checked]:text-emerald-950 shadow-2xs">
+                  <input type="radio" name="orderPaymentMethod" value="CASH" checked class="sr-only" onchange="onOrderPaymentMethodChange()">
+                  <span class="text-base mb-0.5">💵</span>
+                  <span class="font-bold text-[11px]">Tiền mặt</span>
+                </label>
+                <label class="payment-method-card flex flex-col items-center justify-center p-2 rounded-xl border-2 border-stone-200 hover:border-sky-500 cursor-pointer transition text-center text-xs has-[:checked]:border-sky-700 has-[:checked]:bg-sky-50/80 has-[:checked]:text-sky-950 shadow-2xs">
+                  <input type="radio" name="orderPaymentMethod" value="TRANSFER" class="sr-only" onchange="onOrderPaymentMethodChange()">
+                  <span class="text-base mb-0.5">📲</span>
+                  <span class="font-bold text-[11px]">Chuyển khoản</span>
+                </label>
+                <label class="payment-method-card flex flex-col items-center justify-center p-2 rounded-xl border-2 border-stone-200 hover:border-purple-500 cursor-pointer transition text-center text-xs has-[:checked]:border-purple-700 has-[:checked]:bg-purple-50/80 has-[:checked]:text-purple-950 shadow-2xs">
+                  <input type="radio" name="orderPaymentMethod" value="INTERNAL" class="sr-only" onchange="onOrderPaymentMethodChange()">
+                  <span class="text-base mb-0.5">🏢</span>
+                  <span class="font-bold text-[11px]">Tính Admin</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- VietQR Container (khi chọn TRANSFER) -->
+            <div id="orderQRContainer" class="hidden text-center p-2 bg-sky-50/80 rounded-xl border border-sky-200 space-y-1">
+              <div class="text-[11px] font-bold text-sky-900">Quét mã QR VietQR:</div>
+              <img id="orderQRImg" src="" alt="VietQR" class="w-32 h-32 mx-auto rounded-lg shadow-xs border border-sky-200 bg-white">
+              <div class="text-[9.5px] text-stone-600 font-medium">
+                MB Bank • <span class="font-mono font-bold text-stone-900">075624456</span> • <span class="font-bold text-stone-900">PIPO GARDEN</span>
+              </div>
+              <div class="text-[9.5px] text-sky-800 bg-white/90 py-0.5 px-2 rounded-md border border-sky-200 inline-block font-mono">
+                Nội dung: <span id="orderTransferNote" class="font-bold">TT PiPo Ban PK01</span>
+              </div>
+            </div>
+
+            <!-- Admin Container (khi chọn INTERNAL) -->
+            <div id="orderAdminContainer" class="hidden p-2.5 bg-purple-50 rounded-xl border border-purple-200 space-y-1.5">
+              <label class="block text-[11px] font-bold text-purple-950">Chọn Quản trị viên chịu bill: *</label>
+              <select id="orderAdminSelect" class="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1.5 font-bold text-purple-950 text-xs focus:outline-purple-600">
+                <!-- Populated by JS -->
+              </select>
+              <input type="text" id="orderAdminNote" placeholder="Ghi chú nội bộ (Tiếp khách, Đối tác...)" class="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1 text-purple-950 text-xs focus:outline-purple-600">
+            </div>
+
+            <!-- Action buttons -->
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button type="button" onclick="closeServiceOrderModal()" class="px-3 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs transition cursor-pointer">
                 Hủy Bỏ
               </button>
-              <button type="button" onclick="submitServiceOrder()" id="btnSubmitOrder" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition shadow-sm flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-receipt"></i> Xác Nhận & In Bill Thu Tiền
+              <button type="button" onclick="submitServiceOrder()" id="btnSubmitOrder" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-print"></i> Xác Nhận & In Bill
               </button>
             </div>
           </div>
@@ -285,81 +331,120 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: THANH TOÁN & IN BILL ==================== -->
+  <!-- ==================== MODAL: THANH TOÁN SÂN PICKLEBALL ==================== -->
   <div id="checkoutModal" class="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-3 hidden">
-    <div class="bg-white rounded-3xl max-w-lg w-full flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95">
+    <div class="bg-white rounded-3xl max-w-lg w-full flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 max-h-[92vh]">
+      <!-- Header -->
       <div class="px-5 py-4 bg-emerald-950 text-white flex items-center justify-between border-b border-emerald-800">
         <div>
           <h3 class="font-black text-base" id="checkoutCourtTitle">Thanh Toán Sân Pick 01</h3>
-          <p class="text-xs text-emerald-300" id="checkoutSubTitle">In hóa đơn thu tiền và giải phóng sân</p>
+          <p class="text-xs text-emerald-300" id="checkoutSubTitle">Kiểm tra danh sách món & chọn hình thức thanh toán</p>
         </div>
-        <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-emerald-900 hover:bg-emerald-800 text-white flex items-center justify-center transition">
+        <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-emerald-900 hover:bg-emerald-800 text-white flex items-center justify-center transition cursor-pointer">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
-        <!-- Bill Items Summary -->
-        <div class="bg-stone-50 rounded-2xl p-3 border border-stone-200 space-y-2 text-xs" id="checkoutBillItems">
-          <!-- Populated by JS -->
+      <!-- Scrollable Body -->
+      <div class="p-5 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+        <!-- 1. Danh sách món đã gọi -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-stone-700 uppercase tracking-wider">Danh Sách Món & Dịch Vụ Đã Gọi</span>
+            <span class="text-[11px] font-bold text-stone-500" id="checkoutItemCountBadge">0 món</span>
+          </div>
+          <div class="bg-stone-50 rounded-2xl p-3 border border-stone-200 space-y-2 text-xs max-h-48 overflow-y-auto custom-scrollbar" id="checkoutBillItems">
+            <!-- Populated by JS -->
+          </div>
         </div>
 
-        <!-- Total Price -->
+        <!-- 2. Tổng Tiền Thanh Toán (Bỏ hoàn toàn giảm giá, phí phục vụ) -->
         <div class="flex items-center justify-between p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200">
           <div>
-            <div class="text-xs text-emerald-800 font-bold">Tổng tiền thanh toán:</div>
-            <div class="text-[10px] text-emerald-600">Đã bao gồm dịch vụ và đồ uống</div>
+            <div class="text-xs text-emerald-900 font-extrabold uppercase tracking-wide">Tổng tiền thanh toán:</div>
+            <div class="text-[10px] text-emerald-600 font-medium">Toàn bộ dịch vụ sân & đồ uống</div>
           </div>
-          <div class="font-black text-xl text-emerald-900" id="checkoutTotalAmount">0 đ</div>
+          <div class="font-black text-2xl text-emerald-900 tracking-tight" id="checkoutTotalAmount">0 đ</div>
         </div>
 
-        <!-- Payment Method Options -->
-        <div class="space-y-1.5">
-          <label class="block text-xs font-bold text-stone-700">Hình thức thanh toán:</label>
-          <div class="grid grid-cols-2 gap-2">
-            <label class="payment-method-card flex items-center gap-2.5 p-3 rounded-2xl border border-emerald-600 bg-emerald-50/50 cursor-pointer transition">
-              <input type="radio" name="checkoutPaymentMethod" value="CASH" checked class="accent-emerald-700" onchange="toggleCheckoutQR(false)">
-              <div>
-                <div class="font-bold text-xs text-stone-900">💵 Tiền Mặt</div>
-                <div class="text-[10px] text-stone-500">Khách trả tiền mặt tại sân</div>
-              </div>
+        <!-- 3. Hình thức thanh toán: 3 lựa chọn trực tiếp -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-stone-800 uppercase tracking-wider">Hình thức thanh toán:</label>
+          <div class="grid grid-cols-3 gap-2">
+            <!-- 1. Thu Tiền Mặt -->
+            <label class="payment-method-card flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-stone-200 hover:border-emerald-500 cursor-pointer transition text-center text-xs has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50/70 has-[:checked]:text-emerald-950 shadow-2xs">
+              <input type="radio" name="checkoutPaymentMethod" value="CASH" checked class="sr-only" onchange="onCheckoutPaymentMethodChange()">
+              <span class="text-xl mb-1">💵</span>
+              <span class="font-bold">Tiền mặt</span>
+              <span class="text-[9.5px] text-stone-500 mt-0.5">Thu trực tiếp</span>
             </label>
-            <label class="payment-method-card flex items-center gap-2.5 p-3 rounded-2xl border border-stone-200 hover:border-emerald-500 cursor-pointer transition">
-              <input type="radio" name="checkoutPaymentMethod" value="CHUYEN_KHOAN" class="accent-emerald-700" onchange="toggleCheckoutQR(true)">
-              <div>
-                <div class="font-bold text-xs text-stone-900">📱 VietQR Quét Mã</div>
-                <div class="text-[10px] text-stone-500">MB Bank (Quân Đội)</div>
-              </div>
+
+            <!-- 2. Khách Chuyển Khoản -->
+            <label class="payment-method-card flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-stone-200 hover:border-sky-500 cursor-pointer transition text-center text-xs has-[:checked]:border-sky-700 has-[:checked]:bg-sky-50/70 has-[:checked]:text-sky-950 shadow-2xs">
+              <input type="radio" name="checkoutPaymentMethod" value="TRANSFER" class="sr-only" onchange="onCheckoutPaymentMethodChange()">
+              <span class="text-xl mb-1">📲</span>
+              <span class="font-bold">Chuyển khoản</span>
+              <span class="text-[9.5px] text-stone-500 mt-0.5">Quét VietQR</span>
+            </label>
+
+            <!-- 3. Tính Với Admin -->
+            <label class="payment-method-card flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-stone-200 hover:border-purple-500 cursor-pointer transition text-center text-xs has-[:checked]:border-purple-700 has-[:checked]:bg-purple-50/70 has-[:checked]:text-purple-950 shadow-2xs">
+              <input type="radio" name="checkoutPaymentMethod" value="INTERNAL" class="sr-only" onchange="onCheckoutPaymentMethodChange()">
+              <span class="text-xl mb-1">🏢</span>
+              <span class="font-bold">Tính với Admin</span>
+              <span class="text-[9.5px] text-stone-500 mt-0.5">Ghi nợ nội bộ</span>
             </label>
           </div>
         </div>
 
-        <!-- VietQR Box (Hidden by default) -->
-        <div id="checkoutQRContainer" class="hidden text-center p-4 bg-stone-50 rounded-2xl border border-stone-200">
-          <p class="text-xs font-bold text-stone-700 mb-2">Đưa mã này cho khách quét bằng ứng dụng ngân hàng:</p>
-          <img id="checkoutQRImg" src="" alt="VietQR" class="w-48 h-48 mx-auto rounded-xl shadow-xs border border-stone-300">
-          <p class="text-[11px] text-stone-500 mt-2">MB Bank • STK: 075624456 • PiPo Garden</p>
+        <!-- 3A. Khung Chuyển Khoản VietQR (hiển thị khi chọn TRANSFER) -->
+        <div id="checkoutQRContainer" class="hidden text-center p-4 bg-sky-50/50 rounded-2xl border border-sky-200 space-y-2">
+          <p class="text-xs font-bold text-sky-900">Đưa mã QR cho khách quét bằng app ngân hàng:</p>
+          <img id="checkoutQRImg" src="" alt="VietQR" class="w-48 h-48 mx-auto rounded-xl shadow-sm border border-sky-200 bg-white">
+          <div class="text-[11px] text-stone-600 font-medium">
+            MB Bank • STK: <span class="font-bold font-mono text-stone-900">075624456</span> • <span class="font-bold text-stone-900">PIPO GARDEN</span>
+          </div>
+          <div class="text-[10.5px] text-sky-800 bg-white/80 py-1 px-3 rounded-lg border border-sky-200 inline-block font-mono">
+            Nội dung: <span id="checkoutTransferNote" class="font-bold">TT PiPo Ban PK01</span>
+          </div>
         </div>
 
-        <!-- Print Receipt Checkbox -->
-        <div class="flex items-center gap-2 p-2 bg-stone-100 rounded-xl">
-          <input type="checkbox" id="chkAutoPrintReceipt" checked class="w-4 h-4 accent-emerald-700 rounded">
-          <label for="chkAutoPrintReceipt" class="text-xs text-stone-700 font-bold cursor-pointer">
-            Tự động in hóa đơn ra máy in thu ngân
+        <!-- 3B. Khung Chọn Admin (hiển thị khi chọn INTERNAL) -->
+        <div id="checkoutAdminContainer" class="hidden p-3.5 bg-purple-50 rounded-2xl border border-purple-200 space-y-2">
+          <div>
+            <label class="block text-xs font-bold text-purple-950 mb-1">Chọn Quản trị viên / Nhân sự chịu bill: *</label>
+            <select id="checkoutAdminSelect" class="w-full bg-white border border-purple-300 rounded-xl px-3 py-2 font-bold text-purple-950 text-xs focus:outline-purple-600">
+              <!-- Populated by JS from /api/pos/admins -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-purple-900 mb-1">Ghi chú nội bộ (tùy chọn):</label>
+            <input type="text" id="checkoutAdminNote" placeholder="Ví dụ: Tiếp khách BQT, Đối tác giải đấu, Thử đồ..." class="w-full bg-white border border-purple-300 rounded-xl px-3 py-1.5 text-purple-950 text-xs focus:outline-purple-600">
+          </div>
+        </div>
+
+        <!-- Checkbox in hóa đơn -->
+        <div class="flex items-center gap-2 p-2.5 bg-stone-100 rounded-xl">
+          <input type="checkbox" id="chkAutoPrintReceipt" checked class="w-4 h-4 accent-emerald-700 rounded cursor-pointer">
+          <label for="chkAutoPrintReceipt" class="text-xs text-stone-800 font-bold cursor-pointer">
+            Tự động in hóa đơn thanh toán ra Máy in Thu Ngân
           </label>
         </div>
       </div>
 
       <!-- Footer Buttons -->
       <div class="p-4 bg-stone-50 border-t border-stone-200 grid grid-cols-3 gap-2">
-        <button type="button" onclick="closeCheckoutModal()" class="px-3 py-2.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs transition">
+        <button type="button" onclick="closeCheckoutModal()" class="px-3 py-2.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs transition cursor-pointer">
           Đóng
         </button>
-        <button type="button" onclick="printPickleTempBill()" id="btnPrintTempBill" class="px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-xs">
+        <button type="button" onclick="printPickleTempBill()" id="btnPrintTempBill" class="px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
           <i class="fa-solid fa-file-invoice"></i> In Tạm Tính
         </button>
-        <button type="button" onclick="executeCheckout()" id="btnConfirmCheckout" class="px-3 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs transition shadow-md flex items-center justify-center gap-1.5">
-          <i class="fa-solid fa-print"></i> Thu Tiền & In
+        <button type="button" onclick="executeCheckout()" id="btnConfirmCheckout" class="px-3 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-print"></i> Xác Nhận Thu
+        </button>
+        <button type="button" onclick="releaseCourtOnly()" class="col-span-3 text-center text-xs font-bold text-stone-500 hover:text-stone-800 hover:underline py-1 cursor-pointer">
+          <i class="fa-solid fa-person-walking-arrow-right mr-1"></i> Khách chơi đã về hết? Báo Sân Trống (Không in lại bill)
         </button>
       </div>
     </div>
@@ -609,6 +694,8 @@
     let orderCart = [];
     let selectedOrderCat = 'ALL';
     let currentCheckoutBill = null;
+    let posAdmins = [];
+    let isPickleCheckingOut = false;
 
     // Formatting helper
     function formatVND(amount) {
@@ -720,7 +807,7 @@
         const itemCount = items.length;
 
         return `
-          <div class="bg-white rounded-3xl border-2 transition shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden ${isOccupied ? 'border-amber-400 bg-amber-50/20' : 'border-stone-200 hover:border-emerald-500'}">
+          <div onclick="${isOccupied ? `openCheckoutModal(${c.id})` : `openServiceOrderModal(${c.id})`}" class="bg-white rounded-3xl border-2 transition shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden cursor-pointer ${isOccupied ? 'border-amber-400 bg-amber-50/20 ring-1 ring-amber-300' : 'border-stone-200 hover:border-emerald-500'}">
             
             <!-- Card Header -->
             <div class="p-4 border-b ${isOccupied ? 'border-amber-200 bg-amber-100/50' : 'border-stone-100 bg-stone-50/80'} flex items-start justify-between">
@@ -744,11 +831,8 @@
               ${isOccupied ? `
                 <div class="space-y-2">
                   <div class="flex items-center justify-between text-xs">
-                    <span class="text-stone-500">Dịch vụ & đồ uống:</span>
-                    <button onclick="openCheckoutModal(${c.id})" class="font-bold text-stone-700 hover:text-emerald-800 underline flex items-center gap-1 cursor-pointer" title="Xem chi tiết hóa đơn">
-                      <span>${itemCount} món / lượt</span>
-                      <i class="fa-solid fa-eye text-[10px]"></i>
-                    </button>
+                    <span class="text-stone-500 font-medium">Món & dịch vụ đã gọi:</span>
+                    <span class="font-bold text-emerald-800 text-xs">${itemCount} món / lượt</span>
                   </div>
 
                   <!-- Quick preview first 3 items -->
@@ -769,8 +853,8 @@
 
                   <div class="pt-2 border-t border-amber-200/80 flex items-center justify-between">
                     <div>
-                      <span class="text-xs font-bold text-stone-600">Đã thu (Hóa đơn):</span>
-                      <div class="text-[10px] text-stone-400">Khách đã trả tiền khi gọi</div>
+                      <span class="text-xs font-bold text-stone-700">Tạm tính hóa đơn:</span>
+                      <div class="text-[10px] text-amber-600 font-semibold">Bấm để thanh toán</div>
                     </div>
                     <span class="font-black text-emerald-800 text-lg">${formatVND(totalAmount)}</span>
                   </div>
@@ -781,20 +865,20 @@
                     🎾
                   </div>
                   <div class="font-bold text-stone-700 text-xs">Sân Sẵn Sàng Đón Khách</div>
-                  <div class="text-[11px] text-stone-400">Bấm thêm dịch vụ để bắt đầu phiên chơi</div>
+                  <div class="text-[11px] text-stone-400">Bấm để vào sân hoặc gọi đồ</div>
                 </div>
               `}
             </div>
 
             <!-- Card Actions -->
-            <div class="p-3 bg-stone-50 border-t border-stone-200/80 grid ${isOccupied ? 'grid-cols-2' : 'grid-cols-1'} gap-2">
-              <button onclick="openServiceOrderModal(${c.id})" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
-                <i class="fa-solid fa-plus"></i> ${isOccupied ? 'Thêm Món / Giờ' : 'Vào Sân / Gọi Đồ'}
+            <div class="p-3 bg-stone-50 border-t border-stone-200/80 grid ${isOccupied ? 'grid-cols-2' : 'grid-cols-1'} gap-2" onclick="event.stopPropagation()">
+              <button onclick="openServiceOrderModal(${c.id})" class="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs transition border border-stone-300 flex items-center justify-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-plus text-emerald-700"></i> ${isOccupied ? 'Thêm Món / Giờ' : 'Vào Sân / Gọi Đồ'}
               </button>
 
               ${isOccupied ? `
-                <button onclick="confirmReleaseCourt(${c.id}, '${courtName}')" class="px-3 py-2 rounded-xl bg-stone-800 hover:bg-stone-900 text-amber-300 font-black text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer" title="Khách chơi xong về hết, giải phóng sân thành sân trống (Không in lại bill)">
-                  <i class="fa-solid fa-flag-checkered"></i> Báo Sân Trống
+                <button onclick="openCheckoutModal(${c.id})" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs transition shadow-sm flex items-center justify-center gap-1.5 cursor-pointer" title="Thanh toán hóa đơn sân">
+                  <i class="fa-solid fa-credit-card"></i> Thanh Toán
                 </button>
               ` : ''}
             </div>
@@ -835,6 +919,12 @@
       selectedOrderCat = 'PICKLE';
       filterOrderCategory('PICKLE');
       renderOrderCart();
+
+      // Reset payment method to CASH
+      const cashRadio = document.querySelector('input[name="orderPaymentMethod"][value="CASH"]');
+      if (cashRadio) cashRadio.checked = true;
+      onOrderPaymentMethodChange();
+      if (posAdmins.length === 0) loadAdminsList();
 
       document.getElementById("serviceOrderModal").classList.remove("hidden");
     }
@@ -949,6 +1039,11 @@
       badge.innerText = `${totalQty} món`;
       totalEl.innerText = formatVND(totalPrice);
 
+      const qrContainer = document.getElementById("orderQRContainer");
+      if (qrContainer && !qrContainer.classList.contains("hidden")) {
+        updateOrderVietQR();
+      }
+
       if (orderCart.length === 0) {
         container.innerHTML = `
           <div class="py-12 text-center text-stone-400 text-xs">
@@ -986,12 +1081,35 @@
         alert("Vui lòng chọn ít nhất 1 dịch vụ hoặc đồ uống!");
         return;
       }
-      isPickleServiceSubmitting = true;
 
+      const paymentMethod = document.querySelector('input[name="orderPaymentMethod"]:checked')?.value || "CASH";
+      let billTarget = "CUSTOMER";
+      let billedAdminId = null;
+      let billedAdminName = "";
+
+      if (paymentMethod === "INTERNAL") {
+        billTarget = "ADMIN";
+        const adminSelect = document.getElementById("orderAdminSelect");
+        if (adminSelect && adminSelect.value) {
+          billedAdminId = parseInt(adminSelect.value);
+          const opt = adminSelect.options[adminSelect.selectedIndex];
+          billedAdminName = opt ? (opt.getAttribute("data-name") || opt.text) : "";
+        }
+        const note = document.getElementById("orderAdminNote")?.value?.trim();
+        if (note) {
+          billedAdminName = billedAdminName ? `${billedAdminName} (${note})` : note;
+        }
+        if (!billedAdminId && !billedAdminName) {
+          alert("Vui lòng chọn Quản trị viên chịu bill hoặc nhập ghi chú nội bộ!");
+          return;
+        }
+      }
+
+      isPickleServiceSubmitting = true;
       const btn = document.getElementById("btnSubmitOrder");
       const origHtml = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi & in phiếu thanh toán...`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang xác nhận...`;
 
       try {
         // 1. Mở session bàn nếu bàn chưa mở
@@ -1001,12 +1119,16 @@
         const sessData = await sessRes.json();
         const sessionToken = sessData.session_token || (sessData.session && sessData.session.session_token);
 
-        // 2. Gửi order kèm table_id và order_source POS_PICKLE (để in trực tiếp phiếu thanh toán ra máy in thu ngân)
+        // 2. Gửi order kèm order_source POS_PICKLE và payment_method
         const payload = {
           table_id: currentTargetCourt.id,
           session_token: sessionToken,
           customer_note: "Order từ POS Sân Pickleball",
           order_source: "POS_PICKLE",
+          payment_method: paymentMethod,
+          bill_target: billTarget,
+          billed_admin_id: billedAdminId,
+          billed_admin_name: billedAdminName,
           items: orderCart.map(it => ({
             item_id: it.item_id,
             quantity: it.quantity,
@@ -1026,7 +1148,8 @@
           throw new Error(errData.detail || "Không thể gửi đơn");
         }
 
-        showToast(`✅ Đã tạo đơn & tự động in Phiếu Thanh Toán ra quầy thu ngân thành công!`);
+        const payMethodText = paymentMethod === "INTERNAL" ? `Tính Admin (${billedAdminName})` : paymentMethod === "TRANSFER" ? "Chuyển khoản" : "Tiền mặt";
+        showToast(`✅ Đã gọi món & dịch vụ cho ${currentTargetCourt.name} [${payMethodText}]! Máy in đang in bill thu tiền & phiếu bếp nóng.`);
         closeServiceOrderModal();
         await loadPickleCourts();
       } catch (err) {
@@ -1039,7 +1162,164 @@
       }
     }
 
+    function onOrderPaymentMethodChange() {
+      const method = document.querySelector('input[name="orderPaymentMethod"]:checked')?.value || "CASH";
+      const qrContainer = document.getElementById("orderQRContainer");
+      const adminContainer = document.getElementById("orderAdminContainer");
+
+      if (qrContainer) {
+        if (method === "TRANSFER") {
+          updateOrderVietQR();
+          qrContainer.classList.remove("hidden");
+        } else {
+          qrContainer.classList.add("hidden");
+        }
+      }
+
+      if (adminContainer) {
+        if (method === "INTERNAL") {
+          adminContainer.classList.remove("hidden");
+          if (posAdmins.length === 0) loadAdminsList();
+        } else {
+          adminContainer.classList.add("hidden");
+        }
+      }
+    }
+
+    function updateOrderVietQR() {
+      if (!currentTargetCourt) return;
+      const totalPrice = orderCart.reduce((sum, it) => sum + (it.price * it.quantity), 0);
+      const rawCode = currentTargetCourt.table_code || "PK01";
+      const cleanCode = rawCode.replace(/[^a-zA-Z0-9]/g, '');
+      const transferNote = `TT PiPo Ban ${cleanCode}`;
+      const qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${totalPrice}&addInfo=${encodeURIComponent(transferNote)}&accountName=PIPO%20GARDEN`;
+      const qrImg = document.getElementById("orderQRImg");
+      if (qrImg) qrImg.src = qrUrl;
+      const noteEl = document.getElementById("orderTransferNote");
+      if (noteEl) noteEl.innerText = transferNote;
+    }
+
+    async function releaseCourtOnly() {
+      if (!currentTargetCourt) return;
+      if (!confirm(`Khách chơi đã về hết.
+
+Xác nhận giải phóng [${currentTargetCourt.name}] thành Sân Trống (Không in lại bill)?`)) return;
+      try {
+        const res = await fetch(`/api/pos/table/${currentTargetCourt.id}/release-court`, { method: "POST" });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Không thể báo sân trống");
+        }
+        showToast(`✅ Đã giải phóng [${currentTargetCourt.name}] thành Sân Trống thành công!`);
+        closeCheckoutModal();
+        await loadPickleCourts();
+      } catch (err) {
+        alert("Lỗi khi báo sân trống: " + err.message);
+      }
+    }
+
+    function onOrderPaymentMethodChange() {
+      const method = document.querySelector('input[name="orderPaymentMethod"]:checked')?.value || "CASH";
+      const qrContainer = document.getElementById("orderQRContainer");
+      const adminContainer = document.getElementById("orderAdminContainer");
+
+      if (qrContainer) {
+        if (method === "TRANSFER") {
+          updateOrderVietQR();
+          qrContainer.classList.remove("hidden");
+        } else {
+          qrContainer.classList.add("hidden");
+        }
+      }
+
+      if (adminContainer) {
+        if (method === "INTERNAL") {
+          adminContainer.classList.remove("hidden");
+          if (posAdmins.length === 0) loadAdminsList();
+        } else {
+          adminContainer.classList.add("hidden");
+        }
+      }
+    }
+
+    function updateOrderVietQR() {
+      if (!currentTargetCourt) return;
+      const totalPrice = orderCart.reduce((sum, it) => sum + (it.price * it.quantity), 0);
+      const rawCode = currentTargetCourt.table_code || "PK01";
+      const cleanCode = rawCode.replace(/[^a-zA-Z0-9]/g, '');
+      const transferNote = `TT PiPo Ban ${cleanCode}`;
+      const qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${totalPrice}&addInfo=${encodeURIComponent(transferNote)}&accountName=PIPO%20GARDEN`;
+      const qrImg = document.getElementById("orderQRImg");
+      if (qrImg) qrImg.src = qrUrl;
+      const noteEl = document.getElementById("orderTransferNote");
+      if (noteEl) noteEl.innerText = transferNote;
+    }
+
+    async function releaseCourtOnly() {
+      if (!currentTargetCourt) return;
+      if (!confirm(`Khách chơi đã về hết.
+
+Xác nhận giải phóng [${currentTargetCourt.name}] thành Sân Trống (Không in lại bill)?`)) return;
+      try {
+        const res = await fetch(`/api/pos/table/${currentTargetCourt.id}/release-court`, { method: "POST" });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Không thể báo sân trống");
+        }
+        showToast(`✅ Đã giải phóng [${currentTargetCourt.name}] thành Sân Trống thành công!`);
+        closeCheckoutModal();
+        await loadPickleCourts();
+      } catch (err) {
+        alert("Lỗi khi báo sân trống: " + err.message);
+      }
+    }
+
     // ==================== 3. THANH TOÁN & IN BILL ====================
+    async function loadAdminsList() {
+      try {
+        const res = await fetch("/api/pos/admins");
+        if (!res.ok) return;
+        posAdmins = await res.json();
+        const select = document.getElementById("checkoutAdminSelect");
+        if (select) {
+          select.innerHTML = posAdmins.map(adm => `
+            <option value="${adm.id}" data-name="${adm.full_name}">${adm.full_name} (${adm.username})</option>
+          `).join('');
+        }
+        const orderAdminSelect = document.getElementById("orderAdminSelect");
+        if (orderAdminSelect) {
+          orderAdminSelect.innerHTML = posAdmins.map(adm => `
+            <option value="${adm.id}" data-name="${adm.full_name}">${adm.full_name} (${adm.username})</option>
+          `).join('');
+        }
+      } catch (e) {
+        console.warn("loadAdminsList error:", e);
+      }
+    }
+
+    function onCheckoutPaymentMethodChange() {
+      const method = document.querySelector('input[name="checkoutPaymentMethod"]:checked')?.value || "CASH";
+      const qrContainer = document.getElementById("checkoutQRContainer");
+      const adminContainer = document.getElementById("checkoutAdminContainer");
+
+      if (qrContainer) {
+        if (method === "TRANSFER") {
+          qrContainer.classList.remove("hidden");
+        } else {
+          qrContainer.classList.add("hidden");
+        }
+      }
+
+      if (adminContainer) {
+        if (method === "INTERNAL") {
+          adminContainer.classList.remove("hidden");
+          if (posAdmins.length === 0) loadAdminsList();
+        } else {
+          adminContainer.classList.add("hidden");
+        }
+      }
+    }
+
     async function openCheckoutModal(courtId) {
       const court = pickleCourts.find(c => c.id === courtId);
       if (!court) return;
@@ -1051,37 +1331,59 @@
         currentTargetCourt = court;
 
         const grandTotal = currentCheckoutBill.grand_total || currentCheckoutBill.total || 0;
+        const items = currentCheckoutBill.items || [];
+
         document.getElementById("checkoutCourtTitle").innerText = `Thanh Toán ${court.name} (${court.table_code})`;
         document.getElementById("checkoutTotalAmount").innerText = formatVND(grandTotal);
+        const countBadge = document.getElementById("checkoutItemCountBadge");
+        if (countBadge) countBadge.innerText = `${items.length} món`;
 
         // Render Bill Items
         const itemsList = document.getElementById("checkoutBillItems");
-        const items = currentCheckoutBill.items || [];
-        itemsList.innerHTML = items.map(it => {
-          const itName = it.item_name || it.name || 'Món';
-          const itQty = it.quantity || 1;
-          const itPrice = it.total_price != null ? it.total_price : ((it.unit_price || it.price || 0) * itQty);
-          return `
-            <div class="flex items-center justify-between py-1 border-b border-stone-200/60 last:border-none">
-              <div>
-                <span class="font-bold text-stone-800">${itQty}x ${itName}</span>
-                ${it.note ? `<div class="text-[10px] text-stone-500 italic">${it.note}</div>` : ''}
+        if (items.length === 0) {
+          itemsList.innerHTML = `<div class="py-6 text-center text-stone-400 italic">Chưa có món hay dịch vụ nào được gọi trên sân này.</div>`;
+        } else {
+          itemsList.innerHTML = items.map((it, idx) => {
+            const itName = it.item_name || it.name || 'Món';
+            const itQty = it.quantity || 1;
+            const itPrice = it.total_price != null ? it.total_price : ((it.unit_price || it.price || 0) * itQty);
+            const unitPrice = it.unit_price || it.price || 0;
+            return `
+              <div class="flex items-center justify-between py-1.5 border-b border-stone-200/60 last:border-none">
+                <div class="pr-2">
+                  <div class="font-bold text-stone-900 leading-tight">
+                    <span class="text-stone-400 font-mono text-[11px] mr-1">${idx + 1}.</span>
+                    ${itName}
+                  </div>
+                  <div class="text-[10.5px] text-stone-500 mt-0.5">
+                    <span class="font-bold text-emerald-800">${itQty}x</span> @ ${formatVND(unitPrice)}
+                    ${it.note ? `<span class="italic text-stone-400 ml-1">(${it.note})</span>` : ''}
+                  </div>
+                </div>
+                <span class="font-black text-stone-900 whitespace-nowrap">${formatVND(itPrice)}</span>
               </div>
-              <span class="font-black text-stone-900">${formatVND(itPrice)}</span>
-            </div>
-          `;
-        }).join('');
+            `;
+          }).join('');
+        }
 
         // Prepare VietQR Image URL
-        const amount = grandTotal;
-        const addInfo = encodeURIComponent(`TT PiPo Ban ${court.table_code.replace('-', '')}`);
-        const qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${amount}&addInfo=${addInfo}&accountName=PIPO%20GARDEN`;
+        const rawCode = court.table_code || "PK01";
+        const cleanCode = rawCode.replace(/[^a-zA-Z0-9]/g, '');
+        const transferNote = `TT PiPo Ban ${cleanCode}`;
+        const qrUrl = `https://img.vietqr.io/image/970422-075624456-compact2.png?amount=${grandTotal}&addInfo=${encodeURIComponent(transferNote)}&accountName=PIPO%20GARDEN`;
         document.getElementById("checkoutQRImg").src = qrUrl;
+        const noteEl = document.getElementById("checkoutTransferNote");
+        if (noteEl) noteEl.innerText = transferNote;
 
         // Reset radio to Cash
         const cashRadio = document.querySelector('input[name="checkoutPaymentMethod"][value="CASH"]');
         if (cashRadio) cashRadio.checked = true;
-        toggleCheckoutQR(false);
+        onCheckoutPaymentMethodChange();
+
+        // Load admin list if not yet loaded
+        if (posAdmins.length === 0) {
+          loadAdminsList();
+        }
 
         document.getElementById("checkoutModal").classList.remove("hidden");
       } catch (err) {
@@ -1095,15 +1397,6 @@
       currentTargetCourt = null;
     }
 
-    function toggleCheckoutQR(show) {
-      const container = document.getElementById("checkoutQRContainer");
-      if (show) {
-        container.classList.remove("hidden");
-      } else {
-        container.classList.add("hidden");
-      }
-    }
-
     async function printPickleTempBill() {
       if (!currentTargetCourt) return;
       const btn = document.getElementById("btnPrintTempBill");
@@ -1111,7 +1404,7 @@
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang in...`;
       try {
-        const res = await fetch(`/api/printer/bill/${currentTargetCourt.id}`, {
+        const res = await fetch(`/api/printer/table/${currentTargetCourt.id}/print-bill`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1132,48 +1425,49 @@
       }
     }
 
-    // ==================== 4. BÁO SÂN TRỐNG (GIẢI PHÓNG SÂN - KHÔNG IN LẠI BILL) ====================
-    async function confirmReleaseCourt(courtId, courtName) {
-      if (!confirm(`Khách chơi đã về hết.\n\nXác nhận giải phóng [${courtName}] thành Sân Trống (Không in lại bill)?`)) {
-        return;
-      }
-
-      try {
-        const res = await fetch(`/api/pos/table/${courtId}/release-court`, {
-          method: "POST"
-        });
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.detail || "Không thể báo sân trống");
-        }
-        showToast(`✅ Đã giải phóng [${courtName}] thành Sân Trống thành công!`);
-        await loadPickleCourts();
-      } catch (err) {
-        console.error("Lỗi confirmReleaseCourt:", err);
-        alert("Lỗi khi báo sân trống: " + err.message);
-      }
-    }
-
-    let isPickleCheckingOut = false;
     async function executeCheckout() {
       if (isPickleCheckingOut) return;
       if (!currentTargetCourt) return;
-      isPickleCheckingOut = true;
-      const paymentMethod = document.querySelector('input[name="checkoutPaymentMethod"]:checked')?.value || "CASH";
 
+      const paymentMethod = document.querySelector('input[name="checkoutPaymentMethod"]:checked')?.value || "CASH";
+      let billTarget = "CUSTOMER";
+      let billedAdminId = null;
+      let billedAdminName = "";
+
+      if (paymentMethod === "INTERNAL") {
+        billTarget = "ADMIN";
+        const adminSelect = document.getElementById("checkoutAdminSelect");
+        if (adminSelect && adminSelect.value) {
+          billedAdminId = parseInt(adminSelect.value);
+          const opt = adminSelect.options[adminSelect.selectedIndex];
+          billedAdminName = opt ? (opt.getAttribute("data-name") || opt.text) : "";
+        }
+        const note = document.getElementById("checkoutAdminNote")?.value?.trim();
+        if (note) {
+          billedAdminName = billedAdminName ? `${billedAdminName} (${note})` : note;
+        }
+        if (!billedAdminId && !billedAdminName) {
+          alert("Vui lòng chọn Quản trị viên chịu bill hoặc nhập ghi chú nội bộ!");
+          return;
+        }
+      }
+
+      isPickleCheckingOut = true;
       const btn = document.getElementById("btnConfirmCheckout");
       const origHtml = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang thanh toán & in bill...`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang thanh toán...`;
 
       try {
         const payload = {
           discount_percent: 0,
           discount_amount: 0,
           discount_reason: "",
-          service_fee_percent: 0,
+          service_fee: 0,
           payment_method: paymentMethod,
-          bill_target: "CUSTOMER"
+          bill_target: billTarget,
+          billed_admin_id: billedAdminId,
+          billed_admin_name: billedAdminName
         };
 
         const res = await fetch(`/api/pos/table/${currentTargetCourt.id}/checkout`, {
@@ -1187,13 +1481,13 @@
           throw new Error(data.detail || "Không thể hoàn tất thanh toán");
         }
 
-        // Tự động in hóa đơn nếu checkbox được bật
         const autoPrint = document.getElementById("chkAutoPrintReceipt")?.checked;
         if (autoPrint && data.receipt_text) {
           printTicketLocally(data.receipt_text);
         }
 
-        showToast(`✅ Đã thanh toán ${currentTargetCourt.name} (${formatVND(data.final_total || 0)}) & giải phóng sân thành công!`);
+        const payMethodText = paymentMethod === "INTERNAL" ? `Tính với Admin (${billedAdminName})` : paymentMethod === "TRANSFER" ? "Chuyển khoản" : "Tiền mặt";
+        showToast(`✅ Đã thanh toán ${currentTargetCourt.name} [${payMethodText}] (${formatVND(data.final_total || 0)}) & giải phóng sân!`);
         closeCheckoutModal();
         await loadPickleCourts();
       } catch (err) {
@@ -1646,6 +1940,7 @@
     window.addEventListener("DOMContentLoaded", async () => {
       await loadMenuData();
       await loadPickleCourts();
+      loadAdminsList();
       connectPickleWebSocket();
     });
   </script>

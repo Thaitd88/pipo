@@ -26,7 +26,7 @@ def get_pos_overview():
     cursor.execute("SELECT COUNT(*) as total FROM tables")
     total_tables = cursor.fetchone()["total"]
 
-    cursor.execute("SELECT COUNT(*) as occupied FROM tables WHERE status = 'OCCUPIED'")
+    cursor.execute("SELECT COUNT(*) as occupied FROM tables WHERE status IN ('OCCUPIED', 'BILLING')")
     occupied_tables = cursor.fetchone()["occupied"]
 
     # Doanh thu tạm tính của các bàn đang ngồi
@@ -60,7 +60,7 @@ def get_admins_list():
     cursor.execute("""
         SELECT id, username, full_name, role 
         FROM users 
-        WHERE role = 'ADMIN' AND is_active = 1 
+        WHERE (role = 'ADMIN' OR role = 'SUPER_ADMIN') AND is_active = 1 
         ORDER BY full_name ASC
     """)
     admins = [dict(a) for a in cursor.fetchall()]
@@ -148,7 +148,7 @@ def get_table_bill(table_id: int):
     if session_id:
         cursor.execute("""
             SELECT * FROM orders 
-            WHERE table_id = ? AND (session_id = ? OR session_id IS NULL)
+            WHERE table_id = ? AND (session_id = ? OR (session_id IS NULL AND payment_status = 'UNPAID'))
             ORDER BY round_number ASC
         """, (table_id, session_id))
     else:
@@ -380,6 +380,11 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
         print("[POS Checkout] Loi tu dong tru kho:", _deduct_err)
 
     # 3. Đóng toàn bộ session của bàn
+    cursor.execute("""
+        UPDATE orders 
+        SET payment_status = 'PAID', status = 'COMPLETED', completed_at = COALESCE(completed_at, ?)
+        WHERE table_id = ? AND payment_status = 'UNPAID'
+    """, (now_ts, table_id))
     cursor.execute("UPDATE table_sessions SET status = 'CLOSED', closed_at = CURRENT_TIMESTAMP WHERE table_id = ?", (table_id,))
 
     # 4. Đưa bàn về trạng thái AVAILABLE sẵn sàng cho khách mới
@@ -524,7 +529,7 @@ async def release_court(table_id: int, request: Request):
 
 @router.get("/bills/history")
 async def get_bills_history(limit: int = 60, search: str = ""):
-    """Lấy danh sách các hóa đơn đã thanh toán để thu ngân xem lại và in lại bill."""
+    """Lấy danh sách các hóa đơn đã thanh toán để thu ngân xem lại và in lại bill (gom toàn bộ món theo phiên bàn)."""
     conn = get_db()
     cursor = conn.cursor()
     query = """
@@ -543,46 +548,94 @@ async def get_bills_history(limit: int = 60, search: str = ""):
         params.extend([s, s, s, s])
 
     query += " ORDER BY COALESCE(o.completed_at, o.created_at) DESC, o.id DESC LIMIT ?"
-    params.append(limit)
+    params.append(limit * 4)
 
     cursor.execute(query, tuple(params))
     rows = cursor.fetchall()
 
-    bills = []
+    from collections import OrderedDict
+    grouped = OrderedDict()
+
     for r in rows:
-        order_id = r["id"]
+        sess_id = r["session_id"]
+        key = f"sess_{sess_id}" if sess_id else f"ord_{r['id']}"
+
         cursor.execute("""
             SELECT item_name, quantity, unit_price, total_price, station, note, status
             FROM order_items
             WHERE order_id = ?
-        """, (order_id,))
-        items = [dict(it) for it in cursor.fetchall()]
+        """, (r["id"],))
+        order_items = [dict(it) for it in cursor.fetchall()]
 
-        bills.append({
-            "id": r["id"],
-            "session_id": r["session_id"],
-            "table_id": r["table_id"],
-            "table_name": r["table_name"],
-            "table_code": r["table_code"],
-            "area": r["area"],
-            "subtotal": r["subtotal"],
-            "discount": r["discount"] or 0,
-            "discount_reason": r["discount_reason"] or "",
-            "service_fee": r["service_fee"] or 0,
-            "total": r["total"],
-            "payment_method": r["payment_method"] or "CASH",
-            "bill_target": r["bill_target"],
-            "billed_admin_name": r["billed_admin_name"],
-            "paid_at": r["completed_at"] or r["created_at"],
-            "items": items
-        })
+        if key not in grouped:
+            grouped[key] = {
+                "id": r["id"],
+                "session_id": sess_id,
+                "table_id": r["table_id"],
+                "table_name": r["table_name"],
+                "table_code": r["table_code"],
+                "area": r["area"],
+                "subtotal": 0,
+                "discount": 0,
+                "discount_reason": r["discount_reason"] or "",
+                "service_fee": 0,
+                "total": 0,
+                "payment_method": r["payment_method"] or "CASH",
+                "bill_target": r["bill_target"],
+                "billed_admin_name": r["billed_admin_name"],
+                "paid_at": r["completed_at"] or r["created_at"],
+                "raw_items": [],
+                "order_ids": []
+            }
+
+        g = grouped[key]
+        g["order_ids"].append(r["id"])
+        g["subtotal"] += (r["subtotal"] or 0)
+        g["discount"] += (r["discount"] or 0)
+        if r["discount_reason"] and not g["discount_reason"]:
+            g["discount_reason"] = r["discount_reason"]
+        g["service_fee"] += (r["service_fee"] or 0)
+        g["total"] += (r["total"] or 0)
+        g["raw_items"].extend(order_items)
+
+        cur_paid_at = r["completed_at"] or r["created_at"]
+        if cur_paid_at and (not g["paid_at"] or cur_paid_at > g["paid_at"]):
+            g["paid_at"] = cur_paid_at
 
     conn.close()
+
+    bills = []
+    for g in list(grouped.values())[:limit]:
+        merged_items = OrderedDict()
+        for it in g["raw_items"]:
+            if it.get("status") == "CANCELLED":
+                continue
+            name = it.get("item_name", "Món")
+            price = it.get("unit_price", 0)
+            note = (it.get("note") or "").strip()
+            item_k = (name, price, note)
+            if item_k not in merged_items:
+                merged_items[item_k] = {
+                    "item_name": name,
+                    "quantity": 0,
+                    "unit_price": price,
+                    "total_price": 0,
+                    "station": it.get("station", ""),
+                    "note": note,
+                    "status": it.get("status", "SERVED")
+                }
+            merged_items[item_k]["quantity"] += (it.get("quantity") or 1)
+            merged_items[item_k]["total_price"] += (it.get("total_price") or (price * (it.get("quantity") or 1)))
+
+        g["items"] = list(merged_items.values())
+        del g["raw_items"]
+        bills.append(g)
+
     return {"status": "SUCCESS", "bills": bills, "count": len(bills)}
 
 @router.post("/bills/{order_id}/reprint")
 async def reprint_bill(order_id: int, request: Request):
-    """In lại hóa đơn đã thanh toán xuống máy in thu ngân."""
+    """In lại hóa đơn đã thanh toán xuống máy in thu ngân (in đầy đủ toàn bộ món trong phiên)."""
     user = get_current_user_from_request(request)
     conn = get_db()
     cursor = conn.cursor()
@@ -597,13 +650,61 @@ async def reprint_bill(order_id: int, request: Request):
         conn.close()
         raise HTTPException(status_code=404, detail="Không tìm thấy hóa đơn cần in lại.")
 
-    cursor.execute("""
-        SELECT item_name, quantity, unit_price, total_price, station, note, status
-        FROM order_items
-        WHERE order_id = ?
-    """, (order_id,))
-    items = [dict(it) for it in cursor.fetchall()]
+    session_id = order_row["session_id"]
+    if session_id:
+        cursor.execute("""
+            SELECT o.id, o.subtotal, o.discount, o.discount_reason, o.service_fee, o.total,
+                   o.payment_method, o.bill_target, o.billed_admin_name
+            FROM orders o
+            WHERE o.session_id = ? AND o.payment_status = 'PAID'
+            ORDER BY o.round_number ASC
+        """, (session_id,))
+        sess_orders = cursor.fetchall()
+
+        tot_discount = sum(so["discount"] or 0 for so in sess_orders)
+        tot_fee = sum(so["service_fee"] or 0 for so in sess_orders)
+        disc_reason = next((so["discount_reason"] for so in sess_orders if so["discount_reason"]), "")
+
+        cursor.execute("""
+            SELECT item_name, quantity, unit_price, total_price, station, note, status
+            FROM order_items
+            WHERE order_id IN (
+                SELECT id FROM orders WHERE session_id = ? AND payment_status = 'PAID'
+            ) AND status != 'CANCELLED'
+            ORDER BY id ASC
+        """, (session_id,))
+        raw_items = [dict(it) for it in cursor.fetchall()]
+    else:
+        tot_discount = order_row["discount"] or 0
+        tot_fee = order_row["service_fee"] or 0
+        disc_reason = order_row["discount_reason"] or ""
+        cursor.execute("""
+            SELECT item_name, quantity, unit_price, total_price, station, note, status
+            FROM order_items
+            WHERE order_id = ? AND status != 'CANCELLED'
+        """, (order_id,))
+        raw_items = [dict(it) for it in cursor.fetchall()]
     conn.close()
+
+    from collections import OrderedDict
+    merged_items = OrderedDict()
+    for it in raw_items:
+        name = it.get("item_name", "Món")
+        price = it.get("unit_price", 0)
+        note = (it.get("note") or "").strip()
+        item_k = (name, price, note)
+        if item_k not in merged_items:
+            merged_items[item_k] = {
+                "item_name": name,
+                "quantity": 0,
+                "unit_price": price,
+                "total_price": 0,
+                "note": note
+            }
+        merged_items[item_k]["quantity"] += (it.get("quantity") or 1)
+        merged_items[item_k]["total_price"] += (it.get("total_price") or (price * (it.get("quantity") or 1)))
+
+    items = list(merged_items.values())
 
     table_dict = {
         "name": order_row["table_name"],
@@ -614,9 +715,9 @@ async def reprint_bill(order_id: int, request: Request):
     totals_info = {
         "title": "HOA DON BAN HANG (IN LAI)",
         "cashier_name": cashier_display,
-        "discount": order_row["discount"] or 0,
-        "discount_reason": order_row["discount_reason"] or "",
-        "service_fee": order_row["service_fee"] or 0,
+        "discount": tot_discount,
+        "discount_reason": disc_reason,
+        "service_fee": tot_fee,
         "payment_method": order_row["payment_method"] or "CASH",
         "bill_target": order_row["bill_target"],
         "billed_admin_name": order_row["billed_admin_name"]

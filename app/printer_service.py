@@ -185,11 +185,8 @@ def print_cashier_receipt(table_info: dict, items: list, totals_info: dict = Non
         return False, "Máy in thu ngân đang bị tắt trong cấu hình"
 
     escpos_bytes = build_escpos_receipt_bytes(table_info, items, totals_info=totals_info)
+    # Hóa đơn thanh toán / thu ngân / bar: CHỈ in ra máy in 252, TUYỆT ĐỐI KHÔNG fallback vào bếp 251
     ok, err = send_escpos_to_printer(cfg["cashier_ip"], cfg["cashier_port"], escpos_bytes)
-    if not ok and cfg.get("kitchen_ip") and cfg["kitchen_ip"] != cfg["cashier_ip"]:
-        ok_k, err_k = send_escpos_to_printer(cfg["kitchen_ip"], cfg["kitchen_port"], escpos_bytes)
-        if ok_k:
-            return True, "Printed via fallback kitchen printer"
     return ok, err
 
 def test_kitchen_printer() -> tuple[bool, str]:
@@ -248,12 +245,11 @@ async def async_dispatch_cashier_print(table_or_bytes, items: list = None, total
         payload = build_escpos_receipt_bytes(table_or_bytes, items or [], totals_info=totals_info)
 
     def _do_send():
+        # Hóa đơn thanh toán / thu ngân / bar: CHỈ in ra máy in 252, TUYỆT ĐỐI KHÔNG fallback vào bếp 251
         ok, err = send_escpos_to_printer(cfg["cashier_ip"], cfg["cashier_port"], payload)
-        if not ok and cfg.get("kitchen_ip") and cfg["kitchen_ip"] != cfg["cashier_ip"]:
-            ok_k, _ = send_escpos_to_printer(cfg["kitchen_ip"], cfg["kitchen_port"], payload)
-            if ok_k:
-                return True, "Printed via fallback kitchen printer"
         return ok, err
 
     loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, _do_send)
+    # Chạy background fire-and-forget trong executor để API phản hồi ngay lập tức, không chờ socket timeout
+    loop.run_in_executor(None, _do_send)
+    return True, "Dispatched"

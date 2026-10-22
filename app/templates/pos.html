@@ -1163,6 +1163,9 @@
         </div>
       </div>
       <p class="text-[11px] text-stone-400">Tự động điền số tiền & nội dung • Quét được trên mọi App ngân hàng</p>
+      <button type="button" onclick="confirmCheckoutFromQRModal()" class="w-full mt-3 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer">
+        <i class="fa-solid fa-check"></i> Xác Nhận Đã Nhận Tiền & Trả Bàn
+      </button>
     </div>
   </div>
 
@@ -3006,6 +3009,8 @@
     function closeBillDrawer() {
       document.getElementById("billDrawer").classList.add("translate-x-full");
       document.getElementById("billDrawerBackdrop")?.classList.add("hidden");
+      selectedTable = null;
+      currentBillData = null;
     }
 
     let posActiveCancelItem = null;
@@ -3433,6 +3438,16 @@
       document.getElementById("vietqrModal").classList.add("hidden");
     }
 
+    function confirmCheckoutFromQRModal() {
+      closeVietQRModal();
+      const transferRadio = document.querySelector('input[name="billTargetRadio"][value="TRANSFER"]');
+      if (transferRadio) {
+        transferRadio.checked = true;
+        toggleBillTarget();
+      }
+      confirmCheckoutTable();
+    }
+
     let isTableCheckingOut = false;
     async function confirmCheckoutTable() {
       if (isTableCheckingOut) return;
@@ -3463,6 +3478,7 @@
         }
         if (!billedAdminId && !billedAdminName) {
           alert("Vui lòng chọn Quản trị viên / Nhân sự hoặc nhập lý do nội bộ!");
+          isTableCheckingOut = false;
           return;
         }
       }
@@ -3474,6 +3490,7 @@
       const finalPay = Math.max(0, (currentBillData?.grand_total || 0) - discountAmount + serviceFee);
       if (finalPay <= 0 && serviceFee <= 0) {
         alert("Bàn chưa có món ăn hoặc phí dịch vụ để thu tiền!");
+        isTableCheckingOut = false;
         return;
       }
 
@@ -3507,10 +3524,11 @@
         });
 
         if (res.ok) {
+          const checkedTblName = selectedTable.name;
+          selectedTable = null;
           closeBillDrawer();
-          fetchTablesOverview();
-          showPosToast(`✅ Đã thanh toán bàn ${selectedTable.name}! Máy in đang tự động in hóa đơn...`);
-          isTableCheckingOut = false;
+          await fetchTablesOverview();
+          showPosToast(`✅ Đã thanh toán bàn ${checkedTblName}! Máy in đang tự động in hóa đơn...`);
           const billHistPanel = document.getElementById("tabContent-bill-history");
           if (billHistPanel && !billHistPanel.classList.contains("hidden")) {
             loadPosBillsHistory();
@@ -3520,7 +3538,10 @@
           alert("Lỗi khi thanh toán: " + (err.detail || "Không xác định"));
         }
       } catch (e) {
+        console.error(e);
         alert("Lỗi kết nối khi thanh toán!");
+      } finally {
+        isTableCheckingOut = false;
       }
     }
 
@@ -4817,6 +4838,10 @@
           }
 
           if (data.event === "NEW_ORDER" || data.event === "SERVICE_CALL" || data.event === "TABLE_CHECKED_OUT" || data.event === "ITEM_STATUS_CHANGED" || data.event === "ORDER_ITEMS_COMPLETED" || data.event === "REVENUE_CLEARED" || data.event === "TABLE_ITEMS_SERVED") {
+            if (data.event === "TABLE_CHECKED_OUT" && selectedTable && selectedTable.id === data.table_id) {
+              selectedTable = null;
+              closeBillDrawer();
+            }
             fetchTablesOverview();
             // Nếu đang mở tab báo cáo thì cập nhật
             if (!document.getElementById("tabContent-reports").classList.contains("hidden")) {

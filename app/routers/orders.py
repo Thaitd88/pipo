@@ -132,17 +132,29 @@ async def create_order(payload: dict):
     order_status = "COMPLETED" if is_pos_pickle else "CONFIRMED"
     payment_status = "PAID" if is_pos_pickle else "UNPAID"
     payment_method = str(payload.get("payment_method") or "CASH").strip().upper()
+    bill_target = str(payload.get("bill_target") or "CUSTOMER").strip().upper()
+    billed_admin_id = payload.get("billed_admin_id")
+    billed_admin_name = (payload.get("billed_admin_name") or "").strip()
+    if payment_method == "INTERNAL":
+        bill_target = "ADMIN"
     completed_at = now_ts if is_pos_pickle else None
 
     cursor.execute("""
-        INSERT INTO orders (order_uuid, session_id, table_id, round_number, subtotal, total, status, payment_status, payment_method, customer_note, created_at, completed_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (new_order_uuid, session_id, table_id, round_number, subtotal, total, order_status, payment_status, payment_method, customer_note, now_ts, completed_at))
+        INSERT INTO orders (
+            order_uuid, session_id, table_id, round_number, subtotal, total, 
+            status, payment_status, payment_method, bill_target, billed_admin_id, billed_admin_name,
+            customer_note, created_at, completed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        new_order_uuid, session_id, table_id, round_number, subtotal, total, 
+        order_status, payment_status, payment_method, bill_target, billed_admin_id, billed_admin_name,
+        customer_note, now_ts, completed_at
+    ))
     order_id = cursor.lastrowid
 
     # 6. Lưu vào bảng Order Items
     order_items_to_broadcast = []
-    item_status = "SERVED" if is_pos_pickle else "QUEUED"
+    item_status = "QUEUED"
     for dit in detailed_items:
         cursor.execute("""
             INSERT INTO order_items (order_id, item_id, item_name, quantity, unit_price, total_price, station, note, modifiers_json, status, discount_percent, original_price, created_at, updated_at)
@@ -167,15 +179,47 @@ async def create_order(payload: dict):
     print_jobs_created = []
 
     if is_pos_pickle:
-        # Từ giao diện POS Sân Pick: In trực tiếp Phiếu Thanh Toán (Receipt) ra Máy in Thu Ngân 252
+        # Từ giao diện POS Sân Pick:
+        # 1. Chọn món bếp nóng thì in vào máy in bếp (HOT_KITCHEN - 192.168.31.251) bình thường
+        hot_items = [dit for dit in detailed_items if dit.get("station") in ["HOT_KITCHEN", "KITCHEN"]]
+        if hot_items:
+            order_info = {
+                "id": order_id,
+                "table_name": table["name"],
+                "area": table["area"],
+                "round_number": round_number,
+                "customer_note": customer_note,
+                "created_at": now_ts
+            }
+            ticket_text = format_kitchen_ticket_text(order_info, hot_items, "HOT_KITCHEN")
+            escpos_bytes = build_escpos_kitchen_bytes(order_info, hot_items, station="HOT_KITCHEN", beep=True)
+            escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
+
+            cursor.execute("""
+                INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+                VALUES (?, 'HOT_KITCHEN', 'KOT', 'PENDING', ?)
+            """, (order_id, ticket_text))
+            job_id = cursor.lastrowid
+
+            print_jobs_created.append({
+                "job_id": job_id,
+                "station": "HOT_KITCHEN",
+                "job_type": "KOT",
+                "ticket_text": ticket_text,
+                "escpos_b64": escpos_b64,
+                "table_name": table["name"]
+            })
+
+        # 2. Chọn nước, bếp lạnh, dịch vụ sân xong xác nhận thì in bill ở máy in bar/bếp lạnh (CASHIER - 192.168.31.252)
         from ..escpos import format_receipt_ticket_text, build_escpos_receipt_bytes
         totals_info = {
-            "title": "PHIEU THANH TOAN DICH VU",
+            "title": "HOA DON THANH TOAN",
             "cashier_name": "Thu Ngan San Pick",
             "discount": 0,
             "service_fee": 0,
             "payment_method": payment_method,
-            "bill_target": "CUSTOMER",
+            "bill_target": bill_target,
+            "billed_admin_name": billed_admin_name,
             "created_at": now_ts
         }
         receipt_text = format_receipt_ticket_text(dict(table), detailed_items, totals_info=totals_info)
@@ -186,10 +230,10 @@ async def create_order(payload: dict):
             INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
             VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?)
         """, (order_id, receipt_text))
-        job_id = cursor.lastrowid
+        r_job_id = cursor.lastrowid
 
         print_jobs_created.append({
-            "job_id": job_id,
+            "job_id": r_job_id,
             "station": "CASHIER",
             "job_type": "RECEIPT",
             "ticket_text": receipt_text,

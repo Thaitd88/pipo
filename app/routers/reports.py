@@ -28,7 +28,7 @@ def get_revenue_overview(request: Request):
 
     # 1. Doanh thu hôm nay
     cursor.execute("""
-        SELECT COALESCE(SUM(total), 0) as rev, COUNT(*) as orders_cnt
+        SELECT COALESCE(SUM(total), 0) as rev, COUNT(DISTINCT COALESCE(session_id, id)) as orders_cnt
         FROM orders 
         WHERE payment_status = 'PAID' AND DATE(created_at) = ?
     """, (today_str,))
@@ -38,7 +38,7 @@ def get_revenue_overview(request: Request):
 
     # 2. Doanh thu tháng này
     cursor.execute("""
-        SELECT COALESCE(SUM(total), 0) as rev, COUNT(*) as orders_cnt
+        SELECT COALESCE(SUM(total), 0) as rev, COUNT(DISTINCT COALESCE(session_id, id)) as orders_cnt
         FROM orders 
         WHERE payment_status = 'PAID' AND strftime('%Y-%m', created_at) = ?
     """, (this_month_str,))
@@ -48,7 +48,7 @@ def get_revenue_overview(request: Request):
 
     # 3. Doanh thu năm nay
     cursor.execute("""
-        SELECT COALESCE(SUM(total), 0) as rev, COUNT(*) as orders_cnt
+        SELECT COALESCE(SUM(total), 0) as rev, COUNT(DISTINCT COALESCE(session_id, id)) as orders_cnt
         FROM orders 
         WHERE payment_status = 'PAID' AND strftime('%Y', created_at) = ?
     """, (this_year_str,))
@@ -97,7 +97,7 @@ def get_revenue_overview(request: Request):
         d_str = d.strftime("%Y-%m-%d")
         d_label = d.strftime("%d/%m")
         cursor.execute("""
-            SELECT COALESCE(SUM(total), 0) as daily_rev, COUNT(*) as daily_orders
+            SELECT COALESCE(SUM(total), 0) as daily_rev, COUNT(DISTINCT COALESCE(session_id, id)) as daily_orders
             FROM orders 
             WHERE payment_status = 'PAID' AND DATE(created_at) = ?
         """, (d_str,))
@@ -237,7 +237,7 @@ def get_revenue_detail(
     # 1. Thống kê tổng hợp kỳ báo cáo (gồm Quỹ tiền mặt, Doanh thu chuyển khoản, Nội bộ & Phí phục vụ)
     cursor.execute(f"""
         SELECT COALESCE(SUM(o.total), 0) as total_revenue,
-               COUNT(o.id) as total_orders,
+               COUNT(DISTINCT COALESCE(o.session_id, o.id)) as total_orders,
                COALESCE(SUM(o.discount), 0) as total_discount,
                COALESCE(SUM(o.service_fee), 0) as total_service_fee,
                COALESCE(SUM(CASE WHEN UPPER(COALESCE(o.payment_method, 'CASH')) = 'CASH' AND COALESCE(o.bill_target, 'CUSTOMER') != 'ADMIN' THEN o.total ELSE 0 END), 0) as cash_revenue,
@@ -251,9 +251,9 @@ def get_revenue_detail(
     """, (param,))
     summary = dict(cursor.fetchone() or {})
 
-    # 2. Lấy danh sách từng hóa đơn chi tiết
+    # 2. Lấy danh sách từng hóa đơn chi tiết (gom theo phiên bàn / lần thanh toán)
     cursor.execute(f"""
-        SELECT o.id, o.round_number, o.subtotal, o.discount, o.service_fee, o.total,
+        SELECT o.id, o.session_id, o.round_number, o.subtotal, o.discount, o.service_fee, o.total,
                o.payment_method, o.bill_target, o.billed_admin_name, o.created_at, o.completed_at,
                COALESCE(t.name, 'Sân Pickle') as table_name,
                COALESCE(t.table_code, 'PK-01') as table_code,
@@ -261,25 +261,79 @@ def get_revenue_detail(
         FROM orders o
         LEFT JOIN tables t ON o.table_id = t.id
         WHERE o.payment_status = 'PAID' AND {where_clause} {dept_clause}
-        ORDER BY o.created_at DESC
+        ORDER BY COALESCE(o.completed_at, o.created_at) DESC, o.id DESC
     """, (param,))
     orders_rows = cursor.fetchall()
-    orders_list = []
 
-    total_dishes_count = 0
+    from collections import OrderedDict
+    grouped_detail = OrderedDict()
+
     for o in orders_rows:
         order_dict = dict(o)
+        sess_id = order_dict.get("session_id")
+        key = f"sess_{sess_id}" if sess_id else f"ord_{order_dict['id']}"
+
         cursor.execute("""
-            SELECT item_name, quantity, unit_price, total_price, station, note
+            SELECT item_name, quantity, unit_price, total_price, station, note, status
             FROM order_items
-            WHERE order_id = ?
+            WHERE order_id = ? AND status != 'CANCELLED'
         """, (order_dict["id"],))
         items = [dict(it) for it in cursor.fetchall()]
-        order_dict["items"] = items
-        order_dict["items_count"] = sum(it["quantity"] for it in items)
-        total_dishes_count += order_dict["items_count"]
-        orders_list.append(order_dict)
 
+        if key not in grouped_detail:
+            grouped_detail[key] = {
+                "id": order_dict["id"],
+                "session_id": sess_id,
+                "table_name": order_dict["table_name"],
+                "table_code": order_dict["table_code"],
+                "area": order_dict["area"],
+                "subtotal": 0,
+                "discount": 0,
+                "service_fee": 0,
+                "total": 0,
+                "payment_method": order_dict["payment_method"],
+                "bill_target": order_dict["bill_target"],
+                "billed_admin_name": order_dict["billed_admin_name"],
+                "created_at": order_dict["completed_at"] or order_dict["created_at"],
+                "raw_items": [],
+                "items_count": 0
+            }
+
+        g = grouped_detail[key]
+        g["subtotal"] += (order_dict["subtotal"] or 0)
+        g["discount"] += (order_dict["discount"] or 0)
+        g["service_fee"] += (order_dict["service_fee"] or 0)
+        g["total"] += (order_dict["total"] or 0)
+        g["raw_items"].extend(items)
+
+    orders_list = []
+    total_dishes_count = 0
+    for g in grouped_detail.values():
+        merged_items = OrderedDict()
+        for it in g["raw_items"]:
+            name = it.get("item_name", "Món")
+            price = it.get("unit_price", 0)
+            note = (it.get("note") or "").strip()
+            item_k = (name, price, note)
+            if item_k not in merged_items:
+                merged_items[item_k] = {
+                    "item_name": name,
+                    "quantity": 0,
+                    "unit_price": price,
+                    "total_price": 0,
+                    "station": it.get("station", ""),
+                    "note": note
+                }
+            merged_items[item_k]["quantity"] += (it.get("quantity") or 1)
+            merged_items[item_k]["total_price"] += (it.get("total_price") or (price * (it.get("quantity") or 1)))
+
+        g["items"] = list(merged_items.values())
+        g["items_count"] = sum(it["quantity"] for it in g["items"])
+        total_dishes_count += g["items_count"]
+        del g["raw_items"]
+        orders_list.append(g)
+
+    summary["total_orders"] = len(orders_list)
     summary["total_dishes_count"] = total_dishes_count
 
     # 3. Phân bổ biểu đồ con của kỳ báo cáo
