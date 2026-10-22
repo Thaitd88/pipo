@@ -1744,8 +1744,8 @@
 
         <!-- Chọn chế độ xóa -->
         <div>
-          <label class="block font-bold text-stone-900 mb-2">1. Chọn phạm vi thời gian cần xóa:</label>
-          <div class="grid grid-cols-3 gap-2">
+          <label class="block font-bold text-stone-900 mb-2">1. Chọn phạm vi xóa:</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <label class="flex flex-col items-center p-2.5 rounded-xl border-2 cursor-pointer transition text-center hover:bg-stone-50 has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50/50 has-[:checked]:text-rose-900">
               <input type="radio" name="cleanMode" value="SINGLE_DATE" checked onchange="handleCleanModeChange()" class="sr-only">
               <i class="fa-solid fa-calendar-day text-base mb-1 text-rose-600"></i>
@@ -1755,7 +1755,7 @@
             <label class="flex flex-col items-center p-2.5 rounded-xl border-2 cursor-pointer transition text-center hover:bg-stone-50 has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50/50 has-[:checked]:text-rose-900">
               <input type="radio" name="cleanMode" value="FROM_DATE" onchange="handleCleanModeChange()" class="sr-only">
               <i class="fa-solid fa-calendar-plus text-base mb-1 text-rose-600"></i>
-              <span class="font-bold text-[11px]">Từ Ngày... Trở Đi</span>
+              <span class="font-bold text-[11px]">Từ Ngày...</span>
               <span class="text-[9px] text-stone-400">Từ mốc X đến nay</span>
             </label>
             <label class="flex flex-col items-center p-2.5 rounded-xl border-2 cursor-pointer transition text-center hover:bg-stone-50 has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50/50 has-[:checked]:text-rose-900">
@@ -1764,11 +1764,22 @@
               <span class="font-bold text-[11px]">Khoảng Ngày</span>
               <span class="text-[9px] text-stone-400">Từ ngày A đến B</span>
             </label>
+            <label class="flex flex-col items-center p-2.5 rounded-xl border-2 cursor-pointer transition text-center hover:bg-emerald-50 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/50 has-[:checked]:text-emerald-900">
+              <input type="radio" name="cleanMode" value="PICKLEBALL_ONLY" onchange="handleCleanModeChange()" class="sr-only">
+              <i class="fa-solid fa-table-tennis-paddle-ball text-base mb-1 text-emerald-600"></i>
+              <span class="font-bold text-[11px]">Chỉ Sân Pick</span>
+              <span class="text-[9px] text-stone-400">Reset test 4 sân</span>
+            </label>
           </div>
         </div>
 
         <!-- Khung nhập ngày tương ứng -->
         <div id="cleanDateInputs" class="bg-stone-50 p-3 rounded-2xl border border-stone-200 space-y-2.5">
+          <!-- Chế độ 4: Chỉ Sân Pickleball -->
+          <div id="cleanPickleballOnlyGroup" class="hidden p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px]">
+            <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i>
+            <strong>Chế độ Sân Pickleball:</strong> Xóa toàn bộ hóa đơn test của 4 sân (PK-01 .. PK-04), hội viên, đặt sân và đưa 4 sân về Sân Trống. Doanh thu Nhà Hàng hoàn toàn được giữ nguyên!
+          </div>
           <!-- Chế độ 1: 1 Ngày -->
           <div id="cleanSingleDateGroup">
             <label class="block font-semibold text-stone-700 mb-1">Chọn ngày cần xóa doanh thu & đơn hàng:</label>
@@ -2260,10 +2271,12 @@
       const singleGroup = document.getElementById("cleanSingleDateGroup");
       const fromOnlyGroup = document.getElementById("cleanFromDateOnlyGroup");
       const rangeGroup = document.getElementById("cleanDateRangeGroup");
+      const pickleGroup = document.getElementById("cleanPickleballOnlyGroup");
 
       if (singleGroup) singleGroup.classList.toggle("hidden", mode !== 'SINGLE_DATE');
       if (fromOnlyGroup) fromOnlyGroup.classList.toggle("hidden", mode !== 'FROM_DATE');
       if (rangeGroup) rangeGroup.classList.toggle("hidden", mode !== 'DATE_RANGE');
+      if (pickleGroup) pickleGroup.classList.toggle("hidden", mode !== 'PICKLEBALL_ONLY');
     }
 
     function checkCleanConfirmPhrase() {
@@ -2322,13 +2335,23 @@
       const cleanPickle = document.getElementById("cleanOptPickle")?.checked ?? true;
       const cleanAccounting = document.getElementById("cleanOptAccounting")?.checked ?? true;
 
-      const confirmMsg = `CẢNH BÁO: Bạn đang thực hiện xóa toàn bộ hóa đơn, doanh thu F&B Nhà Hàng và Sân Pickleball!\n\n` +
-        `• Chế độ: ${mode === 'SINGLE_DATE' ? ('Ngày ' + singleDate) : (mode === 'FROM_DATE' ? ('Từ ngày ' + fromDate + ' đến nay') : ('Từ ngày ' + fromDate + ' đến ' + toDate))}\n` +
-        `• Xóa Sân Pickleball & Hội viên: ${cleanPickle ? 'Có' : 'Không'}\n` +
-        `• Xóa Sổ quỹ Thu - Chi: ${cleanAccounting ? 'Có' : 'Không'}\n` +
-        `• Xóa kho NVL liên quan: ${deleteInventory ? 'Có' : 'Không'}\n` +
-        `• Giải phóng bàn & 4 sân Pick: ${resetTables ? 'Có' : 'Không'}\n\n` +
-        `Thao tác này KHÔNG THỂ HOÀN TÁC. Bạn có chắc chắn muốn tiến hành?`;
+      let confirmMsg = "";
+      if (mode === 'PICKLEBALL_ONLY') {
+        confirmMsg = `XÁC NHẬN RESET DỮ LIỆU SÂN PICKLEBALL:\n\n` +
+          `• Xóa toàn bộ hóa đơn chạy thử nghiệm của 4 sân Pickleball (PK-01 .. PK-04)\n` +
+          `• Xóa toàn bộ dữ liệu gói hội viên, lượt đặt sân & điểm danh\n` +
+          `• Đưa 4 sân về trạng thái Sân Trống sẵn sàng hoạt động\n` +
+          `• Doanh thu và hóa đơn Nhà Hàng hoàn toàn được GIỮ NGUYÊN!\n\n` +
+          `Bạn có chắc chắn muốn tiến hành?`;
+      } else {
+        confirmMsg = `CẢNH BÁO: Bạn đang thực hiện xóa toàn bộ hóa đơn, doanh thu F&B Nhà Hàng và Sân Pickleball!\n\n` +
+          `• Chế độ: ${mode === 'SINGLE_DATE' ? ('Ngày ' + singleDate) : (mode === 'FROM_DATE' ? ('Từ ngày ' + fromDate + ' đến nay') : ('Từ ngày ' + fromDate + ' đến ' + toDate))}\n` +
+          `• Xóa Sân Pickleball & Hội viên: ${cleanPickle ? 'Có' : 'Không'}\n` +
+          `• Xóa Sổ quỹ Thu - Chi: ${cleanAccounting ? 'Có' : 'Không'}\n` +
+          `• Xóa kho NVL liên quan: ${deleteInventory ? 'Có' : 'Không'}\n` +
+          `• Giải phóng bàn & 4 sân Pick: ${resetTables ? 'Có' : 'Không'}\n\n` +
+          `Thao tác này KHÔNG THỂ HOÀN TÁC. Bạn có chắc chắn muốn tiến hành?`;
+      }
 
       if (!confirm(confirmMsg)) return;
 

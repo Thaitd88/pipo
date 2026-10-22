@@ -476,6 +476,20 @@ async def clean_order_history(req: CleanHistoryRequest, request: Request):
         where_memberships = "((DATE(created_at) BETWEEN ? AND ?) OR (start_date BETWEEN ? AND ?))"
         params_memberships = (req.from_date, req.to_date, req.from_date, req.to_date)
         desc_range = f"từ ngày {req.from_date} đến ngày {req.to_date}"
+    elif mode in ("PICKLEBALL_ONLY", "PICKLEBALL_ALL"):
+        where_orders = "(t.area = 'Sân Pickle' OR t.table_code LIKE 'PK-%' OR t.name LIKE 'Sân Pick%')"
+        params_orders = ()
+        where_sessions = "table_id IN (SELECT id FROM tables WHERE table_code LIKE 'PK-%' OR area = 'Sân Pickle' OR name LIKE 'Sân Pick%')"
+        params_sessions = ()
+        where_date_only = "table_id IN (SELECT id FROM tables WHERE table_code LIKE 'PK-%' OR area = 'Sân Pickle' OR name LIKE 'Sân Pick%')"
+        params_date_only = ()
+        where_bookings = "1=1"
+        params_bookings = ()
+        where_checkins = "1=1"
+        params_checkins = ()
+        where_memberships = "1=1"
+        params_memberships = ()
+        desc_range = "toàn bộ dữ liệu thử nghiệm Sân Pickleball"
     elif mode == "ALL":
         where_orders = "1=1"
         params_orders = ()
@@ -593,7 +607,7 @@ async def clean_order_history(req: CleanHistoryRequest, request: Request):
 
     # 5. Xóa sổ quỹ thu - chi kế toán (accounting_transactions)
     count_accounting = 0
-    if clean_accounting:
+    if clean_accounting and mode not in ("PICKLEBALL_ONLY", "PICKLEBALL_ALL"):
         cursor.execute(f"SELECT COUNT(*) as cnt FROM accounting_transactions WHERE {where_date_only}", params_date_only)
         count_accounting = cursor.fetchone()["cnt"]
         cursor.execute(f"DELETE FROM accounting_transactions WHERE {where_date_only}", params_date_only)
@@ -601,21 +615,35 @@ async def clean_order_history(req: CleanHistoryRequest, request: Request):
     # 6. Đếm & Xóa biến động kho nếu được chọn
     count_inv = 0
     if clean_inventory:
-        cursor.execute(f"SELECT COUNT(*) FROM inventory_transactions WHERE {where_date_only}", params_date_only)
-        count_inv = cursor.fetchone()[0]
-        cursor.execute(f"DELETE FROM inventory_transactions WHERE {where_date_only}", params_date_only)
+        if mode in ("PICKLEBALL_ONLY", "PICKLEBALL_ALL"):
+            if order_ids:
+                p_inv = ','.join(['?'] * len(order_ids))
+                cursor.execute(f"SELECT COUNT(*) FROM inventory_transactions WHERE reference_id IN ({p_inv})", [str(oid) for oid in order_ids])
+                count_inv = cursor.fetchone()[0]
+                cursor.execute(f"DELETE FROM inventory_transactions WHERE reference_id IN ({p_inv})", [str(oid) for oid in order_ids])
+        else:
+            cursor.execute(f"SELECT COUNT(*) FROM inventory_transactions WHERE {where_date_only}", params_date_only)
+            count_inv = cursor.fetchone()[0]
+            cursor.execute(f"DELETE FROM inventory_transactions WHERE {where_date_only}", params_date_only)
 
     # 7. Reset toàn bộ bàn ăn và 4 sân Pickleball (PK-01 .. PK-04) về AVAILABLE
     count_reset_tables = 0
     if reset_tables:
-        cursor.execute("""
-            UPDATE tables 
-            SET status = 'AVAILABLE', current_session_id = NULL 
-            WHERE current_session_id IS NULL 
-               OR current_session_id NOT IN (SELECT id FROM table_sessions WHERE status = 'ACTIVE')
-               OR table_code LIKE 'PK-%' 
-               OR area LIKE '%Pickle%'
-        """)
+        if mode in ("PICKLEBALL_ONLY", "PICKLEBALL_ALL"):
+            cursor.execute("""
+                UPDATE tables 
+                SET status = 'AVAILABLE', current_session_id = NULL 
+                WHERE table_code LIKE 'PK-%' OR area = 'Sân Pickle' OR name LIKE 'Sân Pick%'
+            """)
+        else:
+            cursor.execute("""
+                UPDATE tables 
+                SET status = 'AVAILABLE', current_session_id = NULL 
+                WHERE current_session_id IS NULL 
+                   OR current_session_id NOT IN (SELECT id FROM table_sessions WHERE status = 'ACTIVE')
+                   OR table_code LIKE 'PK-%' 
+                   OR area LIKE '%Pickle%'
+            """)
         count_reset_tables = cursor.rowcount
 
     conn.commit()
@@ -671,4 +699,128 @@ async def clean_order_history(req: CleanHistoryRequest, request: Request):
         "deleted_revenue": total_deleted_rev,
         "mode": mode,
         "desc_range": desc_range
+    }
+
+@router.post("/clean-pickleball")
+async def clean_pickleball_data(request: Request):
+    """
+    Xóa toàn bộ dữ liệu chạy thử của Sân Pickleball:
+    - Xóa các hóa đơn, món gọi, lệnh in bếp của các sân Pickleball (PK-01 .. PK-04)
+    - Xóa các phiên (table_sessions) và service calls của sân
+    - Xóa toàn bộ lượt đặt sân, gói hội viên, và check-in pickleball
+    - Đưa tất cả sân Pickleball về trạng thái SÂN TRỐNG (AVAILABLE, current_session_id = NULL)
+    - Lưu UUID đơn vào deleted_order_uuids để đồng bộ không bị lặp lại
+    """
+    auth_header = request.headers.get("X-Pipo-Admin-Secret") or ""
+    if auth_header != "pipo_secure_clear_revenue_2026":
+        user = require_api_auth(request)
+        if user.get("role") not in ("SUPER_ADMIN", "ADMIN") and user.get("username", "").lower() != "thaitd":
+            raise HTTPException(
+                status_code=403,
+                detail="Chỉ tài khoản Quản trị / Super Admin mới có quyền xóa dữ liệu sân Pickleball!"
+            )
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS deleted_order_uuids (
+            order_uuid TEXT PRIMARY KEY,
+            deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # 1. Tìm table_ids của Sân Pickleball (Chỉ 4 sân PK-01 .. PK-04)
+    cursor.execute("""
+        SELECT id, table_code, name FROM tables 
+        WHERE table_code LIKE 'PK-%' OR area = 'Sân Pickle' OR name LIKE 'Sân Pick%'
+    """)
+    pickle_tables = cursor.fetchall()
+    table_ids = [t["id"] for t in pickle_tables]
+
+    count_orders = 0
+    count_items = 0
+    count_print_jobs = 0
+    total_pickle_order_rev = 0
+
+    if table_ids:
+        t_placeholders = ','.join(['?'] * len(table_ids))
+        cursor.execute(f"""
+            SELECT id, order_uuid, total FROM orders 
+            WHERE table_id IN ({t_placeholders})
+        """, table_ids)
+        matched_orders = cursor.fetchall()
+        order_ids = [o["id"] for o in matched_orders]
+        order_uuids = [o["order_uuid"] for o in matched_orders if o["order_uuid"]]
+        total_pickle_order_rev = sum(o["total"] or 0 for o in matched_orders)
+        count_orders = len(order_ids)
+
+        for u in order_uuids:
+            cursor.execute("INSERT OR IGNORE INTO deleted_order_uuids (order_uuid) VALUES (?)", (u,))
+
+        if order_ids:
+            o_placeholders = ','.join(['?'] * len(order_ids))
+            cursor.execute(f"SELECT COUNT(*) FROM order_items WHERE order_id IN ({o_placeholders})", order_ids)
+            count_items = cursor.fetchone()[0]
+            cursor.execute(f"DELETE FROM order_items WHERE order_id IN ({o_placeholders})", order_ids)
+
+            cursor.execute(f"SELECT COUNT(*) FROM print_jobs WHERE order_id IN ({o_placeholders})", order_ids)
+            count_print_jobs = cursor.fetchone()[0]
+            cursor.execute(f"DELETE FROM print_jobs WHERE order_id IN ({o_placeholders})", order_ids)
+
+            cursor.execute(f"DELETE FROM orders WHERE id IN ({o_placeholders})", order_ids)
+
+        # Xóa table_sessions
+        cursor.execute(f"DELETE FROM table_sessions WHERE table_id IN ({t_placeholders})", table_ids)
+        # Xóa service_calls
+        cursor.execute(f"DELETE FROM service_calls WHERE table_id IN ({t_placeholders})", table_ids)
+
+        # Reset sân về AVAILABLE
+        cursor.execute(f"""
+            UPDATE tables 
+            SET status = 'AVAILABLE', current_session_id = NULL 
+            WHERE id IN ({t_placeholders})
+        """, table_ids)
+
+    # 2. Xóa pickleball_checkins, memberships, bookings
+    cursor.execute("SELECT COUNT(*) FROM pickleball_checkins")
+    count_checkins = cursor.fetchone()[0]
+    cursor.execute("DELETE FROM pickleball_checkins")
+
+    cursor.execute("SELECT COUNT(*), COALESCE(SUM(paid_amount), 0) FROM pickleball_memberships")
+    mbr_row = cursor.fetchone()
+    count_memberships = mbr_row[0]
+    total_mbr_rev = mbr_row[1]
+    cursor.execute("DELETE FROM pickleball_memberships")
+
+    cursor.execute("SELECT COUNT(*), COALESCE(SUM(deposit_amount), 0) FROM pickleball_bookings")
+    bkg_row = cursor.fetchone()
+    count_bookings = bkg_row[0]
+    total_bkg_rev = bkg_row[1]
+    cursor.execute("DELETE FROM pickleball_bookings")
+
+    conn.commit()
+    conn.close()
+
+    total_cleared = total_pickle_order_rev + total_mbr_rev + total_bkg_rev
+
+    if broadcaster:
+        try:
+            await broadcaster.send_to_pos({"event": "CLEAN_HISTORY", "payload": {"mode": "PICKLEBALL_ONLY"}})
+            await broadcaster.send_to_pos({"event": "TABLES_UPDATED"})
+            await broadcaster.send_to_pos({"event": "ORDERS_REFRESH"})
+            await broadcaster.send_to_kds({"event": "KDS_REFRESH"})
+        except Exception:
+            pass
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Đã xóa toàn bộ dữ liệu thử nghiệm sân Pickleball: {count_orders} hóa đơn ({total_pickle_order_rev:,} đ), {count_memberships} hội viên ({total_mbr_rev:,} đ), {count_bookings} lượt đặt sân ({total_bkg_rev:,} đ). Đã giải phóng 4 sân về Sân Trống.",
+        "deleted_orders": count_orders,
+        "deleted_order_items": count_items,
+        "deleted_print_jobs": count_print_jobs,
+        "deleted_memberships": count_memberships,
+        "deleted_bookings": count_bookings,
+        "deleted_checkins": count_checkins,
+        "total_deleted_revenue": total_cleared
     }
