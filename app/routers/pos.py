@@ -1,9 +1,12 @@
 # POS Cashier management router for PiPo Garden
 import os
 import re
+import io
 import base64
 import urllib.parse
+import urllib.request
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import Response
 from datetime import datetime
 from ..database import get_db
 from ..timezone_utils import now_vn_str
@@ -207,7 +210,8 @@ def get_table_bill(table_id: int):
     encoded_note = urllib.parse.quote(transfer_note)
 
     # Link VietQR động cho nhà hàng PiPo Garden (MB Bank 970422 - STK 075624456)
-    vietqr_url = f"https://img.vietqr.io/image/970422-075624456-compact2.png?amount={grand_total}&addInfo={encoded_note}&accountName=PIPO%20GARDEN"
+    vietqr_url = f"/api/pos/vietqr-image?amount={grand_total}&add_info={encoded_note}&table_code={clean_table_code}"
+    vietqr_direct_url = f"https://img.vietqr.io/image/970422-075624456-compact2.png?amount={grand_total}&addInfo={encoded_note}&accountName=PIPO%20GARDEN"
 
     return {
         "table": dict(table),
@@ -225,8 +229,63 @@ def get_table_bill(table_id: int):
         "transfer_note": transfer_note,
         "in_time": in_time_str,
         "out_time": out_time_str,
-        "vietqr_url": vietqr_url
+        "vietqr_url": vietqr_url,
+        "vietqr_direct_url": vietqr_direct_url
     }
+
+@router.get("/vietqr-image")
+def get_vietqr_image(amount: int = 0, add_info: str = "TT PiPo", table_code: str = ""):
+    """
+    Tạo hoặc chuyển tiếp ảnh VietQR động:
+    - Thử lấy ảnh trực tiếp từ VietQR gateway (MB Bank 970422 - STK 075624456 - PIPO GARDEN)
+    - Nếu không có mạng hoặc VietQR chậm: Tự sinh mã QR nhanh bằng thư viện qrcode
+    - Luôn trả về hình ảnh PNG cùng header CORS (Access-Control-Allow-Origin: *)
+    """
+    note = add_info
+    if table_code and not add_info:
+        clean_code = re.sub(r'[^a-zA-Z0-9]', '', table_code.replace("BAN ", "")) or "01"
+        note = f"TT PiPo Ban {clean_code}"
+    encoded_note = urllib.parse.quote(note)
+    
+    # 1. Thử lấy ảnh VietQR trực tuyến
+    vietqr_url = f"https://img.vietqr.io/image/970422-075624456-compact2.png?amount={amount}&addInfo={encoded_note}&accountName=PIPO%20GARDEN"
+    try:
+        req = urllib.request.Request(vietqr_url, headers={"User-Agent": "Mozilla/5.0 (PiPo POS)"})
+        with urllib.request.urlopen(req, timeout=2.5) as resp:
+            if resp.status == 200:
+                img_bytes = resp.read()
+                return Response(
+                    content=img_bytes,
+                    media_type="image/png",
+                    headers={
+                        "Access-Control-Allow-Origin": "*",
+                        "Cache-Control": "public, max-age=3600"
+                    }
+                )
+    except Exception:
+        pass
+
+    # 2. Fallback offline: Sinh mã QR cục bộ bằng qrcode
+    try:
+        import qrcode
+        qr = qrcode.QRCode(box_size=8, border=2)
+        # Cấu trúc dữ liệu thanh toán ngân hàng
+        qr_data = f"2|99|075624456|MB|{amount}|{note}"
+        qr.add_data(qr_data)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        return Response(
+            content=buf.getvalue(),
+            media_type="image/png",
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Cache-Control": "public, max-age=3600"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Không thể sinh mã QR: {e}")
 
 @router.post("/table/{table_id}/checkout")
 async def checkout_table(table_id: int, request: Request, payload: dict = None):
