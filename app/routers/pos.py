@@ -2,7 +2,9 @@
 import os
 import re
 import io
+import json
 import base64
+import logging
 import urllib.parse
 import urllib.request
 from fastapi import APIRouter, HTTPException, Request
@@ -11,6 +13,8 @@ from datetime import datetime
 from ..database import get_db
 from ..timezone_utils import now_vn_str
 from .auth import require_api_auth, get_current_user_from_request
+
+logger = logging.getLogger("pos")
 
 router = APIRouter(prefix="/api/pos", tags=["POS Cashier"])
 
@@ -236,48 +240,83 @@ def get_table_bill(table_id: int):
 @router.get("/vietqr-image")
 def get_vietqr_image(amount: int = 0, add_info: str = "TT PiPo", table_code: str = ""):
     """
-    Tạo hoặc chuyển tiếp ảnh VietQR động:
-    - Thử lấy ảnh trực tiếp từ VietQR gateway (MB Bank 970422 - STK 075624456 - PIPO GARDEN)
-    - Nếu không có mạng hoặc VietQR chậm: Tự sinh mã QR nhanh bằng thư viện qrcode
-    - Luôn trả về hình ảnh PNG cùng header CORS (Access-Control-Allow-Origin: *)
+    Tạo ảnh VietQR chuẩn PNG bitmap (MB Bank 970422 - STK 075624456 - PIPO GARDEN):
+    1. Gọi VietQR API v2 (api.vietqr.io/v2/generate) lấy mẫu ảnh PNG compact2 đẹp mắt, có logo MB Bank.
+    2. Nếu mạng chậm (>2.5s) hoặc VietQR server lỗi:
+       Tự động sinh mã QR chuẩn Napas247 VietQR EMVCo trực tiếp bằng thư viện qrcode và app.escpos.generate_vietqr_emvco.
+    3. Luôn trả về hình ảnh PNG chuẩn (b'\x89PNG...') cùng header CORS.
     """
+    from ..escpos import generate_vietqr_emvco
+
     note = add_info
     if table_code and not add_info:
-        clean_code = re.sub(r'[^a-zA-Z0-9]', '', table_code.replace("BAN ", "")) or "01"
+        clean_code = re.sub(r'[^a-zA-Z0-9]', '', table_code.replace("BAN ", "").replace("BÀN ", "")) or "01"
         note = f"TT PiPo Ban {clean_code}"
-    encoded_note = urllib.parse.quote(note)
     
-    # 1. Thử lấy ảnh VietQR trực tuyến
-    vietqr_url = f"https://img.vietqr.io/image/970422-075624456-compact2.png?amount={amount}&addInfo={encoded_note}&accountName=PIPO%20GARDEN"
+    # 1. Thử lấy ảnh VietQR template compact2 dạng PNG chuẩn từ VietQR API v2
     try:
-        req = urllib.request.Request(vietqr_url, headers={"User-Agent": "Mozilla/5.0 (PiPo POS)"})
+        url = "https://api.vietqr.io/v2/generate"
+        payload = json.dumps({
+            "accountNo": "075624456",
+            "accountName": "PIPO GARDEN",
+            "acqId": "970422",
+            "amount": int(amount or 0),
+            "addInfo": note,
+            "format": "text",
+            "template": "compact2"
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0 (PiPo POS)"
+            }
+        )
         with urllib.request.urlopen(req, timeout=2.5) as resp:
             if resp.status == 200:
-                img_bytes = resp.read()
-                return Response(
-                    content=img_bytes,
-                    media_type="image/png",
-                    headers={
-                        "Access-Control-Allow-Origin": "*",
-                        "Cache-Control": "public, max-age=3600"
-                    }
-                )
-    except Exception:
-        pass
+                res_data = json.loads(resp.read().decode("utf-8"))
+                if res_data.get("code") == "00" and "data" in res_data:
+                    qr_data_url = res_data["data"].get("qrDataURL", "")
+                    if "," in qr_data_url:
+                        b64_str = qr_data_url.split(",", 1)[1]
+                    else:
+                        b64_str = qr_data_url
+                    raw_png = base64.b64decode(b64_str)
+                    if raw_png.startswith(b"\x89PNG\r\n\x1a\n"):
+                        return Response(
+                            content=raw_png,
+                            media_type="image/png",
+                            headers={
+                                "Access-Control-Allow-Origin": "*",
+                                "Cache-Control": "public, max-age=3600"
+                            }
+                        )
+    except Exception as e:
+        logger.warning(f"VietQR API v2 warning: {e}")
 
-    # 2. Fallback offline: Sinh mã QR cục bộ bằng qrcode
+    # 2. Fallback offline: Tự sinh mã QR chuẩn Napas247 VietQR EMVCo bằng qrcode
     try:
         import qrcode
-        qr = qrcode.QRCode(box_size=8, border=2)
-        # Cấu trúc dữ liệu thanh toán ngân hàng
-        qr_data = f"2|99|075624456|MB|{amount}|{note}"
-        qr.add_data(qr_data)
+        emvco_payload = generate_vietqr_emvco(
+            bank_bin="970422",
+            account_no="075624456",
+            amount=int(amount or 0),
+            message=note
+        )
+        qr = qrcode.QRCode(
+            box_size=8,
+            border=2,
+            error_correction=qrcode.constants.ERROR_CORRECT_M
+        )
+        qr.add_data(emvco_payload)
         qr.make(fit=True)
         img = qr.make_image(fill_color="black", back_color="white")
         buf = io.BytesIO()
         img.save(buf, format="PNG")
+        png_bytes = buf.getvalue()
         return Response(
-            content=buf.getvalue(),
+            content=png_bytes,
             media_type="image/png",
             headers={
                 "Access-Control-Allow-Origin": "*",
@@ -285,7 +324,8 @@ def get_vietqr_image(amount: int = 0, add_info: str = "TT PiPo", table_code: str
             }
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Không thể sinh mã QR: {e}")
+        logger.error(f"Fallback VietQR error: {e}")
+        raise HTTPException(status_code=500, detail=f"Không thể sinh mã VietQR: {e}")
 
 @router.post("/table/{table_id}/checkout")
 async def checkout_table(table_id: int, request: Request, payload: dict = None):
