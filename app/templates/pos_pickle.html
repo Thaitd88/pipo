@@ -1248,6 +1248,17 @@
       if (qrContainer) {
         if (method === "TRANSFER") {
           qrContainer.classList.remove("hidden");
+          if (currentTargetCourt && currentCheckoutBill) {
+            const grandTotal = currentCheckoutBill.grand_total || currentCheckoutBill.total || 0;
+            const rawCode = currentTargetCourt.table_code || "PK01";
+            const cleanCode = rawCode.replace(/[^a-zA-Z0-9]/g, '');
+            const transferNote = `TT PiPo Ban ${cleanCode}`;
+            const qrUrl = `/api/pos/vietqr-image?amount=${grandTotal}&add_info=${encodeURIComponent(transferNote)}&table_code=${encodeURIComponent(cleanCode)}`;
+            const qrImg = document.getElementById("checkoutQRImg");
+            if (qrImg && qrImg.src !== qrUrl) qrImg.src = qrUrl;
+            const noteEl = document.getElementById("checkoutTransferNote");
+            if (noteEl) noteEl.innerText = transferNote;
+          }
         } else {
           qrContainer.classList.add("hidden");
         }

@@ -726,7 +726,7 @@
         <button onclick="closePosBillDetailModal()" class="px-3.5 py-2.5 rounded-xl border border-stone-300 text-stone-700 font-bold text-xs hover:bg-stone-50 transition cursor-pointer">
           Đóng
         </button>
-        <button onclick="downloadHistoryReceiptImage()" class="flex-1 py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition cursor-pointer" title="Tải ảnh hóa đơn gửi khách">
+        <button onclick="downloadHistoryReceiptImage(this)" class="flex-1 py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition cursor-pointer" title="Tải ảnh hóa đơn gửi khách">
           <i class="fa-solid fa-camera"></i>
           <span>Lưu / Tải Ảnh Bill</span>
         </button>
@@ -734,7 +734,6 @@
           <i class="fa-solid fa-print"></i>
           <span>In Lại Bill</span>
         </button>
-      </div>
       </div>
     </div>
   </div>
@@ -1126,7 +1125,7 @@
         <button onclick="closePrintBillModal()" class="px-3.5 py-2.5 rounded-xl border border-stone-300 text-stone-700 font-bold text-xs hover:bg-stone-50 transition">
           Đóng
         </button>
-        <button onclick="downloadReceiptImage()" class="flex-1 py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition" title="Tải ảnh hóa đơn chất lượng cao về máy để gửi khách">
+        <button onclick="downloadReceiptImage(this)" class="flex-1 py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition" title="Tải ảnh hóa đơn chất lượng cao về máy để gửi khách">
           <i class="fa-solid fa-camera"></i>
           <span>Lưu / Tải Ảnh Bill</span>
         </button>
@@ -3307,11 +3306,13 @@
       document.getElementById("printBillModal").classList.add("hidden");
     }
 
-    async function downloadReceiptImage() {
+    async function downloadReceiptImage(btn = null) {
       const receiptEl = document.getElementById("printableReceipt");
       if (!receiptEl) return;
 
-      const btn = event ? event.currentTarget : null;
+      if (!btn && typeof event !== "undefined" && event) {
+        btn = event.currentTarget || event.target;
+      }
       let originalHtml = "";
       if (btn) {
         originalHtml = btn.innerHTML;
@@ -3734,11 +3735,13 @@
       currentViewingBill = null;
     }
 
-    async function downloadHistoryReceiptImage() {
+    async function downloadHistoryReceiptImage(btn = null) {
       const receiptEl = document.getElementById("printableHistoryReceipt");
       if (!receiptEl) return;
 
-      const btn = event ? event.currentTarget : null;
+      if (!btn && typeof event !== "undefined" && event) {
+        btn = event.currentTarget || event.target;
+      }
       let originalHtml = "";
       if (btn) {
         originalHtml = btn.innerHTML;

@@ -3,6 +3,7 @@ import base64
 import json
 import random
 import re
+import uuid
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -125,11 +126,13 @@ class PickleballBookingCreate(BaseModel):
     notes: Optional[str] = ""
 
 def generate_vietqr_url(bank_id: str, account_no: str, account_name: str, amount: int, memo: str) -> str:
-    """Tạo link mã VietQR động tự điền số tiền và cú pháp."""
-    clean_memo = re.sub(r'[^a-zA-Z0-9 ]', '', memo).strip()
-    encoded_memo = clean_memo.replace(" ", "%20")
-    encoded_name = account_name.replace(" ", "%20")
-    return f"https://img.vietqr.io/image/{bank_id}-{account_no}-compact2.png?amount={amount}&addInfo={encoded_memo}&accountName={encoded_name}"
+    """
+    Tạo URL endpoint nội bộ cho ảnh mã VietQR PNG chuẩn.
+    Dùng /api/pos/vietqr-image thay vì img.vietqr.io (ảnh SVG không tương thích).
+    """
+    import urllib.parse as _uparse
+    clean_memo = re.sub(r'[^a-zA-Z0-9 ]', '', memo).strip()[:25]
+    return f"/api/pos/vietqr-image?amount={int(amount)}&add_info={_uparse.quote(clean_memo)}"
 
 @router.get("/config")
 def get_pickleball_config():
@@ -672,7 +675,6 @@ def record_membership_order_and_print(cursor, member: dict, amount: int, payment
     table_id = table_row["id"] if table_row else 29
     table_dict = dict(table_row) if table_row else {"name": "Sân Pickle", "area": "Sân Pickle", "table_code": "PK-01"}
 
-    import uuid
     sess_token = f"mbr_{uuid.uuid4().hex[:10]}"
     cursor.execute("""
         INSERT INTO table_sessions (table_id, session_token, status, guest_count, opened_at, closed_at)
@@ -680,7 +682,6 @@ def record_membership_order_and_print(cursor, member: dict, amount: int, payment
     """, (table_id, sess_token, now_ts, now_ts))
     session_id = cursor.lastrowid
 
-    import uuid
     new_order_uuid = f"ord_{uuid.uuid4().hex}"
     cursor.execute("""
         INSERT INTO orders (

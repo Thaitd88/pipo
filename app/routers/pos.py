@@ -328,15 +328,17 @@ def get_vietqr_image(amount: int = 0, add_info: str = "TT PiPo", table_code: str
         raise HTTPException(status_code=500, detail=f"Không thể sinh mã VietQR: {e}")
 
 @router.post("/table/{table_id}/checkout")
-async def checkout_table(table_id: int, request: Request, payload: dict = None):
+async def checkout_table(table_id: int, request: Request):
     user = require_api_auth(request, allowed_roles=["ADMIN", "CASHIER", "WAITER", "PICKLEBALL"])
-    if payload is None:
-        try:
-            payload = await request.json()
-        except Exception:
-            payload = {}
+    try:
+        payload = await request.json()
+    except Exception:
+        payload = {}
 
-    discount_percent = float(payload.get("discount_percent") or 0)
+    try:
+        discount_percent = float(payload.get("discount_percent") or 0)
+    except (ValueError, TypeError):
+        discount_percent = 0.0
     discount_amount = max(0, int(payload.get("discount_amount") or 0))
     discount_reason = (payload.get("discount_reason") or "").strip()
     service_fee = max(0, int(payload.get("service_fee") or 0))
@@ -464,11 +466,13 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
                 WHERE id = ?
             """, (now_ts, payment_method, bill_target, billed_admin_id, billed_admin_name, actual_sub, actual_sub, other_uuid, other_order["id"]))
 
-    # 2. Đánh dấu tất cả món của các đơn bàn này là SERVED và tự động trừ kho NVL (kèm nước Social, v.v.)
+    # 2. Đánh dấu tất cả món của phiên UNPAID hiện tại là SERVED và tự động trừ kho NVL
     cursor.execute("""
         UPDATE order_items 
         SET status = 'SERVED'
-        WHERE order_id IN (SELECT id FROM orders WHERE table_id = ?)
+        WHERE order_id IN (
+            SELECT id FROM orders WHERE table_id = ? AND payment_status = 'UNPAID'
+        ) AND status NOT IN ('CANCELLED', 'SERVED')
     """, (table_id,))
 
     try:
@@ -484,7 +488,7 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
         SET payment_status = 'PAID', status = 'COMPLETED', completed_at = COALESCE(completed_at, ?)
         WHERE table_id = ? AND payment_status = 'UNPAID'
     """, (now_ts, table_id))
-    cursor.execute("UPDATE table_sessions SET status = 'CLOSED', closed_at = CURRENT_TIMESTAMP WHERE table_id = ?", (table_id,))
+    cursor.execute("UPDATE table_sessions SET status = 'CLOSED', closed_at = ? WHERE table_id = ?", (now_ts, table_id))
 
     # 4. Đưa bàn về trạng thái AVAILABLE sẵn sàng cho khách mới
     cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL WHERE id = ?", (table_id,))
@@ -493,6 +497,7 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
     conn.close()
 
     # Tự động in hóa đơn thanh toán xuống Máy in Thu ngân (80mm)
+    print_success = False
     try:
         from ..escpos import format_receipt_ticket_text, build_escpos_receipt_bytes
         cashier_display = user.get("full_name") or "Thu Ngan PiPo"
@@ -500,7 +505,7 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
             "title": "HOA DON THANH TOAN",
             "cashier_name": cashier_display,
             "discount": discount_amount,
-            "discount_percent": int(discount_percent) if discount_percent.is_integer() else discount_percent if discount_percent > 0 else None,
+            "discount_percent": int(discount_percent) if isinstance(discount_percent, float) and discount_percent.is_integer() else (discount_percent if discount_percent > 0 else None),
             "discount_reason": discount_reason,
             "service_fee": service_fee,
             "payment_method": payment_method,
@@ -539,7 +544,7 @@ async def checkout_table(table_id: int, request: Request, payload: dict = None):
             from ..printer_service import async_dispatch_cashier_print
             await async_dispatch_cashier_print(receipt_bytes)
     except Exception as ex:
-        print("[POS Checkout Receipt Print Error]:", ex)
+        logger.error(f"[POS Checkout Receipt Print Error]: {ex}")
 
     if ws_broadcaster:
         # Thông báo tới toàn hệ thống
@@ -631,13 +636,18 @@ async def get_bills_history(limit: int = 60, search: str = ""):
     """Lấy danh sách các hóa đơn đã thanh toán để thu ngân xem lại và in lại bill (gom toàn bộ món theo phiên bàn)."""
     conn = get_db()
     cursor = conn.cursor()
+
+    # Lấy tất cả orders PAID cùng items của chúng bằng 1 JOIN query duy nhất (tránh N+1 queries)
     query = """
         SELECT o.id, o.session_id, o.table_id, o.round_number, o.subtotal, o.total,
                o.payment_status, o.payment_method, o.discount, o.discount_reason,
                o.service_fee, o.bill_target, o.billed_admin_name, o.created_at, o.completed_at,
-               t.name as table_name, t.table_code, t.area
+               t.name as table_name, t.table_code, t.area,
+               oi.item_name, oi.quantity, oi.unit_price, oi.total_price,
+               oi.station, oi.note, oi.status as item_status
         FROM orders o
         JOIN tables t ON o.table_id = t.id
+        LEFT JOIN order_items oi ON oi.order_id = o.id
         WHERE o.payment_status = 'PAID'
     """
     params = []
@@ -646,11 +656,12 @@ async def get_bills_history(limit: int = 60, search: str = ""):
         s = f"%{search}%"
         params.extend([s, s, s, s])
 
-    query += " ORDER BY COALESCE(o.completed_at, o.created_at) DESC, o.id DESC LIMIT ?"
-    params.append(limit * 4)
+    query += " ORDER BY COALESCE(o.completed_at, o.created_at) DESC, o.id DESC, oi.id ASC LIMIT ?"
+    params.append(limit * 4 * 20)  # Giới hạn đủ rộng để cover items
 
     cursor.execute(query, tuple(params))
     rows = cursor.fetchall()
+    conn.close()
 
     from collections import OrderedDict
     grouped = OrderedDict()
@@ -658,13 +669,6 @@ async def get_bills_history(limit: int = 60, search: str = ""):
     for r in rows:
         sess_id = r["session_id"]
         key = f"sess_{sess_id}" if sess_id else f"ord_{r['id']}"
-
-        cursor.execute("""
-            SELECT item_name, quantity, unit_price, total_price, station, note, status
-            FROM order_items
-            WHERE order_id = ?
-        """, (r["id"],))
-        order_items = [dict(it) for it in cursor.fetchall()]
 
         if key not in grouped:
             grouped[key] = {
@@ -688,20 +692,30 @@ async def get_bills_history(limit: int = 60, search: str = ""):
             }
 
         g = grouped[key]
-        g["order_ids"].append(r["id"])
-        g["subtotal"] += (r["subtotal"] or 0)
-        g["discount"] += (r["discount"] or 0)
-        if r["discount_reason"] and not g["discount_reason"]:
-            g["discount_reason"] = r["discount_reason"]
-        g["service_fee"] += (r["service_fee"] or 0)
-        g["total"] += (r["total"] or 0)
-        g["raw_items"].extend(order_items)
+        if r["id"] not in g["order_ids"]:
+            g["order_ids"].append(r["id"])
+            g["subtotal"] += (r["subtotal"] or 0)
+            g["discount"] += (r["discount"] or 0)
+            if r["discount_reason"] and not g["discount_reason"]:
+                g["discount_reason"] = r["discount_reason"]
+            g["service_fee"] += (r["service_fee"] or 0)
+            g["total"] += (r["total"] or 0)
 
-        cur_paid_at = r["completed_at"] or r["created_at"]
-        if cur_paid_at and (not g["paid_at"] or cur_paid_at > g["paid_at"]):
-            g["paid_at"] = cur_paid_at
+            cur_paid_at = r["completed_at"] or r["created_at"]
+            if cur_paid_at and (not g["paid_at"] or cur_paid_at > g["paid_at"]):
+                g["paid_at"] = cur_paid_at
 
-    conn.close()
+        # Thêm item nếu có (LEFT JOIN trả None nếu order không có items)
+        if r["item_name"] is not None:
+            g["raw_items"].append({
+                "item_name": r["item_name"],
+                "quantity": r["quantity"],
+                "unit_price": r["unit_price"],
+                "total_price": r["total_price"],
+                "station": r["station"],
+                "note": r["note"],
+                "status": r["item_status"]
+            })
 
     bills = []
     for g in list(grouped.values())[:limit]:

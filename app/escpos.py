@@ -8,19 +8,15 @@ from .timezone_utils import now_vn_str
 # Font A (12x24 dots): 48 ký tự / dòng (576 dots / 72mm printable width)
 LINE_WIDTH_80MM = 48
 
+_VN_ACCENTS = u'ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝàáâãèéêìíòóôõùúýĂăĐđĨĩŨũƠơƯưẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾếỀềỂểỄễỆệỈỉỊịỌọỎỏỐốỒồỔổỖỗỘộỚớỜờỞởỠỡỢợỤụỦủỨứỪừỬửỮữỰựỲỳỴỵỶỷỸỹ'
+_VN_NO_ACCENTS = u'AAAAEEEIIOOOOUUYaaaaeeeiioooouuyAaDdIiUuOoUuAaAaAaAaAaAaAaAaAaAaAaAaEeEeEeEeEeEeEeEeIiIiOoOoOoOoOoOoOoOoOoOoOoOoUuUuUuUuUuUuUuYyYyYyYy'
+_VN_TRANS_TABLE = str.maketrans(_VN_ACCENTS, _VN_NO_ACCENTS)
+
 def remove_vietnamese_accents(input_str: str) -> str:
     """Chuyển đổi tiếng Việt có dấu sang không dấu để tương thích 100% với firmware máy in nhiệt T80W."""
     if not input_str:
         return ""
-    s1 = u'ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝàáâãèéêìíòóôõùúýĂăĐđĨĩŨũƠơƯưẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾếỀềỂểỄễỆệỈỉỊịỌọỎỏỐốỒồỔổỖỗỘộỚớỜờỞởỠỡỢợỤụỦủỨứỪừỬửỮữỰựỲỳỴỵỶỷỸỹ'
-    s0 = u'AAAAEEEIIOOOOUUYaaaaeeeiioooouuyAaDdIiUuOoUuAaAaAaAaAaAaAaAaAaAaAaAaEeEeEeEeEeEeEeEeIiIiOoOoOoOoOoOoOoOoOoOoOoOoUuUuUuUuUuUuUuYyYyYyYy'
-    s = ''
-    for c in input_str:
-        if c in s1:
-            s += s0[s1.index(c)]
-        else:
-            s += c
-    return s
+    return str(input_str).translate(_VN_TRANS_TABLE)
 
 def format_currency_vnd(amount: int) -> str:
     """Định dạng tiền tệ theo chuẩn VNĐ (VD: 165000 -> 165.000 d)"""
