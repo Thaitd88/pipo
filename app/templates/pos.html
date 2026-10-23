@@ -4440,7 +4440,6 @@
       const titleEl = document.getElementById("posOrderModalTitle");
       if (titleEl) titleEl.innerText = `Gọi Món Cho ${target.name}`;
 
-      const hasItems = (target.total_items > 0) || (currentBillData && currentBillData.items && currentBillData.items.length > 0 && selectedTable && selectedTable.id === target.id);
       const roundBadge = document.getElementById("posOrderRoundBadge");
       if (roundBadge) {
         roundBadge.innerText = hasItems ? "Đợt Gọi Thêm" : "Mở Bàn / Đợt 1";
