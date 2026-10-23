@@ -342,8 +342,7 @@ async def api_custom_kitchen_ticket(payload: CustomKitchenTicketPayload):
             dest_ip = p_cfg["cashier_ip"] if is_cashier_side else p_cfg["kitchen_ip"]
             dest_port = p_cfg["cashier_port"] if is_cashier_side else p_cfg["kitchen_port"]
             import asyncio
-            loop = asyncio.get_event_loop()
-            loop.run_in_executor(None, send_escpos_to_printer, dest_ip, dest_port, escpos_bytes)
+            asyncio.create_task(asyncio.to_thread(send_escpos_to_printer, dest_ip, dest_port, escpos_bytes))
         except Exception as _e:
             print("[Custom Kitchen Socket Error]:", _e)
 

@@ -111,7 +111,8 @@ def export_orders(since: Optional[str] = None, limit: int = 200):
         query += " AND (o.payment_status = 'UNPAID' OR o.created_at > ? OR o.completed_at > ?)"
         params.extend([since, since])
     
-    query += " ORDER BY o.id ASC LIMIT ?"
+    # Ưu tiên các đơn UNPAID lên đầu tiên, sau đó đến các đơn mới nhất (ID giảm dần)
+    query += " ORDER BY (CASE WHEN o.payment_status = 'UNPAID' THEN 0 ELSE 1 END) ASC, o.id DESC LIMIT ?"
     params.append(limit)
 
     cursor.execute(query, tuple(params))
@@ -235,16 +236,20 @@ async def import_orders(payload: Dict[str, Any]):
             existing_order = cursor.fetchone()
 
         if existing_order:
-            # Nếu đơn là UNPAID, đảm bảo bàn và session luôn ở trạng thái OCCUPIED / ACTIVE
-            if o.get('payment_status') == 'UNPAID':
-                cursor.execute('UPDATE tables SET status = \'OCCUPIED\', current_session_id = ? WHERE id = ?', (local_session_id, local_table_id))
-                cursor.execute('UPDATE table_sessions SET status = \'ACTIVE\' WHERE id = ?', (local_session_id,))
+            # 1. BẢO VỆ CHỐNG HỒI QUY: Đơn đã PAID thì tuyệt đối không bao giờ bị ghi đè ngược về UNPAID do sync trễ/cũ!
+            if existing_order["payment_status"] == "PAID" and o.get("payment_status") != "PAID":
+                continue
 
-            # ĐÃ TỒN TẠI: Cập nhật order_uuid nếu đơn này chưa có
+            # 2. ĐÃ TỒN TẠI: Cập nhật order_uuid nếu đơn này chưa có
             if incoming_uuid and not existing_order["order_uuid"]:
                 cursor.execute("UPDATE orders SET order_uuid = ? WHERE id = ?", (incoming_uuid, existing_order["id"]))
 
-            # Cập nhật trạng thái thanh toán nếu có thay đổi
+            # 3. Chỉ đánh dấu OCCUPIED nếu đơn incoming thực sự là UNPAID VÀ đơn trong DB cũng không phải là PAID
+            if o.get('payment_status') == 'UNPAID' and existing_order["payment_status"] != 'PAID':
+                cursor.execute('UPDATE tables SET status = \'OCCUPIED\', current_session_id = ? WHERE id = ?', (local_session_id, local_table_id))
+                cursor.execute('UPDATE table_sessions SET status = \'ACTIVE\' WHERE id = ?', (local_session_id,))
+
+            # 4. Cập nhật trạng thái thanh toán nếu có thay đổi
             if o.get("payment_status") != existing_order["payment_status"] or o.get("status") != existing_order["status"]:
                 cursor.execute("""
                     UPDATE orders 

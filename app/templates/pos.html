@@ -2886,7 +2886,7 @@
             </div>
             <h4 class="font-bold text-stone-800 text-sm">Bàn hiện chưa có món nào</h4>
             <p class="text-xs text-stone-400 mt-1 mb-4">Khách vừa vào bàn? Bấm nút bên dưới để chọn món và gửi thẳng vào bếp:</p>
-            <button type="button" onclick="openPosOrderModal()" class="w-full py-3 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2">
+            <button type="button" onclick="openPosOrderModal(${tableId})" class="w-full py-3 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2">
               <i class="fa-solid fa-utensils"></i>
               <span>Mở Bàn & Chọn Món Vào Bếp</span>
             </button>
@@ -2896,7 +2896,7 @@
         const hasUnserved = currentBillData.items.some(it => it.status !== 'SERVED' && it.status !== 'CANCELLED');
         let headerActions = `
           <div class="mb-3">
-            <button type="button" onclick="openPosOrderModal()" class="w-full py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs">
+            <button type="button" onclick="openPosOrderModal(${tableId})" class="w-full py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs">
               <i class="fa-solid fa-plus-circle text-emerald-700"></i>
               <span>Gọi Thêm Món Cho Bàn Này (Đợt Mới)</span>
             </button>
@@ -3509,23 +3509,26 @@
       if (payMethod === "TRANSFER") methodLabel = "Chuyển khoản (VietQR)";
       else if (payMethod === "INTERNAL") methodLabel = `Tính tiền nội bộ (${billedAdminName || 'Nội bộ'})`;
 
+      const hasItems = (currentBillData?.items && currentBillData.items.length > 0) || (currentBillData?.grand_total > 0);
       const finalPay = Math.max(0, (currentBillData?.grand_total || 0) - discountAmount + serviceFee);
-      if (finalPay <= 0 && serviceFee <= 0) {
-        alert("Bàn chưa có món ăn hoặc phí dịch vụ để thu tiền!");
-        isTableCheckingOut = false;
-        return;
-      }
 
-      let confirmMsg = `Xác nhận thanh toán và mở lại bàn ${selectedTable.name}?\n• Hình thức thanh toán: ${methodLabel}`;
-      if (serviceFee > 0) {
-        confirmMsg += `\n• Phí phục vụ / phụ thu: +${formatVND(serviceFee)}`;
-      }
-      if (discountAmount > 0) {
-        confirmMsg += `\n• Giảm giá ${discountPercent}%: -${formatVND(discountAmount)} (${discountReason || 'Không có'})`;
-      }
-      confirmMsg += `\n• Tổng thanh toán: ${formatVND(finalPay)}`;
+      if (!hasItems && serviceFee <= 0) {
+        if (!confirm(`Bàn ${selectedTable.name} hiện không có món ăn hoặc phát sinh phí.\nBạn có muốn giải phóng bàn về trạng thái TRỐNG không?`)) {
+          isTableCheckingOut = false;
+          return;
+        }
+      } else {
+        let confirmMsg = `Xác nhận thanh toán và mở lại bàn ${selectedTable.name}?\n• Hình thức thanh toán: ${methodLabel}`;
+        if (serviceFee > 0) {
+          confirmMsg += `\n• Phí phục vụ / phụ thu: +${formatVND(serviceFee)}`;
+        }
+        if (discountAmount > 0) {
+          confirmMsg += `\n• Giảm giá ${discountPercent}%: -${formatVND(discountAmount)} (${discountReason || 'Không có'})`;
+        }
+        confirmMsg += `\n• Tổng thanh toán: ${formatVND(finalPay)}`;
 
-      if (!confirm(confirmMsg)) { isTableCheckingOut = false; return; }
+        if (!confirm(confirmMsg)) { isTableCheckingOut = false; return; }
+      }
 
       try {
         const payload = {
@@ -3546,10 +3549,22 @@
         });
 
         if (res.ok) {
+          const checkedTblId = selectedTable ? selectedTable.id : null;
           const checkedTblName = selectedTable ? selectedTable.name : "bàn";
+
+          // Cập nhật trạng thái ngay lập tức trên UI (Optimistic UI Update)
+          if (checkedTblId) {
+            const localTbl = allTables.find(t => t.id === checkedTblId);
+            if (localTbl) {
+              localTbl.status = 'AVAILABLE';
+              localTbl.current_bill_total = 0;
+              localTbl.unpaid_orders_count = 0;
+            }
+          }
           selectedTable = null;
           closeBillDrawer();
-          showPosToast(`✅ Đã thanh toán bàn ${checkedTblName}! Máy in đang tự động in hóa đơn...`);
+          renderTablesGrid();
+          showPosToast(`✅ Đã thanh toán và mở lại bàn ${checkedTblName}! Máy in đang in hóa đơn...`);
           try {
             await fetchTablesOverview();
             const billHistPanel = document.getElementById("tabContent-bill-history");
@@ -4405,8 +4420,9 @@
 
     async function openPosOrderModal(tableId = null) {
       let target = null;
-      if (tableId) {
-        target = allTables.find(t => t.id == tableId) || { id: tableId, name: `Bàn ${tableId}`, area: '' };
+      const tid = tableId || selectedTable?.id || currentBillData?.table_id;
+      if (tid) {
+        target = allTables.find(t => t.id == tid) || selectedTable || { id: tid, name: `Bàn ${tid}`, area: '' };
       } else if (selectedTable) {
         target = selectedTable;
       }
@@ -4416,7 +4432,7 @@
         return;
       }
 
-      // Đóng drawer sau khi đã xác định chắc chắn target
+      const hasItems = (target.total_items > 0) || (currentBillData && currentBillData.items && currentBillData.items.length > 0);
       closeBillDrawer();
 
       posOrderTargetTable = target;
@@ -5104,8 +5120,8 @@
 
         // Nếu có ghi vào bill và chọn bàn, làm mới dữ liệu bàn
         if (tableId && addToBill) {
-          if (typeof loadTables === 'function') loadTables();
-          if (typeof currentPosTable !== 'undefined' && currentPosTable && currentPosTable.id === tableId) {
+          if (typeof fetchTablesOverview === 'function') fetchTablesOverview();
+          if (typeof selectedTable !== 'undefined' && selectedTable && selectedTable.id === tableId) {
             if (typeof openTableDetails === 'function') openTableDetails(tableId);
           }
         }

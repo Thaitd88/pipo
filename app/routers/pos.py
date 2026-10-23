@@ -383,10 +383,23 @@ async def checkout_table(table_id: int, request: Request):
         # Nếu không có đơn hàng và không có phụ thu -> Giải phóng bàn, tuyệt đối không tạo đơn 0đ rác
         if service_fee <= 0 and discount_amount <= 0:
             cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL WHERE id = ?", (table_id,))
-            if table["current_session_id"]:
-                cursor.execute("UPDATE table_sessions SET status = 'CLOSED', closed_at = ? WHERE id = ?", (now_ts, table["current_session_id"]))
+            cursor.execute("UPDATE table_sessions SET status = 'CLOSED', closed_at = ? WHERE table_id = ?", (now_ts, table_id))
             conn.commit()
             conn.close()
+
+            if ws_broadcaster:
+                try:
+                    event_data = {
+                        "event": "TABLE_CHECKED_OUT",
+                        "table_id": table_id,
+                        "table_code": table["table_code"],
+                        "table_name": table["name"]
+                    }
+                    await ws_broadcaster.send_to_pos(event_data)
+                    await ws_broadcaster.send_to_kds(event_data)
+                except Exception as _ws_err:
+                    logger.warning(f"[POS Checkout WS error]: {_ws_err}")
+
             return {
                 "status": "SUCCESS",
                 "message": f"Bàn {table['name']} đã được trả về trạng thái trống (không phát sinh hóa đơn).",
@@ -466,14 +479,15 @@ async def checkout_table(table_id: int, request: Request):
                 WHERE id = ?
             """, (now_ts, payment_method, bill_target, billed_admin_id, billed_admin_name, actual_sub, actual_sub, other_uuid, other_order["id"]))
 
-    # 2. Đánh dấu tất cả món của phiên UNPAID hiện tại là SERVED và tự động trừ kho NVL
-    cursor.execute("""
-        UPDATE order_items 
-        SET status = 'SERVED'
-        WHERE order_id IN (
-            SELECT id FROM orders WHERE table_id = ? AND payment_status = 'UNPAID'
-        ) AND status NOT IN ('CANCELLED', 'SERVED')
-    """, (table_id,))
+    # 2. Đánh dấu tất cả món của các đơn checkout là SERVED và tự động trừ kho NVL
+    order_ids = [co["id"] for co in checkout_orders if co.get("id")]
+    if order_ids:
+        placeholders = ",".join("?" for _ in order_ids)
+        cursor.execute(f"""
+            UPDATE order_items 
+            SET status = 'SERVED'
+            WHERE order_id IN ({placeholders}) AND status NOT IN ('CANCELLED', 'SERVED')
+        """, order_ids)
 
     try:
         from ..database import deduct_inventory_for_order_item
@@ -498,6 +512,8 @@ async def checkout_table(table_id: int, request: Request):
 
     # Tự động in hóa đơn thanh toán xuống Máy in Thu ngân (80mm)
     print_success = False
+    receipt_text = None
+    receipt_b64 = None
     try:
         from ..escpos import format_receipt_ticket_text, build_escpos_receipt_bytes
         cashier_display = user.get("full_name") or "Thu Ngan PiPo"
@@ -547,19 +563,22 @@ async def checkout_table(table_id: int, request: Request):
         logger.error(f"[POS Checkout Receipt Print Error]: {ex}")
 
     if ws_broadcaster:
-        # Thông báo tới toàn hệ thống
-        event_data = {
-            "event": "TABLE_CHECKED_OUT",
-            "table_id": table_id,
-            "table_code": table["table_code"],
-            "table_name": table["name"]
-        }
-        await ws_broadcaster.send_to_pos(event_data)
-        await ws_broadcaster.send_to_kds(event_data)
-        await ws_broadcaster.send_to_customer(table_id, {
-            "event": "TABLE_CHECKED_OUT",
-            "message": "Cảm ơn quý khách đã dùng bữa tại PiPo Garden! Hẹn gặp lại quý khách."
-        })
+        try:
+            # Thông báo tới toàn hệ thống
+            event_data = {
+                "event": "TABLE_CHECKED_OUT",
+                "table_id": table_id,
+                "table_code": table["table_code"],
+                "table_name": table["name"]
+            }
+            await ws_broadcaster.send_to_pos(event_data)
+            await ws_broadcaster.send_to_kds(event_data)
+            await ws_broadcaster.send_to_customer(table_id, {
+                "event": "TABLE_CHECKED_OUT",
+                "message": "Cảm ơn quý khách đã dùng bữa tại PiPo Garden! Hẹn gặp lại quý khách."
+            })
+        except Exception as ws_err:
+            logger.warning(f"[POS Checkout WS error]: {ws_err}")
 
     total_bill_amount = sum(it["total_price"] for it in checkout_items if it.get("status") != "CANCELLED")
     final_checkout_total = max(0, total_bill_amount - discount_amount + service_fee)
