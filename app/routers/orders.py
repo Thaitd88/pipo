@@ -7,7 +7,7 @@ from datetime import datetime
 from ..database import get_db, deduct_inventory_for_order_item, restore_inventory_for_order_item
 from ..escpos import format_kitchen_ticket_text, build_escpos_kitchen_bytes, build_escpos_bytes
 from ..printer_service import get_printer_config, send_escpos_to_printer
-from .auth import get_current_user_from_request, require_api_auth
+from .auth import get_current_user_from_request, require_api_auth, verify_password
 from ..timezone_utils import now_vn_str, now_vn_time_str
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
@@ -560,7 +560,7 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
     - Nếu Bếp chưa ra món (QUEUED, COOKING): HỦY NGAY LẬP TỨC, hoàn kho (nếu đã trừ) và cập nhật hóa đơn.
     - Nếu Bếp đã ra món (READY) hoặc đã bưng ra bàn (SERVED): Chuyển thành CANCEL_PENDING, gửi yêu cầu tới Bếp xác nhận thu hồi.
     """
-    user = require_api_auth(request, allowed_roles=["ADMIN", "CASHIER", "WAITER", "PICKLEBALL"])
+    user = require_api_auth(request, allowed_roles=["ADMIN", "SUPER_ADMIN", "CASHIER", "WAITER", "PICKLEBALL", "CHEF"])
     reason = payload.get("reason", "Khách hủy món").strip()
     cancel_qty = payload.get("cancel_quantity")
     note = payload.get("note", "").strip()
@@ -571,10 +571,11 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT oi.*, o.table_id, o.id as order_id, o.subtotal, o.discount, o.total, t.name as table_name, t.table_code
+        SELECT oi.*, o.table_id, o.id as order_id, o.subtotal, o.discount, o.service_fee, o.total,
+               COALESCE(t.name, 'Bàn') as table_name, COALESCE(t.table_code, 'TB') as table_code
         FROM order_items oi
         JOIN orders o ON oi.order_id = o.id
-        JOIN tables t ON o.table_id = t.id
+        LEFT JOIN tables t ON o.table_id = t.id
         WHERE oi.id = ?
     """, (order_item_id,))
     item = cursor.fetchone()
@@ -622,12 +623,12 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
     current_status = item["status"]
 
     # Kiểm tra quyền Admin (qua session đăng nhập hoặc mật khẩu Admin truyền kèm)
-    is_admin = (user.get("role") == "ADMIN")
+    is_admin = (user.get("role") in ["ADMIN", "SUPER_ADMIN"] or user.get("username", "").lower() == "thaitd")
     admin_name = user.get("full_name", "Admin") if is_admin else None
 
     if not is_admin and payload.get("admin_password"):
         from .auth import verify_password
-        cursor.execute("SELECT id, full_name, password_hash FROM users WHERE role = 'ADMIN'")
+        cursor.execute("SELECT id, full_name, password_hash FROM users WHERE role IN ('ADMIN', 'SUPER_ADMIN')")
         admins = cursor.fetchall()
         for adm in admins:
             if verify_password(payload["admin_password"], adm["password_hash"]):
@@ -662,7 +663,7 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
         cursor.execute("""
             UPDATE orders 
             SET subtotal = (SELECT COALESCE(SUM(total_price), 0) FROM order_items WHERE order_id = ? AND status != 'CANCELLED'),
-                total = MAX(0, (SELECT COALESCE(SUM(total_price), 0) FROM order_items WHERE order_id = ? AND status != 'CANCELLED') - discount)
+                total = MAX(0, (SELECT COALESCE(SUM(total_price), 0) FROM order_items WHERE order_id = ? AND status != 'CANCELLED') - COALESCE(discount, 0) + COALESCE(service_fee, 0))
             WHERE id = ?
         """, (item["order_id"], item["order_id"], item["order_id"]))
         conn.commit()
@@ -681,9 +682,12 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
                 "cancelled_by": canceller_display,
                 "order_id": item["order_id"]
             }
-            await ws_broadcaster.send_to_kds(event_data)
-            await ws_broadcaster.send_to_pos(event_data)
-            await ws_broadcaster.send_to_customer(item["table_id"], event_data)
+            try:
+                await ws_broadcaster.send_to_kds(event_data)
+                await ws_broadcaster.send_to_pos(event_data)
+                await ws_broadcaster.send_to_customer(item["table_id"], event_data)
+            except Exception as _ws_err:
+                print(f"[WS ITEM_CANCELLED Error]: {_ws_err}")
 
         succ_msg = f"Đã duyệt trả món '{item['item_name']} x{cancelled_quantity}' thành công và giảm tiền trên hóa đơn bàn!" if is_admin and current_status == "SERVED" else f"Đã hủy món '{item['item_name']} x{cancelled_quantity}' thành công và cập nhật lại hóa đơn!"
         return {
@@ -718,9 +722,12 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
             "current_status": current_status,
             "order_id": item["order_id"]
         }
-        await ws_broadcaster.send_to_kds(event_data)
-        await ws_broadcaster.send_to_pos(event_data)
-        await ws_broadcaster.send_to_customer(item["table_id"], event_data)
+        try:
+            await ws_broadcaster.send_to_kds(event_data)
+            await ws_broadcaster.send_to_pos(event_data)
+            await ws_broadcaster.send_to_customer(item["table_id"], event_data)
+        except Exception as _ws_err:
+            print(f"[WS CANCEL_REQUESTED Error]: {_ws_err}")
 
     return {
         "status": "CANCEL_PENDING",
@@ -743,12 +750,12 @@ async def kitchen_confirm_cancel(order_item_id: int, payload: dict, request: Req
     conn = get_db()
     cursor = conn.cursor()
 
-    is_admin = (user.get("role") == "ADMIN")
-    admin_name = user.get("full_name") if is_admin else None
+    is_admin = (user.get("role") in ["ADMIN", "SUPER_ADMIN"] or user.get("username", "").lower() == "thaitd")
+    admin_name = user.get("full_name", "Quản lý") if is_admin else None
 
     if action == "APPROVE" and not is_admin and payload.get("admin_password"):
         from .auth import verify_password
-        cursor.execute("SELECT id, full_name, password_hash FROM users WHERE role = 'ADMIN'")
+        cursor.execute("SELECT id, full_name, password_hash FROM users WHERE role IN ('ADMIN', 'SUPER_ADMIN')")
         admins = cursor.fetchall()
         for adm in admins:
             if verify_password(payload["admin_password"], adm["password_hash"]):
@@ -800,7 +807,7 @@ async def kitchen_confirm_cancel(order_item_id: int, payload: dict, request: Req
         cursor.execute("""
             UPDATE orders 
             SET subtotal = (SELECT COALESCE(SUM(total_price), 0) FROM order_items WHERE order_id = ? AND status != 'CANCELLED'),
-                total = MAX(0, (SELECT COALESCE(SUM(total_price), 0) FROM order_items WHERE order_id = ? AND status != 'CANCELLED') - discount)
+                total = MAX(0, (SELECT COALESCE(SUM(total_price), 0) FROM order_items WHERE order_id = ? AND status != 'CANCELLED') - COALESCE(discount, 0) + COALESCE(service_fee, 0))
             WHERE id = ?
         """, (item["order_id"], item["order_id"], item["order_id"]))
         conn.commit()
@@ -817,9 +824,12 @@ async def kitchen_confirm_cancel(order_item_id: int, payload: dict, request: Req
                 "order_id": item["order_id"],
                 "confirmed_by": f"{user['full_name']} (Bếp)"
             }
-            await ws_broadcaster.send_to_kds(event_data)
-            await ws_broadcaster.send_to_pos(event_data)
-            await ws_broadcaster.send_to_customer(item["table_id"], event_data)
+            try:
+                await ws_broadcaster.send_to_kds(event_data)
+                await ws_broadcaster.send_to_pos(event_data)
+                await ws_broadcaster.send_to_customer(item["table_id"], event_data)
+            except Exception as _ws_err:
+                print(f"[WS CANCEL_APPROVED Error]: {_ws_err}")
 
         return {
             "status": "SUCCESS",

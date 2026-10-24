@@ -22,11 +22,11 @@ if not os.path.exists(DB_PATH) and os.path.exists(OLD_DB_PATH):
 SECRET_SALT = "PiPoGarden_Secret_Salt_2026_xYz"
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    conn = sqlite3.connect(DB_PATH, timeout=30.0)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode = WAL;")
     conn.execute("PRAGMA synchronous = NORMAL;")
-    conn.execute("PRAGMA busy_timeout = 5000;")
+    conn.execute("PRAGMA busy_timeout = 30000;")
     return conn
 
 def hash_password(password: str) -> str:

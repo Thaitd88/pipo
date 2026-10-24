@@ -3316,7 +3316,13 @@
           body: JSON.stringify(payload)
         });
 
-        const data = await res.json();
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (jsonErr) {
+          data = { detail: res.statusText || "Máy chủ không phản hồi JSON" };
+        }
+
         if (res.ok) {
           closePosCancelModal();
           showPosToast(data.message || "Thao tác thành công!");
@@ -3329,7 +3335,7 @@
           errBox.classList.remove("hidden");
         }
       } catch (err) {
-        errBox.innerText = "Lỗi kết nối máy chủ!";
+        errBox.innerText = "Lỗi kết nối: " + (err.message || "Không thể kết nối máy chủ!");
         errBox.classList.remove("hidden");
       } finally {
         btn.disabled = false;
@@ -3346,7 +3352,8 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: 'REJECT' })
           });
-          const data = await res.json();
+          let data = {};
+          try { data = await res.json(); } catch(je) { data = { detail: res.statusText }; }
           if (res.ok) {
             showPosToast("Đã từ chối yêu cầu trả món");
             if (selectedTable) {
@@ -3357,7 +3364,7 @@
             alert(data.detail || "Không thể từ chối");
           }
         } catch (e) {
-          alert("Lỗi kết nối máy chủ");
+          alert("Lỗi kết nối: " + (e.message || "Không thể kết nối máy chủ"));
         }
         return;
       }
@@ -3380,7 +3387,8 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: 'APPROVE', admin_password: adminPassword })
         });
-        const data = await res.json();
+        let data = {};
+        try { data = await res.json(); } catch(je) { data = { detail: res.statusText }; }
         if (res.ok) {
           showPosToast(data.message || "Đã duyệt trả món thành công!");
           if (selectedTable) {
@@ -3391,7 +3399,7 @@
           alert(data.detail || "Không thể duyệt trả món");
         }
       } catch (e) {
-        alert("Lỗi kết nối máy chủ");
+        alert("Lỗi kết nối: " + (e.message || "Không thể kết nối máy chủ"));
       }
     }
 

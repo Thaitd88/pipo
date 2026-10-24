@@ -11,6 +11,12 @@ router = APIRouter(prefix="/api/auth", tags=["Auth & Staff"])
 
 AUTH_SECRET = "pipo_garden_secure_hmac_secret_2026_key!"
 
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Kiểm tra mật khẩu nhập vào khớp với hash trong CSDL."""
+    if not plain_password or not hashed_password:
+        return False
+    return hash_password(plain_password) == hashed_password
+
 def generate_session_token(username: str) -> str:
     """Tạo chữ ký HMAC-SHA256 chống giả mạo cookie."""
     ts = str(int(time.time()))
