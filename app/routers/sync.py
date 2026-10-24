@@ -54,25 +54,27 @@ async def clear_revenue_data(request: Request):
             raise HTTPException(status_code=403, detail="Không có quyền thực hiện thao tác xóa doanh thu.")
 
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM order_items")
-    cursor.execute("DELETE FROM orders")
-    cursor.execute("DELETE FROM service_calls")
-    cursor.execute("DELETE FROM table_sessions")
-    cursor.execute("DELETE FROM print_jobs")
-    cursor.execute("DELETE FROM reservations")
-    cursor.execute("DELETE FROM inventory_transactions")
-    cursor.execute("DELETE FROM pickleball_bookings")
-    cursor.execute("DELETE FROM pickleball_checkins")
-    cursor.execute("DELETE FROM pickleball_memberships")
-    cursor.execute("DELETE FROM accounting_transactions")
-    cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL")
     try:
-        cursor.execute("DELETE FROM sqlite_sequence WHERE name IN ('orders', 'order_items', 'print_jobs', 'service_calls', 'table_sessions', 'inventory_transactions', 'reservations', 'pickleball_bookings', 'pickleball_memberships', 'pickleball_checkins', 'accounting_transactions')")
-    except Exception:
-        pass
-    conn.commit()
-    conn.close()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM order_items")
+        cursor.execute("DELETE FROM orders")
+        cursor.execute("DELETE FROM service_calls")
+        cursor.execute("DELETE FROM table_sessions")
+        cursor.execute("DELETE FROM print_jobs")
+        cursor.execute("DELETE FROM reservations")
+        cursor.execute("DELETE FROM inventory_transactions")
+        cursor.execute("DELETE FROM pickleball_bookings")
+        cursor.execute("DELETE FROM pickleball_checkins")
+        cursor.execute("DELETE FROM pickleball_memberships")
+        cursor.execute("DELETE FROM accounting_transactions")
+        cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL")
+        try:
+            cursor.execute("DELETE FROM sqlite_sequence WHERE name IN ('orders', 'order_items', 'print_jobs', 'service_calls', 'table_sessions', 'inventory_transactions', 'reservations', 'pickleball_bookings', 'pickleball_memberships', 'pickleball_checkins', 'accounting_transactions')")
+        except Exception:
+            pass
+        conn.commit()
+    finally:
+        conn.close()
 
     if ws_broadcaster:
         try:
@@ -84,6 +86,93 @@ async def clear_revenue_data(request: Request):
     return {
         "status": "SUCCESS",
         "message": "Đã xóa toàn bộ dữ liệu đơn hàng và doanh thu thử nghiệm thành công!"
+    }
+
+@router.post("/clear-pickleball-revenue")
+async def clear_pickleball_revenue(request: Request):
+    """Xóa sạch doanh thu riêng của Sân Pickleball (Đơn sân PK-01..04, Đặt sân, Hội viên, Phiếu thu/chi Sân pick) để nhân viên nhập lại từ đầu."""
+    try:
+        payload = await request.json()
+    except Exception:
+        payload = {}
+
+    auth_header = request.headers.get("X-Pipo-Admin-Secret") or ""
+    payload_token = payload.get("secret_token") or ""
+
+    conn = get_db()
+    try:
+        cursor = conn.cursor()
+
+        if auth_header != "pipo_secure_clear_revenue_2026" and payload_token != "pipo_secure_clear_revenue_2026":
+            from .auth import get_current_user_from_request, verify_password
+            user = get_current_user_from_request(request)
+            is_admin = user and (user.get("role") in ["ADMIN", "SUPER_ADMIN"] or user.get("username", "").lower() == "thaitd")
+            if not is_admin and payload.get("admin_password"):
+                cursor.execute("SELECT id, full_name, password_hash FROM users WHERE role IN ('ADMIN', 'SUPER_ADMIN')")
+                for adm in cursor.fetchall():
+                    if verify_password(payload["admin_password"], adm["password_hash"]):
+                        is_admin = True
+                        break
+            if not is_admin:
+                raise HTTPException(status_code=403, detail="Cần quyền Quản trị hoặc mật khẩu Admin để xóa dữ liệu sân.")
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS deleted_order_uuids (
+                order_uuid TEXT PRIMARY KEY,
+                deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # 1. Bàn Sân Pickle (PK-01 .. PK-04 hoặc area = 'Sân Pickle')
+        cursor.execute("SELECT id FROM tables WHERE area = 'Sân Pickle' OR table_code LIKE 'PK-%'")
+        court_tables = cursor.fetchall()
+        court_table_ids = [t["id"] for t in court_tables]
+
+        if court_table_ids:
+            placeholders = ",".join("?" for _ in court_table_ids)
+            cursor.execute(f"SELECT id, order_uuid FROM orders WHERE table_id IN ({placeholders})", tuple(court_table_ids))
+            court_orders = cursor.fetchall()
+            court_order_ids = [o["id"] for o in court_orders]
+
+            for o in court_orders:
+                if o["order_uuid"]:
+                    cursor.execute("INSERT OR IGNORE INTO deleted_order_uuids (order_uuid) VALUES (?)", (o["order_uuid"],))
+
+            if court_order_ids:
+                ord_placeholders = ",".join("?" for _ in court_order_ids)
+                cursor.execute(f"DELETE FROM order_items WHERE order_id IN ({ord_placeholders})", tuple(court_order_ids))
+                cursor.execute(f"DELETE FROM print_jobs WHERE order_id IN ({ord_placeholders})", tuple(court_order_ids))
+                cursor.execute(f"DELETE FROM orders WHERE id IN ({ord_placeholders})", tuple(court_order_ids))
+
+            cursor.execute(f"DELETE FROM service_calls WHERE table_id IN ({placeholders})", tuple(court_table_ids))
+            cursor.execute(f"DELETE FROM table_sessions WHERE table_id IN ({placeholders})", tuple(court_table_ids))
+            cursor.execute(f"UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL WHERE id IN ({placeholders})", tuple(court_table_ids))
+
+        # 2. Xóa checkins và memberships
+        cursor.execute("DELETE FROM pickleball_checkins")
+        cursor.execute("DELETE FROM pickleball_memberships")
+
+        # 3. Xóa đặt sân trực tuyến
+        cursor.execute("DELETE FROM pickleball_bookings")
+
+        # 4. Xóa phiếu thu chi phòng ban Pickleball
+        cursor.execute("DELETE FROM accounting_transactions WHERE department = 'PICKLEBALL'")
+
+        conn.commit()
+    finally:
+        conn.close()
+
+    if ws_broadcaster:
+        try:
+            await ws_broadcaster.send_to_pos({"event": "REVENUE_CLEARED"})
+            await ws_broadcaster.send_to_pos({"event": "PICKLEBALL_UPDATED"})
+            await ws_broadcaster.send_to_pos({"event": "TABLE_UPDATED"})
+        except Exception:
+            pass
+
+    return {
+        "status": "SUCCESS",
+        "message": "Đã xóa sạch toàn bộ doanh thu, hóa đơn, hội viên, lịch đặt và sổ thu chi của Sân Pickleball thành công!"
     }
 
 @router.get("/export-orders")

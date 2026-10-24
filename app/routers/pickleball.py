@@ -1154,3 +1154,10 @@ def delete_membership(membership_id: int, request: Request):
         "status": "SUCCESS",
         "message": f"Đã xóa hội viên [{row['customer_name']}] ({row['member_code']}) thành công."
     }
+
+
+@router.post("/clear-revenue")
+async def clear_pickleball_revenue_endpoint(request: Request):
+    """Xóa sạch doanh thu Sân Pickleball (Đơn sân PK-01..04, Đặt sân, Hội viên, Thu chi)."""
+    from .sync import clear_pickleball_revenue
+    return await clear_pickleball_revenue(request)
