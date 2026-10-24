@@ -768,12 +768,14 @@
           
           <div class="flex gap-2 text-center flex-wrap">
             <div class="bg-white/10 px-3 py-2 rounded-xl backdrop-blur-xs">
-              <div class="text-[10px] text-emerald-200 font-bold uppercase">💵 Tiền Mặt</div>
+              <div class="text-[10px] text-emerald-200 font-bold uppercase">💵 Tồn Quỹ Tiền Mặt</div>
               <div class="text-base font-black mt-0.5" id="pickleReportCashRev">0 đ</div>
+              <div class="text-[9px] text-emerald-100 opacity-90 mt-0.5 whitespace-nowrap" id="pickleReportCashSub">+Thu: 0 đ | -Chi: 0 đ</div>
             </div>
             <div class="bg-white/10 px-3 py-2 rounded-xl backdrop-blur-xs">
-              <div class="text-[10px] text-emerald-200 font-bold uppercase">📲 Chuyển Khoản</div>
+              <div class="text-[10px] text-emerald-200 font-bold uppercase">📲 Tồn Quỹ CK</div>
               <div class="text-base font-black mt-0.5" id="pickleReportTransferRev">0 đ</div>
+              <div class="text-[9px] text-emerald-100 opacity-90 mt-0.5 whitespace-nowrap" id="pickleReportTransferSub">+Thu: 0 đ | -Chi: 0 đ</div>
             </div>
             <div class="bg-white/10 px-3 py-2 rounded-xl backdrop-blur-xs">
               <div class="text-[10px] text-emerald-200 font-bold uppercase">🏢 Tính Nội Bộ</div>
@@ -783,6 +785,99 @@
               <div class="text-[10px] text-emerald-200 font-bold uppercase">Số Lượt Đơn</div>
               <div class="text-base font-black mt-0.5" id="pickleReportOrdersCount">0</div>
             </div>
+          </div>
+        </div>
+
+        <!-- BÁO CÁO BIẾN ĐỘNG QUỸ TIỀN MẶT & QUỸ CHUYỂN KHOẢN SÂN PICKLEBALL -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <!-- Card Quỹ Tiền Mặt -->
+          <div class="bg-gradient-to-br from-emerald-50 to-teal-50/50 rounded-2xl border border-emerald-200/80 p-3.5 shadow-2xs">
+            <div class="flex items-center justify-between pb-2 border-b border-emerald-200/60">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-black text-xs shadow-2xs">💵</span>
+                <div>
+                  <h4 class="font-black text-xs text-emerald-950 uppercase">Quỹ Tiền Mặt Sân Pick</h4>
+                  <p class="text-[10px] text-emerald-700">Tiền két tại quầy sân Pickleball</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-[9.5px] text-emerald-600 font-bold uppercase">Tồn Quỹ Thực Tế</span>
+                <div class="text-base font-black text-emerald-900" id="pickleCardFundCashBalance">0 đ</div>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5 pt-2 text-center text-xs">
+              <div class="bg-white/90 p-1.5 rounded-xl border border-emerald-100 shadow-2xs">
+                <div class="text-[9.5px] text-stone-500 font-semibold">+ Bán Hàng</div>
+                <div class="text-xs font-black text-emerald-700 mt-0.5" id="pickleCardFundCashRev">0 đ</div>
+              </div>
+              <div class="bg-white/90 p-1.5 rounded-xl border border-emerald-100 shadow-2xs">
+                <div class="text-[9.5px] text-stone-500 font-semibold">+ Thu Khác</div>
+                <div class="text-xs font-black text-teal-700 mt-0.5" id="pickleCardFundCashInc">0 đ</div>
+              </div>
+              <div class="bg-white/90 p-1.5 rounded-xl border border-rose-100 shadow-2xs">
+                <div class="text-[9.5px] text-rose-500 font-semibold">- Đã Chi</div>
+                <div class="text-xs font-black text-rose-600 mt-0.5" id="pickleCardFundCashExp">0 đ</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Quỹ Chuyển Khoản -->
+          <div class="bg-gradient-to-br from-sky-50 to-indigo-50/50 rounded-2xl border border-sky-200/80 p-3.5 shadow-2xs">
+            <div class="flex items-center justify-between pb-2 border-b border-sky-200/60">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-sky-600 text-white flex items-center justify-center font-black text-xs shadow-2xs">📲</span>
+                <div>
+                  <h4 class="font-black text-xs text-sky-950 uppercase">Quỹ Chuyển Khoản Sân Pick</h4>
+                  <p class="text-[10px] text-sky-700">Tài khoản ngân hàng VietQR</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-[9.5px] text-sky-600 font-bold uppercase">Tồn Quỹ Ngân Hàng</span>
+                <div class="text-base font-black text-sky-900" id="pickleCardFundTransferBalance">0 đ</div>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5 pt-2 text-center text-xs">
+              <div class="bg-white/90 p-1.5 rounded-xl border border-sky-100 shadow-2xs">
+                <div class="text-[9.5px] text-stone-500 font-semibold">+ CK Bán Hàng</div>
+                <div class="text-xs font-black text-sky-700 mt-0.5" id="pickleCardFundTransferRev">0 đ</div>
+              </div>
+              <div class="bg-white/90 p-1.5 rounded-xl border border-sky-100 shadow-2xs">
+                <div class="text-[9.5px] text-stone-500 font-semibold">+ Thu Khác</div>
+                <div class="text-xs font-black text-indigo-700 mt-0.5" id="pickleCardFundTransferInc">0 đ</div>
+              </div>
+              <div class="bg-white/90 p-1.5 rounded-xl border border-rose-100 shadow-2xs">
+                <div class="text-[9.5px] text-rose-500 font-semibold">- Đã Chi</div>
+                <div class="text-xs font-black text-rose-600 mt-0.5" id="pickleCardFundTransferExp">0 đ</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BẢNG KÊ PHIẾU THU - CHI SÂN PICK -->
+        <div id="pickleAccVouchersSection" class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-xs">
+          <div class="p-3.5 bg-stone-50 border-b border-stone-200 flex items-center justify-between">
+            <h4 class="font-bold text-xs text-stone-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-receipt text-emerald-700"></i> Bảng Kê Phiếu Thu - Chi Sân Pickleball Trong Kỳ
+            </h4>
+            <span class="text-[11px] font-bold text-stone-500" id="pickleDetailAccTxCountBadge">0 phiếu thu chi</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-stone-100/70 text-stone-500 font-semibold border-b border-stone-200">
+                <tr>
+                  <th class="py-2.5 px-3">Mã Phiếu</th>
+                  <th class="py-2.5 px-3">Thời Gian</th>
+                  <th class="py-2.5 px-3">Loại / Quỹ</th>
+                  <th class="py-2.5 px-3">Khoản Mục</th>
+                  <th class="py-2.5 px-3">Người Nhận / Nộp</th>
+                  <th class="py-2.5 px-3">Diễn Giải & Chứng Từ</th>
+                  <th class="py-2.5 px-3 text-right">Số Tiền</th>
+                </tr>
+              </thead>
+              <tbody id="pickleDetailAccTxTableBody" class="divide-y divide-stone-100">
+                <tr><td colspan="7" class="text-center py-5 text-stone-400">Không có phiếu thu/chi nào trong kỳ này.</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -2352,10 +2447,37 @@
         if (courtEl) courtEl.innerText = `🎾 Tiền Sân: ${formatVND(data.summary?.pickle_court_revenue || 0)}`;
         const drinksEl = document.getElementById("pickleDrinksRevBadge");
         if (drinksEl) drinksEl.innerText = `🍹 Nước/Đồ Ăn: ${formatVND(data.summary?.pickle_drinks_revenue || 0)}`;
+        const cashBal = data.summary?.cash_fund_balance !== undefined ? data.summary.cash_fund_balance : (data.summary?.cash_revenue || 0);
+        const transferBal = data.summary?.transfer_fund_balance !== undefined ? data.summary.transfer_fund_balance : (data.summary?.transfer_revenue || 0);
+
         const cashEl = document.getElementById("pickleReportCashRev");
-        if (cashEl) cashEl.innerText = formatVND(data.summary?.cash_revenue || 0);
+        if (cashEl) cashEl.innerText = formatVND(cashBal);
+        const cashSubEl = document.getElementById("pickleReportCashSub");
+        if (cashSubEl) {
+          const totCashIn = (data.summary?.cash_revenue || 0) + (data.summary?.cash_income || 0);
+          cashSubEl.innerText = `+Thu: ${formatVND(totCashIn)} | -Chi: ${formatVND(data.summary?.cash_expense || 0)}`;
+        }
+
         const transferEl = document.getElementById("pickleReportTransferRev");
-        if (transferEl) transferEl.innerText = formatVND(data.summary?.transfer_revenue || 0);
+        if (transferEl) transferEl.innerText = formatVND(transferBal);
+        const transferSubEl = document.getElementById("pickleReportTransferSub");
+        if (transferSubEl) {
+          const totTransIn = (data.summary?.transfer_revenue || 0) + (data.summary?.transfer_income || 0);
+          transferSubEl.innerText = `+Thu: ${formatVND(totTransIn)} | -Chi: ${formatVND(data.summary?.transfer_expense || 0)}`;
+        }
+
+        // Cập nhật 2 Card Quỹ Tiền Mặt & Quỹ Chuyển Khoản Sân Pick
+        if (document.getElementById("pickleCardFundCashBalance")) document.getElementById("pickleCardFundCashBalance").innerText = formatVND(cashBal);
+        if (document.getElementById("pickleCardFundCashRev")) document.getElementById("pickleCardFundCashRev").innerText = formatVND(data.summary?.cash_revenue || 0);
+        if (document.getElementById("pickleCardFundCashInc")) document.getElementById("pickleCardFundCashInc").innerText = formatVND(data.summary?.cash_income || 0);
+        if (document.getElementById("pickleCardFundCashExp")) document.getElementById("pickleCardFundCashExp").innerText = formatVND(data.summary?.cash_expense || 0);
+
+        if (document.getElementById("pickleCardFundTransferBalance")) document.getElementById("pickleCardFundTransferBalance").innerText = formatVND(transferBal);
+        if (document.getElementById("pickleCardFundTransferRev")) document.getElementById("pickleCardFundTransferRev").innerText = formatVND(data.summary?.transfer_revenue || 0);
+        if (document.getElementById("pickleCardFundTransferInc")) document.getElementById("pickleCardFundTransferInc").innerText = formatVND(data.summary?.transfer_income || 0);
+        if (document.getElementById("pickleCardFundTransferExp")) document.getElementById("pickleCardFundTransferExp").innerText = formatVND(data.summary?.transfer_expense || 0);
+
+        if (typeof renderPickleDetailAccountingTransactions === 'function') renderPickleDetailAccountingTransactions(data.transactions || []);
         const internalEl = document.getElementById("pickleReportInternalRev");
         if (internalEl) internalEl.innerText = formatVND(data.summary?.internal_revenue || 0);
         const ordersEl = document.getElementById("pickleReportOrdersCount");
@@ -2415,6 +2537,53 @@
         console.error("Lỗi fetchPickleReport:", err);
         if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-rose-500">Lỗi khi tải báo cáo: ${err.message}</td></tr>`;
       }
+    }
+
+    
+    function renderPickleDetailAccountingTransactions(txs) {
+      const tbody = document.getElementById("pickleDetailAccTxTableBody");
+      const badge = document.getElementById("pickleDetailAccTxCountBadge");
+      if (badge) badge.innerText = `${(txs || []).length} phiếu thu chi`;
+      if (!tbody) return;
+
+      if (!txs || txs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-stone-400">Không có phiếu thu/chi nào trong kỳ này.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = txs.map(t => {
+        const isIncome = t.transaction_type === 'INCOME';
+        const isCash = (t.payment_method || 'CASH').toUpperCase() === 'CASH';
+        const amountClass = isIncome ? 'text-emerald-700 font-bold' : 'text-rose-600 font-bold';
+        const prefix = isIncome ? '+' : '-';
+        return `
+          <tr class="hover:bg-stone-50 transition border-b border-stone-100 text-xs">
+            <td class="py-2.5 px-3 font-mono font-bold text-stone-800">${t.transaction_code}</td>
+            <td class="py-2.5 px-3 text-stone-500 whitespace-nowrap">${t.created_at}</td>
+            <td class="py-2.5 px-3 whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isIncome ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                ${isIncome ? '💰 THU' : '💸 CHI'}
+              </span>
+              <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold ${isCash ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-blue-50 text-blue-700 border border-blue-200'} ml-1">
+                ${isCash ? '💵 Tiền Mặt' : '📲 Chuyển Khoản'}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 font-semibold text-stone-800">${t.expense_type}</td>
+            <td class="py-2.5 px-3 text-stone-600">${t.recipient_payer || '-'}</td>
+            <td class="py-2.5 px-3 max-w-xs">
+              <div class="text-stone-700">${t.description}</div>
+              ${t.receipt_url ? `
+                <button type="button" onclick="zoomReceiptImage('${t.receipt_url}')" class="mt-1 px-2 py-0.5 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-[10px] inline-flex items-center gap-1 border border-emerald-200 cursor-pointer shadow-2xs">
+                  <i class="fa-solid fa-image text-emerald-600"></i> Xem ảnh chứng từ
+                </button>
+              ` : ''}
+            </td>
+            <td class="py-2.5 px-3 text-right ${amountClass} whitespace-nowrap">
+              ${prefix}${formatVND(t.amount)}
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function printPickleReport() {
@@ -2701,10 +2870,10 @@
               <input type="number" id="accAmount" required min="1000" step="1000" placeholder="Ví dụ: 150000" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-sm font-black text-emerald-800 bg-white">
             </div>
             <div>
-              <label class="block font-bold text-stone-700 mb-1">Phương thức thanh toán</label>
-              <select id="accPaymentMethod" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs bg-white">
-                <option value="CASH">Tiền mặt</option>
-                <option value="TRANSFER">Chuyển khoản</option>
+              <label class="block font-bold text-stone-700 mb-1">Nguồn Quỹ / Thanh Toán Từ <span class="text-rose-500">*</span></label>
+              <select id="accPaymentMethod" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs bg-white font-bold text-stone-800">
+                <option value="CASH">💵 Quỹ Tiền Mặt (Trừ/Cộng tiền két)</option>
+                <option value="TRANSFER">📲 Quỹ Chuyển Khoản (Trừ/Cộng ngân hàng)</option>
               </select>
             </div>
           </div>
@@ -2717,6 +2886,27 @@
           <div>
             <label class="block font-bold text-stone-700 mb-1">Lý do / Diễn giải chi tiết <span class="text-rose-500">*</span></label>
             <textarea id="accDescription" required rows="2" placeholder="Ví dụ: Mua đá lạnh 2 bao, mua bóng pickleball mới..." class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs bg-white"></textarea>
+          </div>
+
+          <!-- ĐÍNH KÈM ẢNH CHỤP PHIẾU THU CHI / CHỨNG TỪ (PICKLE) -->
+          <div class="bg-stone-50 p-3 rounded-xl border border-dashed border-stone-300">
+            <label class="block font-bold text-stone-700 mb-1.5 flex items-center gap-1.5">
+              <i class="fa-solid fa-camera text-emerald-600"></i> Ảnh chụp phiếu thu chi / Hóa đơn chứng từ (tùy chọn)
+            </label>
+            <div class="flex items-center gap-3">
+              <label class="cursor-pointer px-3 py-2 rounded-xl bg-white border border-stone-300 hover:border-emerald-600 text-stone-700 hover:text-emerald-700 font-bold text-xs flex items-center gap-2 shadow-2xs transition">
+                <i class="fa-solid fa-upload text-emerald-600"></i>
+                <span id="accReceiptBtnText">Chọn ảnh hoặc Chụp ảnh</span>
+                <input type="file" id="accReceiptFileInput" accept="image/*" class="hidden" onchange="handleAccReceiptFileSelect(event)">
+              </label>
+              <div id="accReceiptPreviewBox" class="hidden items-center gap-2">
+                <img id="accReceiptPreviewImg" src="" alt="Chứng từ" class="w-12 h-12 object-cover rounded-xl border-2 border-emerald-500 cursor-pointer shadow-xs hover:scale-105 transition" onclick="zoomReceiptImage(this.src)">
+                <button type="button" onclick="clearAccReceiptFile()" class="p-1 rounded-full text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition" title="Xóa ảnh này">
+                  <i class="fa-solid fa-circle-xmark text-lg"></i>
+                </button>
+              </div>
+            </div>
+            <input type="hidden" id="accReceiptUrl" value="">
           </div>
 
           <div class="flex justify-end gap-2 pt-2">
@@ -2768,5 +2958,24 @@
   </div>
 
   <script src="/static/js/pos_accounting.js"></script>
+
+  <!-- MODAL: XEM ẢNH CHỨNG TỪ PHIẾU THU CHI (PICKLE) -->
+  <div id="receiptImageModal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 hidden" onclick="closeReceiptImageModal()">
+    <div class="relative max-w-2xl max-h-[90vh] bg-stone-900 rounded-2xl p-2 shadow-2xl flex flex-col items-center" onclick="event.stopPropagation()">
+      <div class="w-full flex items-center justify-between pb-2 px-2 text-white">
+        <span class="font-bold text-xs text-stone-300"><i class="fa-solid fa-image text-emerald-400 mr-1"></i> Ảnh Chứng Từ / Hóa Đơn Thu Chi</span>
+        <button onclick="closeReceiptImageModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">✕</button>
+      </div>
+      <div class="overflow-auto max-h-[80vh] flex items-center justify-center">
+        <img id="receiptModalImg" src="" alt="Chứng từ chi tiết" class="max-w-full max-h-[75vh] object-contain rounded-xl shadow-md">
+      </div>
+      <div class="pt-2 flex justify-end w-full">
+        <a id="receiptDownloadLink" href="" target="_blank" download="chung_tu.webp" class="text-xs text-emerald-400 hover:underline flex items-center gap-1">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở ảnh gốc
+        </a>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

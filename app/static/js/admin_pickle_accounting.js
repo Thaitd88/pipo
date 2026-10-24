@@ -410,6 +410,9 @@ async function loadAccountingLedger() {
             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isExp ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}">
               ${isExp ? 'CHI (' + r.cost_category + ')' : 'THU'}
             </span>
+            <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold ${((r.payment_method || 'CASH').toUpperCase() === 'CASH') ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-blue-50 text-blue-700 border border-blue-200'} ml-1">
+              ${((r.payment_method || 'CASH').toUpperCase() === 'CASH') ? '💵 TM' : '📲 CK'}
+            </span>
           </td>
           <td class="px-3.5 py-3">
             <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-stone-100 text-stone-700">
@@ -421,7 +424,14 @@ async function loadAccountingLedger() {
             ${isExp ? '-' : '+'}${r.amount.toLocaleString()} đ
           </td>
           <td class="px-3.5 py-3 text-xs text-stone-700">${r.recipient_payer || '-'}</td>
-          <td class="px-3.5 py-3 text-xs text-stone-600 max-w-xs truncate" title="${r.description}">${r.description}</td>
+          <td class="px-3.5 py-3 text-xs text-stone-600 max-w-xs">
+            <div class="truncate" title="${r.description}">${r.description}</div>
+            ${r.receipt_url ? `
+              <button type="button" onclick="zoomReceiptImage('${r.receipt_url}')" class="mt-1 px-2 py-0.5 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-[10px] inline-flex items-center gap-1 border border-emerald-200 cursor-pointer shadow-2xs">
+                <i class="fa-solid fa-image text-emerald-600"></i> Xem chứng từ
+              </button>
+            ` : ''}
+          </td>
           <td class="px-3.5 py-3 text-center">
             <button type="button" onclick="deleteAdminTransaction(${r.id}, '${r.transaction_code}')" class="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 transition" title="Xóa phiếu">
               <i class="fa-solid fa-trash-can text-xs"></i>
@@ -623,6 +633,7 @@ async function submitAdminAddTransaction(e) {
   const payMethod = document.getElementById("admTxPayMethod")?.value;
   const recipient = document.getElementById("admTxRecipient")?.value.trim();
   const desc = document.getElementById("admTxDesc")?.value.trim();
+  const receiptUrl = document.getElementById("admReceiptUrl")?.value.trim() || "";
 
   if (amount <= 0) {
     alert("Vui lòng nhập số tiền hợp lệ (> 0 đ)!");
@@ -641,18 +652,87 @@ async function submitAdminAddTransaction(e) {
         amount: amount,
         payment_method: payMethod,
         recipient_payer: recipient,
-        description: desc
+        description: desc,
+        receipt_url: receiptUrl
       })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail);
 
-    alert(`✅ Đã lập phiếu [${data.transaction_code}] thành công!`);
+    alert(`✅ Đã lập phiếu [${data.transaction_code || (data.transaction && data.transaction.transaction_code) || ''}] thành công!`);
     closeAdminAddTransactionModal();
     document.getElementById("adminAddTransactionForm")?.reset();
+    clearAdminReceiptFile();
     loadAccountingPnL();
     loadAccountingLedger();
   } catch (err) {
     alert("⚠️ " + err.message);
   }
+}
+
+// Helpers Upload Anh Chung Tu (Admin)
+async function handleAdminReceiptFileSelect(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const previewBox = document.getElementById("admReceiptPreviewBox");
+  const previewImg = document.getElementById("admReceiptPreviewImg");
+  const btnText = document.getElementById("admReceiptBtnText");
+
+  if (previewImg) previewImg.src = URL.createObjectURL(file);
+  if (previewBox) {
+    previewBox.classList.remove("hidden");
+    previewBox.classList.add("flex");
+  }
+  if (btnText) btnText.innerText = "Đang tải ảnh...";
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/accounting/upload-receipt", {
+      method: "POST",
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Không thể tải ảnh chứng từ lên.");
+
+    const receiptUrlEl = document.getElementById("admReceiptUrl");
+    if (receiptUrlEl) receiptUrlEl.value = data.receipt_url;
+    if (btnText) btnText.innerText = "Đã chọn ảnh (Đổi)";
+  } catch (err) {
+    alert("❌ Lỗi tải ảnh: " + err.message);
+    clearAdminReceiptFile();
+  }
+}
+
+function clearAdminReceiptFile() {
+  const fileInput = document.getElementById("admReceiptFileInput");
+  const receiptUrlEl = document.getElementById("admReceiptUrl");
+  const previewBox = document.getElementById("admReceiptPreviewBox");
+  const previewImg = document.getElementById("admReceiptPreviewImg");
+  const btnText = document.getElementById("admReceiptBtnText");
+
+  if (fileInput) fileInput.value = "";
+  if (receiptUrlEl) receiptUrlEl.value = "";
+  if (previewImg) previewImg.src = "";
+  if (previewBox) {
+    previewBox.classList.add("hidden");
+    previewBox.classList.remove("flex");
+  }
+  if (btnText) btnText.innerText = "Chọn ảnh hoặc Chụp ảnh";
+}
+
+function zoomReceiptImage(src) {
+  if (!src) return;
+  const modal = document.getElementById("receiptImageModal");
+  const img = document.getElementById("receiptModalImg");
+  const link = document.getElementById("receiptDownloadLink");
+  if (img) img.src = src;
+  if (link) link.href = src;
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closeReceiptImageModal() {
+  const modal = document.getElementById("receiptImageModal");
+  if (modal) modal.classList.add("hidden");
 }

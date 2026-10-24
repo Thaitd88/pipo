@@ -127,6 +127,10 @@ sync.set_broadcaster(broadcaster)
 printer.set_broadcaster(broadcaster)
 reports.set_broadcaster(broadcaster)
 try:
+    accounting.set_broadcaster(broadcaster)
+except Exception:
+    pass
+try:
     pickleball.set_broadcaster(broadcaster)
 except Exception:
     pass
@@ -152,6 +156,20 @@ async def lifespan(app: FastAPI):
                         pass
     except Exception:
         pass
+        # Dong bo receipts chung tu
+        persistent_receipts = os.path.join(DATA_DIR, "uploads", "receipts")
+        static_receipts = os.path.join(STATIC_DIR, "uploads", "receipts")
+        os.makedirs(static_receipts, exist_ok=True)
+        if os.path.exists(persistent_receipts):
+            import shutil
+            for fname in os.listdir(persistent_receipts):
+                src = os.path.join(persistent_receipts, fname)
+                dst = os.path.join(static_receipts, fname)
+                if os.path.isfile(src) and not os.path.exists(dst):
+                    try:
+                        shutil.copy2(src, dst)
+                    except Exception:
+                        pass
     print("[PiPo Garden] Co so du lieu va du lieu mau da san sang!")
     yield
     print("[PiPo Garden] Server dang tat.")

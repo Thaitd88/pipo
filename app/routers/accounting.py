@@ -1,14 +1,31 @@
 # Router for Accounting, Cash Transactions (Capex & Opex) and Profit & Loss (P&L) Report
+import os
+import io
 import re
+import uuid
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request, UploadFile, File
 from pydantic import BaseModel, Field
+from PIL import Image, ImageOps
 
-from ..database import get_db
+from ..database import get_db, DATA_DIR
 from .auth import require_api_auth, get_current_user_from_request
 
 router = APIRouter(prefix="/api/accounting", tags=["Accounting & PnL"])
+
+broadcaster = None
+
+def set_broadcaster(b):
+    global broadcaster
+    broadcaster = b
+
+# Thu muc luu anh chung tu phieu thu chi
+STATIC_RECEIPTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "uploads", "receipts")
+os.makedirs(STATIC_RECEIPTS_DIR, exist_ok=True)
+
+PERSISTENT_RECEIPTS_DIR = os.path.join(DATA_DIR, "uploads", "receipts")
+os.makedirs(PERSISTENT_RECEIPTS_DIR, exist_ok=True)
 
 EXPENSE_CATEGORIES = {
     "OPEX": [
@@ -54,6 +71,71 @@ def get_accounting_categories():
         "categories": EXPENSE_CATEGORIES
     }
 
+@router.post("/upload-receipt")
+async def upload_receipt_image(file: UploadFile = File(...)):
+    """
+    Tải ảnh chụp phiếu thu/chi, hóa đơn, chứng từ:
+    - Hỗ trợ JPG, PNG, WEBP, GIF, JFIF, BMP, AVIF.
+    - Xoay chiều chuẩn theo EXIF.
+    - Nén WebP tối ưu.
+    - Lưu vào static/uploads/receipts và persistent uploads.
+    """
+    allowed_exts = {".jpg", ".jpeg", ".png", ".webp", ".jfif", ".bmp", ".gif", ".avif"}
+    original_name = file.filename or "receipt.jpg"
+    ext = os.path.splitext(original_name)[1].lower()
+    if ext not in allowed_exts:
+        raise HTTPException(status_code=400, detail=f"Định dạng tệp '{ext}' không được hỗ trợ. Vui lòng chọn ảnh JPG, PNG hoặc WebP.")
+
+    contents = await file.read()
+    if len(contents) > 15 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Dung lượng ảnh vượt quá giới hạn 15MB.")
+
+    try:
+        img = Image.open(io.BytesIO(contents))
+        img = ImageOps.exif_transpose(img)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Không thể xử lý tệp ảnh: {str(e)}")
+
+    # Auto-Resize ảnh: cạnh dài nhất tối đa 1200px
+    max_dim = 1200
+    w, h = img.size
+    if w > max_dim or h > max_dim:
+        if w > h:
+            new_w = max_dim
+            new_h = int(h * (max_dim / w))
+        else:
+            new_h = max_dim
+            new_w = int(w * (max_dim / h))
+        img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+
+    if img.mode in ("RGBA", "LA", "P"):
+        img = img.convert("RGBA")
+    else:
+        img = img.convert("RGB")
+
+    unique_name = f"receipt_{datetime.now().strftime('%y%m%d')}_{uuid.uuid4().hex[:8]}.webp"
+    buf = io.BytesIO()
+    img.save(buf, format="WEBP", quality=85, method=6)
+    webp_bytes = buf.getvalue()
+
+    # Lưu vào static/uploads/receipts
+    target_path = os.path.join(STATIC_RECEIPTS_DIR, unique_name)
+    with open(target_path, "wb") as f:
+        f.write(webp_bytes)
+
+    # Lưu vào persistent storage
+    try:
+        with open(os.path.join(PERSISTENT_RECEIPTS_DIR, unique_name), "wb") as f:
+            f.write(webp_bytes)
+    except Exception:
+        pass
+
+    return {
+        "status": "SUCCESS",
+        "receipt_url": f"/static/uploads/receipts/{unique_name}",
+        "file_name": unique_name
+    }
+
 @router.get("/transactions")
 def list_transactions(
     request: Request,
@@ -62,6 +144,7 @@ def list_transactions(
     department: Optional[str] = None,
     cost_category: Optional[str] = None,
     transaction_type: Optional[str] = None,
+    payment_method: Optional[str] = None,
     search: Optional[str] = None,
     limit: int = 100
 ):
@@ -97,6 +180,12 @@ def list_transactions(
         query += " AND transaction_type = ?"
         params.append(transaction_type)
 
+    if payment_method and payment_method != "ALL":
+        if payment_method.upper() == "CASH":
+            query += " AND (payment_method IS NULL OR UPPER(payment_method) = 'CASH')"
+        else:
+            query += " AND UPPER(payment_method) IN ('TRANSFER', 'BANK_TRANSFER', 'VIETQR', 'CK')"
+
     if search:
         s = f"%{search.strip()}%"
         query += " AND (description LIKE ? OR recipient_payer LIKE ? OR transaction_code LIKE ?)"
@@ -111,6 +200,12 @@ def list_transactions(
 
     total_expense = sum(r["amount"] for r in rows if r["transaction_type"] == "EXPENSE")
     total_income = sum(r["amount"] for r in rows if r["transaction_type"] == "INCOME")
+    
+    cash_expense = sum(r["amount"] for r in rows if r["transaction_type"] == "EXPENSE" and (r.get("payment_method") or "CASH").upper() == "CASH")
+    cash_income = sum(r["amount"] for r in rows if r["transaction_type"] == "INCOME" and (r.get("payment_method") or "CASH").upper() == "CASH")
+    
+    transfer_expense = sum(r["amount"] for r in rows if r["transaction_type"] == "EXPENSE" and (r.get("payment_method") or "").upper() in ["TRANSFER", "BANK_TRANSFER", "VIETQR", "CK"])
+    transfer_income = sum(r["amount"] for r in rows if r["transaction_type"] == "INCOME" and (r.get("payment_method") or "").upper() in ["TRANSFER", "BANK_TRANSFER", "VIETQR", "CK"])
 
     return {
         "status": "SUCCESS",
@@ -118,11 +213,17 @@ def list_transactions(
         "total_expense": total_expense,
         "total_income": total_income,
         "balance": total_income - total_expense,
+        "cash_income": cash_income,
+        "cash_expense": cash_expense,
+        "cash_balance": cash_income - cash_expense,
+        "transfer_income": transfer_income,
+        "transfer_expense": transfer_expense,
+        "transfer_balance": transfer_income - transfer_expense,
         "transactions": rows
     }
 
 @router.post("/transactions")
-def create_transaction(payload: TransactionCreate, request: Request):
+async def create_transaction(payload: TransactionCreate, request: Request):
     """
     Tạo phiếu Thu hoặc Phiếu Chi mới.
     Cho phép nhân viên Thu Ngân (CASHIER), Sân Pick (PICKLEBALL) và Admin lập phiếu hàng ngày.
@@ -135,8 +236,8 @@ def create_transaction(payload: TransactionCreate, request: Request):
         raise HTTPException(status_code=400, detail="Vui lòng nhập lý do / diễn giải chi tiết.")
 
     t_type = payload.transaction_type.upper().strip()
-    c_cat = payload.cost_category.upper().strip()
-    dept = payload.department.upper().strip()
+    c_cat = payload.cost_category.upper().strip() if payload.cost_category else "OPEX"
+    dept = payload.department.upper().strip() if payload.department else "GENERAL"
 
     if t_type not in ["EXPENSE", "INCOME"]:
         raise HTTPException(status_code=400, detail="Loại giao dịch không hợp lệ (chỉ chấp nhận EXPENSE hoặc INCOME).")
@@ -144,6 +245,13 @@ def create_transaction(payload: TransactionCreate, request: Request):
         c_cat = "OPEX" if t_type == "EXPENSE" else "GENERAL"
     if dept not in ["RESTAURANT", "PICKLEBALL", "GENERAL"]:
         dept = "GENERAL"
+
+    # Chuẩn hóa phương thức thanh toán: CASH hoặc TRANSFER
+    raw_p_method = (payload.payment_method or "CASH").upper().strip()
+    if raw_p_method in ["TRANSFER", "BANK_TRANSFER", "VIETQR", "CK"]:
+        p_method = "TRANSFER"
+    else:
+        p_method = "CASH"
 
     now = datetime.now()
     prefix = "PC" if t_type == "EXPENSE" else "PT"
@@ -175,7 +283,7 @@ def create_transaction(payload: TransactionCreate, request: Request):
         dept,
         payload.expense_type,
         payload.amount,
-        payload.payment_method or "CASH",
+        p_method,
         payload.recipient_payer.strip() if payload.recipient_payer else "",
         payload.description.strip(),
         payload.receipt_url.strip() if payload.receipt_url else "",
@@ -189,6 +297,20 @@ def create_transaction(payload: TransactionCreate, request: Request):
     created = dict(cursor.fetchone())
     conn.close()
 
+    # Bắn thông báo realtime tới toàn bộ hệ thống
+    if broadcaster:
+        try:
+            await broadcaster.send_to_pos({
+                "event": "ACCOUNTING_TRANSACTION_UPDATED",
+                "transaction_id": new_id,
+                "transaction_code": trans_code,
+                "transaction_type": t_type,
+                "payment_method": p_method,
+                "amount": payload.amount
+            })
+        except Exception:
+            pass
+
     return {
         "status": "SUCCESS",
         "message": f"Đã lập {('Phiếu Chi' if t_type == 'EXPENSE' else 'Phiếu Thu')} [{trans_code}] thành công!",
@@ -196,21 +318,43 @@ def create_transaction(payload: TransactionCreate, request: Request):
     }
 
 @router.delete("/transactions/{transaction_id}")
-def delete_transaction(transaction_id: int, request: Request):
+async def delete_transaction(transaction_id: int, request: Request):
     """Xóa phiếu Thu/Chi (chỉ ADMIN và SUPER_ADMIN mới có quyền xóa)."""
     user = require_api_auth(request, allowed_roles=["ADMIN", "SUPER_ADMIN"])
 
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT transaction_code FROM accounting_transactions WHERE id = ?", (transaction_id,))
+    cursor.execute("SELECT transaction_code, transaction_type, payment_method, amount FROM accounting_transactions WHERE id = ?", (transaction_id,))
     row = cursor.fetchone()
     if not row:
         conn.close()
         raise HTTPException(status_code=404, detail="Không tìm thấy phiếu cần xóa.")
 
     code = row["transaction_code"]
+    t_type = row["transaction_type"]
+    p_method = row["payment_method"]
+    amount = row["amount"]
+
     cursor.execute("DELETE FROM accounting_transactions WHERE id = ?", (transaction_id,))
     conn.commit()
+    conn.close()
+
+    # Bắn thông báo realtime tới toàn bộ hệ thống
+    if broadcaster:
+        try:
+            await broadcaster.send_to_pos({
+                "event": "ACCOUNTING_TRANSACTION_UPDATED",
+                "transaction_id": transaction_id,
+                "transaction_code": code,
+                "action": "DELETED"
+            })
+        except Exception:
+            pass
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Đã xóa phiếu [{code}] khỏi sổ quỹ."
+    }
     conn.close()
 
     return {
@@ -414,43 +558,44 @@ def get_pnl_report(
 
 @router.get("/summary-today")
 def get_accounting_summary_today(request: Request):
-    """Tổng hợp nhanh dòng tiền hôm nay cho Thu ngân và Sân Pick."""
+    """Tổng hợp nhanh dòng tiền và biến động Quỹ Tiền Mặt / Quỹ Chuyển Khoản hôm nay."""
     user = require_api_auth(request, allowed_roles=["ADMIN", "SUPER_ADMIN", "CASHIER", "PICKLEBALL"])
     
     today = datetime.now().strftime("%Y-%m-%d")
-    today_start = f"{today} 00:00:00"
-    today_end = f"{today} 23:59:59"
 
     conn = get_db()
     cursor = conn.cursor()
 
-    # Doanh thu bán hàng POS hôm nay
+    # Doanh thu bán hàng POS hôm nay (chỉ tính đơn PAID, không tính nợ nội bộ Admin)
     cursor.execute("""
         SELECT 
-            COALESCE(SUM(CASE WHEN payment_method = 'CASH' THEN total ELSE 0 END), 0) as pos_cash,
-            COALESCE(SUM(CASE WHEN payment_method != 'CASH' THEN total ELSE 0 END), 0) as pos_transfer,
-            COALESCE(SUM(total), 0) as pos_total
+            COALESCE(SUM(CASE WHEN UPPER(COALESCE(payment_method, 'CASH')) = 'CASH' AND COALESCE(bill_target, 'CUSTOMER') != 'ADMIN' THEN total ELSE 0 END), 0) as pos_cash,
+            COALESCE(SUM(CASE WHEN UPPER(payment_method) IN ('TRANSFER', 'VIETQR') AND COALESCE(bill_target, 'CUSTOMER') != 'ADMIN' THEN total ELSE 0 END), 0) as pos_transfer,
+            COALESCE(SUM(CASE WHEN COALESCE(bill_target, 'CUSTOMER') != 'ADMIN' THEN total ELSE 0 END), 0) as pos_total
         FROM orders
-        WHERE payment_status = 'PAID' AND completed_at BETWEEN ? AND ?
-    """, (today_start, today_end))
+        WHERE payment_status = 'PAID' AND DATE(COALESCE(completed_at, created_at)) = ?
+    """, (today,))
     pos_row = cursor.fetchone()
 
-    # Chi OPEX & CAPEX hôm nay từ sổ quỹ
+    # Chi hôm nay từ sổ quỹ: tách Tiền Mặt vs Chuyển Khoản
     cursor.execute("""
         SELECT 
             COALESCE(SUM(CASE WHEN cost_category = 'OPEX' THEN amount ELSE 0 END), 0) as opex_today,
             COALESCE(SUM(CASE WHEN cost_category = 'CAPEX' THEN amount ELSE 0 END), 0) as capex_today,
-            COALESCE(SUM(CASE WHEN payment_method = 'CASH' THEN amount ELSE 0 END), 0) as cash_expense_today
+            COALESCE(SUM(CASE WHEN payment_method IS NULL OR UPPER(payment_method) = 'CASH' THEN amount ELSE 0 END), 0) as cash_expense_today,
+            COALESCE(SUM(CASE WHEN UPPER(payment_method) IN ('TRANSFER', 'BANK_TRANSFER', 'VIETQR', 'CK') THEN amount ELSE 0 END), 0) as transfer_expense_today,
+            COALESCE(SUM(amount), 0) as total_expense_today
         FROM accounting_transactions
         WHERE transaction_type = 'EXPENSE' AND DATE(created_at) = ?
     """, (today,))
     exp_row = cursor.fetchone()
 
-    # Thu ngoài hôm nay
+    # Thu ngoài hôm nay: tách Tiền Mặt vs Chuyển Khoản
     cursor.execute("""
         SELECT 
-            COALESCE(SUM(amount), 0) as inc_today,
-            COALESCE(SUM(CASE WHEN payment_method = 'CASH' THEN amount ELSE 0 END), 0) as cash_inc_today
+            COALESCE(SUM(CASE WHEN payment_method IS NULL OR UPPER(payment_method) = 'CASH' THEN amount ELSE 0 END), 0) as cash_inc_today,
+            COALESCE(SUM(CASE WHEN UPPER(payment_method) IN ('TRANSFER', 'BANK_TRANSFER', 'VIETQR', 'CK') THEN amount ELSE 0 END), 0) as transfer_inc_today,
+            COALESCE(SUM(amount), 0) as inc_today
         FROM accounting_transactions
         WHERE transaction_type = 'INCOME' AND DATE(created_at) = ?
     """, (today,))
@@ -463,14 +608,26 @@ def get_accounting_summary_today(request: Request):
     cash_inc = inc_row["cash_inc_today"] or 0
     estimated_cash_drawer = pos_cash + cash_inc - cash_expense
 
+    pos_transfer = pos_row["pos_transfer"] or 0
+    transfer_expense = exp_row["transfer_expense_today"] or 0
+    transfer_inc = inc_row["transfer_inc_today"] or 0
+    estimated_transfer_balance = pos_transfer + transfer_inc - transfer_expense
+
     return {
         "status": "SUCCESS",
         "date": today,
         "revenue_today": pos_row["pos_total"] or 0,
         "pos_cash": pos_cash,
-        "pos_transfer": pos_row["pos_transfer"] or 0,
+        "pos_transfer": pos_transfer,
+        "cash_inc_today": cash_inc,
+        "cash_expense_today": cash_expense,
+        "cash_in_drawer_estimate": estimated_cash_drawer,
+        "estimated_cash_drawer": estimated_cash_drawer,
+        "transfer_inc_today": transfer_inc,
+        "transfer_expense_today": transfer_expense,
+        "transfer_balance_today": estimated_transfer_balance,
         "opex_today": exp_row["opex_today"] or 0,
         "capex_today": exp_row["capex_today"] or 0,
-        "other_income_today": inc_row["inc_today"] or 0,
-        "estimated_cash_drawer": estimated_cash_drawer
+        "total_expense_today": exp_row["total_expense_today"] or 0,
+        "other_income_today": inc_row["inc_today"] or 0
     }

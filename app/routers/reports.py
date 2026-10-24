@@ -164,6 +164,36 @@ def get_revenue_overview(request: Request):
     """)
     method_row = dict(cursor.fetchone() or {})
 
+    # 9b. Biến động quỹ hôm nay từ sổ quỹ thu chi (accounting_transactions)
+    cursor.execute("""
+        SELECT 
+            COALESCE(SUM(CASE WHEN transaction_type = 'INCOME' AND (payment_method IS NULL OR UPPER(payment_method) = 'CASH') THEN amount ELSE 0 END), 0) as cash_income_today,
+            COALESCE(SUM(CASE WHEN transaction_type = 'EXPENSE' AND (payment_method IS NULL OR UPPER(payment_method) = 'CASH') THEN amount ELSE 0 END), 0) as cash_expense_today,
+            COALESCE(SUM(CASE WHEN transaction_type = 'INCOME' AND UPPER(payment_method) IN ('TRANSFER', 'BANK_TRANSFER', 'VIETQR', 'CK') THEN amount ELSE 0 END), 0) as transfer_income_today,
+            COALESCE(SUM(CASE WHEN transaction_type = 'EXPENSE' AND UPPER(payment_method) IN ('TRANSFER', 'BANK_TRANSFER', 'VIETQR', 'CK') THEN amount ELSE 0 END), 0) as transfer_expense_today
+        FROM accounting_transactions
+        WHERE DATE(created_at) = ?
+    """, (today_str,))
+    today_acc = dict(cursor.fetchone() or {})
+
+    # Doanh thu bán hàng hôm nay theo tiền mặt và chuyển khoản
+    cursor.execute("""
+        SELECT 
+            COALESCE(SUM(CASE WHEN UPPER(COALESCE(payment_method, 'CASH')) = 'CASH' AND COALESCE(bill_target, 'CUSTOMER') != 'ADMIN' THEN total ELSE 0 END), 0) as today_cash_rev,
+            COALESCE(SUM(CASE WHEN UPPER(payment_method) IN ('TRANSFER', 'VIETQR') AND COALESCE(bill_target, 'CUSTOMER') != 'ADMIN' THEN total ELSE 0 END), 0) as today_transfer_rev
+        FROM orders
+        WHERE payment_status = 'PAID' AND DATE(COALESCE(completed_at, created_at)) = ?
+    """, (today_str,))
+    today_method = dict(cursor.fetchone() or {})
+
+    t_cash_rev = today_method.get("today_cash_rev", 0)
+    t_cash_inc = today_acc.get("cash_income_today", 0)
+    t_cash_exp = today_acc.get("cash_expense_today", 0)
+
+    t_transfer_rev = today_method.get("today_transfer_rev", 0)
+    t_transfer_inc = today_acc.get("transfer_income_today", 0)
+    t_transfer_exp = today_acc.get("transfer_expense_today", 0)
+
     # Breakdown chi tiết theo từng method
     cursor.execute("""
         SELECT COALESCE(payment_method, 'CASH') as method, 
@@ -185,7 +215,13 @@ def get_revenue_overview(request: Request):
             "cash_revenue": method_row.get("cash_rev", 0),
             "transfer_revenue": method_row.get("transfer_rev", 0),
             "internal_revenue": method_row.get("internal_rev", 0),
-            "service_fee_revenue": method_row.get("service_fee_rev", 0)
+            "service_fee_revenue": method_row.get("service_fee_rev", 0),
+            "today_cash_balance": t_cash_rev + t_cash_inc - t_cash_exp,
+            "today_cash_expense": t_cash_exp,
+            "today_cash_income": t_cash_inc,
+            "today_transfer_balance": t_transfer_rev + t_transfer_inc - t_transfer_exp,
+            "today_transfer_expense": t_transfer_exp,
+            "today_transfer_income": t_transfer_inc
         },
         "aov": aov,
         "days_chart": days_chart,
@@ -257,6 +293,64 @@ def get_revenue_detail(
         WHERE o.payment_status = 'PAID' AND {where_clause} {dept_clause}
     """, (param,))
     summary = dict(cursor.fetchone() or {})
+
+    # 1b. Thống kê biến động Sổ Quỹ Thu - Chi (Quỹ Tiền Mặt & Quỹ Chuyển Khoản) trong kỳ
+    if period_type == "DAY":
+        acc_where = "DATE(created_at) = ?"
+    elif period_type == "MONTH":
+        acc_where = "strftime('%Y-%m', created_at) = ?"
+    else: # YEAR
+        acc_where = "strftime('%Y', created_at) = ?"
+
+    acc_dept = ""
+    if department == "PICKLEBALL":
+        acc_dept = " AND department = 'PICKLEBALL'"
+    elif department == "RESTAURANT":
+        acc_dept = " AND department = 'RESTAURANT'"
+
+    cursor.execute(f"""
+        SELECT 
+            COALESCE(SUM(CASE WHEN transaction_type = 'INCOME' AND (payment_method IS NULL OR UPPER(payment_method) = 'CASH') THEN amount ELSE 0 END), 0) as cash_income,
+            COALESCE(SUM(CASE WHEN transaction_type = 'EXPENSE' AND (payment_method IS NULL OR UPPER(payment_method) = 'CASH') THEN amount ELSE 0 END), 0) as cash_expense,
+            COALESCE(SUM(CASE WHEN transaction_type = 'INCOME' AND UPPER(payment_method) IN ('TRANSFER', 'BANK_TRANSFER', 'VIETQR', 'CK') THEN amount ELSE 0 END), 0) as transfer_income,
+            COALESCE(SUM(CASE WHEN transaction_type = 'EXPENSE' AND UPPER(payment_method) IN ('TRANSFER', 'BANK_TRANSFER', 'VIETQR', 'CK') THEN amount ELSE 0 END), 0) as transfer_expense,
+            COALESCE(SUM(CASE WHEN transaction_type = 'EXPENSE' THEN amount ELSE 0 END), 0) as total_expense,
+            COALESCE(SUM(CASE WHEN transaction_type = 'INCOME' THEN amount ELSE 0 END), 0) as total_income
+        FROM accounting_transactions
+        WHERE {acc_where} {acc_dept}
+    """, (param,))
+    acc_sum = dict(cursor.fetchone() or {})
+
+    # Danh sách các phiếu thu chi phát sinh trong kỳ
+    cursor.execute(f"""
+        SELECT id, transaction_code, transaction_type, cost_category, department,
+               expense_type, amount, COALESCE(payment_method, 'CASH') as payment_method,
+               recipient_payer, description, receipt_url, created_by, created_at
+        FROM accounting_transactions
+        WHERE {acc_where} {acc_dept}
+        ORDER BY created_at DESC, id DESC
+    """, (param,))
+    acc_transactions = [dict(r) for r in cursor.fetchall()]
+
+    cash_rev = summary.get("cash_revenue", 0)
+    transfer_rev = summary.get("transfer_revenue", 0)
+    
+    cash_inc = acc_sum.get("cash_income", 0)
+    cash_exp = acc_sum.get("cash_expense", 0)
+    transfer_inc = acc_sum.get("transfer_income", 0)
+    transfer_exp = acc_sum.get("transfer_expense", 0)
+
+    summary["cash_income"] = cash_inc
+    summary["cash_expense"] = cash_exp
+    summary["cash_fund_balance"] = cash_rev + cash_inc - cash_exp
+
+    summary["transfer_income"] = transfer_inc
+    summary["transfer_expense"] = transfer_exp
+    summary["transfer_fund_balance"] = transfer_rev + transfer_inc - transfer_exp
+
+    summary["total_expense"] = acc_sum.get("total_expense", 0)
+    summary["total_income"] = acc_sum.get("total_income", 0)
+    summary["net_profit"] = summary.get("total_revenue", 0) + summary["total_income"] - summary["total_expense"]
 
     # 2. Lấy danh sách từng hóa đơn chi tiết (gom theo phiên bàn / lần thanh toán)
     cursor.execute(f"""
@@ -405,11 +499,13 @@ def get_revenue_detail(
     conn.close()
 
     return {
+        "status": "SUCCESS",
         "period_type": period_type,
         "date_val": date_val,
         "summary": summary,
         "sub_chart": sub_chart,
-        "orders": orders_list
+        "orders": orders_list,
+        "transactions": acc_transactions
     }
 
 class CleanHistoryRequest(BaseModel):

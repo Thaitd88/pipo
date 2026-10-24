@@ -86,6 +86,82 @@ function onAccTransTypeChange() {
   }
 }
 
+// Xử lý tải ảnh chứng từ phiếu thu chi
+async function handleAccReceiptFileSelect(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  // Hiển thị preview ngay lập tức
+  const previewBox = document.getElementById("accReceiptPreviewBox");
+  const previewImg = document.getElementById("accReceiptPreviewImg");
+  const btnText = document.getElementById("accReceiptBtnText");
+
+  if (previewImg) {
+    previewImg.src = URL.createObjectURL(file);
+  }
+  if (previewBox) {
+    previewBox.classList.remove("hidden");
+    previewBox.classList.add("flex");
+  }
+  if (btnText) {
+    btnText.innerText = "Đang tải ảnh...";
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/accounting/upload-receipt", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.detail || "Không thể tải ảnh chứng từ lên.");
+    }
+
+    const receiptUrlEl = document.getElementById("accReceiptUrl");
+    if (receiptUrlEl) receiptUrlEl.value = data.receipt_url;
+    if (btnText) btnText.innerText = "Đã chọn ảnh (Đổi)";
+  } catch (err) {
+    alert("❌ Lỗi tải ảnh: " + err.message);
+    clearAccReceiptFile();
+  }
+}
+
+function clearAccReceiptFile() {
+  const fileInput = document.getElementById("accReceiptFileInput");
+  const receiptUrlEl = document.getElementById("accReceiptUrl");
+  const previewBox = document.getElementById("accReceiptPreviewBox");
+  const previewImg = document.getElementById("accReceiptPreviewImg");
+  const btnText = document.getElementById("accReceiptBtnText");
+
+  if (fileInput) fileInput.value = "";
+  if (receiptUrlEl) receiptUrlEl.value = "";
+  if (previewImg) previewImg.src = "";
+  if (previewBox) {
+    previewBox.classList.add("hidden");
+    previewBox.classList.remove("flex");
+  }
+  if (btnText) btnText.innerText = "Chọn ảnh hoặc Chụp ảnh";
+}
+
+function zoomReceiptImage(src) {
+  if (!src) return;
+  const modal = document.getElementById("receiptImageModal");
+  const img = document.getElementById("receiptModalImg");
+  const link = document.getElementById("receiptDownloadLink");
+  if (img) img.src = src;
+  if (link) link.href = src;
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closeReceiptImageModal() {
+  const modal = document.getElementById("receiptImageModal");
+  if (modal) modal.classList.add("hidden");
+}
+
 // Lắng nghe thay đổi phân loại Capex/Opex
 document.addEventListener("DOMContentLoaded", () => {
   const costCatEl = document.getElementById("accCostCategory");
@@ -107,6 +183,7 @@ async function submitAccountingTransaction(event) {
   const pMethod = document.getElementById("accPaymentMethod").value;
   const recipient = (document.getElementById("accRecipientPayer")?.value || "").trim();
   const desc = (document.getElementById("accDescription")?.value || "").trim();
+  const receiptUrl = (document.getElementById("accReceiptUrl")?.value || "").trim();
 
   if (amount <= 0) {
     alert("Vui lòng nhập số tiền hợp lệ (> 0 VNĐ)!");
@@ -125,7 +202,8 @@ async function submitAccountingTransaction(event) {
     amount: amount,
     payment_method: pMethod,
     recipient_payer: recipient,
-    description: desc
+    description: desc,
+    receipt_url: receiptUrl
   };
 
   try {
@@ -147,6 +225,7 @@ async function submitAccountingTransaction(event) {
     if (document.getElementById("accRecipientPayer")) {
       document.getElementById("accRecipientPayer").value = "";
     }
+    clearAccReceiptFile();
 
     switchAccountingTab('history');
   } catch (err) {
@@ -160,10 +239,10 @@ async function loadAccountingTodaySummary() {
     if (!res.ok) return;
     const data = await res.json();
 
-    if (document.getElementById("accKpiPos")) document.getElementById("accKpiPos").innerText = (data.pos_revenue || 0).toLocaleString() + " đ";
-    if (document.getElementById("accKpiOpex")) document.getElementById("accKpiOpex").innerText = (data.opex_spent || 0).toLocaleString() + " đ";
-    if (document.getElementById("accKpiCapex")) document.getElementById("accKpiCapex").innerText = (data.capex_spent || 0).toLocaleString() + " đ";
-    if (document.getElementById("accKpiDrawer")) document.getElementById("accKpiDrawer").innerText = (data.cash_in_drawer_estimate || 0).toLocaleString() + " đ";
+    if (document.getElementById("accKpiPos")) document.getElementById("accKpiPos").innerText = (data.pos_revenue || data.revenue_today || 0).toLocaleString() + " đ";
+    if (document.getElementById("accKpiOpex")) document.getElementById("accKpiOpex").innerText = (data.opex_spent || data.opex_today || 0).toLocaleString() + " đ";
+    if (document.getElementById("accKpiCapex")) document.getElementById("accKpiCapex").innerText = (data.capex_spent || data.capex_today || 0).toLocaleString() + " đ";
+    if (document.getElementById("accKpiDrawer")) document.getElementById("accKpiDrawer").innerText = (data.cash_in_drawer_estimate || data.estimated_cash_drawer || 0).toLocaleString() + " đ";
 
     // Danh sách phiếu hôm nay
     const txRes = await fetch("/api/accounting/transactions?from_date=" + new Date().toISOString().split('T')[0]);
@@ -181,7 +260,7 @@ function renderAccountingTodayList(txs) {
   if (!tbody) return;
 
   if (txs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-stone-400 text-xs">Hôm nay chưa có phiếu thu/chi nào phát sinh</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-stone-400 text-xs">Hôm nay chưa có phiếu thu/chi nào phát sinh</td></tr>`;
     return;
   }
 
@@ -189,26 +268,36 @@ function renderAccountingTodayList(txs) {
     const isIncome = t.transaction_type === 'INCOME';
     const amountClass = isIncome ? 'text-emerald-700 font-bold' : 'text-rose-600 font-bold';
     const prefix = isIncome ? '+' : '-';
+    const code = t.transaction_code || t.code || `#${t.id}`;
+    const dateStr = t.created_at || t.transaction_date || '';
+    const isCash = (t.payment_method || 'CASH').toUpperCase() === 'CASH';
 
     return `
       <tr class="hover:bg-stone-50 transition border-b border-stone-100 text-xs">
-        <td class="px-3 py-2 font-mono font-bold text-stone-800">${t.code}</td>
-        <td class="px-3 py-2 text-stone-500 whitespace-nowrap">${t.transaction_date}</td>
+        <td class="px-3 py-2 font-mono font-bold text-stone-800">${code}</td>
+        <td class="px-3 py-2 text-stone-500 whitespace-nowrap">${dateStr}</td>
         <td class="px-3 py-2">
           <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isIncome ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}">
             ${isIncome ? '💰 THU' : (t.cost_category || 'CHI')}
           </span>
-          <span class="text-[10px] text-stone-500 ml-1">(${t.department})</span>
+          <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold ${isCash ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-blue-50 text-blue-700 border border-blue-200'} ml-1">
+            ${isCash ? '💵 TM' : '📲 CK'}
+          </span>
         </td>
         <td class="px-3 py-2">
           <div class="font-medium text-stone-800">${t.description}</div>
           ${t.recipient_payer ? `<div class="text-[10px] text-stone-400">Người nhận/nộp: ${t.recipient_payer}</div>` : ''}
+          ${t.receipt_url ? `
+            <button type="button" onclick="zoomReceiptImage('${t.receipt_url}')" class="mt-1 px-2 py-0.5 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-[10px] inline-flex items-center gap-1 border border-emerald-200 cursor-pointer shadow-2xs">
+              <i class="fa-solid fa-image text-emerald-600"></i> Xem ảnh chứng từ
+            </button>
+          ` : ''}
         </td>
         <td class="px-3 py-2 text-right ${amountClass}">
           ${prefix}${t.amount.toLocaleString()} đ
         </td>
         <td class="px-3 py-2 text-center text-stone-400">
-          <button onclick="deleteAccTx(${t.id})" class="text-rose-500 hover:text-rose-700 text-xs" title="Xóa phiếu">
+          <button onclick="deleteAccTx(${t.id})" class="text-rose-500 hover:text-rose-700 text-xs p-1" title="Xóa phiếu">
             <i class="fa-solid fa-trash"></i>
           </button>
         </td>
