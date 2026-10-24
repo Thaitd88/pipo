@@ -9,6 +9,8 @@ import urllib.parse
 import urllib.request
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import Response
+from pydantic import BaseModel
+from typing import Optional, List
 from datetime import datetime
 from ..database import get_db
 from ..timezone_utils import now_vn_str
@@ -914,3 +916,97 @@ async def dismiss_all_service_calls():
     conn.commit()
     conn.close()
     return {"status": "SUCCESS"}
+
+class UpdateBillPaymentMethodRequest(BaseModel):
+    payment_method: str  # "CASH", "TRANSFER", "INTERNAL"
+    bill_target: Optional[str] = "CUSTOMER"  # "CUSTOMER" or "ADMIN"
+    billed_admin_id: Optional[int] = None
+    billed_admin_name: Optional[str] = None
+    order_ids: Optional[List[int]] = None
+    session_id: Optional[int] = None
+
+@router.post("/bills/{order_id}/update-payment-method")
+async def update_bill_payment_method(order_id: int, req: UpdateBillPaymentMethodRequest, request: Request):
+    """Cập nhật lại hình thức thanh toán (Tiền mặt, Chuyển khoản, Tính Admin) cho hóa đơn đã thanh toán."""
+    user = get_current_user_from_request(request)
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, session_id, table_id, payment_status, total FROM orders WHERE id = ?", (order_id,))
+    order_row = cursor.fetchone()
+    if not order_row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Không tìm thấy hóa đơn cần cập nhật.")
+
+    raw_method = (req.payment_method or "CASH").upper().strip()
+    target = (req.bill_target or "CUSTOMER").upper().strip()
+    admin_id = req.billed_admin_id
+    admin_name = (req.billed_admin_name or "").strip()
+
+    if raw_method in ("INTERNAL", "ADMIN") or target == "ADMIN":
+        method = "INTERNAL"
+        target = "ADMIN"
+        if not admin_name and admin_id:
+            cursor.execute("SELECT full_name FROM users WHERE id = ?", (admin_id,))
+            u = cursor.fetchone()
+            if u:
+                admin_name = u["full_name"]
+    elif raw_method in ("TRANSFER", "VIETQR"):
+        method = "TRANSFER"
+        target = "CUSTOMER"
+        admin_id = None
+        admin_name = ""
+    else:
+        method = "CASH"
+        target = "CUSTOMER"
+        admin_id = None
+        admin_name = ""
+
+    # Xác định danh sách order ids cần cập nhật (phiên bàn hoặc danh sách gửi lên)
+    session_id = req.session_id or order_row["session_id"]
+    if req.order_ids and len(req.order_ids) > 0:
+        placeholders = ",".join("?" for _ in req.order_ids)
+        cursor.execute(f"""
+            UPDATE orders
+            SET payment_method = ?, bill_target = ?, billed_admin_id = ?, billed_admin_name = ?
+            WHERE id IN ({placeholders})
+        """, (method, target, admin_id, admin_name, *req.order_ids))
+    elif session_id:
+        cursor.execute("""
+            UPDATE orders
+            SET payment_method = ?, bill_target = ?, billed_admin_id = ?, billed_admin_name = ?
+            WHERE session_id = ?
+        """, (method, target, admin_id, admin_name, session_id))
+    else:
+        cursor.execute("""
+            UPDATE orders
+            SET payment_method = ?, bill_target = ?, billed_admin_id = ?, billed_admin_name = ?
+            WHERE id = ?
+        """, (method, target, admin_id, admin_name, order_id))
+
+    conn.commit()
+    conn.close()
+
+    # Phát sự kiện WebSocket thông báo đồng bộ realtime đến toàn bộ máy thu ngân & admin
+    if ws_broadcaster:
+        try:
+            event_data = {
+                "event": "BILL_PAYMENT_METHOD_UPDATED",
+                "order_id": order_id,
+                "session_id": session_id,
+                "payment_method": method,
+                "bill_target": target,
+                "billed_admin_name": admin_name
+            }
+            await ws_broadcaster.send_to_pos(event_data)
+        except Exception as _ws_e:
+            logger.warning(f"[WS error BILL_PAYMENT_METHOD_UPDATED]: {_ws_e}")
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Đã cập nhật hình thức thanh toán hóa đơn #{order_id} thành công!",
+        "order_id": order_id,
+        "payment_method": method,
+        "bill_target": target,
+        "billed_admin_name": admin_name
+    }

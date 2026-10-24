@@ -674,8 +674,8 @@
   </div>
 
   <!-- MODAL: CHI TIẾT HÓA ĐƠN & IN LẠI BILL -->
-  <div id="posBillDetailModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
+  <div id="posBillDetailModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-4 sm:p-5 shadow-2xl flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
       <!-- Header modal -->
       <div class="flex items-center justify-between pb-3 border-b border-stone-100 flex-shrink-0">
         <h3 class="font-bold text-sm text-stone-900 flex items-center gap-2">
@@ -688,7 +688,7 @@
       </div>
 
       <!-- Khung hóa đơn in 80mm cuộn được -->
-      <div class="flex-1 overflow-y-auto py-3">
+      <div class="flex-1 overflow-y-auto py-2.5 custom-scrollbar">
         <div id="printableHistoryReceipt" class="bg-stone-50 p-4 rounded-2xl border border-dashed border-stone-300 text-xs font-mono text-stone-800">
           <div class="text-center pb-3 border-b border-dashed border-stone-300">
             <div class="font-black text-sm text-stone-900 tracking-wider uppercase">PiPo Garden</div>
@@ -757,6 +757,49 @@
           <div class="text-center pt-3 text-[10px] text-stone-400 border-t border-dashed border-stone-200 mt-3">
             Cảm ơn quý khách & Hẹn gặp lại!
           </div>
+        </div>
+
+        <!-- Khung Thay Đổi Hình Thức Thanh Toán -->
+        <div class="mt-3 p-3.5 bg-gradient-to-r from-stone-50 to-emerald-50/30 rounded-2xl border border-stone-200 shadow-2xs">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-black text-stone-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-pen-to-square text-emerald-700"></i> Đổi Hình Thức Thanh Toán
+            </span>
+            <span id="billMethodStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+              Tiền mặt
+            </span>
+          </div>
+
+          <!-- 3 Buttons chọn hình thức: Tiền mặt, CK, Tính Admin -->
+          <div class="grid grid-cols-3 gap-1.5 text-xs font-bold mb-2.5">
+            <button type="button" onclick="selectEditBillMethod('CASH')" id="editBtnMethod-CASH" class="edit-method-btn py-2 px-1 rounded-xl border border-emerald-600 bg-emerald-50 text-emerald-800 flex flex-col items-center gap-1 transition cursor-pointer">
+              <i class="fa-solid fa-money-bill-wave text-sm"></i>
+              <span class="text-[11px]">Tiền mặt</span>
+            </button>
+            <button type="button" onclick="selectEditBillMethod('TRANSFER')" id="editBtnMethod-TRANSFER" class="edit-method-btn py-2 px-1 rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 flex flex-col items-center gap-1 transition cursor-pointer">
+              <i class="fa-solid fa-qrcode text-sm"></i>
+              <span class="text-[11px]">Chuyển khoản</span>
+            </button>
+            <button type="button" onclick="selectEditBillMethod('INTERNAL')" id="editBtnMethod-INTERNAL" class="edit-method-btn py-2 px-1 rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 flex flex-col items-center gap-1 transition cursor-pointer">
+              <i class="fa-solid fa-user-tie text-sm"></i>
+              <span class="text-[11px]">Tính Admin</span>
+            </button>
+          </div>
+
+          <!-- Dropdown chọn Admin (chỉ hiện khi chọn INTERNAL) -->
+          <div id="editBillAdminSelectWrapper" class="hidden mb-2.5">
+            <label class="block text-[10.5px] font-bold text-purple-900 mb-1">
+              Chọn Quản trị viên chịu bill:
+            </label>
+            <select id="editBillAdminSelect" class="w-full text-xs p-2 rounded-xl border border-purple-300 font-bold bg-white text-purple-900 focus:outline-purple-600">
+            </select>
+          </div>
+
+          <!-- Nút Lưu Thay Đổi -->
+          <button type="button" id="btnSaveBillPaymentMethod" onclick="saveBillPaymentMethod()" class="w-full py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Lưu Thay Đổi Hình Thức Thanh Toán</span>
+          </button>
         </div>
       </div>
 
@@ -3706,9 +3749,150 @@
       }
     }
 
-    function openPosBillDetail(billId) {
-      const bill = posBillsData.find(b => b.id === billId);
-      if (!bill) return;
+    let currentEditBillMethod = 'CASH';
+
+    function selectEditBillMethod(method, userTriggered = true) {
+      currentEditBillMethod = method;
+      document.querySelectorAll(".edit-method-btn").forEach(btn => {
+        btn.className = "edit-method-btn py-2 px-1 rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 flex flex-col items-center gap-1 transition cursor-pointer";
+      });
+
+      const activeBtn = document.getElementById(`editBtnMethod-${method}`);
+      if (activeBtn) {
+        if (method === 'INTERNAL') {
+          activeBtn.className = "edit-method-btn py-2 px-1 rounded-xl border border-purple-600 bg-purple-50 text-purple-800 flex flex-col items-center gap-1 transition cursor-pointer shadow-xs";
+        } else if (method === 'TRANSFER') {
+          activeBtn.className = "edit-method-btn py-2 px-1 rounded-xl border border-blue-600 bg-blue-50 text-blue-800 flex flex-col items-center gap-1 transition cursor-pointer shadow-xs";
+        } else {
+          activeBtn.className = "edit-method-btn py-2 px-1 rounded-xl border border-emerald-600 bg-emerald-50 text-emerald-800 flex flex-col items-center gap-1 transition cursor-pointer shadow-xs";
+        }
+      }
+
+      const admWrapper = document.getElementById("editBillAdminSelectWrapper");
+      if (admWrapper) {
+        if (method === 'INTERNAL') {
+          admWrapper.classList.remove("hidden");
+        } else {
+          admWrapper.classList.add("hidden");
+        }
+      }
+
+      const badge = document.getElementById("billMethodStatusBadge");
+      if (badge) {
+        if (method === 'INTERNAL') {
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800";
+          badge.innerText = "🏢 Tính nội bộ Admin";
+        } else if (method === 'TRANSFER') {
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800";
+          badge.innerText = "📲 Chuyển khoản (VietQR)";
+        } else {
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800";
+          badge.innerText = "💵 Tiền mặt";
+        }
+      }
+    }
+
+    async function saveBillPaymentMethod() {
+      if (!currentViewingBill) {
+        alert("Không xác định được hóa đơn đang xem!");
+        return;
+      }
+
+      const btn = document.getElementById("btnSaveBillPaymentMethod");
+      const origHtml = btn ? btn.innerHTML : "";
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...`;
+      }
+
+      try {
+        let adminId = null;
+        let adminName = "";
+        if (currentEditBillMethod === 'INTERNAL') {
+          const admSel = document.getElementById("editBillAdminSelect");
+          if (admSel && admSel.value) {
+            adminId = parseInt(admSel.value) || null;
+            const opt = admSel.options[admSel.selectedIndex];
+            adminName = opt ? (opt.getAttribute("data-name") || opt.text.split('(')[0].trim()) : "";
+          }
+        }
+
+        const payload = {
+          payment_method: currentEditBillMethod,
+          bill_target: currentEditBillMethod === 'INTERNAL' ? 'ADMIN' : 'CUSTOMER',
+          billed_admin_id: adminId,
+          billed_admin_name: adminName,
+          order_ids: currentViewingBill.order_ids || [currentViewingBill.id],
+          session_id: currentViewingBill.session_id
+        };
+
+        const res = await fetch(`/api/pos/bills/${currentViewingBill.id}/update-payment-method`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Không thể cập nhật hình thức thanh toán.");
+
+        // Cập nhật trạng thái cục bộ
+        currentViewingBill.payment_method = currentEditBillMethod;
+        currentViewingBill.bill_target = payload.bill_target;
+        currentViewingBill.billed_admin_name = adminName;
+
+        // Cập nhật lại hóa đơn hiển thị trong modal
+        const methodEl = document.getElementById("modalBillMethod");
+        if (methodEl) {
+          if (currentEditBillMethod === 'INTERNAL') methodEl.innerText = "Tính nội bộ";
+          else if (currentEditBillMethod === 'TRANSFER') methodEl.innerText = "Chuyển khoản (VietQR)";
+          else methodEl.innerText = "Tiền mặt";
+        }
+        const admRow = document.getElementById("modalBillAdminRow");
+        if (admRow) {
+          if (currentEditBillMethod === 'INTERNAL') {
+            admRow.classList.remove("hidden");
+            document.getElementById("modalBillAdmin").innerText = adminName || 'Quản trị viên';
+          } else {
+            admRow.classList.add("hidden");
+          }
+        }
+
+        showPosToast("🎉 Đã lưu hình thức thanh toán & làm mới báo cáo!");
+
+        // Tự động làm mới danh sách lịch sử bill & báo cáo tiền mặt, CK
+        if (typeof loadPosBillsHistory === 'function') loadPosBillsHistory();
+        if (typeof loadRevenueOverview === 'function') loadRevenueOverview();
+        if (typeof fetchDetailReport === 'function') fetchDetailReport();
+
+      } catch (err) {
+        console.error("Lỗi saveBillPaymentMethod:", err);
+        alert("❌ Lỗi: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+        }
+      }
+    }
+
+    async function openPosBillDetail(billId) {
+      let bill = posBillsData.find(b => b.id === billId || (b.order_ids && b.order_ids.includes(billId)));
+      if (!bill) {
+        try {
+          const res = await fetch(`/api/pos/bills/history?search=${billId}`);
+          if (res.ok) {
+            const data = await res.json();
+            bill = (data.bills || []).find(b => b.id === billId || (b.order_ids && b.order_ids.includes(billId))) || (data.bills && data.bills[0]);
+            if (bill && !posBillsData.some(b => b.id === bill.id)) {
+              posBillsData.push(bill);
+            }
+          }
+        } catch (e) {}
+      }
+      if (!bill) {
+        alert("Không tìm thấy thông tin hóa đơn #" + billId);
+        return;
+      }
       currentViewingBill = bill;
 
       document.getElementById("modalBillTitle").innerText = `Hóa Đơn #HD-${bill.id}`;
@@ -3729,6 +3913,23 @@
       } else {
         admRow.classList.add("hidden");
       }
+
+      // Nạp danh sách Admin vào select
+      const admSel = document.getElementById("editBillAdminSelect");
+      if (admSel) {
+        admSel.innerHTML = (posAdmins || []).map(a => `<option value="${a.id}" data-name="${a.full_name}">${a.full_name} (${a.role})</option>`).join('');
+        if (bill.billed_admin_id) {
+          admSel.value = bill.billed_admin_id;
+        } else if (bill.billed_admin_name) {
+          const opt = Array.from(admSel.options).find(o => o.getAttribute("data-name") === bill.billed_admin_name || o.text.startsWith(bill.billed_admin_name));
+          if (opt) admSel.value = opt.value;
+        }
+      }
+
+      // Kích hoạt nút tương ứng với hình thức hiện tại của bill
+      let curMethod = (bill.payment_method || (bill.bill_target === 'ADMIN' ? 'INTERNAL' : 'CASH')).toUpperCase();
+      if (curMethod === 'VIETQR') curMethod = 'TRANSFER';
+      selectEditBillMethod(curMethod, false);
 
       const itemsList = document.getElementById("modalBillItemsList");
       if (!bill.items || bill.items.length === 0) {
@@ -4311,6 +4512,9 @@
               <td class="py-3 px-4 text-right">
                 <div class="font-black text-stone-900">${formatVND(o.total)}</div>
                 ${feeBadge}
+                <button onclick="openPosBillDetail(${o.id})" class="mt-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-[10.5px] transition border border-emerald-200 flex items-center gap-1 ml-auto cursor-pointer shadow-2xs" title="Xem chi tiết hóa đơn và thay đổi hình thức thanh toán">
+                  <i class="fa-solid fa-pen-to-square"></i> Xem / Đổi TT
+                </button>
               </td>
             </tr>
           `;
@@ -5068,6 +5272,12 @@
               playPosChime();
               showPosToast(`Đơn đặt bàn / gọi trước mới từ khách: <b>${data.reservation.guest_name}</b> (${data.reservation.booking_time})`);
             }
+          }
+
+          if (data.event === "BILL_PAYMENT_METHOD_UPDATED") {
+            if (typeof loadPosBillsHistory === 'function') loadPosBillsHistory();
+            if (typeof loadRevenueOverview === 'function') loadRevenueOverview();
+            if (typeof fetchDetailReport === 'function') fetchDetailReport();
           }
 
           if (data.event === "NEW_ORDER" || data.event === "SERVICE_CALL" || data.event === "TABLE_CHECKED_OUT" || data.event === "ITEM_STATUS_CHANGED" || data.event === "ORDER_ITEMS_COMPLETED" || data.event === "REVENUE_CLEARED" || data.event === "TABLE_ITEMS_SERVED") {

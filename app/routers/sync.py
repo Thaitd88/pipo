@@ -249,13 +249,22 @@ async def import_orders(payload: Dict[str, Any]):
                 cursor.execute('UPDATE tables SET status = \'OCCUPIED\', current_session_id = ? WHERE id = ?', (local_session_id, local_table_id))
                 cursor.execute('UPDATE table_sessions SET status = \'ACTIVE\' WHERE id = ?', (local_session_id,))
 
-            # 4. Cập nhật trạng thái thanh toán nếu có thay đổi
-            if o.get("payment_status") != existing_order["payment_status"] or o.get("status") != existing_order["status"]:
+            # 4. Cập nhật trạng thái thanh toán & hình thức thanh toán nếu có thay đổi
+            if (o.get("payment_status") != existing_order["payment_status"] or 
+                o.get("status") != existing_order["status"] or 
+                o.get("payment_method") != existing_order["payment_method"] or
+                o.get("bill_target") != existing_order["bill_target"] or
+                o.get("billed_admin_name") != existing_order["billed_admin_name"]):
                 cursor.execute("""
                     UPDATE orders 
-                    SET status = ?, payment_status = ?, completed_at = ?, payment_method = ?
+                    SET status = ?, payment_status = ?, completed_at = ?, payment_method = ?,
+                        bill_target = ?, billed_admin_id = ?, billed_admin_name = ?
                     WHERE id = ?
-                """, (o.get("status"), o.get("payment_status"), o.get("completed_at"), o.get("payment_method", "CASH"), existing_order["id"]))
+                """, (
+                    o.get("status"), o.get("payment_status"), o.get("completed_at"), o.get("payment_method", "CASH"),
+                    o.get("bill_target", "CUSTOMER"), o.get("billed_admin_id"), o.get("billed_admin_name"),
+                    existing_order["id"]
+                ))
                 updated_count += 1
 
                 # Nếu đơn chuyển sang PAID, kiểm tra giải phóng bàn
@@ -274,13 +283,15 @@ async def import_orders(payload: Dict[str, Any]):
         cursor.execute("""
             INSERT INTO orders (
                 order_uuid, session_id, table_id, round_number, subtotal, discount, total,
-                status, payment_status, payment_method, customer_note, created_at, completed_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                status, payment_status, payment_method, bill_target, billed_admin_id, billed_admin_name,
+                customer_note, created_at, completed_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             final_uuid, local_session_id, local_table_id, o.get("round_number", 1),
             o.get("subtotal", 0), o.get("discount", 0), o.get("total", 0),
             o.get("status", "CONFIRMED"), o.get("payment_status", "UNPAID"),
-            o.get("payment_method", "CASH"), clean_note,
+            o.get("payment_method", "CASH"), o.get("bill_target", "CUSTOMER"),
+            o.get("billed_admin_id"), o.get("billed_admin_name"), clean_note,
             o.get("created_at"), o.get("completed_at")
         ))
         new_order_id = cursor.lastrowid

@@ -834,6 +834,123 @@
     </div>
   </div>
 
+  <!-- MODAL: XEM CHI TIẾT & ĐỔI HÌNH THỨC THANH TOÁN (POS PICKLEBALL) -->
+  <div id="pickleBillDetailModal" class="fixed inset-0 z-60 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-4 sm:p-5 shadow-2xl flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
+      <!-- Header modal -->
+      <div class="flex items-center justify-between pb-3 border-b border-stone-100 flex-shrink-0">
+        <h3 class="font-bold text-sm text-stone-900 flex items-center gap-2">
+          <i class="fa-solid fa-receipt text-emerald-700"></i>
+          <span id="pickleModalBillTitle">Chi Tiết Hóa Đơn #HD-00</span>
+        </h3>
+        <button onclick="closePickleBillDetailModal()" class="text-stone-400 hover:text-stone-600 p-1 cursor-pointer">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Khung hóa đơn in 80mm cuộn được -->
+      <div class="flex-1 overflow-y-auto py-2.5 custom-scrollbar">
+        <div class="bg-stone-50 p-4 rounded-2xl border border-dashed border-stone-300 text-xs font-mono text-stone-800">
+          <div class="text-center pb-3 border-b border-dashed border-stone-300">
+            <div class="font-black text-sm text-stone-900 tracking-wider uppercase">PiPo Garden</div>
+            <div class="text-[10px] text-stone-500">Sân Pickleball Chuẩn Resort</div>
+            <div class="text-[11px] font-bold text-emerald-800 mt-1 uppercase">HÓA ĐƠN SÂN PICKLEBALL</div>
+          </div>
+
+          <div class="py-2.5 border-b border-dashed border-stone-300 space-y-1 text-[11px]">
+            <div class="flex justify-between">
+              <span class="text-stone-500">Sân / Bàn:</span>
+              <span class="font-bold text-stone-900" id="pickleModalBillTable">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-stone-500">Thời gian:</span>
+              <span class="text-stone-700" id="pickleModalBillTime">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-stone-500">Hình thức:</span>
+              <span class="font-bold text-emerald-700" id="pickleModalBillMethod">Tiền mặt</span>
+            </div>
+            <div id="pickleModalBillAdminRow" class="flex justify-between text-purple-700 hidden font-bold">
+              <span>Admin chịu bill:</span>
+              <span id="pickleModalBillAdmin">--</span>
+            </div>
+          </div>
+
+          <!-- Bảng món ăn -->
+          <div class="py-2.5 border-b border-dashed border-stone-300">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="text-[10px] text-stone-400 border-b border-stone-200">
+                  <th class="pb-1">Dịch vụ / Món</th>
+                  <th class="pb-1 text-right">T.Tiền</th>
+                </tr>
+              </thead>
+              <tbody id="pickleModalBillItemsList" class="divide-y divide-dashed divide-stone-200 text-xs"></tbody>
+            </table>
+          </div>
+
+          <!-- Tổng cộng -->
+          <div class="pt-3 space-y-1 text-xs">
+            <div class="flex justify-between items-center text-sm font-black text-stone-900 pt-1 border-t border-dashed border-stone-300">
+              <span>TỔNG CỘNG:</span>
+              <span class="text-emerald-800 text-base font-black" id="pickleModalBillGrandTotal">0 đ</span>
+            </div>
+            <div class="text-[10px] text-emerald-700 font-bold text-center pt-1">
+              ✓ ĐÃ THANH TOÁN HOÀN TẤT
+            </div>
+          </div>
+        </div>
+
+        <!-- Khung Thay Đổi Hình Thức Thanh Toán -->
+        <div class="mt-3 p-3.5 bg-gradient-to-r from-stone-50 to-emerald-50/30 rounded-2xl border border-stone-200 shadow-2xs">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-black text-stone-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-pen-to-square text-emerald-700"></i> Đổi Hình Thức Thanh Toán
+            </span>
+            <span id="pickleBillMethodStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+              Tiền mặt
+            </span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-1.5 text-xs font-bold mb-2.5">
+            <button type="button" onclick="selectPickleEditBillMethod('CASH')" id="pickleEditBtnMethod-CASH" class="pickle-edit-method-btn py-2 px-1 rounded-xl border border-emerald-600 bg-emerald-50 text-emerald-800 flex flex-col items-center gap-1 transition cursor-pointer">
+              <i class="fa-solid fa-money-bill-wave text-sm"></i>
+              <span class="text-[11px]">Tiền mặt</span>
+            </button>
+            <button type="button" onclick="selectPickleEditBillMethod('TRANSFER')" id="pickleEditBtnMethod-TRANSFER" class="pickle-edit-method-btn py-2 px-1 rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 flex flex-col items-center gap-1 transition cursor-pointer">
+              <i class="fa-solid fa-qrcode text-sm"></i>
+              <span class="text-[11px]">Chuyển khoản</span>
+            </button>
+            <button type="button" onclick="selectPickleEditBillMethod('INTERNAL')" id="pickleEditBtnMethod-INTERNAL" class="pickle-edit-method-btn py-2 px-1 rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 flex flex-col items-center gap-1 transition cursor-pointer">
+              <i class="fa-solid fa-user-tie text-sm"></i>
+              <span class="text-[11px]">Tính Admin</span>
+            </button>
+          </div>
+
+          <div id="pickleEditBillAdminSelectWrapper" class="hidden mb-2.5">
+            <label class="block text-[10.5px] font-bold text-purple-900 mb-1">
+              Chọn Quản trị viên chịu bill:
+            </label>
+            <select id="pickleEditBillAdminSelect" class="w-full text-xs p-2 rounded-xl border border-purple-300 font-bold bg-white text-purple-900 focus:outline-purple-600">
+            </select>
+          </div>
+
+          <button type="button" id="btnPickleSaveBillPaymentMethod" onclick="savePickleBillPaymentMethod()" class="w-full py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Lưu Thay Đổi Hình Thức Thanh Toán</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer modal -->
+      <div class="pt-3 border-t border-stone-100 flex items-center gap-2 flex-shrink-0">
+        <button onclick="closePickleBillDetailModal()" class="w-full py-2.5 rounded-xl border border-stone-300 text-stone-700 font-bold text-xs hover:bg-stone-50 transition cursor-pointer">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div id="toastNotification" class="fixed bottom-5 right-5 z-50 bg-stone-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs border border-stone-700 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
     <div id="toastIcon" class="text-base text-emerald-400"><i class="fa-solid fa-circle-check"></i></div>
@@ -2114,8 +2231,12 @@
         ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
-            if (["NEW_ORDER", "TABLE_CHECKED_OUT", "ITEM_STATUS_CHANGED", "ORDER_ITEMS_COMPLETED", "TABLE_ITEMS_SERVED", "REVENUE_CLEARED"].includes(data.event)) {
+            if (["NEW_ORDER", "TABLE_CHECKED_OUT", "ITEM_STATUS_CHANGED", "ORDER_ITEMS_COMPLETED", "TABLE_ITEMS_SERVED", "REVENUE_CLEARED", "BILL_PAYMENT_METHOD_UPDATED"].includes(data.event)) {
               loadPickleCourts();
+              const rModal = document.getElementById("pickleReportModal");
+              if (rModal && !rModal.classList.contains("hidden")) {
+                fetchPickleReport();
+              }
             }
           } catch (e) {}
         };
@@ -2281,7 +2402,10 @@
                   ${methodBadge}
                 </td>
                 <td class="py-2.5 px-3 text-right font-black text-stone-900 whitespace-nowrap">
-                  ${formatVND(o.total)}
+                  <div>${formatVND(o.total)}</div>
+                  <button onclick="openPickleBillDetail(${o.id})" class="mt-1 px-2 py-0.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-[10px] transition border border-emerald-200 inline-flex items-center gap-1 cursor-pointer" title="Xem chi tiết và sửa hình thức thanh toán">
+                    <i class="fa-solid fa-pen-to-square"></i> Đổi TT
+                  </button>
                 </td>
               </tr>
             `;
@@ -2297,6 +2421,209 @@
       const printArea = document.getElementById("pickleReportPrintArea");
       if (!printArea) return;
       window.print();
+    }
+
+    // ==================== 9. XEM VÀ ĐỔI HÌNH THỨC THANH TOÁN (POS PICK) ====================
+    let currentPickleViewingBill = null;
+    let currentPickleEditBillMethod = 'CASH';
+
+    function selectPickleEditBillMethod(method) {
+      currentPickleEditBillMethod = method;
+      document.querySelectorAll(".pickle-edit-method-btn").forEach(btn => {
+        btn.className = "pickle-edit-method-btn py-2 px-1 rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 flex flex-col items-center gap-1 transition cursor-pointer";
+      });
+
+      const activeBtn = document.getElementById(`pickleEditBtnMethod-${method}`);
+      if (activeBtn) {
+        if (method === 'INTERNAL') {
+          activeBtn.className = "pickle-edit-method-btn py-2 px-1 rounded-xl border border-purple-600 bg-purple-50 text-purple-800 flex flex-col items-center gap-1 transition cursor-pointer shadow-xs";
+        } else if (method === 'TRANSFER') {
+          activeBtn.className = "pickle-edit-method-btn py-2 px-1 rounded-xl border border-blue-600 bg-blue-50 text-blue-800 flex flex-col items-center gap-1 transition cursor-pointer shadow-xs";
+        } else {
+          activeBtn.className = "pickle-edit-method-btn py-2 px-1 rounded-xl border border-emerald-600 bg-emerald-50 text-emerald-800 flex flex-col items-center gap-1 transition cursor-pointer shadow-xs";
+        }
+      }
+
+      const admWrapper = document.getElementById("pickleEditBillAdminSelectWrapper");
+      if (admWrapper) {
+        if (method === 'INTERNAL') admWrapper.classList.remove("hidden");
+        else admWrapper.classList.add("hidden");
+      }
+
+      const badge = document.getElementById("pickleBillMethodStatusBadge");
+      if (badge) {
+        if (method === 'INTERNAL') {
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800";
+          badge.innerText = "🏢 Tính nội bộ Admin";
+        } else if (method === 'TRANSFER') {
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800";
+          badge.innerText = "📲 Chuyển khoản (VietQR)";
+        } else {
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800";
+          badge.innerText = "💵 Tiền mặt";
+        }
+      }
+    }
+
+    async function openPickleBillDetail(billId) {
+      let bill = null;
+      try {
+        const res = await fetch(`/api/pos/bills/history?search=${billId}`);
+        if (res.ok) {
+          const data = await res.json();
+          bill = (data.bills || []).find(b => b.id === billId || (b.order_ids && b.order_ids.includes(billId))) || (data.bills && data.bills[0]);
+        }
+      } catch (e) {
+        console.error("Lỗi lấy bill pickle:", e);
+      }
+
+      if (!bill) {
+        alert("Không tìm thấy thông tin hóa đơn #" + billId);
+        return;
+      }
+      currentPickleViewingBill = bill;
+
+      document.getElementById("pickleModalBillTitle").innerText = `Hóa Đơn Sân Pick #${bill.id}`;
+      document.getElementById("pickleModalBillTable").innerText = `${bill.table_name || bill.table_code} (${bill.area || 'Sân Pickle'})`;
+      document.getElementById("pickleModalBillTime").innerText = bill.paid_at || '--';
+
+      const pMethod = (bill.payment_method || (bill.bill_target === 'ADMIN' ? 'INTERNAL' : 'CASH')).toUpperCase();
+      let methodText = "Tiền mặt";
+      if (pMethod === 'TRANSFER' || pMethod === 'VIETQR') methodText = "Chuyển khoản (VietQR)";
+      else if (pMethod === 'INTERNAL' || bill.bill_target === 'ADMIN') methodText = "Tính nội bộ";
+      document.getElementById("pickleModalBillMethod").innerText = methodText;
+
+      const admRow = document.getElementById("pickleModalBillAdminRow");
+      if (bill.bill_target === "ADMIN" || pMethod === 'INTERNAL') {
+        admRow.classList.remove("hidden");
+        document.getElementById("pickleModalBillAdmin").innerText = bill.billed_admin_name || 'Quản trị viên';
+      } else {
+        admRow.classList.add("hidden");
+      }
+
+      // Nạp danh sách Admin
+      try {
+        const aRes = await fetch("/api/pos/admins");
+        if (aRes.ok) {
+          const aData = await aRes.json();
+          const admSel = document.getElementById("pickleEditBillAdminSelect");
+          if (admSel) {
+            admSel.innerHTML = (aData.admins || []).map(a => `<option value="${a.id}" data-name="${a.full_name}">${a.full_name} (${a.role})</option>`).join('');
+            if (bill.billed_admin_name) {
+              const opt = Array.from(admSel.options).find(o => o.getAttribute("data-name") === bill.billed_admin_name || o.text.startsWith(bill.billed_admin_name));
+              if (opt) admSel.value = opt.value;
+            }
+          }
+        }
+      } catch (e) {}
+
+      let curMethod = (bill.payment_method || (bill.bill_target === 'ADMIN' ? 'INTERNAL' : 'CASH')).toUpperCase();
+      if (curMethod === 'VIETQR') curMethod = 'TRANSFER';
+      selectPickleEditBillMethod(curMethod);
+
+      // Render danh sách món
+      const itemsList = document.getElementById("pickleModalBillItemsList");
+      if (!bill.items || bill.items.length === 0) {
+        itemsList.innerHTML = `<tr><td colspan="2" class="py-3 text-center italic text-stone-500">Dịch vụ Sân Pickleball</td></tr>`;
+      } else {
+        itemsList.innerHTML = (bill.items || []).map(it => {
+          const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
+          return `
+            <tr class="py-1.5">
+              <td class="py-1.5 pr-2 align-top">
+                <div class="font-bold text-stone-800 leading-tight">${it.item_name}</div>
+                <div class="text-[10px] text-stone-600 font-mono mt-0.5">${it.quantity} × ${formatVND(uPrice)}</div>
+                ${it.note ? `<div class="text-[10px] text-amber-700 italic">(${it.note})</div>` : ''}
+              </td>
+              <td class="py-1.5 text-right font-bold text-stone-900 align-bottom whitespace-nowrap">
+                ${formatVND(it.total_price)}
+              </td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      document.getElementById("pickleModalBillGrandTotal").innerText = formatVND(bill.total);
+      document.getElementById("pickleBillDetailModal").classList.remove("hidden");
+    }
+
+    function closePickleBillDetailModal() {
+      document.getElementById("pickleBillDetailModal").classList.add("hidden");
+      currentPickleViewingBill = null;
+    }
+
+    async function savePickleBillPaymentMethod() {
+      if (!currentPickleViewingBill) return;
+
+      const btn = document.getElementById("btnPickleSaveBillPaymentMethod");
+      const origHtml = btn ? btn.innerHTML : "";
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...`;
+      }
+
+      try {
+        let adminId = null;
+        let adminName = "";
+        if (currentPickleEditBillMethod === 'INTERNAL') {
+          const admSel = document.getElementById("pickleEditBillAdminSelect");
+          if (admSel && admSel.value) {
+            adminId = parseInt(admSel.value) || null;
+            const opt = admSel.options[admSel.selectedIndex];
+            adminName = opt ? (opt.getAttribute("data-name") || opt.text.split('(')[0].trim()) : "";
+          }
+        }
+
+        const payload = {
+          payment_method: currentPickleEditBillMethod,
+          bill_target: currentPickleEditBillMethod === 'INTERNAL' ? 'ADMIN' : 'CUSTOMER',
+          billed_admin_id: adminId,
+          billed_admin_name: adminName,
+          order_ids: currentPickleViewingBill.order_ids || [currentPickleViewingBill.id],
+          session_id: currentPickleViewingBill.session_id
+        };
+
+        const res = await fetch(`/api/pos/bills/${currentPickleViewingBill.id}/update-payment-method`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Không thể cập nhật hình thức thanh toán.");
+
+        currentPickleViewingBill.payment_method = currentPickleEditBillMethod;
+        currentPickleViewingBill.bill_target = payload.bill_target;
+        currentPickleViewingBill.billed_admin_name = adminName;
+
+        const methodEl = document.getElementById("pickleModalBillMethod");
+        if (methodEl) {
+          if (currentPickleEditBillMethod === 'INTERNAL') methodEl.innerText = "Tính nội bộ";
+          else if (currentPickleEditBillMethod === 'TRANSFER') methodEl.innerText = "Chuyển khoản (VietQR)";
+          else methodEl.innerText = "Tiền mặt";
+        }
+        const admRow = document.getElementById("pickleModalBillAdminRow");
+        if (admRow) {
+          if (currentPickleEditBillMethod === 'INTERNAL') {
+            admRow.classList.remove("hidden");
+            document.getElementById("pickleModalBillAdmin").innerText = adminName || 'Quản trị viên';
+          } else {
+            admRow.classList.add("hidden");
+          }
+        }
+
+        showToast("🎉 Đã cập nhật hình thức thanh toán!");
+        fetchPickleReport();
+
+      } catch (err) {
+        console.error("Lỗi savePickleBillPaymentMethod:", err);
+        alert("❌ Lỗi: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+        }
+      }
     }
 
     // Initial Load
