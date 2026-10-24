@@ -2419,7 +2419,15 @@
           fetch("/api/tables"),
           fetch("/api/pos/overview")
         ]);
+        if (!tablesRes.ok || !overviewRes.ok) {
+          console.warn("fetchTablesOverview response not ok:", tablesRes.status, overviewRes.status);
+          return;
+        }
         const rawTables = await tablesRes.json();
+        if (!Array.isArray(rawTables)) {
+          console.warn("fetchTablesOverview rawTables is not array:", rawTables);
+          return;
+        }
         const tblMap = new Map();
         for (const t of rawTables) {
           if (!tblMap.has(t.id)) {
@@ -2429,16 +2437,20 @@
         allTables = Array.from(tblMap.values());
         const overview = await overviewRes.json();
 
-        document.getElementById("statOccupied").innerText = overview.occupied_tables;
-        document.getElementById("statTotal").innerText = overview.total_tables;
-        document.getElementById("statOccupiedText").innerText = `${overview.occupied_tables} bàn đang phục vụ`;
-        document.getElementById("statRevenue").innerText = formatVND(overview.current_unpaid_revenue);
+        const occEl = document.getElementById("statOccupied");
+        if (occEl) occEl.innerText = overview.occupied_tables || 0;
+        const totEl = document.getElementById("statTotal");
+        if (totEl) totEl.innerText = overview.total_tables || 0;
+        const occTxt = document.getElementById("statOccupiedText");
+        if (occTxt) occTxt.innerText = `${overview.occupied_tables || 0} bàn đang phục vụ`;
+        const revEl = document.getElementById("statRevenue");
+        if (revEl) revEl.innerText = formatVND(overview.current_unpaid_revenue || 0);
 
         renderServiceCalls(overview.pending_calls || []);
         renderTablesGrid();
         renderQRCards();
       } catch (err) {
-        console.error(err);
+        console.error("fetchTablesOverview error:", err);
       }
     }
 

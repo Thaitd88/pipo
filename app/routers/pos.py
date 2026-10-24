@@ -29,37 +29,39 @@ def set_broadcaster(broadcaster):
 @router.get("/overview")
 def get_pos_overview():
     conn = get_db()
-    cursor = conn.cursor()
+    try:
+        cursor = conn.cursor()
 
-    # Thống kê bàn
-    cursor.execute("SELECT COUNT(*) as total FROM tables")
-    total_tables = cursor.fetchone()["total"]
+        # Thống kê bàn
+        cursor.execute("SELECT COUNT(*) as total FROM tables")
+        total_tables = cursor.fetchone()["total"]
 
-    cursor.execute("SELECT COUNT(*) as occupied FROM tables WHERE status IN ('OCCUPIED', 'BILLING')")
-    occupied_tables = cursor.fetchone()["occupied"]
+        cursor.execute("SELECT COUNT(*) as occupied FROM tables WHERE status IN ('OCCUPIED', 'BILLING')")
+        occupied_tables = cursor.fetchone()["occupied"]
 
-    # Doanh thu tạm tính của các bàn đang ngồi
-    cursor.execute("SELECT COALESCE(SUM(total), 0) as current_unpaid FROM orders WHERE payment_status = 'UNPAID'")
-    current_unpaid = cursor.fetchone()["current_unpaid"]
+        # Doanh thu tạm tính của các bàn đang ngồi
+        cursor.execute("SELECT COALESCE(SUM(total), 0) as current_unpaid FROM orders WHERE payment_status = 'UNPAID'")
+        current_unpaid = cursor.fetchone()["current_unpaid"]
 
-    # Yêu cầu phục vụ đang chờ xử lý (Kèm khu vực bàn và giới hạn 30 đơn mới nhất)
-    cursor.execute("""
-        SELECT sc.*, t.area 
-        FROM service_calls sc 
-        LEFT JOIN tables t ON sc.table_id = t.id 
-        WHERE sc.status = 'PENDING' 
-        ORDER BY sc.created_at DESC LIMIT 30
-    """)
-    pending_calls = [dict(c) for c in cursor.fetchall()]
+        # Yêu cầu phục vụ đang chờ xử lý (Kèm khu vực bàn và giới hạn 30 đơn mới nhất)
+        cursor.execute("""
+            SELECT sc.*, t.area 
+            FROM service_calls sc 
+            LEFT JOIN tables t ON sc.table_id = t.id 
+            WHERE sc.status = 'PENDING' 
+            ORDER BY sc.created_at DESC LIMIT 30
+        """)
+        pending_calls = [dict(c) for c in cursor.fetchall()]
 
-    conn.close()
-    return {
-        "total_tables": total_tables,
-        "occupied_tables": occupied_tables,
-        "available_tables": total_tables - occupied_tables,
-        "current_unpaid_revenue": current_unpaid,
-        "pending_calls": pending_calls
-    }
+        return {
+            "total_tables": total_tables,
+            "occupied_tables": occupied_tables,
+            "available_tables": total_tables - occupied_tables,
+            "current_unpaid_revenue": current_unpaid,
+            "pending_calls": pending_calls
+        }
+    finally:
+        conn.close()
 
 @router.get("/admins")
 def get_admins_list():

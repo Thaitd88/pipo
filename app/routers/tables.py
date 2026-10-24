@@ -34,31 +34,33 @@ class AreaUpdateRequest(BaseModel):
 @router.get("")
 def list_tables(status: Optional[str] = None):
     conn = get_db()
-    cursor = conn.cursor()
-    query = """
-        SELECT t.*, 
-               s.id as active_session_id, s.session_token, s.guest_count, s.opened_at,
-               (SELECT COUNT(*) FROM orders o WHERE o.table_id = t.id AND o.payment_status = 'UNPAID') as unpaid_orders_count,
-               (SELECT COALESCE(SUM(total), 0) FROM orders o WHERE o.table_id = t.id AND o.payment_status = 'UNPAID') as current_bill_total
-        FROM tables t
-        LEFT JOIN table_sessions s ON (
-            (t.current_session_id IS NOT NULL AND t.current_session_id = s.id)
-            OR (t.current_session_id IS NULL AND s.id = (
-                SELECT id FROM table_sessions WHERE table_id = t.id AND status = 'ACTIVE' ORDER BY id DESC LIMIT 1
-            ))
-        )
-    """
-    params = []
-    if status:
-        query += " WHERE UPPER(t.status) = ?"
-        params.append(status.upper().strip())
-    query += " GROUP BY t.id ORDER BY t.area, t.table_code"
+    try:
+        cursor = conn.cursor()
+        query = """
+            SELECT t.*, 
+                   s.id as active_session_id, s.session_token, s.guest_count, s.opened_at,
+                   (SELECT COUNT(*) FROM orders o WHERE o.table_id = t.id AND o.payment_status = 'UNPAID') as unpaid_orders_count,
+                   (SELECT COALESCE(SUM(total), 0) FROM orders o WHERE o.table_id = t.id AND o.payment_status = 'UNPAID') as current_bill_total
+            FROM tables t
+            LEFT JOIN table_sessions s ON (
+                (t.current_session_id IS NOT NULL AND t.current_session_id = s.id)
+                OR (t.current_session_id IS NULL AND s.id = (
+                    SELECT id FROM table_sessions WHERE table_id = t.id AND status = 'ACTIVE' ORDER BY id DESC LIMIT 1
+                ))
+            )
+        """
+        params = []
+        if status:
+            query += " WHERE UPPER(t.status) = ?"
+            params.append(status.upper().strip())
+        query += " GROUP BY t.id ORDER BY t.area, t.table_code"
 
-    cursor.execute(query, tuple(params))
-    rows = cursor.fetchall()
-    tables = [dict(r) for r in rows]
-    conn.close()
-    return tables
+        cursor.execute(query, tuple(params))
+        rows = cursor.fetchall()
+        tables = [dict(r) for r in rows]
+        return tables
+    finally:
+        conn.close()
 
 @router.get("/export-all-zip")
 def export_all_tables_qr_zip(request: Request, base_url: str = None):

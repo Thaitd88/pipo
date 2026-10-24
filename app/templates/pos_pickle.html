@@ -1113,6 +1113,7 @@
         const res = await fetch("/api/tables");
         if (!res.ok) throw new Error("Không thể tải danh sách sân");
         const allTables = await res.json();
+        if (!Array.isArray(allTables)) throw new Error("Dữ liệu sân không hợp lệ");
 
         // Lọc đúng 4 sân Pickleball (PK-01 đến PK-04), khử trùng 100%, ẩn triệt để mọi bàn khác
         const ALLOWED_PICKLE_CODES = ["PK-01", "PK-02", "PK-03", "PK-04"];
