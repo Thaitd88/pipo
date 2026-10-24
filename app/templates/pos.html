@@ -313,6 +313,27 @@
           </div>
         </div>
 
+        <!-- Quick Date Lookup Card on Overview -->
+        <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-white p-4 rounded-2xl border border-emerald-200/80 shadow-xs flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center text-lg shadow-xs">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div>
+              <div class="text-xs font-black text-stone-900">Tra Cứu Doanh Thu Ngày Tùy Chọn</div>
+              <div class="text-[11px] text-stone-500">Xem ngay tổng doanh thu, tiền mặt, CK VietQR và chi tiết từng hóa đơn của một ngày bất kỳ</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="jumpToDateReport('TODAY')" class="text-xs px-3 py-1.5 rounded-xl bg-white border border-stone-200 hover:border-emerald-500 text-stone-700 font-bold transition shadow-2xs">Hôm nay</button>
+            <button onclick="jumpToDateReport('YESTERDAY')" class="text-xs px-3 py-1.5 rounded-xl bg-white border border-stone-200 hover:border-emerald-500 text-stone-700 font-bold transition shadow-2xs">Hôm qua</button>
+            <input type="date" id="overviewLookupDate" onchange="jumpToDateReport(this.value)" class="text-xs p-1.5 rounded-xl border border-emerald-300 font-semibold bg-white text-stone-800 shadow-2xs">
+            <button onclick="jumpToDateReport(document.getElementById('overviewLookupDate').value)" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-xs">
+              <i class="fa-solid fa-magnifying-glass"></i> Xem Chi Tiết
+            </button>
+          </div>
+        </div>
+
         <!-- Biểu Đồ 7 Ngày & 12 Tháng -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
@@ -377,25 +398,40 @@
       <div id="reportSubContent-detail" class="space-y-6 hidden">
         <!-- Bộ lọc ngày / tháng / năm -->
         <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 flex-wrap">
             <div class="flex bg-stone-100 p-1 rounded-xl border border-stone-200 text-xs font-bold">
               <button onclick="setDetailPeriod('DAY')" id="btnPeriod-DAY" class="period-btn px-3 py-1.5 rounded-lg bg-emerald-700 text-white shadow-xs">Theo Ngày</button>
               <button onclick="setDetailPeriod('MONTH')" id="btnPeriod-MONTH" class="period-btn px-3 py-1.5 rounded-lg text-stone-600 hover:text-stone-900">Theo Tháng</button>
               <button onclick="setDetailPeriod('YEAR')" id="btnPeriod-YEAR" class="period-btn px-3 py-1.5 rounded-lg text-stone-600 hover:text-stone-900">Theo Năm</button>
             </div>
 
-            <!-- Input chọn ngày/tháng/năm -->
-            <div id="dateSelectorWrapper" class="flex items-center gap-2">
-              <input type="date" id="inputFilterDate" class="text-xs p-2 rounded-xl border border-stone-300 font-medium">
+            <!-- Quick Day Buttons -->
+            <div id="detailQuickDayBtns" class="flex items-center gap-1.5">
+              <button onclick="setDetailQuickDate('TODAY')" class="text-xs px-2.5 py-1.5 rounded-xl bg-stone-100 hover:bg-emerald-50 text-stone-700 hover:text-emerald-800 font-bold transition">Hôm nay</button>
+              <button onclick="setDetailQuickDate('YESTERDAY')" class="text-xs px-2.5 py-1.5 rounded-xl bg-stone-100 hover:bg-emerald-50 text-stone-700 hover:text-emerald-800 font-bold transition">Hôm qua</button>
             </div>
 
-            <button onclick="fetchDetailReport()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5">
+            <!-- Input chọn ngày/tháng/năm -->
+            <div id="dateSelectorWrapper" class="flex items-center gap-2">
+              <input type="date" id="inputFilterDate" onchange="fetchDetailReport()" class="text-xs p-2 rounded-xl border border-stone-300 font-medium bg-white">
+            </div>
+
+            <!-- Phân hệ báo cáo -->
+            <div>
+              <select id="filterReportDepartment" onchange="fetchDetailReport()" class="text-xs p-2 rounded-xl border border-stone-300 font-bold bg-white text-stone-800">
+                <option value="ALL">🏢 Toàn Bộ Hệ Thống (Tất Cả)</option>
+                <option value="RESTAURANT">🍽️ Nhà Hàng & F&B</option>
+                <option value="PICKLEBALL">🎾 Sân Pickleball</option>
+              </select>
+            </div>
+
+            <button onclick="fetchDetailReport()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
               <i class="fa-solid fa-magnifying-glass"></i> Xem Báo Cáo
             </button>
           </div>
 
           <div class="flex items-center gap-2">
-            <button onclick="window.print()" class="bg-stone-800 hover:bg-stone-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5">
+            <button onclick="window.print()" class="bg-stone-800 hover:bg-stone-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
               <i class="fa-solid fa-print"></i> In Báo Cáo Này
             </button>
           </div>
@@ -407,7 +443,10 @@
             <div>
               <div class="text-xs text-emerald-200 font-semibold uppercase tracking-wider" id="detailPeriodTitle">Kỳ Báo Cáo</div>
               <div class="text-2xl font-black mt-1" id="detailTotalRev">0 đ</div>
-              <div class="text-xs text-emerald-100 mt-1">Tổng doanh thu thực nhận đã thanh toán</div>
+              <div class="text-xs text-emerald-100 mt-1 flex items-center gap-2 flex-wrap">
+                <span id="detailFbRevBadge" class="bg-black/20 px-2 py-0.5 rounded-lg font-bold">🍽️ F&B: 0 đ</span>
+                <span id="detailPickleRevBadge" class="bg-amber-400 text-stone-900 px-2 py-0.5 rounded-lg font-black">🎾 Sân Pick: 0 đ</span>
+              </div>
             </div>
             <div class="flex gap-2.5 text-center flex-wrap">
               <div class="bg-white/10 px-3.5 py-2 rounded-xl backdrop-blur-xs">
@@ -1935,7 +1974,11 @@
       }, 8000);
 
       // Mặc định date input là hôm nay
-      document.getElementById("inputFilterDate").value = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateStr();
+      const fInp = document.getElementById("inputFilterDate");
+      if (fInp) fInp.value = todayStr;
+      const ovInp = document.getElementById("overviewLookupDate");
+      if (ovInp) ovInp.value = todayStr;
     });
 
     // ==========================================
@@ -4087,26 +4130,86 @@
       `).join('');
     }
 
+    function getLocalDateStr(d = new Date()) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function setDetailQuickDate(mode) {
+      let target = new Date();
+      if (mode === 'YESTERDAY') {
+        target.setDate(target.getDate() - 1);
+      }
+      currentDetailPeriod = 'DAY';
+      document.querySelectorAll(".period-btn").forEach(b => {
+        b.className = "period-btn px-3 py-1.5 rounded-lg text-stone-600 hover:text-stone-900";
+      });
+      const dayBtn = document.getElementById("btnPeriod-DAY");
+      if (dayBtn) dayBtn.className = "period-btn px-3 py-1.5 rounded-lg bg-emerald-700 text-white shadow-xs";
+
+      const wrapper = document.getElementById("dateSelectorWrapper");
+      const quickBtns = document.getElementById("detailQuickDayBtns");
+      if (quickBtns) quickBtns.classList.remove("hidden");
+      const targetStr = getLocalDateStr(target);
+      wrapper.innerHTML = `<input type="date" id="inputFilterDate" value="${targetStr}" onchange="fetchDetailReport()" class="text-xs p-2 rounded-xl border border-stone-300 font-medium bg-white">`;
+      fetchDetailReport();
+    }
+
+    function jumpToDateReport(val) {
+      switchReportSubTab('detail');
+      let targetDateStr = '';
+      if (val === 'TODAY') {
+        targetDateStr = getLocalDateStr();
+      } else if (val === 'YESTERDAY') {
+        const d = new Date();
+        d.setDate(d.getDate() - 1);
+        targetDateStr = getLocalDateStr(d);
+      } else if (val) {
+        targetDateStr = String(val).trim();
+      } else {
+        targetDateStr = getLocalDateStr();
+      }
+      currentDetailPeriod = 'DAY';
+      document.querySelectorAll(".period-btn").forEach(b => {
+        b.className = "period-btn px-3 py-1.5 rounded-lg text-stone-600 hover:text-stone-900";
+      });
+      const dayBtn = document.getElementById("btnPeriod-DAY");
+      if (dayBtn) dayBtn.className = "period-btn px-3 py-1.5 rounded-lg bg-emerald-700 text-white shadow-xs";
+
+      const wrapper = document.getElementById("dateSelectorWrapper");
+      const quickBtns = document.getElementById("detailQuickDayBtns");
+      if (quickBtns) quickBtns.classList.remove("hidden");
+      wrapper.innerHTML = `<input type="date" id="inputFilterDate" value="${targetDateStr}" onchange="fetchDetailReport()" class="text-xs p-2 rounded-xl border border-stone-300 font-medium bg-white">`;
+      fetchDetailReport();
+    }
+
     // Báo cáo chi tiết theo Ngày / Tháng / Năm
     function setDetailPeriod(period) {
       currentDetailPeriod = period;
       document.querySelectorAll(".period-btn").forEach(b => {
         b.className = "period-btn px-3 py-1.5 rounded-lg text-stone-600 hover:text-stone-900";
       });
-      document.getElementById(`btnPeriod-${period}`).className = "period-btn px-3 py-1.5 rounded-lg bg-emerald-700 text-white shadow-xs";
+      const activeBtn = document.getElementById(`btnPeriod-${period}`);
+      if (activeBtn) activeBtn.className = "period-btn px-3 py-1.5 rounded-lg bg-emerald-700 text-white shadow-xs";
 
       const wrapper = document.getElementById("dateSelectorWrapper");
-      const today = new Date().toISOString().split('T')[0];
+      const quickBtns = document.getElementById("detailQuickDayBtns");
+      const today = getLocalDateStr();
 
       if (period === 'DAY') {
-        wrapper.innerHTML = `<input type="date" id="inputFilterDate" value="${today}" class="text-xs p-2 rounded-xl border border-stone-300 font-medium">`;
+        if (quickBtns) quickBtns.classList.remove("hidden");
+        wrapper.innerHTML = `<input type="date" id="inputFilterDate" value="${today}" onchange="fetchDetailReport()" class="text-xs p-2 rounded-xl border border-stone-300 font-medium bg-white">`;
       } else if (period === 'MONTH') {
+        if (quickBtns) quickBtns.classList.add("hidden");
         const thisMonth = today.substring(0, 7);
-        wrapper.innerHTML = `<input type="month" id="inputFilterDate" value="${thisMonth}" class="text-xs p-2 rounded-xl border border-stone-300 font-medium">`;
+        wrapper.innerHTML = `<input type="month" id="inputFilterDate" value="${thisMonth}" onchange="fetchDetailReport()" class="text-xs p-2 rounded-xl border border-stone-300 font-medium bg-white">`;
       } else {
+        if (quickBtns) quickBtns.classList.add("hidden");
         const thisYear = new Date().getFullYear();
         wrapper.innerHTML = `
-          <select id="inputFilterDate" class="text-xs p-2 rounded-xl border border-stone-300 font-medium bg-white">
+          <select id="inputFilterDate" onchange="fetchDetailReport()" class="text-xs p-2 rounded-xl border border-stone-300 font-medium bg-white">
             <option value="${thisYear}">${thisYear}</option>
             <option value="${thisYear - 1}">${thisYear - 1}</option>
             <option value="${thisYear - 2}">${thisYear - 2}</option>
@@ -4119,10 +4222,15 @@
 
     async function fetchDetailReport() {
       const filterEl = document.getElementById("inputFilterDate");
-      if (filterEl && !filterEl.value) { filterEl.value = new Date().toISOString().split("T")[0]; }
-      const dateVal = filterEl ? filterEl.value : "";
+      const today = getLocalDateStr();
+      if (filterEl && !filterEl.value) { 
+        filterEl.value = (currentDetailPeriod === 'MONTH') ? today.substring(0, 7) : ((currentDetailPeriod === 'YEAR') ? String(new Date().getFullYear()) : today);
+      }
+      const dateVal = filterEl ? filterEl.value.trim() : "";
+      const deptEl = document.getElementById("filterReportDepartment");
+      const deptVal = deptEl ? deptEl.value : "ALL";
       try {
-        const res = await fetch(`/api/reports/detail?period_type=${currentDetailPeriod}&date_val=${dateVal}`);
+        const res = await fetch(`/api/reports/detail?period_type=${currentDetailPeriod}&date_val=${encodeURIComponent(dateVal)}&department=${encodeURIComponent(deptVal)}`);
         const data = await res.json();
 
         const periodLabels = {
@@ -4133,6 +4241,10 @@
 
         document.getElementById("detailPeriodTitle").innerText = periodLabels[data.period_type] || data.date_val;
         document.getElementById("detailTotalRev").innerText = formatVND(data.summary.total_revenue);
+        const fbBadge = document.getElementById("detailFbRevBadge");
+        if (fbBadge) fbBadge.innerText = `🍽️ F&B: ${formatVND(data.summary.restaurant_revenue || 0)}`;
+        const pickleBadge = document.getElementById("detailPickleRevBadge");
+        if (pickleBadge) pickleBadge.innerText = `🎾 Sân Pick: ${formatVND(data.summary.pickleball_revenue || 0)}`;
         if (document.getElementById("detailCashRev")) {
           document.getElementById("detailCashRev").innerText = formatVND(data.summary.cash_revenue || 0);
         }

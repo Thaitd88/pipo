@@ -90,6 +90,9 @@
         <button onclick="openSocialDrinkConfigModal()" class="px-3 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition" title="Cấu hình loại đồ uống tặng kèm vé Social 60k">
           <i class="fa-solid fa-bottle-water text-emerald-300"></i> Nước Tặng Social
         </button>
+        <button onclick="openPickleReportModal()" class="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs font-black flex items-center gap-1.5 shadow-sm transition" title="Xem báo cáo doanh thu Sân Pickleball">
+          <i class="fa-solid fa-chart-line text-stone-950"></i> Báo Cáo Doanh Thu
+        </button>
       </div>
 
       <!-- Quick Checkin Input -->
@@ -122,6 +125,9 @@
       </div>
 
       <div class="flex items-center gap-2">
+        <button onclick="openPickleReportModal()" class="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-xs">
+          <i class="fa-solid fa-chart-pie"></i> Báo Cáo Sân Pick
+        </button>
         <button onclick="loadPickleCourts()" class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold flex items-center gap-1.5 transition">
           <i class="fa-solid fa-rotate text-emerald-700" id="refreshIcon"></i> Làm mới
         </button>
@@ -689,6 +695,142 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: BÁO CÁO DOANH THU SÂN PICKLEBALL ==================== -->
+  <div id="pickleReportModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-5xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-stone-200 overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 bg-gradient-to-r from-emerald-900 to-teal-900 text-white flex items-center justify-between border-b border-emerald-800 flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-400 text-stone-950 flex items-center justify-center text-xl font-black shadow-sm">
+            🎾
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base sm:text-lg flex items-center gap-2">
+              <span>Báo Cáo Doanh Thu Sân Pickleball</span>
+              <span class="text-[10px] bg-emerald-800 text-emerald-200 px-2 py-0.5 rounded-full font-bold">PiPo Garden</span>
+            </h3>
+            <p class="text-xs text-emerald-200">Xem doanh thu theo Ngày, Tháng, Năm • Tiền mặt, Chuyển khoản, Tiền sân & Nước uống</p>
+          </div>
+        </div>
+        <button onclick="closePickleReportModal()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="p-3 sm:p-4 bg-stone-50 border-b border-stone-200 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- Period Selector -->
+          <div class="flex bg-stone-200/80 p-1 rounded-xl text-xs font-bold">
+            <button onclick="setPickleReportPeriod('DAY')" id="pickleBtnPeriod-DAY" class="pickle-period-btn px-3 py-1.5 rounded-lg bg-emerald-700 text-white shadow-xs">Theo Ngày</button>
+            <button onclick="setPickleReportPeriod('MONTH')" id="pickleBtnPeriod-MONTH" class="pickle-period-btn px-3 py-1.5 rounded-lg text-stone-600 hover:text-stone-900">Theo Tháng</button>
+            <button onclick="setPickleReportPeriod('YEAR')" id="pickleBtnPeriod-YEAR" class="pickle-period-btn px-3 py-1.5 rounded-lg text-stone-600 hover:text-stone-900">Theo Năm</button>
+          </div>
+
+          <!-- Quick Day Buttons -->
+          <div id="pickleQuickDayBtns" class="flex items-center gap-1.5">
+            <button onclick="setPickleReportQuickDate('TODAY')" class="text-xs px-2.5 py-1.5 rounded-xl bg-white border border-stone-200 hover:border-emerald-500 text-stone-700 hover:text-emerald-800 font-bold transition shadow-2xs">Hôm nay</button>
+            <button onclick="setPickleReportQuickDate('YESTERDAY')" class="text-xs px-2.5 py-1.5 rounded-xl bg-white border border-stone-200 hover:border-emerald-500 text-stone-700 hover:text-emerald-800 font-bold transition shadow-2xs">Hôm qua</button>
+          </div>
+
+          <!-- Date / Month / Year Picker -->
+          <div id="pickleDateSelectorWrapper" class="flex items-center gap-1.5">
+            <input type="date" id="pickleReportDateInput" onchange="fetchPickleReport()" class="text-xs p-2 rounded-xl border border-stone-300 font-semibold bg-white text-stone-800 shadow-2xs">
+          </div>
+
+          <button onclick="fetchPickleReport()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
+            <i class="fa-solid fa-rotate"></i> Xem Báo Cáo
+          </button>
+        </div>
+
+        <button onclick="printPickleReport()" class="bg-stone-800 hover:bg-stone-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
+          <i class="fa-solid fa-print"></i> In Báo Cáo
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div id="pickleReportPrintArea" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 custom-scrollbar">
+        
+        <!-- Main Summary Card -->
+        <div class="bg-gradient-to-r from-emerald-800 to-teal-900 text-white p-5 rounded-2xl shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="text-xs text-emerald-200 font-semibold uppercase tracking-wider" id="pickleReportPeriodTitle">Báo Cáo Sân Pickleball</div>
+            <div class="text-2xl sm:text-3xl font-black mt-1" id="pickleReportTotalRev">0 đ</div>
+            <div class="text-xs text-emerald-100 mt-1 flex items-center gap-2 flex-wrap">
+              <span id="pickleCourtRevBadge" class="bg-amber-400 text-stone-900 px-2 py-0.5 rounded-lg font-black">🎾 Tiền Sân: 0 đ</span>
+              <span id="pickleDrinksRevBadge" class="bg-black/25 px-2 py-0.5 rounded-lg font-bold">🍹 Nước/Đồ Ăn: 0 đ</span>
+            </div>
+          </div>
+          
+          <div class="flex gap-2 text-center flex-wrap">
+            <div class="bg-white/10 px-3 py-2 rounded-xl backdrop-blur-xs">
+              <div class="text-[10px] text-emerald-200 font-bold uppercase">💵 Tiền Mặt</div>
+              <div class="text-base font-black mt-0.5" id="pickleReportCashRev">0 đ</div>
+            </div>
+            <div class="bg-white/10 px-3 py-2 rounded-xl backdrop-blur-xs">
+              <div class="text-[10px] text-emerald-200 font-bold uppercase">📲 Chuyển Khoản</div>
+              <div class="text-base font-black mt-0.5" id="pickleReportTransferRev">0 đ</div>
+            </div>
+            <div class="bg-white/10 px-3 py-2 rounded-xl backdrop-blur-xs">
+              <div class="text-[10px] text-emerald-200 font-bold uppercase">🏢 Tính Nội Bộ</div>
+              <div class="text-base font-black mt-0.5" id="pickleReportInternalRev">0 đ</div>
+            </div>
+            <div class="bg-white/10 px-3 py-2 rounded-xl backdrop-blur-xs">
+              <div class="text-[10px] text-emerald-200 font-bold uppercase">Số Lượt Đơn</div>
+              <div class="text-base font-black mt-0.5" id="pickleReportOrdersCount">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table of Invoices -->
+        <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-xs">
+          <div class="p-3.5 bg-stone-50 border-b border-stone-200 flex items-center justify-between">
+            <h4 class="font-bold text-xs text-stone-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-receipt text-emerald-700"></i> Danh Sách Hóa Đơn Sân Pickleball Đã Thanh Toán
+            </h4>
+            <span class="text-[11px] font-bold text-stone-500" id="pickleReportCountBadge">0 hóa đơn</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-stone-100/70 text-stone-500 font-semibold border-b border-stone-200">
+                <tr>
+                  <th class="py-2.5 px-3">Mã đơn</th>
+                  <th class="py-2.5 px-3">Thời gian</th>
+                  <th class="py-2.5 px-3">Sân / Bàn</th>
+                  <th class="py-2.5 px-3">Chi tiết dịch vụ & món</th>
+                  <th class="py-2.5 px-3 text-center">Hình thức</th>
+                  <th class="py-2.5 px-3 text-right">Tổng tiền</th>
+                </tr>
+              </thead>
+              <tbody id="pickleReportTableBody" class="divide-y divide-stone-100">
+                <tr>
+                  <td colspan="6" class="text-center py-10 text-stone-400">
+                    <i class="fa-solid fa-spinner fa-spin text-xl text-emerald-600 mb-2"></i>
+                    <div>Đang tải dữ liệu báo cáo...</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3 sm:p-4 bg-stone-100 border-t border-stone-200 flex items-center justify-between flex-shrink-0">
+        <div class="text-xs text-stone-500">
+          🎾 Báo cáo thống kê dành riêng cho 4 Sân Pickleball PiPo Garden
+        </div>
+        <button onclick="closePickleReportModal()" class="px-4 py-2 rounded-xl bg-stone-300 hover:bg-stone-400 text-stone-800 font-bold text-xs transition">
+          Đóng
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -1984,6 +2126,177 @@
       } catch (e) {
         console.warn("WebSocket init error:", e);
       }
+    }
+
+    // ==================== 8. BÁO CÁO DOANH THU SÂN PICKLEBALL ====================
+    let currentPickleReportPeriod = 'DAY';
+
+    function getPickleLocalDateStr(d = new Date()) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function openPickleReportModal() {
+      const modal = document.getElementById("pickleReportModal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      const inp = document.getElementById("pickleReportDateInput");
+      if (inp && !inp.value) {
+        inp.value = getPickleLocalDateStr();
+      }
+      fetchPickleReport();
+    }
+
+    function closePickleReportModal() {
+      const modal = document.getElementById("pickleReportModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function setPickleReportQuickDate(mode) {
+      let target = new Date();
+      if (mode === 'YESTERDAY') {
+        target.setDate(target.getDate() - 1);
+      }
+      setPickleReportPeriod('DAY');
+      const inp = document.getElementById("pickleReportDateInput");
+      if (inp) {
+        inp.value = getPickleLocalDateStr(target);
+      }
+      fetchPickleReport();
+    }
+
+    function setPickleReportPeriod(period) {
+      currentPickleReportPeriod = period;
+      document.querySelectorAll(".pickle-period-btn").forEach(b => {
+        b.className = "pickle-period-btn px-3 py-1.5 rounded-lg text-stone-600 hover:text-stone-900";
+      });
+      const activeBtn = document.getElementById(`pickleBtnPeriod-${period}`);
+      if (activeBtn) activeBtn.className = "pickle-period-btn px-3 py-1.5 rounded-lg bg-emerald-700 text-white shadow-xs";
+
+      const wrapper = document.getElementById("pickleDateSelectorWrapper");
+      const quickBtns = document.getElementById("pickleQuickDayBtns");
+      const today = getPickleLocalDateStr();
+
+      if (period === 'DAY') {
+        if (quickBtns) quickBtns.classList.remove("hidden");
+        wrapper.innerHTML = `<input type="date" id="pickleReportDateInput" value="${today}" onchange="fetchPickleReport()" class="text-xs p-2 rounded-xl border border-stone-300 font-semibold bg-white text-stone-800 shadow-2xs">`;
+      } else if (period === 'MONTH') {
+        if (quickBtns) quickBtns.classList.add("hidden");
+        const thisMonth = today.substring(0, 7);
+        wrapper.innerHTML = `<input type="month" id="pickleReportDateInput" value="${thisMonth}" onchange="fetchPickleReport()" class="text-xs p-2 rounded-xl border border-stone-300 font-semibold bg-white text-stone-800 shadow-2xs">`;
+      } else {
+        if (quickBtns) quickBtns.classList.add("hidden");
+        const thisYear = new Date().getFullYear();
+        wrapper.innerHTML = `
+          <select id="pickleReportDateInput" onchange="fetchPickleReport()" class="text-xs p-2 rounded-xl border border-stone-300 font-semibold bg-white text-stone-800 shadow-2xs">
+            <option value="${thisYear}">${thisYear}</option>
+            <option value="${thisYear - 1}">${thisYear - 1}</option>
+            <option value="${thisYear - 2}">${thisYear - 2}</option>
+          </select>
+        `;
+      }
+
+      fetchPickleReport();
+    }
+
+    async function fetchPickleReport() {
+      const filterEl = document.getElementById("pickleReportDateInput");
+      const today = getPickleLocalDateStr();
+      if (filterEl && !filterEl.value) {
+        filterEl.value = (currentPickleReportPeriod === 'MONTH') ? today.substring(0, 7) : ((currentPickleReportPeriod === 'YEAR') ? String(new Date().getFullYear()) : today);
+      }
+      const dateVal = filterEl ? filterEl.value.trim() : "";
+      const tbody = document.getElementById("pickleReportTableBody");
+      if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-stone-400"><i class="fa-solid fa-spinner fa-spin text-emerald-600 mr-2"></i>Đang tải dữ liệu...</td></tr>`;
+      }
+
+      try {
+        const res = await fetch(`/api/reports/detail?period_type=${currentPickleReportPeriod}&date_val=${encodeURIComponent(dateVal)}&department=PICKLEBALL`);
+        const data = await res.json();
+
+        const periodLabels = {
+          DAY: `BÁO CÁO DOANH THU SÂN PICK NGÀY: ${data.date_val}`,
+          MONTH: `BÁO CÁO DOANH THU SÂN PICK THÁNG: ${data.date_val}`,
+          YEAR: `BÁO CÁO DOANH THU SÂN PICK NĂM: ${data.date_val}`
+        };
+
+        const titleEl = document.getElementById("pickleReportPeriodTitle");
+        if (titleEl) titleEl.innerText = periodLabels[data.period_type] || data.date_val;
+        const totalEl = document.getElementById("pickleReportTotalRev");
+        if (totalEl) totalEl.innerText = formatVND(data.summary?.total_revenue || 0);
+        const courtEl = document.getElementById("pickleCourtRevBadge");
+        if (courtEl) courtEl.innerText = `🎾 Tiền Sân: ${formatVND(data.summary?.pickle_court_revenue || 0)}`;
+        const drinksEl = document.getElementById("pickleDrinksRevBadge");
+        if (drinksEl) drinksEl.innerText = `🍹 Nước/Đồ Ăn: ${formatVND(data.summary?.pickle_drinks_revenue || 0)}`;
+        const cashEl = document.getElementById("pickleReportCashRev");
+        if (cashEl) cashEl.innerText = formatVND(data.summary?.cash_revenue || 0);
+        const transferEl = document.getElementById("pickleReportTransferRev");
+        if (transferEl) transferEl.innerText = formatVND(data.summary?.transfer_revenue || 0);
+        const internalEl = document.getElementById("pickleReportInternalRev");
+        if (internalEl) internalEl.innerText = formatVND(data.summary?.internal_revenue || 0);
+        const ordersEl = document.getElementById("pickleReportOrdersCount");
+        if (ordersEl) ordersEl.innerText = data.summary?.total_orders || 0;
+        const countBadge = document.getElementById("pickleReportCountBadge");
+        if (countBadge) countBadge.innerText = `${data.orders ? data.orders.length : 0} hóa đơn`;
+
+        if (!data.orders || data.orders.length === 0) {
+          if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-stone-400">Không có hóa đơn sân Pickleball nào trong khoảng thời gian này.</td></tr>`;
+          return;
+        }
+
+        if (tbody) {
+          tbody.innerHTML = data.orders.map(o => {
+            const pMethod = (o.payment_method || (o.bill_target === 'ADMIN' ? 'INTERNAL' : 'CASH')).toUpperCase();
+            let methodBadge = '';
+            if (pMethod === 'INTERNAL' || o.bill_target === 'ADMIN') {
+              methodBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200 whitespace-nowrap">🏢 Nội bộ${o.billed_admin_name ? ': ' + o.billed_admin_name : ''}</span>`;
+            } else if (pMethod === 'TRANSFER' || pMethod === 'VIETQR') {
+              methodBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200 whitespace-nowrap">📲 Chuyển khoản</span>`;
+            } else {
+              methodBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 whitespace-nowrap">💵 Tiền mặt</span>`;
+            }
+
+            return `
+              <tr class="hover:bg-stone-50 transition">
+                <td class="py-2.5 px-3 font-mono font-bold text-emerald-800">#${o.id}</td>
+                <td class="py-2.5 px-3 text-stone-500 whitespace-nowrap">${o.created_at || ''}</td>
+                <td class="py-2.5 px-3 font-bold text-stone-900 whitespace-nowrap">
+                  <span class="px-2 py-0.5 bg-amber-100 text-amber-900 rounded-lg">${o.table_name || o.table_code}</span>
+                </td>
+                <td class="py-2.5 px-3 max-w-xs">
+                  <div class="space-y-0.5">
+                    ${(!o.items || o.items.length === 0) ? `
+                      <div class="text-[11px] text-stone-500 italic">Dịch vụ sân Pickleball</div>
+                    ` : o.items.map(it => `
+                      <div class="text-[11px] text-stone-700">
+                        <span>${it.item_name}</span> × <strong>${it.quantity}</strong> = <strong class="text-emerald-700">${formatVND(it.total_price)}</strong>
+                      </div>
+                    `).join('')}
+                  </div>
+                </td>
+                <td class="py-2.5 px-3 text-center">
+                  ${methodBadge}
+                </td>
+                <td class="py-2.5 px-3 text-right font-black text-stone-900 whitespace-nowrap">
+                  ${formatVND(o.total)}
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error("Lỗi fetchPickleReport:", err);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-rose-500">Lỗi khi tải báo cáo: ${err.message}</td></tr>`;
+      }
+    }
+
+    function printPickleReport() {
+      const printArea = document.getElementById("pickleReportPrintArea");
+      if (!printArea) return;
+      window.print();
     }
 
     // Initial Load

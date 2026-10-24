@@ -30,7 +30,7 @@ def get_revenue_overview(request: Request):
     cursor.execute("""
         SELECT COALESCE(SUM(total), 0) as rev, COUNT(DISTINCT COALESCE(session_id, id)) as orders_cnt
         FROM orders 
-        WHERE payment_status = 'PAID' AND DATE(created_at) = ?
+        WHERE payment_status = 'PAID' AND DATE(COALESCE(completed_at, created_at)) = ?
     """, (today_str,))
     today_data = cursor.fetchone()
     today_rev = today_data["rev"]
@@ -40,7 +40,7 @@ def get_revenue_overview(request: Request):
     cursor.execute("""
         SELECT COALESCE(SUM(total), 0) as rev, COUNT(DISTINCT COALESCE(session_id, id)) as orders_cnt
         FROM orders 
-        WHERE payment_status = 'PAID' AND strftime('%Y-%m', created_at) = ?
+        WHERE payment_status = 'PAID' AND strftime('%Y-%m', COALESCE(completed_at, created_at)) = ?
     """, (this_month_str,))
     month_data = cursor.fetchone()
     month_rev = month_data["rev"]
@@ -50,7 +50,7 @@ def get_revenue_overview(request: Request):
     cursor.execute("""
         SELECT COALESCE(SUM(total), 0) as rev, COUNT(DISTINCT COALESCE(session_id, id)) as orders_cnt
         FROM orders 
-        WHERE payment_status = 'PAID' AND strftime('%Y', created_at) = ?
+        WHERE payment_status = 'PAID' AND strftime('%Y', COALESCE(completed_at, created_at)) = ?
     """, (this_year_str,))
     year_data = cursor.fetchone()
     year_rev = year_data["rev"]
@@ -59,31 +59,31 @@ def get_revenue_overview(request: Request):
     # 4. Phân tách doanh thu F&B Nhà Hàng vs Sân Pickleball
     cursor.execute("""
         SELECT 
-            COALESCE(SUM(CASE WHEN t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%' THEN o.total ELSE 0 END), 0) as pickle_rev,
-            COALESCE(SUM(CASE WHEN NOT (t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%') THEN o.total ELSE 0 END), 0) as fb_rev
+            COALESCE(SUM(CASE WHEN t.area = 'Sân Pickle' OR t.table_code LIKE 'PK-%' THEN o.total ELSE 0 END), 0) as pickle_rev,
+            COALESCE(SUM(CASE WHEN NOT (t.area = 'Sân Pickle' OR t.table_code LIKE 'PK-%') THEN o.total ELSE 0 END), 0) as fb_rev
         FROM orders o
         LEFT JOIN tables t ON o.table_id = t.id
-        WHERE o.payment_status = 'PAID' AND DATE(o.created_at) = ?
+        WHERE o.payment_status = 'PAID' AND DATE(COALESCE(o.completed_at, o.created_at)) = ?
     """, (today_str,))
     today_split = cursor.fetchone()
 
     cursor.execute("""
         SELECT 
-            COALESCE(SUM(CASE WHEN t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%' THEN o.total ELSE 0 END), 0) as pickle_rev,
-            COALESCE(SUM(CASE WHEN NOT (t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%') THEN o.total ELSE 0 END), 0) as fb_rev
+            COALESCE(SUM(CASE WHEN t.area = 'Sân Pickle' OR t.table_code LIKE 'PK-%' THEN o.total ELSE 0 END), 0) as pickle_rev,
+            COALESCE(SUM(CASE WHEN NOT (t.area = 'Sân Pickle' OR t.table_code LIKE 'PK-%') THEN o.total ELSE 0 END), 0) as fb_rev
         FROM orders o
         LEFT JOIN tables t ON o.table_id = t.id
-        WHERE o.payment_status = 'PAID' AND strftime('%Y-%m', o.created_at) = ?
+        WHERE o.payment_status = 'PAID' AND strftime('%Y-%m', COALESCE(o.completed_at, o.created_at)) = ?
     """, (this_month_str,))
     month_split = cursor.fetchone()
 
     cursor.execute("""
         SELECT 
-            COALESCE(SUM(CASE WHEN t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%' THEN o.total ELSE 0 END), 0) as pickle_rev,
-            COALESCE(SUM(CASE WHEN NOT (t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%') THEN o.total ELSE 0 END), 0) as fb_rev
+            COALESCE(SUM(CASE WHEN t.area = 'Sân Pickle' OR t.table_code LIKE 'PK-%' THEN o.total ELSE 0 END), 0) as pickle_rev,
+            COALESCE(SUM(CASE WHEN NOT (t.area = 'Sân Pickle' OR t.table_code LIKE 'PK-%') THEN o.total ELSE 0 END), 0) as fb_rev
         FROM orders o
         LEFT JOIN tables t ON o.table_id = t.id
-        WHERE o.payment_status = 'PAID' AND strftime('%Y', o.created_at) = ?
+        WHERE o.payment_status = 'PAID' AND strftime('%Y', COALESCE(o.completed_at, o.created_at)) = ?
     """, (this_year_str,))
     year_split = cursor.fetchone()
 
@@ -99,7 +99,7 @@ def get_revenue_overview(request: Request):
         cursor.execute("""
             SELECT COALESCE(SUM(total), 0) as daily_rev, COUNT(DISTINCT COALESCE(session_id, id)) as daily_orders
             FROM orders 
-            WHERE payment_status = 'PAID' AND DATE(created_at) = ?
+            WHERE payment_status = 'PAID' AND DATE(COALESCE(completed_at, created_at)) = ?
         """, (d_str,))
         d_row = cursor.fetchone()
         days_chart.append({
@@ -117,7 +117,7 @@ def get_revenue_overview(request: Request):
         cursor.execute("""
             SELECT COALESCE(SUM(total), 0) as m_rev, COUNT(*) as m_orders
             FROM orders 
-            WHERE payment_status = 'PAID' AND strftime('%Y-%m', created_at) = ?
+            WHERE payment_status = 'PAID' AND strftime('%Y-%m', COALESCE(completed_at, created_at)) = ?
         """, (m_str,))
         m_row = cursor.fetchone()
         months_chart.append({
@@ -208,31 +208,38 @@ def get_revenue_detail(
     cursor = conn.cursor()
 
     now = datetime.now()
-    if not date_val:
+    if not date_val or not str(date_val).strip():
         if period_type == "DAY":
             date_val = now.strftime("%Y-%m-%d")
         elif period_type == "MONTH":
             date_val = now.strftime("%Y-%m")
         else:
             date_val = now.strftime("%Y")
+    else:
+        date_val = str(date_val).strip()
+        # Chuẩn hóa định dạng nếu client gửi thừa độ dài
+        if period_type == "MONTH" and len(date_val) > 7:
+            date_val = date_val[:7]
+        elif period_type == "YEAR" and len(date_val) > 4:
+            date_val = date_val[:4]
 
     # Xây dựng điều kiện truy vấn
     if period_type == "DAY":
-        where_clause = "DATE(o.created_at) = ?"
+        where_clause = "DATE(COALESCE(o.completed_at, o.created_at)) = ?"
         param = date_val
     elif period_type == "MONTH":
-        where_clause = "strftime('%Y-%m', o.created_at) = ?"
+        where_clause = "strftime('%Y-%m', COALESCE(o.completed_at, o.created_at)) = ?"
         param = date_val
     else: # YEAR
-        where_clause = "strftime('%Y', o.created_at) = ?"
+        where_clause = "strftime('%Y', COALESCE(o.completed_at, o.created_at)) = ?"
         param = date_val
 
     # Áp dụng bộ lọc phân hệ (Nhà hàng vs Sân Pickle)
     dept_clause = ""
     if department == "PICKLEBALL":
-        dept_clause = " AND (t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%')"
+        dept_clause = " AND (t.area = 'Sân Pickle' OR t.table_code LIKE 'PK-%')"
     elif department == "RESTAURANT":
-        dept_clause = " AND NOT (t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%')"
+        dept_clause = " AND NOT (t.area = 'Sân Pickle' OR t.table_code LIKE 'PK-%')"
 
     # 1. Thống kê tổng hợp kỳ báo cáo (gồm Quỹ tiền mặt, Doanh thu chuyển khoản, Nội bộ & Phí phục vụ)
     cursor.execute(f"""
@@ -243,8 +250,8 @@ def get_revenue_detail(
                COALESCE(SUM(CASE WHEN UPPER(COALESCE(o.payment_method, 'CASH')) = 'CASH' AND COALESCE(o.bill_target, 'CUSTOMER') != 'ADMIN' THEN o.total ELSE 0 END), 0) as cash_revenue,
                COALESCE(SUM(CASE WHEN UPPER(o.payment_method) IN ('TRANSFER', 'VIETQR') AND COALESCE(o.bill_target, 'CUSTOMER') != 'ADMIN' THEN o.total ELSE 0 END), 0) as transfer_revenue,
                COALESCE(SUM(CASE WHEN UPPER(o.payment_method) = 'INTERNAL' OR COALESCE(o.bill_target, 'CUSTOMER') = 'ADMIN' THEN o.total ELSE 0 END), 0) as internal_revenue,
-               COALESCE(SUM(CASE WHEN t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%' THEN o.total ELSE 0 END), 0) as pickleball_revenue,
-               COALESCE(SUM(CASE WHEN NOT (t.area LIKE '%Pickle%' OR t.table_code LIKE 'PK-%') THEN o.total ELSE 0 END), 0) as restaurant_revenue
+               COALESCE(SUM(CASE WHEN t.area = 'Sân Pickle' OR t.table_code LIKE 'PK-%' THEN o.total ELSE 0 END), 0) as pickleball_revenue,
+               COALESCE(SUM(CASE WHEN NOT (t.area = 'Sân Pickle' OR t.table_code LIKE 'PK-%') THEN o.total ELSE 0 END), 0) as restaurant_revenue
         FROM orders o
         LEFT JOIN tables t ON o.table_id = t.id
         WHERE o.payment_status = 'PAID' AND {where_clause} {dept_clause}
@@ -336,44 +343,61 @@ def get_revenue_detail(
     summary["total_orders"] = len(orders_list)
     summary["total_dishes_count"] = total_dishes_count
 
+    # Phân tách chi tiết doanh thu dịch vụ sân & nước uống cho Sân Pickleball
+    pickle_court_rev = 0
+    pickle_drinks_rev = 0
+    for g in orders_list:
+        for it in g.get("items", []):
+            name_lower = (it.get("item_name") or "").lower()
+            it_tot = it.get("total_price", 0)
+            if it.get("station") == "COURT" or any(k in name_lower for k in ["sân", "thuê", "vé", "social"]):
+                pickle_court_rev += it_tot
+            else:
+                pickle_drinks_rev += it_tot
+    summary["pickle_court_revenue"] = pickle_court_rev
+    summary["pickle_drinks_revenue"] = pickle_drinks_rev
+
     # 3. Phân bổ biểu đồ con của kỳ báo cáo
     sub_chart = []
     if period_type == "MONTH":
         # Gom nhóm theo từng ngày trong tháng
-        cursor.execute("""
-            SELECT DATE(created_at) as sub_key, 
-                   strftime('%d/%m', created_at) as sub_label,
-                   COALESCE(SUM(total), 0) as sub_rev,
+        cursor.execute(f"""
+            SELECT DATE(COALESCE(o.completed_at, o.created_at)) as sub_key, 
+                   strftime('%d/%m', COALESCE(o.completed_at, o.created_at)) as sub_label,
+                   COALESCE(SUM(o.total), 0) as sub_rev,
                    COUNT(*) as sub_cnt
-            FROM orders
-            WHERE payment_status = 'PAID' AND strftime('%Y-%m', created_at) = ?
-            GROUP BY DATE(created_at)
+            FROM orders o
+            LEFT JOIN tables t ON o.table_id = t.id
+            WHERE o.payment_status = 'PAID' AND strftime('%Y-%m', COALESCE(o.completed_at, o.created_at)) = ? {dept_clause}
+            GROUP BY DATE(COALESCE(o.completed_at, o.created_at))
             ORDER BY sub_key ASC
         """, (param,))
         sub_chart = [dict(r) for r in cursor.fetchall()]
     elif period_type == "YEAR":
         # Gom nhóm theo từng tháng trong năm
-        cursor.execute("""
-            SELECT strftime('%Y-%m', created_at) as sub_key,
-                   'Tháng ' || strftime('%m', created_at) as sub_label,
-                   COALESCE(SUM(total), 0) as sub_rev,
+        cursor.execute(f"""
+            SELECT strftime('%Y-%m', COALESCE(o.completed_at, o.created_at)) as sub_key,
+                   'Tháng ' || strftime('%m', COALESCE(o.completed_at, o.created_at)) as sub_label,
+                   COALESCE(SUM(o.total), 0) as sub_rev,
                    COUNT(*) as sub_cnt
-            FROM orders
-            WHERE payment_status = 'PAID' AND strftime('%Y', created_at) = ?
-            GROUP BY strftime('%Y-%m', created_at)
+            FROM orders o
+            LEFT JOIN tables t ON o.table_id = t.id
+            WHERE o.payment_status = 'PAID' AND strftime('%Y', COALESCE(o.completed_at, o.created_at)) = ? {dept_clause}
+            GROUP BY strftime('%Y-%m', COALESCE(o.completed_at, o.created_at))
             ORDER BY sub_key ASC
         """, (param,))
         sub_chart = [dict(r) for r in cursor.fetchall()]
     else: # DAY
         # Gom nhóm theo khung giờ trong ngày
-        cursor.execute("""
-            SELECT strftime('%H:00', created_at) as sub_key,
-                   strftime('%H:00', created_at) as sub_label,
-                   COALESCE(SUM(total), 0) as sub_rev,
+        cursor.execute(f"""
+            SELECT strftime('%H:00', COALESCE(o.completed_at, o.created_at)) as sub_key,
+                   strftime('%H:00', COALESCE(o.completed_at, o.created_at)) as sub_label,
+                   COALESCE(SUM(o.total), 0) as sub_rev,
                    COUNT(*) as sub_cnt
-            FROM orders
-            WHERE payment_status = 'PAID' AND DATE(created_at) = ?
-            GROUP BY strftime('%H:00', created_at)
+            FROM orders o
+            LEFT JOIN tables t ON o.table_id = t.id
+            WHERE o.payment_status = 'PAID' AND DATE(COALESCE(o.completed_at, o.created_at)) = ? {dept_clause}
+            GROUP BY strftime('%H:00', COALESCE(o.completed_at, o.created_at))
             ORDER BY sub_key ASC
         """, (param,))
         sub_chart = [dict(r) for r in cursor.fetchall()]
