@@ -263,8 +263,13 @@
           <!-- Scrollable Section: Danh sách dịch vụ & Hình thức thanh toán -->
           <div class="flex-1 overflow-y-auto custom-scrollbar p-3.5 sm:p-4 space-y-3">
             <div class="flex items-center justify-between pb-2 border-b border-stone-200">
-              <span class="font-extrabold text-xs text-stone-800 uppercase tracking-wider">Danh Sách Dịch Vụ Đã Chọn</span>
-              <span id="cartCountBadge" class="text-[11px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">0 món</span>
+              <div class="flex items-center gap-2">
+                <span class="font-extrabold text-xs text-stone-800 uppercase tracking-wider">Dịch Vụ Đã Chọn</span>
+                <span id="cartCountBadge" class="text-[11px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">0 món</span>
+              </div>
+              <button type="button" onclick="clearAllCart()" id="btnClearAllCart" class="hidden text-[11px] text-rose-600 hover:text-rose-800 font-bold hover:underline flex items-center gap-1 cursor-pointer" title="Xóa toàn bộ các món đã chọn trong giỏ">
+                <i class="fa-solid fa-trash-can text-[10px]"></i> Xóa tất cả
+              </button>
             </div>
 
             <div id="cartItemsList" class="space-y-2 py-1">
@@ -1019,9 +1024,21 @@
 
             <div class="mt-2 pt-1.5 border-t border-stone-100 flex items-center justify-between">
               <span class="font-black text-xs text-emerald-800">${formatVND(it.price)}</span>
-              <button type="button" class="w-6 h-6 rounded-lg bg-emerald-100 group-hover:bg-emerald-600 text-emerald-800 group-hover:text-white flex items-center justify-center text-xs font-bold transition">
-                +
-              </button>
+              ${qty > 0 ? `
+                <div class="flex items-center gap-1 bg-white border border-emerald-300 rounded-xl p-0.5 shadow-2xs" onclick="event.stopPropagation()">
+                  <button type="button" onclick="updateCartQtyByDishId(${it.id}, -1)" class="w-6 h-6 rounded-lg ${qty === 1 ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'} flex items-center justify-center text-xs font-bold transition cursor-pointer" title="${qty === 1 ? 'Xóa khỏi giỏ' : 'Giảm 1'}">
+                    ${qty === 1 ? '<i class=\"fa-solid fa-trash-can text-[10px]\"></i>' : '−'}
+                  </button>
+                  <span class="w-5 text-center font-black text-xs text-emerald-900">${qty}</span>
+                  <button type="button" onclick="updateCartQtyByDishId(${it.id}, 1)" class="w-6 h-6 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white flex items-center justify-center text-xs font-bold transition cursor-pointer" title="Thêm 1">
+                    +
+                  </button>
+                </div>
+              ` : `
+                <button type="button" class="w-6 h-6 rounded-lg bg-emerald-100 group-hover:bg-emerald-600 text-emerald-800 group-hover:text-white flex items-center justify-center text-xs font-bold transition cursor-pointer" title="Thêm vào giỏ">
+                  +
+                </button>
+              `}
             </div>
           </div>
         `;
@@ -1052,6 +1069,15 @@
       addDishToCart(dishId, qty);
     }
 
+    function updateCartQtyByDishId(dishId, delta) {
+      const idx = orderCart.findIndex(it => it.item_id === dishId);
+      if (idx < 0) {
+        if (delta > 0) addDishToCart(dishId, delta);
+        return;
+      }
+      updateCartQty(idx, delta);
+    }
+
     function updateCartQty(idx, delta) {
       if (!orderCart[idx]) return;
       orderCart[idx].quantity += delta;
@@ -1062,10 +1088,30 @@
       renderOrderDishes();
     }
 
+    function removeCartItem(idx) {
+      if (!orderCart[idx]) return;
+      const itName = orderCart[idx].name;
+      orderCart.splice(idx, 1);
+      renderOrderCart();
+      renderOrderDishes();
+      if (typeof showToast === 'function') {
+        showToast(`Đã xóa món "${itName}" khỏi giỏ`);
+      }
+    }
+
+    function clearAllCart() {
+      if (orderCart.length === 0) return;
+      if (!confirm("Bạn có chắc chắn muốn xóa toàn bộ món đã chọn trong giỏ hàng?")) return;
+      orderCart = [];
+      renderOrderCart();
+      renderOrderDishes();
+    }
+
     function renderOrderCart() {
       const container = document.getElementById("cartItemsList");
       const badge = document.getElementById("cartCountBadge");
       const totalEl = document.getElementById("cartTotalPrice");
+      const clearBtn = document.getElementById("btnClearAllCart");
       if (!container) return;
 
       const totalQty = orderCart.reduce((sum, it) => sum + it.quantity, 0);
@@ -1075,6 +1121,11 @@
       const mobBadge = document.getElementById("mobCartQty");
       if (mobBadge) mobBadge.innerText = totalQty;
       totalEl.innerText = formatVND(totalPrice);
+
+      if (clearBtn) {
+        if (orderCart.length > 0) clearBtn.classList.remove("hidden");
+        else clearBtn.classList.add("hidden");
+      }
 
       const qrContainer = document.getElementById("orderQRContainer");
       if (qrContainer && !qrContainer.classList.contains("hidden")) {
@@ -1093,17 +1144,26 @@
       }
 
       container.innerHTML = orderCart.map((it, idx) => `
-        <div class="bg-white rounded-2xl p-2.5 border border-stone-200 text-xs space-y-1.5">
-          <div class="flex items-start justify-between gap-1">
-            <span class="font-bold text-stone-900 leading-tight">${it.name}</span>
-            <span class="font-black text-emerald-800">${formatVND(it.price * it.quantity)}</span>
+        <div class="bg-white rounded-2xl p-2.5 border border-stone-200 text-xs space-y-1.5 shadow-2xs hover:border-stone-300 transition">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-1.5 flex-1 min-w-0">
+              <button type="button" onclick="removeCartItem(${idx})" class="w-6 h-6 rounded-lg bg-rose-50 hover:bg-rose-100 active:scale-90 text-rose-600 flex items-center justify-center transition cursor-pointer flex-shrink-0" title="Xóa món này">
+                <i class="fa-solid fa-trash-can text-[11px]"></i>
+              </button>
+              <span class="font-bold text-stone-900 leading-tight truncate">${it.name}</span>
+            </div>
+            <span class="font-black text-emerald-800 text-right flex-shrink-0">${formatVND(it.price * it.quantity)}</span>
           </div>
           <div class="flex items-center justify-between pt-1 border-t border-stone-100">
             <span class="text-[11px] text-stone-500 font-mono">${formatVND(it.price)}/lượt</span>
-            <div class="flex items-center bg-stone-100 border border-stone-300 rounded-lg overflow-hidden">
-              <button type="button" onclick="updateCartQty(${idx}, -1)" class="w-6 h-6 flex items-center justify-center text-stone-600 hover:bg-stone-200 font-bold">-</button>
-              <span class="w-7 text-center font-bold text-xs text-stone-900">${it.quantity}</span>
-              <button type="button" onclick="updateCartQty(${idx}, 1)" class="w-6 h-6 flex items-center justify-center text-stone-600 hover:bg-stone-200 font-bold">+</button>
+            <div class="flex items-center bg-stone-100 border border-stone-300 rounded-xl overflow-hidden shadow-2xs">
+              <button type="button" onclick="updateCartQty(${idx}, -1)" class="w-7 h-7 flex items-center justify-center ${it.quantity === 1 ? 'text-rose-600 hover:bg-rose-100' : 'text-stone-700 hover:bg-stone-200'} font-bold transition cursor-pointer" title="${it.quantity === 1 ? 'Xóa món' : 'Giảm 1'}">
+                ${it.quantity === 1 ? '<i class=\"fa-solid fa-trash-can text-[10px]\"></i>' : '−'}
+              </button>
+              <span class="w-8 text-center font-black text-xs text-stone-900 bg-white py-1">${it.quantity}</span>
+              <button type="button" onclick="updateCartQty(${idx}, 1)" class="w-7 h-7 flex items-center justify-center text-stone-700 hover:bg-stone-200 font-bold transition cursor-pointer" title="Tăng 1">
+                +
+              </button>
             </div>
           </div>
         </div>
