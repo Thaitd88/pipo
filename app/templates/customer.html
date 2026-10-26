@@ -902,7 +902,16 @@
     // 1. Khởi chạy khi load trang
     document.addEventListener("DOMContentLoaded", () => {
       // Nhận diện tự động nếu bàn Sân Pickle (4 bàn PK-01 -> PK-04, tuyệt đối không nhầm sang Sảnh 2 Cạnh Sân Pickleball)
-      const isPickleTable = (TABLE_INFO.branchType === "PICKLE" || (TABLE_INFO.area || "").trim() === "Sân Pickle" || (TABLE_INFO.code || "").toUpperCase().startsWith("PK"));
+      const isSanh2OrDining = (TABLE_INFO.code || "").toUpperCase().startsWith("S2") || 
+                              (TABLE_INFO.code || "").toUpperCase().startsWith("S1") || 
+                              (TABLE_INFO.code || "").toUpperCase().startsWith("HB") || 
+                              (TABLE_INFO.name || "").toLowerCase().includes("sảnh") || 
+                              (TABLE_INFO.name || "").toLowerCase().includes("hồ bơi");
+      const isPickleTable = !isSanh2OrDining && (
+        (TABLE_INFO.code || "").toUpperCase().startsWith("PK") || 
+        (TABLE_INFO.area || "").trim().toLowerCase() === "sân pickle" || 
+        (TABLE_INFO.branchType === "PICKLE" && !(TABLE_INFO.area || "").toLowerCase().includes("sảnh"))
+      );
       const isCafeTable = (TABLE_INFO.branchType === "CAFE" || (TABLE_INFO.area || "").trim() === "Cafe" || (TABLE_INFO.code || "").toUpperCase().startsWith("CF"));
       
       const currentHour = new Date().getHours();
@@ -1267,7 +1276,16 @@
 
     function determineInitialCategory() {
       if (!menuData || menuData.length === 0) return 'ALL';
-      const isPickleTable = (TABLE_INFO.branchType === "PICKLE" || (TABLE_INFO.area || "").trim() === "Sân Pickle" || (TABLE_INFO.code || "").toUpperCase().startsWith("PK"));
+      const isSanh2OrDining = (TABLE_INFO.code || "").toUpperCase().startsWith("S2") || 
+                              (TABLE_INFO.code || "").toUpperCase().startsWith("S1") || 
+                              (TABLE_INFO.code || "").toUpperCase().startsWith("HB") || 
+                              (TABLE_INFO.name || "").toLowerCase().includes("sảnh") || 
+                              (TABLE_INFO.name || "").toLowerCase().includes("hồ bơi");
+      const isPickleTable = !isSanh2OrDining && (
+        (TABLE_INFO.code || "").toUpperCase().startsWith("PK") || 
+        (TABLE_INFO.area || "").trim().toLowerCase() === "sân pickle" || 
+        (TABLE_INFO.branchType === "PICKLE" && !(TABLE_INFO.area || "").toLowerCase().includes("sảnh"))
+      );
       const isCafeTable = (TABLE_INFO.branchType === "CAFE" || (TABLE_INFO.area || "").trim() === "Cafe" || (TABLE_INFO.code || "").toUpperCase().startsWith("CF"));
 
       const headerTbl = document.getElementById("headerTableName");

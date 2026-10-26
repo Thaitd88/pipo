@@ -98,7 +98,7 @@ MENU_ITEMS = [
     "station": "COLD_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/goi_xoai_kho_muc.webp",
     "description": "Gỏi xoài xanh chua ngọt trộn khô mực nướng xé sợi",
     "is_available": 1,
     "calories": 0
@@ -210,7 +210,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Chiên nước mắm\", \"Nướng mỡ hành\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/ca_tim.webp",
     "description": "Cà tím chiên nước mắm thơm giòn đậm vị",
     "is_available": 1,
     "calories": 0
@@ -224,7 +224,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/kho_muc_nup_lum.webp",
     "description": "Khô Mực Núp Lùm tại PiPo Garden Phú Quốc",
     "is_available": 1,
     "calories": 0
@@ -238,7 +238,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/cha_gio_hai_san.webp",
     "description": "Chả giò hải sản tại PiPo Garden Phú Quốc",
     "is_available": 1,
     "calories": 0
@@ -322,7 +322,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt mật ong\", \"Sốt mắm tỏi\", \"Nướng BBQ\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/dui_ga.webp",
     "description": "Đùi gà nướng sốt mật ong thơm ngọt mọng nước",
     "is_available": 1,
     "calories": 0
@@ -378,7 +378,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Nướng Sốt BBQ\", \"Nướng sốt mắm nhĩ\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/suon_bo.webp",
     "description": "Bò nướng tảng than hoa thơm lừng mọng nước",
     "is_available": 1,
     "calories": 0
@@ -504,7 +504,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Hấp Hồng Kông\", \"Nấu lẩu\", \"Chiên xù\", \"nấu cháo\", \"sashimi\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/ca_mu_2_mon.webp",
     "description": "Cá mú sống chế biến 2 món hấp Hồng Kông & nấu lẩu",
     "is_available": 1,
     "calories": 0
@@ -532,7 +532,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Trích\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/goi_ca.webp",
     "description": "Gỏi cá tại PiPo Garden Phú Quốc",
     "is_available": 1,
     "calories": 0
@@ -546,7 +546,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Chiên nước mắm\", \"Nướng muối ớt\", \"Hấp hành gừng\", \"Xào chua ngọt\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/muc_ong.webp",
     "description": "Mực ống tươi giòn ngọt chế biến đa dạng",
     "is_available": 1,
     "calories": 0
@@ -560,7 +560,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt trứng muối\", \"Rang muối\", \"Cháy tỏi\", \"Hấp sả\", \"Sốt XO\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/oc_huong_sot_trung_muoi_banh_mi_a153a5.webp",
     "description": "Sò huyết tươi xào sốt trứng muối béo ngậy",
     "is_available": 1,
     "calories": 0
@@ -574,7 +574,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Nướng muối ớt\", \"Hấp Hồng Kông\", \"nấu lẩu\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/ca_chim_bien.webp",
     "description": "Cá chim biển tươi nướng muối ớt thơm giòn",
     "is_available": 1,
     "calories": 0
@@ -616,7 +616,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/mien_xao_hai_san_x_o.webp",
     "description": "Miến xào hải sản X.O tại PiPo Garden Phú Quốc",
     "is_available": 1,
     "calories": 0
@@ -630,7 +630,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/com_chien_tom_x_o.webp",
     "description": "Cơm Chiên Tôm X.O tại PiPo Garden Phú Quốc",
     "is_available": 1,
     "calories": 0
@@ -882,7 +882,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt BBQ\", \"Sốt mắm nhĩ\", \"Muối ớt\"]}]",
-    "image_url": "/static/dishes/tom_hap.jpg",
+    "image_url": "/static/dishes/tom_su_nuong.webp",
     "description": "Tôm sú tươi sống Phú Quốc thịt chắc ngọt đậm đà",
     "is_available": 1,
     "calories": 0
@@ -910,7 +910,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt BBQ\", \"Sốt mắm nhĩ\", \"Muối ớt\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/ca_chim_bien_nuong.webp",
     "description": "Cá chim biển tươi nướng muối ớt thơm giòn",
     "is_available": 1,
     "calories": 0
@@ -1078,7 +1078,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/kho_muc_nup_lum.webp",
     "description": "Khô Mực Núp Lùm tại PiPo Garden Phú Quốc",
     "is_available": 1,
     "calories": 0
@@ -1092,7 +1092,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/cha_gio_hai_san.webp",
     "description": "Chả giò hải sản tại PiPo Garden Phú Quốc",
     "is_available": 1,
     "calories": 0
@@ -1106,7 +1106,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/mien_xao_hai_san_x_o.webp",
     "description": "Miến xào hải sản X.O tại PiPo Garden Phú Quốc",
     "is_available": 1,
     "calories": 0
@@ -1120,7 +1120,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/com_chien_tom_x_o.webp",
     "description": "Cơm Chiên Tôm X.O tại PiPo Garden Phú Quốc",
     "is_available": 1,
     "calories": 0
@@ -1134,7 +1134,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Súp hải sản\", \"Súp bào ngư\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/sup.webp",
     "description": "Súp hải sản thanh ngọt thơm ngon",
     "is_available": 1,
     "calories": 0
@@ -1148,7 +1148,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"hải sản\", \"bò băm\", \"bào ngư\", \"Ngheu\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/chao.webp",
     "description": "Cháo nóng hổi nấu sánh mịn thơm ngon",
     "is_available": 1,
     "calories": 0
@@ -1162,7 +1162,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/sup_cua_tomyum.webp",
     "description": "Súp TomYum cua cay nồng chuẩn vị Thái",
     "is_available": 1,
     "calories": 0
@@ -1176,7 +1176,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/lau_thai_hai_san.webp",
     "description": "Lẩu Thái hải sản chua cay thơm đậm đà",
     "is_available": 1,
     "calories": 0
@@ -1190,7 +1190,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/lau_ga_chanh_ot.webp",
     "description": "Lẩu gà chanh ớt xiêm xanh cay thơm nức",
     "is_available": 1,
     "calories": 0
@@ -1204,7 +1204,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Chim biển\", \"bớp\", \"Mú\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/lau_ca_dat_truoc.webp",
     "description": "Lẩu cá tươi nấu ngọt thanh hoặc nấu Thái chua cay",
     "is_available": 1,
     "calories": 0

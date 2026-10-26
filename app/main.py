@@ -439,10 +439,13 @@ def customer_page(request: Request, qr_token: str):
     area_str = (table_dict.get("area") or "").lower()
     code_str = (table_dict.get("table_code") or "").upper()
     name_str = (table_dict.get("name") or "").lower()
-    if "cafe" in area_str or "sáng" in area_str or code_str.startswith("CF") or "cafe" in name_str:
-        table_dict["branch_type"] = "CAFE"
-    elif "pickle" in area_str or code_str.startswith("PK") or "pickle" in name_str:
+    # Sảnh 2, Sảnh 1, Hồ bơi là các khu nhà hàng chính
+    if "sảnh 2" in area_str or code_str.startswith("S2") or code_str.startswith("S1") or code_str.startswith("HB"):
+        table_dict["branch_type"] = "RESTAURANT"
+    elif code_str.startswith("PK") or area_str.strip() == "sân pickle" or (area_str.startswith("sân pickle") and "sảnh" not in area_str):
         table_dict["branch_type"] = "PICKLE"
+    elif "cafe" in area_str or "sáng" in area_str or code_str.startswith("CF") or "cafe" in name_str:
+        table_dict["branch_type"] = "CAFE"
     else:
         table_dict["branch_type"] = "RESTAURANT"
 
