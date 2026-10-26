@@ -289,49 +289,7 @@
               </div>
             </div>
 
-            <!-- Hình thức thanh toán: Tiền mặt, Khách CK, Tính Admin -->
-            <div class="pt-2 border-t border-stone-200 space-y-1.5">
-              <label class="block text-[11px] font-bold text-stone-700 uppercase tracking-wider">Hình thức thanh toán:</label>
-              <div class="grid grid-cols-3 gap-1.5">
-                <label class="payment-method-card flex flex-col items-center justify-center p-2 rounded-xl border-2 border-stone-200 hover:border-emerald-500 cursor-pointer transition text-center text-xs has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50/80 has-[:checked]:text-emerald-950 shadow-2xs">
-                  <input type="radio" name="orderPaymentMethod" value="CASH" checked class="sr-only" onchange="onOrderPaymentMethodChange()">
-                  <span class="text-base mb-0.5">💵</span>
-                  <span class="font-bold text-[11px]">Tiền mặt</span>
-                </label>
-                <label class="payment-method-card flex flex-col items-center justify-center p-2 rounded-xl border-2 border-stone-200 hover:border-sky-500 cursor-pointer transition text-center text-xs has-[:checked]:border-sky-700 has-[:checked]:bg-sky-50/80 has-[:checked]:text-sky-950 shadow-2xs">
-                  <input type="radio" name="orderPaymentMethod" value="TRANSFER" class="sr-only" onchange="onOrderPaymentMethodChange()">
-                  <span class="text-base mb-0.5">📲</span>
-                  <span class="font-bold text-[11px]">Chuyển khoản</span>
-                </label>
-                <label class="payment-method-card flex flex-col items-center justify-center p-2 rounded-xl border-2 border-stone-200 hover:border-purple-500 cursor-pointer transition text-center text-xs has-[:checked]:border-purple-700 has-[:checked]:bg-purple-50/80 has-[:checked]:text-purple-950 shadow-2xs">
-                  <input type="radio" name="orderPaymentMethod" value="INTERNAL" class="sr-only" onchange="onOrderPaymentMethodChange()">
-                  <span class="text-base mb-0.5">🏢</span>
-                  <span class="font-bold text-[11px]">Tính Admin</span>
-                </label>
-              </div>
             </div>
-
-            <!-- VietQR Container (khi chọn TRANSFER) -->
-            <div id="orderQRContainer" class="hidden text-center p-2.5 bg-sky-50/80 rounded-xl border border-sky-200 space-y-1">
-              <div class="text-[11px] font-bold text-sky-900">Quét mã QR VietQR:</div>
-              <img id="orderQRImg" src="" alt="VietQR" class="w-32 h-32 mx-auto rounded-lg shadow-xs border border-sky-200 bg-white">
-              <div class="text-[9.5px] text-stone-600 font-medium">
-                MB Bank • <span class="font-mono font-bold text-stone-900">075624456</span> • <span class="font-bold text-stone-900">PIPO GARDEN</span>
-              </div>
-              <div class="text-[9.5px] text-sky-800 bg-white/90 py-0.5 px-2 rounded-md border border-sky-200 inline-block font-mono">
-                Nội dung: <span id="orderTransferNote" class="font-bold">TT PiPo Ban PK01</span>
-              </div>
-            </div>
-
-            <!-- Admin Container (khi chọn INTERNAL) -->
-            <div id="orderAdminContainer" class="hidden p-2.5 bg-purple-50 rounded-xl border border-purple-200 space-y-1.5">
-              <label class="block text-[11px] font-bold text-purple-950">Chọn Quản trị viên chịu bill: *</label>
-              <select id="orderAdminSelect" class="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1.5 font-bold text-purple-950 text-xs focus:outline-purple-600">
-                <!-- Populated by JS -->
-              </select>
-              <input type="text" id="orderAdminNote" placeholder="Ghi chú nội bộ (Tiếp khách, Đối tác...)" class="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1 text-purple-950 text-xs focus:outline-purple-600">
-            </div>
-          </div>
 
           <!-- Pinned Cart Footer - Luôn cố định phía dưới, không bao giờ bị che khuất -->
           <div class="p-3 bg-white border-t border-stone-200 space-y-2 flex-shrink-0 shadow-lg sticky bottom-0 z-20">
@@ -398,7 +356,7 @@
           <div class="grid grid-cols-3 gap-2">
             <!-- 1. Thu Tiền Mặt -->
             <label class="payment-method-card flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-stone-200 hover:border-emerald-500 cursor-pointer transition text-center text-xs has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50/70 has-[:checked]:text-emerald-950 shadow-2xs">
-              <input type="radio" name="checkoutPaymentMethod" value="CASH" checked class="sr-only" onchange="onCheckoutPaymentMethodChange()">
+              <input type="radio" name="checkoutPaymentMethod" value="CASH" class="sr-only" onchange="onCheckoutPaymentMethodChange()">
               <span class="text-xl mb-1">💵</span>
               <span class="font-bold">Tiền mặt</span>
               <span class="text-[9.5px] text-stone-500 mt-0.5">Thu trực tiếp</span>
@@ -406,7 +364,7 @@
 
             <!-- 2. Khách Chuyển Khoản -->
             <label class="payment-method-card flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-stone-200 hover:border-sky-500 cursor-pointer transition text-center text-xs has-[:checked]:border-sky-700 has-[:checked]:bg-sky-50/70 has-[:checked]:text-sky-950 shadow-2xs">
-              <input type="radio" name="checkoutPaymentMethod" value="TRANSFER" class="sr-only" onchange="onCheckoutPaymentMethodChange()">
+              <input type="radio" name="checkoutPaymentMethod" value="TRANSFER" checked class="sr-only" onchange="onCheckoutPaymentMethodChange()">
               <span class="text-xl mb-1">📲</span>
               <span class="font-bold">Chuyển khoản</span>
               <span class="text-[9.5px] text-stone-500 mt-0.5">Quét VietQR</span>
@@ -542,8 +500,8 @@
           <div>
             <label class="block text-xs font-bold text-stone-700 mb-1">Hình thức thanh toán</label>
             <select id="memPaymentMethod" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs text-stone-900 focus:outline-emerald-600">
+              <option value="CHUYEN_KHOAN" selected>Chuyển Khoản (VietQR)</option>
               <option value="CASH">Tiền Mặt</option>
-              <option value="CHUYEN_KHOAN">Chuyển Khoản (VietQR)</option>
             </select>
           </div>
         </div>
@@ -1318,10 +1276,7 @@
       renderOrderCart();
       switchPickleOrderMobileTab('menu');
 
-      // Reset payment method to CASH
-      const cashRadio = document.querySelector('input[name="orderPaymentMethod"][value="CASH"]');
-      if (cashRadio) cashRadio.checked = true;
-      onOrderPaymentMethodChange();
+
       if (posAdmins.length === 0) loadAdminsList();
 
       document.getElementById("serviceOrderModal").classList.remove("hidden");
@@ -1537,28 +1492,10 @@
         return;
       }
 
-      const paymentMethod = document.querySelector('input[name="orderPaymentMethod"]:checked')?.value || "CASH";
+      const paymentMethod = "TRANSFER";
       let billTarget = "CUSTOMER";
       let billedAdminId = null;
       let billedAdminName = "";
-
-      if (paymentMethod === "INTERNAL") {
-        billTarget = "ADMIN";
-        const adminSelect = document.getElementById("orderAdminSelect");
-        if (adminSelect && adminSelect.value) {
-          billedAdminId = parseInt(adminSelect.value);
-          const opt = adminSelect.options[adminSelect.selectedIndex];
-          billedAdminName = opt ? (opt.getAttribute("data-name") || opt.text) : "";
-        }
-        const note = document.getElementById("orderAdminNote")?.value?.trim();
-        if (note) {
-          billedAdminName = billedAdminName ? `${billedAdminName} (${note})` : note;
-        }
-        if (!billedAdminId && !billedAdminName) {
-          alert("Vui lòng chọn Quản trị viên chịu bill hoặc nhập ghi chú nội bộ!");
-          return;
-        }
-      }
 
       isPickleServiceSubmitting = true;
       const btn = document.getElementById("btnSubmitOrder");
@@ -1603,8 +1540,7 @@
           throw new Error(errData.detail || "Không thể gửi đơn");
         }
 
-        const payMethodText = paymentMethod === "INTERNAL" ? `Tính Admin (${billedAdminName})` : paymentMethod === "TRANSFER" ? "Chuyển khoản" : "Tiền mặt";
-        showToast(`✅ Đã gọi món & dịch vụ cho ${currentTargetCourt.name} [${payMethodText}]! Máy in đang in bill thu tiền & phiếu bếp nóng.`);
+        showToast(`✅ Đã thêm dịch vụ/món cho ${currentTargetCourt.name}!`);
         closeServiceOrderModal();
         await loadPickleCourts();
       } catch (err) {
@@ -1783,9 +1719,9 @@
         const noteEl = document.getElementById("checkoutTransferNote");
         if (noteEl) noteEl.innerText = transferNote;
 
-        // Reset radio to Cash
-        const cashRadio = document.querySelector('input[name="checkoutPaymentMethod"][value="CASH"]');
-        if (cashRadio) cashRadio.checked = true;
+        // Reset radio to Transfer
+        const transferRadio = document.querySelector('input[name="checkoutPaymentMethod"][value="TRANSFER"]');
+        if (transferRadio) transferRadio.checked = true;
         onCheckoutPaymentMethodChange();
 
         // Load admin list if not yet loaded

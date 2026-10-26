@@ -283,6 +283,22 @@ async def assign_table_to_reservation(res_id: int, req: AssignTableRequest):
                 item_name = item.get("name") or item.get("item_name") or raw_obj.get("name")
                 station = item.get("station") or raw_obj.get("station") or "HOT_KITCHEN"
 
+                # Đảm bảo item_id là số nguyên hợp lệ, nếu là custom string thì cố gắng map theo tên món
+                if not isinstance(item_id, int) or item_id == 0:
+                    try:
+                        item_id = int(item_id)
+                    except (ValueError, TypeError):
+                        cursor.execute("SELECT id, name, price, station, portion FROM menu_items WHERE name = ? COLLATE NOCASE", (item_name,))
+                        match_row = cursor.fetchone()
+                        if match_row:
+                            item_id = match_row["id"]
+                            if not station or station == "HOT_KITCHEN":
+                                station = match_row["station"]
+                            if not price:
+                                price = match_row["price"]
+                        else:
+                            item_id = 0
+
                 portion = item.get("portion") or raw_obj.get("portion") or ""
                 if (not item_name or not station or not portion) and item_id:
                     cursor.execute("SELECT name, station, portion FROM menu_items WHERE id = ?", (item_id,))

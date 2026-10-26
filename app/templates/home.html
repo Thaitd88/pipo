@@ -1504,6 +1504,15 @@
                 </button>
               </div>
 
+              <!-- Danh sách món đã chọn (luôn hiển thị rõ ràng khi có món) -->
+              <div id="preorderSelectedItemsContainer" class="hidden pt-2 border-t border-white/10 space-y-1.5">
+                <div class="text-[11px] font-bold text-brand-gold-light flex items-center justify-between">
+                  <span>✨ Các món bạn đã chọn:</span>
+                  <span id="preorderSelectedCount" class="text-white/80 font-normal">0 món</span>
+                </div>
+                <div id="preorderSelectedList" class="space-y-1 max-h-40 overflow-y-auto custom-scrollbar pr-1"></div>
+              </div>
+
               <!-- Collapsible Dishes Preorder Grid -->
               <div id="preorderMenuWrapper" class="hidden pt-3 border-t border-white/10 space-y-3">
                 <!-- Category tabs -->
@@ -2474,10 +2483,13 @@
 
         return `
           <div class="bg-white/10 rounded-2xl p-2.5 sm:p-3 border border-white/10 flex flex-col justify-between hover:border-brand-gold/40 transition group">
-            <div>
+            <div onclick="adjustWizardPreorderItem(${it.id}, '${escapedName}', ${it.price}, 1, '${imgUrl}')" class="cursor-pointer" title="Bấm để chọn món này">
               <div class="relative h-24 sm:h-28 rounded-xl overflow-hidden bg-black/30 mb-2">
                 <img src="${imgUrl}" alt="${it.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='/static/logo.png'">
                 ${it.calories ? `<span class="absolute bottom-1.5 right-1.5 bg-black/70 backdrop-blur-xs text-white text-[9px] font-mono px-1.5 py-0.5 rounded">${it.calories} kcal</span>` : ''}
+                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                  <span class="bg-brand-gold text-brand-emerald-dark font-black text-[10px] px-2 py-1 rounded-full shadow">+ Thêm</span>
+                </div>
               </div>
               <h5 class="font-serif font-bold text-xs text-white line-clamp-1" title="${it.name}">${it.name}</h5>
               <div class="font-black text-xs text-brand-gold-light mt-0.5">${formattedPrice}</div>
@@ -2518,12 +2530,15 @@
     function quickPreorderDish(name, price) {
       selectService('DINING');
       
-      // Look for dish in allMenuItems if available
-      let item = allMenuItems.find(i => (i.name || "").toLowerCase() === name.toLowerCase());
+      const cleanName = (name || "").trim().toLowerCase();
+      let item = allMenuItems.find(i => (i.name || "").trim().toLowerCase() === cleanName)
+              || allMenuItems.find(i => (i.name || "").toLowerCase().includes(cleanName) || cleanName.includes((i.name || "").toLowerCase()));
       let itemId = item ? item.id : ("custom_" + Math.abs(name.split("").reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0)));
-      let img = item ? item.image_url : "/static/logo.png";
+      let finalName = item ? item.name : name;
+      let finalPrice = item ? item.price : price;
+      let img = item ? (item.image_url || "/static/logo.png") : "/static/logo.png";
 
-      adjustWizardPreorderItem(itemId, name, price, 1, img);
+      adjustWizardPreorderItem(itemId, finalName, finalPrice, 1, img);
 
       // Open preorder list and switch to step 2
       const wrapper = document.getElementById("preorderMenuWrapper");
@@ -2563,6 +2578,37 @@
       const estInput = document.getElementById("resTotalEstimated");
       if (jsonInput) jsonInput.value = JSON.stringify(items);
       if (estInput) estInput.value = totalEst;
+
+      // Update Step 2 Selected Items Chip List
+      const selContainer = document.getElementById("preorderSelectedItemsContainer");
+      const selList = document.getElementById("preorderSelectedList");
+      const selCount = document.getElementById("preorderSelectedCount");
+      if (selContainer && selList) {
+        if (items.length > 0) {
+          selContainer.classList.remove("hidden");
+          if (selCount) selCount.innerText = `${totalQty} phần (${totalEst.toLocaleString("vi-VN")} đ)`;
+          selList.innerHTML = items.map(it => {
+            const escapedName = (it.name || "").replace(/'/g, "\\'");
+            const imgUrl = it.image_url || "/static/logo.png";
+            return `
+              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-white/10 text-xs border border-white/5">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                  <span class="text-white font-bold truncate">${it.name}</span>
+                  <span class="text-brand-gold-light font-mono text-[11px] flex-shrink-0">${(it.price * it.quantity).toLocaleString("vi-VN")} đ</span>
+                </div>
+                <div class="flex items-center gap-1.5 ml-2 flex-shrink-0">
+                  <button type="button" onclick="adjustWizardPreorderItem(${typeof it.item_id === 'number' ? it.item_id : `'${it.item_id}'`}, '${escapedName}', ${it.price}, -1, '${imgUrl}')" class="w-5 h-5 rounded bg-white/20 hover:bg-white/30 text-white font-bold flex items-center justify-center text-xs">-</button>
+                  <span class="w-5 text-center font-bold text-brand-gold text-xs">${it.quantity}</span>
+                  <button type="button" onclick="adjustWizardPreorderItem(${typeof it.item_id === 'number' ? it.item_id : `'${it.item_id}'`}, '${escapedName}', ${it.price}, 1, '${imgUrl}')" class="w-5 h-5 rounded bg-brand-gold hover:bg-brand-gold-light text-brand-emerald-dark font-black flex items-center justify-center text-xs">+</button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          selContainer.classList.add("hidden");
+          selList.innerHTML = '';
+        }
+      }
     }
 
     // Step 3 Summary Review Rendering

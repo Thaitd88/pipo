@@ -139,6 +139,12 @@ except Exception:
 async def lifespan(app: FastAPI):
     # Khởi tạo DB khi bật server
     init_db()
+    try:
+        from .menu_syncer import ensure_updated_menu
+        from .database import get_db
+        ensure_updated_menu(get_db())
+    except Exception as e:
+        print(f'[MenuSyncer] Error ensuring updated menu: {e}')
     # Tự động đồng bộ các ảnh upload bền vững từ persistent storage vào static/dishes
     try:
         from .database import DATA_DIR
