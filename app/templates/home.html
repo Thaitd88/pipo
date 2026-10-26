@@ -2481,6 +2481,23 @@
         const formattedPrice = (it.price || 0).toLocaleString("vi-VN") + " đ";
         const escapedName = (it.name || "").replace(/'/g, "\\'");
 
+        let flavors = [];
+        if (it.options && it.options.length > 0 && it.options[0].options) {
+          flavors = it.options[0].options;
+        } else if (typeof it.options_json === 'string' && it.options_json.startsWith('[')) {
+          try {
+            const p = JSON.parse(it.options_json);
+            if (p.length > 0 && p[0].options) flavors = p[0].options;
+          } catch(e){}
+        }
+
+        const flavorsHtml = (flavors && flavors.length > 0)
+          ? `<div class="flex flex-wrap gap-1 mt-1">
+              ${flavors.slice(0, 3).map(f => `<span class="inline-block text-[9px] px-1.5 py-0.5 rounded-md bg-emerald-950/80 border border-emerald-400/40 text-emerald-300 font-semibold">${f}</span>`).join('')}
+              ${flavors.length > 3 ? `<span class="inline-block text-[8.5px] px-1 py-0.5 rounded-md bg-white/10 text-brand-gold font-bold">+${flavors.length - 3} vị</span>` : ''}
+            </div>`
+          : '';
+
         return `
           <div class="bg-white/10 rounded-2xl p-2.5 sm:p-3 border border-white/10 flex flex-col justify-between hover:border-brand-gold/40 transition group">
             <div onclick="adjustWizardPreorderItem(${it.id}, '${escapedName}', ${it.price}, 1, '${imgUrl}')" class="cursor-pointer" title="Bấm để chọn món này">
@@ -2492,7 +2509,8 @@
                 </div>
               </div>
               <h5 class="font-serif font-bold text-xs text-white line-clamp-1" title="${it.name}">${it.name}</h5>
-              <div class="font-black text-xs text-brand-gold-light mt-0.5">${formattedPrice}</div>
+              ${flavorsHtml}
+              <div class="font-black text-xs text-brand-gold-light mt-1">${formattedPrice}</div>
             </div>
 
             <!-- Stepper Controls (touch-friendly min 36px) -->

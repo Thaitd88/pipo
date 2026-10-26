@@ -1,6 +1,6 @@
 """
 app/menu_syncer.py
-Tự động đồng bộ Menu, Danh mục, NVL (Kho) và Công thức (BOM) được cập nhật từ file Excel.
+Tự động đồng bộ Menu, Danh mục, NVL (Kho), Vị chế biến (options_json) và Công thức (BOM) được cập nhật từ file Excel.
 Chạy an toàn và tự động khi khởi động server (lifespan) trên cả Cloud lẫn Local.
 """
 
@@ -87,7 +87,8 @@ MENU_ITEMS = [
     "is_available": 0,
     "calories": 440,
     "portion": "Khoai môn 300g, hải sản 120g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 140,
@@ -100,7 +101,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 480,
     "portion": "Đĩa 300g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Chiên\", \"Xốc bơ sữa\"]}]"
   },
   {
     "id": 142,
@@ -113,7 +115,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 282,
     "portion": "Đĩa 350g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 143,
@@ -126,7 +129,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 92,
     "portion": "Đĩa 400g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Xào tỏi\", \"Luộc\"]}]"
   },
   {
     "id": 144,
@@ -139,7 +143,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 68,
     "portion": "Đĩa 400g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt dầu hào\", \"Xào tỏi\", \"Luộc\"]}]"
   },
   {
     "id": 145,
@@ -152,7 +157,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 380,
     "portion": "Gói chuẩn bị sẵn 250g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 146,
@@ -165,7 +171,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 340,
     "portion": "Đĩa 4 bìa",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Chiên giòn\", \"Tẩm hành\", \"Chiên sả ớt\"]}]"
   },
   {
     "id": 147,
@@ -178,7 +185,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 392,
     "portion": "Đĩa 350g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Chiên nước mắm\", \"Chiên giòn\"]}]"
   },
   {
     "id": 148,
@@ -191,7 +199,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 2056,
     "portion": "Gà 1 con (1.3kg)",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Hấp mắm nhĩ\", \"Chiên mắm\", \"Nướng muối ớt\"]}]"
   },
   {
     "id": 150,
@@ -204,7 +213,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 2147,
     "portion": "Gà 1 con (1.3kg) + cháo/lòng mề",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Luộc kèm cháo\", \"Hấp hành\", \"Hấp mắm nhĩ\", \"Chiên mắm\", \"Nấu chanh ớt\", \"Nướng muối ớt\"]}]"
   },
   {
     "id": 157,
@@ -217,7 +227,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 860,
     "portion": "Dĩa 3 cái (400g)",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Chiên nước mắm\", \"Nướng muối ớt\"]}]"
   },
   {
     "id": 159,
@@ -230,7 +241,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 2660,
     "portion": "Vịt 1/2 con (900g)",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 160,
@@ -243,7 +255,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 752,
     "portion": "Dĩa 5 cặp",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Cháy tỏi\", \"Chiên mắm\", \"Nướng muối ớt\"]}]"
   },
   {
     "id": 161,
@@ -256,7 +269,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 1015,
     "portion": "Dĩa 350g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Nướng riềng mẻ\", \"Chiên giòn\", \"Chiên nước mắm\", \"Nướng muối ớt\"]}]"
   },
   {
     "id": 162,
@@ -269,7 +283,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 65,
     "portion": "Con lớn",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Nướng phô mai\", \"Nướng mỡ hành\"]}]"
   },
   {
     "id": 163,
@@ -282,7 +297,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 65,
     "portion": "Hàu sữa 1 con",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 164,
@@ -295,7 +311,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 168,
     "portion": "Tô 500g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Hấp Thái\", \"Hấp sả\", \"Xào lá quế\"]}]"
   },
   {
     "id": 167,
@@ -308,7 +325,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 255,
     "portion": "Đĩa 250g (6-8 con)",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Cháy tỏi\", \"Rang muối HK\", \"Nướng muối ớt\", \"Hấp nước dừa / sả\", \"Sốt bơ tỏi\", \"Chiên xù\"]}]"
   },
   {
     "id": 169,
@@ -321,7 +339,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 320,
     "portion": "Ốc hương 250g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt trứng muối (kèm bánh mì)\", \"Cháy tỏi\", \"Hấp sả\"]}]"
   },
   {
     "id": 172,
@@ -334,7 +353,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 312,
     "portion": "Ốc móng tay 300g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Cháy tỏi\", \"Nướng mỡ hành\", \"Xào rau muống\"]}]"
   },
   {
     "id": 176,
@@ -347,7 +367,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 344,
     "portion": "Bạch tuộc 300g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Nướng muối ớt\", \"Xào cay\", \"Hấp hành gừng\"]}]"
   },
   {
     "id": 180,
@@ -360,7 +381,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 574,
     "portion": "Đĩa lớn 250g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Hải sản\", \"Bò\", \"Úp trứng\"]}]"
   },
   {
     "id": 181,
@@ -373,7 +395,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 646,
     "portion": "Đĩa lớn 2 vắt",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Xào hải sản\", \"Xào bò\"]}]"
   },
   {
     "id": 183,
@@ -386,7 +409,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "1 chai (500ml)",
-    "main_menu_type": "RESTAURANT,PICKLE"
+    "main_menu_type": "RESTAURANT,PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 184,
@@ -399,7 +423,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 139,
     "portion": "1 lon (320ml)",
-    "main_menu_type": "RESTAURANT,PICKLE"
+    "main_menu_type": "RESTAURANT,PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 185,
@@ -412,7 +437,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 145,
     "portion": "1 lon (320ml)",
-    "main_menu_type": "RESTAURANT,PICKLE"
+    "main_menu_type": "RESTAURANT,PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 186,
@@ -425,7 +451,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 86,
     "portion": "1 chai (390ml)",
-    "main_menu_type": "RESTAURANT,PICKLE"
+    "main_menu_type": "RESTAURANT,PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 187,
@@ -438,7 +465,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 95,
     "portion": "1 chai (500ml)",
-    "main_menu_type": "RESTAURANT,PICKLE"
+    "main_menu_type": "RESTAURANT,PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 188,
@@ -451,7 +479,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 142,
     "portion": "1 lon (330ml)",
-    "main_menu_type": "RESTAURANT,PICKLE"
+    "main_menu_type": "RESTAURANT,PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 189,
@@ -464,7 +493,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 145,
     "portion": "1 lon (330ml)",
-    "main_menu_type": "RESTAURANT,PICKLE"
+    "main_menu_type": "RESTAURANT,PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 190,
@@ -477,7 +507,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 105,
     "portion": "1 lon (250ml)",
-    "main_menu_type": "RESTAURANT,PICKLE"
+    "main_menu_type": "RESTAURANT,PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 197,
@@ -490,7 +521,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Con 2.0kg",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Hấp Hồng Kông\", \"Nấu lẩu\", \"Chiên xù\", \"nấu cháo\", \"sashimi\"]}]"
   },
   {
     "id": 198,
@@ -503,7 +535,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Con 400gram",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 199,
@@ -516,7 +549,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "1L",
-    "main_menu_type": "RESTAURANT,PICKLE"
+    "main_menu_type": "RESTAURANT,PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 201,
@@ -529,7 +563,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 1160,
     "portion": "Dĩa 400g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt chua ngọt\", \"Nướng muối ớt\", \"BBQ\", \"Chiên mắm\"]}]"
   },
   {
     "id": 205,
@@ -542,7 +577,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "1 quả",
-    "main_menu_type": "PICKLE"
+    "main_menu_type": "PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 206,
@@ -555,7 +591,8 @@ MENU_ITEMS = [
     "is_available": 0,
     "calories": 0,
     "portion": "1 bắp",
-    "main_menu_type": "PICKLE"
+    "main_menu_type": "PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 301,
@@ -568,7 +605,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "1 lượt chơi + 1 nước",
-    "main_menu_type": "PICKLE"
+    "main_menu_type": "PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 302,
@@ -581,7 +619,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "1 lượt chơi sáng",
-    "main_menu_type": "PICKLE"
+    "main_menu_type": "PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 303,
@@ -594,7 +633,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "1 cây / lượt",
-    "main_menu_type": "PICKLE"
+    "main_menu_type": "PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 304,
@@ -607,7 +647,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "1 giờ / sân (kèm 2 nước)",
-    "main_menu_type": "PICKLE"
+    "main_menu_type": "PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 305,
@@ -620,7 +661,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "30 ngày không giới hạn giờ",
-    "main_menu_type": "PICKLE"
+    "main_menu_type": "PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 306,
@@ -633,7 +675,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "30 ngày (06h - 16h)",
-    "main_menu_type": "PICKLE"
+    "main_menu_type": "PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 307,
@@ -646,7 +689,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "365 ngày cá nhân",
-    "main_menu_type": "PICKLE"
+    "main_menu_type": "PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 308,
@@ -659,7 +703,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Theo giá thỏa thuận",
-    "main_menu_type": "PICKLE"
+    "main_menu_type": "PICKLE",
+    "options_json": "[]"
   },
   {
     "id": 309,
@@ -672,7 +717,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "1 phần",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Trích\", \"Giỏi\"]}]"
   },
   {
     "id": 310,
@@ -685,7 +731,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Đĩa 300g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Chiên nước mắm\", \"Nướng muối ớt\", \"Hấp hành gừng\", \"Xào chua ngọt\"]}]"
   },
   {
     "id": 311,
@@ -698,7 +745,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Dĩa 5 con bào ngư",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 312,
@@ -711,7 +759,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Đĩa 350g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Chiên nước mắm\"]}]"
   },
   {
     "id": 313,
@@ -724,7 +773,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Đĩa 250g bò",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Kèm khoai tây chiên\"]}]"
   },
   {
     "id": 314,
@@ -737,7 +787,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Phần 300g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Nướng Sốt BBQ\", \"Nướng sốt mắm nhĩ\"]}]"
   },
   {
     "id": 315,
@@ -750,7 +801,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Đĩa 250g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 316,
@@ -763,7 +815,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Đĩa 200g bò + rau",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 317,
@@ -776,7 +829,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Đĩa 2 đùi lớn",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt mật ong\", \"Sốt mắm tỏi\", \"Nướng BBQ\"]}]"
   },
   {
     "id": 318,
@@ -789,7 +843,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Đĩa 300g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 319,
@@ -802,7 +857,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Đĩa 250g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Cháy tỏi\"]}]"
   },
   {
     "id": 320,
@@ -815,7 +871,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Đĩa 350g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt trứng muối\", \"Rang muối\", \"Cháy tỏi\", \"Hấp sả\", \"Sốt XO\"]}]"
   },
   {
     "id": 321,
@@ -828,7 +885,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Con 800g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Nướng muối ớt\", \"Hấp Hồng Kông\", \"nấu lẩu\"]}]"
   },
   {
     "id": 322,
@@ -841,7 +899,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Tô vừa",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Súp hải sản\", \"Súp bào ngư\"]}]"
   },
   {
     "id": 323,
@@ -854,7 +913,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Tô lớn",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Cháo hải sản\", \"Cháo bò băm\", \"Cháo bào ngư\"]}]"
   },
   {
     "id": 324,
@@ -867,7 +927,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Tô lớn",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 325,
@@ -880,7 +941,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Nồi lẩu (3-4 người)",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 326,
@@ -893,7 +955,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Nồi lẩu",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 327,
@@ -906,7 +969,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Nồi lẩu 1 con",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Nấu ngọt\", \"Nấu Thái\"]}]"
   },
   {
     "id": 328,
@@ -919,7 +983,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Dĩa 100g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 329,
@@ -932,7 +997,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Dĩa 100g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 330,
@@ -945,7 +1011,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Dĩa 4 cuộn",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 331,
@@ -958,7 +1025,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Dĩa 80g miến khô, hải sản",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 332,
@@ -971,7 +1039,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Dĩa 150 cơm, tôm tươi",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[]"
   },
   {
     "id": 333,
@@ -984,7 +1053,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Phần 300g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Nướng Sốt BBQ\", \"Nướng sốt mắm nhĩ\"]}]"
   },
   {
     "id": 334,
@@ -997,7 +1067,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Gà 1 con (1.3kg)",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Hấp mắm nhĩ\", \"Chiên mắm\", \"Nướng muối ớt\"]}]"
   },
   {
     "id": 335,
@@ -1010,7 +1081,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Gà 1 con (1.3kg) + cháo/lòng mề",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Luộc kèm cháo\", \"Hấp hành\", \"Hấp mắm nhĩ\", \"Chiên mắm\", \"Nấu chanh ớt\", \"Nướng muối ớt\"]}]"
   },
   {
     "id": 336,
@@ -1023,7 +1095,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Dĩa 3 cái (400g)",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Chiên nước mắm\", \"Nướng muối ớt\"]}]"
   },
   {
     "id": 337,
@@ -1036,7 +1109,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Dĩa 5 cặp",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Cháy tỏi\", \"Chiên mắm\", \"Nướng muối ớt\"]}]"
   },
   {
     "id": 338,
@@ -1049,7 +1123,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Đĩa 2 đùi lớn",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt mật ong\", \"Sốt mắm tỏi\", \"Nướng BBQ\"]}]"
   },
   {
     "id": 339,
@@ -1062,7 +1137,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Dĩa 400g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt chua ngọt\", \"Nướng muối ớt\", \"BBQ\", \"Chiên mắm\"]}]"
   },
   {
     "id": 340,
@@ -1075,7 +1151,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Dĩa 350g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Nướng riềng mẻ\", \"Chiên giòn\", \"Chiên nước mắm\", \"Nướng muối ớt\"]}]"
   },
   {
     "id": 341,
@@ -1088,7 +1165,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Đĩa 250g (6-8 con)",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Cháy tỏi\", \"Rang muối HK\", \"Nướng muối ớt\", \"Hấp nước dừa / sả\", \"Sốt bơ tỏi\", \"Chiên xù\"]}]"
   },
   {
     "id": 342,
@@ -1101,7 +1179,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Đĩa 300g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Chiên nước mắm\", \"Nướng muối ớt\", \"Hấp hành gừng\", \"Xào chua ngọt\"]}]"
   },
   {
     "id": 343,
@@ -1114,7 +1193,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Con 800g",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Nướng muối ớt\", \"Hấp Hồng Kông\", \"nấu lẩu\"]}]"
   },
   {
     "id": 344,
@@ -1127,7 +1207,8 @@ MENU_ITEMS = [
     "is_available": 1,
     "calories": 0,
     "portion": "Con lớn",
-    "main_menu_type": "RESTAURANT"
+    "main_menu_type": "RESTAURANT",
+    "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Nướng phô mai\", \"Nướng mỡ hành\"]}]"
   }
 ]
 
@@ -2226,27 +2307,28 @@ def ensure_updated_menu(conn: sqlite3.Connection):
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (iv["id"], iv["code"], iv["name"], iv["unit"], iv["stock_quantity"], iv["min_stock"], iv["cost_price"], iv["supplier"]))
 
-    # 3. Đồng bộ Món ăn (menu_items)
+    # 3. Đồng bộ Món ăn & Vị chế biến (menu_items)
     for it in MENU_ITEMS:
         cur.execute("SELECT id FROM menu_items WHERE id = ? OR (name = ? AND category_id = ?)", (it["id"], it["name"], it["category_id"]))
         row = cur.fetchone()
+        opt_json = it.get("options_json") or "[]"
         if row:
             cur.execute("""
                 UPDATE menu_items
                 SET category_id = ?, name = ?, price = ?, station = ?, 
                     image_url = ?, description = ?, is_available = ?, calories = ?, portion = ?, 
-                    main_menu_type = ?
+                    main_menu_type = ?, options_json = ?
                 WHERE id = ?
             """, (it["category_id"], it["name"], it["price"], it["station"],
                   it["image_url"], it["description"], it["is_available"], it["calories"], it["portion"],
-                  it["main_menu_type"], row[0]))
+                  it["main_menu_type"], opt_json, row[0]))
         else:
             cur.execute("""
-                INSERT INTO menu_items (id, category_id, name, price, station, image_url, description, is_available, calories, portion, main_menu_type)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO menu_items (id, category_id, name, price, station, image_url, description, is_available, calories, portion, main_menu_type, options_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (it["id"], it["category_id"], it["name"], it["price"], it["station"],
                   it["image_url"], it["description"], it["is_available"], it["calories"], it["portion"],
-                  it["main_menu_type"]))
+                  it["main_menu_type"], opt_json))
 
     # 4. Đồng bộ Định mức NVL (recipe_bom)
     for b in RECIPE_BOM:
@@ -2265,4 +2347,4 @@ def ensure_updated_menu(conn: sqlite3.Connection):
             """, (b["menu_item_id"], b["ingredient_id"], b["quantity"]))
 
     conn.commit()
-    print("[PiPo Garden] Menu, NVL và BOM đã được đồng bộ chuẩn xác từ Excel vào DB!")
+    print("[PiPo Garden] Menu, Vị chế biến, NVL và BOM đã được đồng bộ chuẩn xác từ Excel vào DB!")
