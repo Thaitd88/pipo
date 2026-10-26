@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quyển Thực Đơn PiPo Garden Phú Quốc - Bản In A4 Cao Cấp</title>
+  
+  <!-- Tailwind CSS & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts: Cormorant Garamond & Playfair Display & Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,600&family=Montserrat:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-emerald: #064e3b;
+      --secondary-emerald: #047857;
+      --gold-accent: #b45309;
+      --gold-light: #d97706;
+      --paper-bg: #ffffff;
+      --paper-cream: #fdfbf7;
+    }
+
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #334155;
+      color: #1e293b;
+      margin: 0;
+      padding: 0;
+    }
+
+    .font-serif-luxury {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+
+    .font-title-playfair {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+
+    /* ĐỊNH DẠNG KHỔ IN A4 CHUẨN XƯỞNG IN (210mm x 297mm) */
+    .menu-page {
+      width: 210mm;
+      min-height: 297mm;
+      max-height: 297mm;
+      margin: 10mm auto;
+      padding: 10mm 12mm 12mm 12mm;
+      box-sizing: border-box;
+      background: var(--paper-bg);
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      break-after: page;
+      overflow: hidden;
+    }
+
+    /* Viền hoàng gia đôi (Double Gold Royal Border) */
+    .royal-border {
+      position: absolute;
+      inset: 5mm;
+      border: 2px solid #d97706;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+    .royal-border-inner {
+      position: absolute;
+      inset: 6.5mm;
+      border: 0.75px solid #b45309;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .royal-corner {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 2.5px solid #b45309;
+    }
+    .corner-tl { top: 4.5mm; left: 4.5mm; border-right: none; border-bottom: none; }
+    .corner-tr { top: 4.5mm; right: 4.5mm; border-left: none; border-bottom: none; }
+    .corner-bl { bottom: 4.5mm; left: 4.5mm; border-right: none; border-top: none; }
+    .corner-br { bottom: 4.5mm; right: 4.5mm; border-left: none; border-top: none; }
+
+    /* TIÊU ĐỀ SECTION MENU */
+    .section-header {
+      background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+      color: #ffffff;
+      padding: 5px 14px;
+      border-radius: 8px;
+      border-left: 5px solid #f59e0b;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(6, 78, 59, 0.15);
+    }
+
+    /* THẺ MÓN ĂN COMPACT CHUẨN IN */
+    .dish-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px;
+      background: #ffffff;
+      border: 1px solid #f1f5f9;
+      border-radius: 8px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      transition: all 0.2s;
+    }
+    .dish-card:hover {
+      border-color: #cbd5e1;
+      background-color: #fafaf9;
+    }
+    .dish-img {
+      width: 58px;
+      height: 58px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      flex-shrink: 0;
+      background-color: #f8fafc;
+    }
+
+    .dish-dots-price {
+      flex: 1;
+      border-bottom: 1.5px dotted #94a3b8;
+      margin: 0 8px;
+      position: relative;
+      top: -3px;
+    }
+
+    /* KHI IN: CẤU HÌNH IN CHÍNH XÁC */
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .menu-page {
+        margin: 0 !important;
+        box-shadow: none !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        max-height: 297mm !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      /* Tùy chọn ẩn ảnh khi in tiết kiệm mực */
+      body.hide-images .dish-img {
+        display: none !important;
+      }
+      body.hide-images .dish-card {
+        padding: 4px 6px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================ -->
+  <!-- BẢNG ĐIỀU KHIỂN IN (CHỈ HIỂN THỊ TRÊN MÀN HÌNH - ẨN KHI IN) -->
+  <!-- ============================================================ -->
+  <header class="no-print sticky top-0 z-50 bg-stone-900/95 backdrop-blur-md border-b border-amber-500/30 text-white shadow-xl px-4 py-3">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <a href="/pos" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition flex items-center gap-1.5 text-stone-300">
+          <i class="fa-solid fa-arrow-left"></i> Về POS
+        </a>
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-lg bg-amber-500 text-stone-950 flex items-center justify-center font-black text-sm">
+            <i class="fa-solid fa-book-open"></i>
+          </span>
+          <div>
+            <h1 class="text-sm font-black tracking-wide text-amber-300 uppercase">Quyển Thực Đơn Bản Cứng A4</h1>
+            <p class="text-[10px] text-stone-400">PiPo Garden Phú Quốc • 6 Trang Chuẩn Xưởng In & Xuất PDF</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Nút bật/tắt ảnh để in tiết kiệm mực nếu cần -->
+        <button type="button" onclick="toggleImages()" id="btnToggleImg" class="px-3 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 border border-stone-600 text-xs font-bold text-stone-200 flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-image"></i>
+          <span id="textToggleImg">Ẩn ảnh (In tiết kiệm mực)</span>
+        </button>
+
+        <!-- Nút in / Xuất PDF -->
+        <button type="button" onclick="window.print()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95 transition">
+          <i class="fa-solid fa-print text-sm"></i>
+          <span>IN MENU / LƯU PDF (Ctrl + P)</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Dải hướng dẫn in tối ưu -->
+    <div class="max-w-6xl mx-auto mt-2 pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-amber-200/80">
+      <span><i class="fa-solid fa-circle-info text-amber-400 mr-1"></i> <b>Cài đặt in chuẩn đẹp nhất:</b> Chọn Khổ <b>A4</b> • Hướng <b>Dọc (Portrait)</b> • Tỷ lệ <b>100%</b> • Lề <b>Không có (None)</b> • Bật <b>"Đồ họa nền (Background graphics)"</b>.</span>
+      <span class="text-stone-400">Tự động cập nhật 100% theo giá & món mới nhất</span>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!-- NỘI DUNG 6 TRANG QUYỂN THỰC ĐƠN A4 (BOOKLET PAGES)           -->
+  <!-- ============================================================ -->
+  <main class="py-4">
+
+    <!-- ------------------------------------------------------------ -->
+    <!-- TRANG 1: BÌA CHÍNH SANG TRỌNG (FRONT COVER)                  -->
+    <!-- ------------------------------------------------------------ -->
+    <div class="menu-page">
+      <div class="royal-border"></div>
+      <div class="royal-border-inner"></div>
+      <div class="royal-corner corner-tl"></div>
+      <div class="royal-corner corner-tr"></div>
+      <div class="royal-corner corner-bl"></div>
+      <div class="royal-corner corner-br"></div>
+
+      <!-- Top Branding -->
+      <div class="text-center pt-8 z-10">
+        <div class="inline-flex items-center justify-center p-3 rounded-full bg-emerald-50 border-2 border-amber-500 shadow-md mb-3">
+          <img src="/static/logo.png" alt="PiPo Garden" class="w-20 h-20 object-contain rounded-full">
+        </div>
+        <h2 class="text-2xl font-black tracking-widest text-emerald-900 uppercase font-title-playfair">PIPO GARDEN</h2>
+        <p class="text-xs uppercase tracking-widest text-amber-700 font-bold mt-0.5">RESORT & GARDEN DINING • PHÚ QUỐC</p>
+        <div class="w-24 h-0.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mt-2"></div>
+      </div>
+
+      <!-- Center Feature Artwork -->
+      <div class="relative z-10 px-4 my-auto text-center">
+        <div class="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-amber-500/60 max-w-[150mm] mx-auto">
+          <img src="/static/home/hero_twilight.jpg" alt="PiPo Garden Resort" class="w-full h-64 object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-transparent flex flex-col justify-end p-5 text-white">
+            <span class="text-xs font-bold text-amber-300 tracking-wider uppercase mb-1">Ẩm Thực Sân Vườn Đảo Ngọc</span>
+            <p class="text-sm font-medium text-stone-200 italic">"Nơi hương vị than hoa hòa cùng làn gió biển hoàng hôn Phú Quốc"</p>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <span class="inline-block px-4 py-1.5 rounded-full bg-amber-100 text-amber-900 border border-amber-400 text-xs font-black tracking-wider uppercase shadow-xs">
+            ✨ CULINARY SIGNATURE MENU ✨
+          </span>
+          <h3 class="text-3xl font-black text-stone-900 mt-2 font-title-playfair tracking-wide uppercase">THỰC ĐƠN ĐẶC SẢN</h3>
+          <p class="text-xs text-stone-500 font-medium mt-1">Đại tiệc Hot BBQ • Hải Sản Tươi Sống • Món Lẩu • Đồ Uống Chill</p>
+        </div>
+      </div>
+
+      <!-- Bottom Info & Contact -->
+      <div class="z-10 text-center pb-6 border-t border-amber-200/70 pt-4">
+        <div class="grid grid-cols-3 gap-2 text-[11px] text-stone-700 max-w-[160mm] mx-auto font-medium">
+          <div class="border-r border-stone-200 pr-2">
+            <i class="fa-solid fa-map-location-dot text-emerald-700 mb-0.5 block text-sm"></i>
+            <span>Búng Gội, Cửa Dương, TP. Phú Quốc</span>
+          </div>
+          <div class="border-r border-stone-200 px-2">
+            <i class="fa-solid fa-phone-volume text-emerald-700 mb-0.5 block text-sm"></i>
+            <span class="font-bold text-emerald-900">Hotline: 0986 443 289</span>
+          </div>
+          <div class="pl-2">
+            <i class="fa-solid fa-wifi text-emerald-700 mb-0.5 block text-sm"></i>
+            <span>Wi-Fi: PiPo Garden (Free)</span>
+          </div>
+        </div>
+        <p class="text-[9px] text-stone-400 mt-3 uppercase tracking-wider">Trang 1 / 6 • PiPo Garden Phú Quốc</p>
+      </div>
+    </div>
+
+
+    <!-- ------------------------------------------------------------ -->
+    <!-- TRANG 2: 🔥 HOT BBQ SÂN VƯỜN & ⭐ BEST SELLER                 -->
+    <!-- ------------------------------------------------------------ -->
+    <div class="menu-page">
+      <div class="royal-border"></div>
+      <div class="royal-border-inner"></div>
+
+      <!-- Header trang -->
+      <div>
+        <div class="flex items-center justify-between border-b border-amber-500/40 pb-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🔥</span>
+            <div>
+              <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">ĐẠI TIỆC NƯỚNG & BEST SELLER</h2>
+              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">GARDEN HOT BBQ & CHEF'S RECOMMENDATIONS</p>
+            </div>
+          </div>
+          <img src="/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
+        </div>
+
+        <!-- 1. HOT BBQ (12 MÓN) -->
+        <div class="mb-3">
+          <div class="section-header">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-fire-flame-curved text-amber-300 text-xs"></i>
+              <span class="text-xs font-black uppercase tracking-wider">1. 🔥 HOT BBQ THAN HOA SÂN VƯỜN</span>
+            </div>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">12 Món Nướng Đặc Sắc</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            {% for it in menu[0]["items"] %}
+            <div class="dish-card">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-baseline justify-between">
+                  <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">{{ "{:,}".format(it.price) }}đ</span>
+                </div>
+                <div class="text-[9px] text-stone-500 truncate mt-0.5">{{ it.portion }}</div>
+                {% if it.options and it.options[0] and it.options[0].options %}
+                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  Vị: {{ it.options[0].options | join(", ") }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- 2. BEST SELLER (6 MÓN) -->
+        <div>
+          <div class="section-header !bg-gradient-to-r !from-amber-700 !to-yellow-700">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-star text-amber-200 text-xs"></i>
+              <span class="text-xs font-black uppercase tracking-wider">2. ⭐ BEST SELLER - ĐẦU BẾP KHUYÊN DÙNG</span>
+            </div>
+            <span class="text-[9px] font-bold text-stone-950 bg-amber-300 px-2 py-0.5 rounded-full">Bán Chạy Nhất</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            {% for it in menu[1]["items"] %}
+            <div class="dish-card bg-amber-50/40 border-amber-200">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-baseline justify-between">
+                  <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
+                  <span class="font-black text-amber-800 text-xs whitespace-nowrap ml-1">{{ "{:,}".format(it.price) }}đ</span>
+                </div>
+                <div class="text-[9px] text-stone-500 truncate mt-0.5">{{ it.portion }}</div>
+                <div class="text-[8px] text-stone-400 truncate italic">{{ it.description }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer trang -->
+      <div class="pt-2 border-t border-stone-200 flex justify-between items-center text-[9px] text-stone-400">
+        <span>PiPo Garden Phú Quốc • Thực đơn nướng & đặc sản</span>
+        <span class="font-bold">Trang 2 / 6</span>
+      </div>
+    </div>
+
+
+    <!-- ------------------------------------------------------------ -->
+    <!-- TRANG 3: 🥗 KHAI VỊ & 🍗 GÀ TA - VỊT QUAY THẢO MỘC           -->
+    <!-- ------------------------------------------------------------ -->
+    <div class="menu-page">
+      <div class="royal-border"></div>
+      <div class="royal-border-inner"></div>
+
+      <div>
+        <div class="flex items-center justify-between border-b border-amber-500/40 pb-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🥗</span>
+            <div>
+              <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">KHAI VỊ THANH VỊ & GIA CẦM THẢO MỘC</h2>
+              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">APPETIZERS, SALADS & GARDEN POULTRY</p>
+            </div>
+          </div>
+          <img src="/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
+        </div>
+
+        <!-- 3. KHAI VỊ (9 MÓN) -->
+        <div class="mb-3">
+          <div class="section-header">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-leaf text-amber-300 text-xs"></i>
+              <span class="text-xs font-black uppercase tracking-wider">3. 🥗 KHAI VỊ & ĂN NHẸ SÂN VƯỜN</span>
+            </div>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">9 Món Khai Vị</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            {% for it in menu[2]["items"] %}
+            <div class="dish-card">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-baseline justify-between">
+                  <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
+                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">{{ "{:,}".format(it.price) }}đ</span>
+                </div>
+                <div class="text-[9px] text-stone-500 truncate mt-0.5">{{ it.portion }}</div>
+                {% if it.options and it.options[0] and it.options[0].options %}
+                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  Vị: {{ it.options[0].options | join(", ") }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- 4. GÀ - VỊT (6 MÓN) -->
+        <div>
+          <div class="section-header">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-drumstick-bite text-amber-300 text-xs"></i>
+              <span class="text-xs font-black uppercase tracking-wider">4. 🍗 GÀ TA THẢ VƯỜN & VỊT QUAY THẢO MỘC</span>
+            </div>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Gà Ta • Gà Đen H'Mông</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            {% for it in menu[3]["items"] %}
+            <div class="dish-card">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-baseline justify-between">
+                  <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">{{ "{:,}".format(it.price) }}đ</span>
+                </div>
+                <div class="text-[9px] text-stone-500 truncate mt-0.5">{{ it.portion }}</div>
+                {% if it.options and it.options[0] and it.options[0].options %}
+                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  Chế biến: {{ it.options[0].options | join(", ") }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer trang -->
+      <div class="pt-2 border-t border-stone-200 flex justify-between items-center text-[9px] text-stone-400">
+        <span>PiPo Garden Phú Quốc • Khai vị & Gà thả vườn</span>
+        <span class="font-bold">Trang 3 / 6</span>
+      </div>
+    </div>
+
+
+    <!-- ------------------------------------------------------------ -->
+    <!-- TRANG 4: 🥩 HEO - BÒ & 🦐 HẢI SẢN TƯƠI SỐNG PHÚ QUỐC         -->
+    <!-- ------------------------------------------------------------ -->
+    <div class="menu-page">
+      <div class="royal-border"></div>
+      <div class="royal-border-inner"></div>
+
+      <div>
+        <div class="flex items-center justify-between border-b border-amber-500/40 pb-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🦐</span>
+            <div>
+              <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">HẢI SẢN PHÚ QUỐC & HEO - BÒ</h2>
+              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">FRESH SEAFOOD & PREMIUM PORK - BEEF</p>
+            </div>
+          </div>
+          <img src="/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
+        </div>
+
+        <!-- 5. HEO - BÒ (4 MÓN) -->
+        <div class="mb-3">
+          <div class="section-header">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-bacon text-amber-300 text-xs"></i>
+              <span class="text-xs font-black uppercase tracking-wider">5. 🥩 THỊT HEO & BÒ TƯƠI ĐẬM VỊ</span>
+            </div>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Bò Tiêu Xanh • Sườn Heo</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            {% for it in menu[4]["items"] %}
+            <div class="dish-card">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-baseline justify-between">
+                  <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">{{ "{:,}".format(it.price) }}đ</span>
+                </div>
+                <div class="text-[9px] text-stone-500 truncate mt-0.5">{{ it.portion }}</div>
+                {% if it.options and it.options[0] and it.options[0].options %}
+                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  Vị: {{ it.options[0].options | join(", ") }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- 6. HẢI SẢN (11 MÓN) -->
+        <div>
+          <div class="section-header">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-shrimp text-amber-300 text-xs"></i>
+              <span class="text-xs font-black uppercase tracking-wider">6. 🦐 HẢI SẢN TƯƠI SỐNG ĐẢO NGỌC</span>
+            </div>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">11 Món Tươi Sống</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            {% for it in menu[5]["items"] %}
+            <div class="dish-card">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-baseline justify-between">
+                  <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
+                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">{{ "{:,}".format(it.price) }}đ</span>
+                </div>
+                <div class="text-[9px] text-stone-500 truncate mt-0.5">{{ it.portion }}</div>
+                {% if it.options and it.options[0] and it.options[0].options %}
+                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  Vị: {{ it.options[0].options | join(", ") }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer trang -->
+      <div class="pt-2 border-t border-stone-200 flex justify-between items-center text-[9px] text-stone-400">
+        <span>PiPo Garden Phú Quốc • Hải sản đảo ngọc & Thịt bò hảo hạng</span>
+        <span class="font-bold">Trang 4 / 6</span>
+      </div>
+    </div>
+
+
+    <!-- ------------------------------------------------------------ -->
+    <!-- TRANG 5: 🥘 MÓN LẨU, 🍲 SÚP - CHÁO & 🍚 CƠM - MÌ             -->
+    <!-- ------------------------------------------------------------ -->
+    <div class="menu-page">
+      <div class="royal-border"></div>
+      <div class="royal-border-inner"></div>
+
+      <div>
+        <div class="flex items-center justify-between border-b border-amber-500/40 pb-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🥘</span>
+            <div>
+              <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">LẨU SÂN VƯỜN, SÚP CHÁO & CƠM MÌ</h2>
+              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">HOTPOTS, NOURISHING SOUPS & RICE - NOODLES</p>
+            </div>
+          </div>
+          <img src="/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
+        </div>
+
+        <!-- 7. CƠM - MÌ (4 MÓN) -->
+        <div class="mb-3">
+          <div class="section-header">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-bowl-rice text-amber-300 text-xs"></i>
+              <span class="text-xs font-black uppercase tracking-wider">7. 🍚 CƠM CHIÊN & MÌ XÀO NO BỤNG</span>
+            </div>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Cơm Ghẹ • Miến X.O</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            {% for it in menu[6]["items"] %}
+            <div class="dish-card">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-baseline justify-between">
+                  <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
+                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">{{ "{:,}".format(it.price) }}đ</span>
+                </div>
+                <div class="text-[9px] text-stone-500 truncate mt-0.5">{{ it.portion }}</div>
+                {% if it.options and it.options[0] and it.options[0].options %}
+                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  Vị: {{ it.options[0].options | join(", ") }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- 8. SÚP - CHÁO (3 MÓN) -->
+        <div class="mb-3">
+          <div class="section-header">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-mug-hot text-amber-300 text-xs"></i>
+              <span class="text-xs font-black uppercase tracking-wider">8. 🍲 SÚP CUA & CHÁO NÓNG HỔI</span>
+            </div>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Bổ Dưỡng Ấm Bụng</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            {% for it in menu[7]["items"] %}
+            <div class="dish-card">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-baseline justify-between">
+                  <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
+                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">{{ "{:,}".format(it.price) }}đ</span>
+                </div>
+                <div class="text-[9px] text-stone-500 truncate mt-0.5">{{ it.portion }}</div>
+                {% if it.options and it.options[0] and it.options[0].options %}
+                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  Vị: {{ it.options[0].options | join(", ") }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- 9. MÓN LẨU (3 MÓN) -->
+        <div>
+          <div class="section-header !bg-gradient-to-r !from-rose-800 !to-red-700">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-fire text-amber-300 text-xs"></i>
+              <span class="text-xs font-black uppercase tracking-wider">9. 🥘 NỒI LẨU ĐẶC SẢN SÂN VƯỜN</span>
+            </div>
+            <span class="text-[9px] font-bold text-stone-950 bg-amber-300 px-2 py-0.5 rounded-full">Lẩu Thái • Lẩu Gà Chanh Ớt</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            {% for it in menu[8]["items"] %}
+            <div class="dish-card bg-rose-50/30 border-rose-200">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-baseline justify-between">
+                  <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
+                  <span class="font-black text-rose-800 text-xs whitespace-nowrap ml-1">{{ "{:,}".format(it.price) }}đ</span>
+                </div>
+                <div class="text-[9px] text-stone-500 truncate mt-0.5">{{ it.portion }}</div>
+                <div class="text-[8px] text-stone-500 truncate italic">{{ it.description }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer trang -->
+      <div class="pt-2 border-t border-stone-200 flex justify-between items-center text-[9px] text-stone-400">
+        <span>PiPo Garden Phú Quốc • Nồi lẩu & Cơm chiên ghẹ</span>
+        <span class="font-bold">Trang 5 / 6</span>
+      </div>
+    </div>
+
+
+    <!-- ------------------------------------------------------------ -->
+    <!-- TRANG 6: 🍹 ĐỒ UỐNG, 🎾 SÂN PICKLEBALL & BÌA SAU             -->
+    <!-- ------------------------------------------------------------ -->
+    <div class="menu-page">
+      <div class="royal-border"></div>
+      <div class="royal-border-inner"></div>
+
+      <div>
+        <div class="flex items-center justify-between border-b border-amber-500/40 pb-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🍹</span>
+            <div>
+              <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">ĐỒ UỐNG & DỊCH VỤ SÂN PICKLEBALL</h2>
+              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">BEVERAGES, BEERS & PICKLEBALL SERVICES</p>
+            </div>
+          </div>
+          <img src="/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
+        </div>
+
+        <!-- 10. ĐỒ UỐNG (10 MÓN) -->
+        <div class="mb-3">
+          <div class="section-header">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-beer-mug-empty text-amber-300 text-xs"></i>
+              <span class="text-xs font-black uppercase tracking-wider">10. 🍹 BIA HƠI, BIA CHILL & NƯỚC GIẢI KHÁT</span>
+            </div>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Bia Hơi 1L • Bia Bivina</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            {% for it in menu[9]["items"] %}
+            <div class="dish-card">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-baseline justify-between">
+                  <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
+                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">{{ "{:,}".format(it.price) }}đ</span>
+                </div>
+                <div class="text-[9px] text-stone-500 truncate mt-0.5">{{ it.portion }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- 11. DỊCH VỤ SÂN PICKLEBALL (8 MÓN) -->
+        {% if menu|length > 10 and menu[10]["items"] %}
+        <div class="mb-3">
+          <div class="section-header !bg-gradient-to-r !from-emerald-800 !to-teal-800">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-table-tennis-paddle-ball text-amber-300 text-xs"></i>
+              <span class="text-xs font-black uppercase tracking-wider">11. 🎾 DỊCH VỤ SÂN THỂ THAO PICKLEBALL</span>
+            </div>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">4 Sân Tiêu Chuẩn Mái Che</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+            {% for it in menu[10]["items"][:4] %}
+            <div class="dish-card bg-emerald-50/30 border-emerald-200">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-baseline justify-between">
+                  <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
+                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">
+                    {% if it.price > 0 %}{{ "{:,}".format(it.price) }}đ{% else %}Thỏa thuận{% endif %}
+                  </span>
+                </div>
+                <div class="text-[9px] text-stone-500 truncate mt-0.5">{{ it.portion }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Bìa Sau & Lời Cảm Ơn (Back Cover Card) -->
+      <div class="mt-auto bg-stone-50 border-2 border-dashed border-amber-300 rounded-xl p-3 text-center">
+        <h4 class="font-black text-emerald-950 text-xs tracking-wider uppercase font-title-playfair">PIPO GARDEN RESORT & RESTAURANT XIN CẢM ƠN QUÝ KHÁCH!</h4>
+        <p class="text-[10px] text-stone-600 italic mt-0.5">Kính chúc Quý khách một bữa tiệc ấm cúng, ngon miệng và tràn ngập niềm vui bên gia đình & bạn bè.</p>
+        <div class="flex justify-center items-center gap-6 mt-2 text-[10px] text-stone-700 font-semibold">
+          <span><i class="fa-solid fa-phone text-emerald-700 mr-1"></i> 0986 443 289</span>
+          <span><i class="fa-solid fa-globe text-emerald-700 mr-1"></i> pipogarden.com</span>
+          <span><i class="fa-solid fa-qrcode text-emerald-700 mr-1"></i> Quét QR tại bàn để gọi món nhanh</span>
+        </div>
+      </div>
+
+      <!-- Footer trang -->
+      <div class="pt-2 border-t border-stone-200 flex justify-between items-center text-[9px] text-stone-400">
+        <span>PiPo Garden Phú Quốc • Hẹn gặp lại Quý khách</span>
+        <span class="font-bold">Trang 6 / 6</span>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // Hàm bật/tắt hiển thị ảnh để xem trước hoặc in tiết kiệm mực
+    function toggleImages() {
+      document.body.classList.toggle('hide-images');
+      const isHidden = document.body.classList.contains('hide-images');
+      document.getElementById('textToggleImg').innerText = isHidden ? 'Hiện ảnh món ăn' : 'Ẩn ảnh (In tiết kiệm mực)';
+    }
+  </script>
+</body>
+</html>
