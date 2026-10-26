@@ -410,6 +410,7 @@ def menu_shortcut_page(request: Request):
     res.headers["Expires"] = "0"
     return res
 
+@app.get("/c/{qr_token}", response_class=HTMLResponse)
 @app.get("/table/{qr_token}", response_class=HTMLResponse)
 def customer_page(request: Request, qr_token: str):
     """Trang gọi món tại bàn dành riêng cho thực khách quét mã QR."""

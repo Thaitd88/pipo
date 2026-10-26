@@ -152,17 +152,7 @@
     </div>
   </header>
 
-  <!-- Toggle chuyển đổi Thực đơn Sân Pick / Toàn bộ Menu Nhà Hàng (cho khách quét QR sân Pick) -->
-  <div id="pickleViewToggle" class="max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto px-4 pt-3 hidden">
-    <div class="bg-emerald-950/90 p-1.5 rounded-2xl flex items-center gap-1.5 border border-emerald-700/60 shadow-inner">
-      <button type="button" id="btnPickleMode-PICKLE" onclick="switchPickleView('PICKLE')" class="flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 bg-amber-400 text-stone-950 shadow-md">
-        <span>🏓 Thực Đơn Sân Pick</span>
-      </button>
-      <button type="button" id="btnPickleMode-RESTAURANT" onclick="switchPickleView('RESTAURANT')" class="flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 text-emerald-200 hover:bg-emerald-900/60">
-        <span>📖 Xem Toàn Bộ Thực Đơn Nhà Hàng</span>
-      </button>
-    </div>
-  </div>
+
 
   <!-- Banner Chào Mừng -->
   <div class="max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto p-4">
@@ -915,27 +905,39 @@
       const isPickleTable = (TABLE_INFO.branchType === "PICKLE" || (TABLE_INFO.area || "").trim() === "Sân Pickle" || (TABLE_INFO.code || "").toUpperCase().startsWith("PK"));
       const isCafeTable = (TABLE_INFO.branchType === "CAFE" || (TABLE_INFO.area || "").trim() === "Cafe" || (TABLE_INFO.code || "").toUpperCase().startsWith("CF"));
       
+      const currentHour = new Date().getHours();
+      const startH = (typeof MENU_SETTINGS !== 'undefined' && MENU_SETTINGS.morningStartHour) ? MENU_SETTINGS.morningStartHour : 6;
+      const endH = (typeof MENU_SETTINGS !== 'undefined' && MENU_SETTINGS.morningEndHour) ? MENU_SETTINGS.morningEndHour : 11;
+      const rMode = (typeof MENU_SETTINGS !== 'undefined' && MENU_SETTINGS.routingMode) ? MENU_SETTINGS.routingMode : "TIME_AND_BRANCH";
+      const isMorning = (currentHour >= startH && currentHour < endH);
+
       if (isPickleTable) {
+        // 4 bàn Sân Pickleball: Vào thẳng menu Pick, không có nút chuyển menu
         currentMainMenu = "PICKLE";
         const sel = document.getElementById("mainMenuSelector");
         if (sel && sel.parentElement) sel.parentElement.classList.add("hidden");
         const catTabs = document.getElementById("categoryTabs");
         if (catTabs) catTabs.classList.add("hidden");
         const toggleBar = document.getElementById("pickleViewToggle");
-        if (toggleBar) toggleBar.classList.remove("hidden");
+        if (toggleBar) toggleBar.classList.add("hidden");
         const bBadge = document.getElementById("bannerBadge");
         if (bBadge) bBadge.innerText = "🏓 THỰC ĐƠN SÂN PICKLEBALL";
         const bDesc = document.getElementById("bannerDesc");
-        if (bDesc) bDesc.innerText = "Nước giải khát, tăng lực & món ăn nhanh phục vụ tận sân đấu.";
+        if (bDesc) bDesc.innerText = "Nước giải khát, tăng lực & đồ ăn nhẹ phục vụ tận sân đấu.";
       } else {
-        // Nếu không phải bàn Sân Pickle mà trước đó lưu PICKLE trong cache -> chuyển về RESTAURANT
-        if (currentMainMenu === "PICKLE") {
-          currentMainMenu = "RESTAURANT";
-          localStorage.setItem("pipo_main_menu", "RESTAURANT");
+        // Các bàn nhà hàng quét QR: Vào thẳng menu theo khung giờ cấu hình
+        if (rMode === "TIME_ONLY") {
+          currentMainMenu = isMorning ? "CAFE" : "RESTAURANT";
+        } else if (rMode === "BRANCH_ONLY") {
+          currentMainMenu = isCafeTable ? "CAFE" : "RESTAURANT";
+        } else { // TIME_AND_BRANCH
+          if (isMorning || isCafeTable) {
+            currentMainMenu = "CAFE";
+          } else {
+            currentMainMenu = "RESTAURANT";
+          }
         }
-        if (isCafeTable && !localStorage.getItem("pipo_main_menu")) {
-          currentMainMenu = "CAFE";
-        }
+        updateMainMenuButtonsUI();
       }
 
       // Khôi phục giỏ hàng đã lưu trước đó nếu có (khi đổi ngôn ngữ tự làm mới trang)
