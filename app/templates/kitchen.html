@@ -1309,6 +1309,12 @@
       const formData = new FormData();
       formData.append("file", file);
 
+      // Tự động truyền tên món để backend đổi tên ảnh tương ứng
+      const dishName = document.getElementById("dishName")?.value || "";
+      const dishId = document.getElementById("dishId")?.value || "";
+      if (dishName.trim()) formData.append("dish_name", dishName.trim());
+      if (dishId) formData.append("dish_id", dishId);
+
       const previewBox = document.getElementById("kitchenImagePreviewBox");
       const previewImg = document.getElementById("kitchenImagePreviewImg");
       const infoText = document.getElementById("kitchenImageInfo");

@@ -770,7 +770,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt BBQ\", \"Sốt mắm nhĩ\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/suon_bo_nuong.webp",
     "description": "Bò nướng tảng than hoa thơm lừng mọng nước",
     "is_available": 1,
     "calories": 0
@@ -840,7 +840,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt BBQ\", \"Sốt mắm nhĩ\", \"Muối ớt\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/dui_ga_nuong.webp",
     "description": "Đùi gà nướng sốt mật ong thơm ngọt mọng nước",
     "is_available": 1,
     "calories": 0
@@ -896,7 +896,7 @@ MENU_ITEMS = [
     "station": "HOT_KITCHEN",
     "main_menu_type": "RESTAURANT",
     "options_json": "[{\"name\": \"Chọn vị chế biến\", \"options\": [\"Sốt BBQ\", \"Sốt mắm nhĩ\", \"Muối ớt\"]}]",
-    "image_url": "/static/logo.png",
+    "image_url": "/static/dishes/muc_ong_nuong.webp",
     "description": "Mực ống tươi giòn ngọt chế biến đa dạng",
     "is_available": 1,
     "calories": 0
@@ -2245,16 +2245,29 @@ def ensure_updated_menu(conn: sqlite3.Connection):
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (iv["id"], iv["code"], iv["name"], iv["unit"], iv["stock_quantity"], iv["min_stock"], iv["cost_price"], iv["supplier"]))
 
-    # 3. CLEAR SẠCH MÓN CŨ TRÊN HOST VÀ NẠP LẠI TOÀN BỘ MENU CHUẨN XÁC
+    # 3. CLEAR SẠCH MÓN CŨ TRÊN HOST VÀ NẠP LẠI TOÀN BỘ MENU CHUẨN XÁC (BẢO TOÀN ẢNH ĐÃ UPLOAD)
+    # Lấy lại danh sách ảnh do người dùng đã upload lên
+    cur.execute("SELECT id, image_url FROM menu_items WHERE image_url IS NOT NULL AND image_url != '' AND image_url NOT LIKE '%logo.png'")
+    existing_user_images = {row[0]: row[1] for row in cur.fetchall()}
+
     cur.execute("DELETE FROM menu_items")
     cur.execute("DELETE FROM recipe_bom")
 
     for it in MENU_ITEMS:
+        img_url = existing_user_images.get(it["id"]) or it["image_url"]
+        # Tự động chuẩn hóa tên ảnh cũ nếu là ảnh screenshot
+        if it["id"] == 333:
+            img_url = "/static/dishes/suon_bo_nuong.webp"
+        elif it["id"] == 338:
+            img_url = "/static/dishes/dui_ga_nuong.webp"
+        elif it["id"] == 342:
+            img_url = "/static/dishes/muc_ong_nuong.webp"
+
         cur.execute("""
             INSERT INTO menu_items (id, category_id, name, price, station, image_url, description, is_available, calories, portion, main_menu_type, options_json)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (it["id"], it["category_id"], it["name"], it["price"], it["station"],
-              it["image_url"], it["description"], it["is_available"], it["calories"], it["portion"],
+              img_url, it["description"], it["is_available"], it["calories"], it["portion"],
               it["main_menu_type"], it["options_json"]))
 
     # 4. Nạp lại Định mức Recipe BOM

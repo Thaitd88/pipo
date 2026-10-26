@@ -3995,6 +3995,12 @@
       const formData = new FormData();
       formData.append("file", file);
 
+      // Tự động truyền tên món để backend đổi tên ảnh tương ứng
+      const dishName = document.getElementById("itemFormName")?.value || "";
+      const dishId = document.getElementById("itemFormId")?.value || "";
+      if (dishName.trim()) formData.append("dish_name", dishName.trim());
+      if (dishId) formData.append("dish_id", dishId);
+
       const previewBox = document.getElementById("itemImagePreviewBox");
       const previewImg = document.getElementById("itemImagePreviewImg");
       const infoText = document.getElementById("itemImageInfo");

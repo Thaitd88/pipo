@@ -1,5 +1,5 @@
 # Menu router for PiPo Garden with Multi-Language Support
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Query
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Query
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 import json
@@ -252,10 +252,36 @@ def auto_translate_endpoint(req: TranslateRequest):
         "translations": translations
     }
 
+
+def slugify_vietnamese(text: str) -> str:
+    """Chuyển đổi chuỗi tiếng Việt có dấu thành slug không dấu chuẩn mực (VD: 'Sườn Bò Nướng' -> 'suon_bo_nuong')."""
+    if not text:
+        return ""
+    text = text.lower()
+    patterns = {
+        '[àáảãạăằắẳẵặâầấẩẫậ]': 'a',
+        '[èéẻẽẹêềếểễệ]': 'e',
+        '[ìíỉĩị]': 'i',
+        '[òóỏõọôồốổỗộơờớởỡợ]': 'o',
+        '[ùúủũụưừứửữự]': 'u',
+        '[ỳýỷỹỵ]': 'y',
+        '[đ]': 'd'
+    }
+    for regex, repl in patterns.items():
+        text = re.sub(regex, repl, text)
+    text = re.sub(r'[^a-z0-9]+', '_', text)
+    text = text.strip('_')
+    return text[:45]
+
 @router.post("/upload-image")
-async def upload_dish_image(file: UploadFile = File(...)):
+async def upload_dish_image(
+    file: UploadFile = File(...),
+    dish_name: Optional[str] = Form(None),
+    dish_id: Optional[int] = Form(None)
+):
     """
     Tải ảnh món ăn lên hệ thống:
+    - Tự động đặt lại tên file chuẩn theo tên món không dấu (VD: suon_bo_nuong_a1b2c3.webp).
     - Hỗ trợ JPG, PNG, WEBP, GIF, JFIF, AVIF.
     - Tự động xoay chiều chuẩn theo EXIF.
     - Tự động Resize ảnh tối ưu (max chiều dài 800px, bảo toàn tỉ lệ khung hình).
@@ -296,11 +322,34 @@ async def upload_dish_image(file: UploadFile = File(...)):
     else:
         img = img.convert("RGB")
 
-    # Tạo tên tệp chuẩn hóa
-    base_slug = re.sub(r'[^a-zA-Z0-9_\-]', '', os.path.splitext(original_name)[0].lower())[:25]
-    if not base_slug:
-        base_slug = "dish"
-    unique_name = f"{base_slug}_{uuid.uuid4().hex[:8]}.webp"
+    # TỰ ĐỘNG ĐỔI TÊN ẢNH THEO TÊN MÓN ĂN CHUẨN XÁC:
+    # 1. Ưu tiên tên món được truyền lên từ form
+    # 2. Hoặc tìm tên món trong CSDL theo dish_id
+    # 3. Hoặc chuyển đổi tên file gốc sang không dấu sạch sẽ
+    slug = ""
+    if dish_name and dish_name.strip():
+        slug = slugify_vietnamese(dish_name.strip())
+    elif dish_id:
+        try:
+            conn_chk = get_db()
+            c_row = conn_chk.cursor().execute("SELECT name FROM menu_items WHERE id = ?", (dish_id,)).fetchone()
+            conn_chk.close()
+            if c_row and c_row["name"]:
+                slug = slugify_vietnamese(c_row["name"])
+        except Exception:
+            pass
+
+    if not slug:
+        raw_base = os.path.splitext(original_name)[0]
+        # Loại bỏ các tiền tố chụp màn hình vô nghĩa: Screenshot, Zalo_image...
+        clean_base = re.sub(r'^(screenshot|zalo_image|image|img|photo)[_\-\d]*', '', raw_base, flags=re.IGNORECASE)
+        slug = slugify_vietnamese(clean_base if clean_base.strip() else raw_base)
+
+    if not slug:
+        slug = "dish"
+
+    # Tạo tên file đẹp: suon_bo_nuong_a1b2c3.webp
+    unique_name = f"{slug}_{uuid.uuid4().hex[:6]}.webp"
 
     buf = io.BytesIO()
     img.save(buf, format="WEBP", quality=82, method=6)
