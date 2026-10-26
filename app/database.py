@@ -1669,62 +1669,80 @@ def seed_sample_data(conn):
     conn.commit()
 
 def seed_translations_if_missing(conn=None):
-    close_at_end = False
-    if conn is None:
-        conn = get_db()
-        close_at_end = True
-    """Tự động kiểm tra và bổ sung bản dịch 4 ngôn ngữ (en, zh, ko, ru) cho categories và menu_items."""
+    """Tự động kiểm tra và bổ sung bản dịch 4 ngôn ngữ (en, zh, ko, ru) cho categories và menu_items (Không giữ khóa CSDL khi dịch)."""
     try:
         from .services.translator import translate_dish, translate_category_name
     except Exception as e:
         print("[PiPo Multi-Lang] Chua the import translator:", e)
         return
 
-    cursor = conn.cursor()
-    # 1. Categories
-    cursor.execute("SELECT id, name, translations_json FROM categories")
-    for cat in cursor.fetchall():
-        trans_str = cat["translations_json"]
-        needs_trans = False
-        if not trans_str or trans_str in ("{}", '""', "null"):
-            needs_trans = True
-        else:
-            try:
-                parsed = json.loads(trans_str)
-                if not isinstance(parsed, dict) or "en" not in parsed:
-                    needs_trans = True
-            except Exception:
-                needs_trans = True
+    try:
+        read_conn = get_db()
+        cursor = read_conn.cursor()
         
-        if needs_trans:
-            trans = translate_category_name(cat["name"])
-            cursor.execute("UPDATE categories SET translations_json = ? WHERE id = ?", (json.dumps(trans, ensure_ascii=False), cat["id"]))
-
-    # 2. Menu Items
-    cursor.execute("SELECT id, name, description, translations_json FROM menu_items")
-    for item in cursor.fetchall():
-        trans_str = item["translations_json"]
-        needs_trans = False
-        if not trans_str or trans_str in ("{}", '""', "null"):
-            needs_trans = True
-        else:
-            try:
-                parsed = json.loads(trans_str)
-                if not isinstance(parsed, dict) or "en" not in parsed:
-                    needs_trans = True
-            except Exception:
+        # 1. Categories
+        cursor.execute("SELECT id, name, translations_json FROM categories")
+        cat_updates = []
+        for cat in cursor.fetchall():
+            trans_str = cat["translations_json"]
+            needs_trans = False
+            if not trans_str or trans_str in ("{}", '""', "null"):
                 needs_trans = True
+            else:
+                try:
+                    parsed = json.loads(trans_str)
+                    if not isinstance(parsed, dict) or "en" not in parsed:
+                        needs_trans = True
+                except Exception:
+                    needs_trans = True
+            if needs_trans:
+                cat_updates.append((cat["id"], cat["name"]))
 
-        if needs_trans:
-            trans = translate_dish(item["name"], item["description"] or "")
-            cursor.execute("UPDATE menu_items SET translations_json = ? WHERE id = ?", (json.dumps(trans, ensure_ascii=False), item["id"]))
+        # 2. Menu Items
+        cursor.execute("SELECT id, name, description, translations_json FROM menu_items")
+        item_updates = []
+        for item in cursor.fetchall():
+            trans_str = item["translations_json"]
+            needs_trans = False
+            if not trans_str or trans_str in ("{}", '""', "null"):
+                needs_trans = True
+            else:
+                try:
+                    parsed = json.loads(trans_str)
+                    if not isinstance(parsed, dict) or "en" not in parsed:
+                        needs_trans = True
+                except Exception:
+                    needs_trans = True
+            if needs_trans:
+                item_updates.append((item["id"], item["name"], item["description"] or ""))
 
-    conn.commit()
-    if close_at_end:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        read_conn.close()
+
+        if not cat_updates and not item_updates:
+            return
+
+        # Dịch in-memory hoàn toàn KHÔNG giữ khóa CSDL
+        cat_payloads = []
+        for cid, cname in cat_updates:
+            trans = translate_category_name(cname)
+            cat_payloads.append((json.dumps(trans, ensure_ascii=False), cid))
+
+        item_payloads = []
+        for iid, iname, idesc in item_updates:
+            trans = translate_dish(iname, idesc)
+            item_payloads.append((json.dumps(trans, ensure_ascii=False), iid))
+
+        # Ghi vào CSDL cực nhanh
+        write_conn = get_db()
+        w_cur = write_conn.cursor()
+        for trans_json, cid in cat_payloads:
+            w_cur.execute("UPDATE categories SET translations_json = ? WHERE id = ?", (trans_json, cid))
+        for trans_json, iid in item_payloads:
+            w_cur.execute("UPDATE menu_items SET translations_json = ? WHERE id = ?", (trans_json, iid))
+        write_conn.commit()
+        write_conn.close()
+    except Exception as err:
+        print("[PiPo Multi-Lang] Loi seed translations:", err)
 
 def seed_historical_revenue(conn):
     """Tạo dữ liệu doanh thu mẫu 30 ngày gần nhất để phần báo cáo trực quan ngay lập tức."""
