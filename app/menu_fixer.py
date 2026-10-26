@@ -348,7 +348,10 @@ CATEGORY_TRANSLATIONS = {
     5: {"en": "Rice & Noodles", "zh": "主食精选 (黄金炒饭/炒面)", "ko": "식사류 (볶음밥 & 볶음면)", "ru": "Рис и жареная лапша"},
     6: {"en": "Beverages & Drinks", "zh": "冷饮果汁 & 啤酒", "ko": "시원한 음료 & 맥주", "ru": "Прохладительные напитки и пиво"},
     7: {"en": "Garden Hot BBQ", "zh": "炭火热烤 (花园BBQ)", "ko": "가든 숯불 핫 BBQ", "ru": "Горячее барбекю в саду"},
-    8: {"en": "Pickleball Court Services", "zh": "匹克球球场服务", "ko": "피클볼 코트 서비스", "ru": "Услуги корта пиклбол"}
+    8: {"en": "Pickleball Court Services", "zh": "匹克球球场服务", "ko": "피클볼 코트 서비스", "ru": "Услуги корта пиклбол"},
+    9: {"en": "Best Seller Dishes", "zh": "招牌热销推荐", "ko": "베스트 셀러 추천 요리", "ru": "Фирменные бестселлеры"},
+    10: {"en": "Soups & Congee", "zh": "养生浓汤与暖胃粥", "ko": "영양 수프 & 죽", "ru": "Питательные супы и каши"},
+    11: {"en": "Hotpot Specialties", "zh": "特色养生火锅", "ko": "스페셜 핫팟 전골", "ru": "Фирменные горячие котлы"}
 }
 
 PICKLEBALL_SERVICES = [
@@ -466,7 +469,7 @@ def apply_menu_bom_and_translations_fix(conn=None):
         # 4. Đảm bảo Danh mục 8: Dịch Vụ Sân Pickleball
         cursor.execute("""
             INSERT INTO categories (id, name, icon, display_order, is_active, translations_json)
-            VALUES (8, 'Dịch Vụ Sân Pickleball', '🎾', 8, 1, ?)
+            VALUES (8, 'Dịch Vụ Sân Pickleball', '🎾', 11, 1, ?)
             ON CONFLICT(id) DO UPDATE SET
                 name = excluded.name,
                 icon = excluded.icon,

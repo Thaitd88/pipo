@@ -181,6 +181,11 @@ async def lifespan(app: FastAPI):
     print("[PiPo Garden] Server dang tat.")
 
 app = FastAPI(title="PiPo Garden Restaurant System", lifespan=lifespan)
+@app.get("/health")
+def health_check():
+    """Endpoint kiem tra tinh trang hoat dong phuc vu Health Check Reverse Proxy."""
+    return {"status": "ok", "app": "PiPo Garden Restaurant System"}
+
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Mount static và templates

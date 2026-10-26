@@ -549,8 +549,9 @@ def init_db():
     # Tự động chuẩn hóa 31 bàn theo 4 phân khu chuẩn (Hồ bơi 12, Sảnh 1: 5, Sảnh 2: 10, Sân Pickle: 4)
     ensure_standard_27_tables(conn)
 
-    # Đảm bảo toàn bộ danh mục và món ăn đều có dữ liệu đa ngôn ngữ
-    seed_translations_if_missing(conn)
+    # Đảm bảo toàn bộ danh mục và món ăn đều có dữ liệu đa ngôn ngữ (chạy nền không nghẽn khởi động)
+    import threading
+    threading.Thread(target=seed_translations_if_missing, args=(None,), daemon=True).start()
 
     # Đảm bảo ảnh của các món đồ uống, bia và đặc sản luôn chuẩn và không bị mất
     ensure_fixed_dish_images(conn)
@@ -1281,24 +1282,29 @@ def ensure_bbq_category_and_dishes(conn):
         bbq_cat_id = bbq_cat["id"]
         cursor.execute("""
             UPDATE categories 
-            SET display_order = 0, icon = '🔥', is_active = 1, translations_json = ? 
+            SET display_order = 1, icon = '🔥', is_active = 1, translations_json = ? 
             WHERE id = ?
         """, (json.dumps(bbq_translations, ensure_ascii=False), bbq_cat_id))
     else:
         cursor.execute("""
             INSERT INTO categories (id, name, icon, display_order, is_active, translations_json)
-            VALUES (7, 'Hot BBQ', '🔥', 0, 1, ?)
+            VALUES (7, 'Hot BBQ', '🔥', 1, 1, ?)
         """, (json.dumps(bbq_translations, ensure_ascii=False),))
         bbq_cat_id = cursor.lastrowid or 7
 
-    # Đảm bảo các danh mục khác có thứ tự từ 1..6
+    # Đảm bảo thứ tự hiển thị chuẩn của toàn bộ danh mục Menu (Hot BBQ & Best Seller dẫn đầu)
     OTHER_ORDERS = {
-        "Khai Vị": 1,
-        "Gà - Vịt": 2,
-        "Heo - Bò": 3,
-        "Hải Sản": 4,
-        "Cơm - Mì": 5,
-        "Đồ Uống": 6
+        "Hot BBQ": 1,
+        "Best Seller": 2,
+        "Khai Vị": 3,
+        "Gà - Vịt": 4,
+        "Heo - Bò": 5,
+        "Hải Sản": 6,
+        "Cơm - Mì": 7,
+        "Súp - Cháo": 8,
+        "Món Lẩu": 9,
+        "Đồ Uống": 10,
+        "Dịch Vụ Sân Pickleball": 11
     }
     for cname, corder in OTHER_ORDERS.items():
         cursor.execute("UPDATE categories SET display_order = ? WHERE name = ?", (corder, cname))
@@ -1662,7 +1668,11 @@ def seed_sample_data(conn):
 
     conn.commit()
 
-def seed_translations_if_missing(conn):
+def seed_translations_if_missing(conn=None):
+    close_at_end = False
+    if conn is None:
+        conn = get_db()
+        close_at_end = True
     """Tự động kiểm tra và bổ sung bản dịch 4 ngôn ngữ (en, zh, ko, ru) cho categories và menu_items."""
     try:
         from .services.translator import translate_dish, translate_category_name
@@ -1710,6 +1720,11 @@ def seed_translations_if_missing(conn):
             cursor.execute("UPDATE menu_items SET translations_json = ? WHERE id = ?", (json.dumps(trans, ensure_ascii=False), item["id"]))
 
     conn.commit()
+    if close_at_end:
+        try:
+            conn.close()
+        except Exception:
+            pass
 
 def seed_historical_revenue(conn):
     """Tạo dữ liệu doanh thu mẫu 30 ngày gần nhất để phần báo cáo trực quan ngay lập tức."""

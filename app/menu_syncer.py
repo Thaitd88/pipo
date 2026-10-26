@@ -2265,4 +2265,7 @@ def ensure_updated_menu(conn: sqlite3.Connection):
         """, (b["menu_item_id"], b["ingredient_id"], b["quantity"]))
 
     conn.commit()
-    print(f"[PiPo Garden] Đã CLEAR và nạp mới thành công {len(MENU_ITEMS)} món ăn chuẩn xác từ Excel vào CSDL!")
+    try:
+        print(f"[PiPo Garden] Da CLEAR va nap moi thanh cong {len(MENU_ITEMS)} mon an chuan xac tu Excel vao CSDL!")
+    except Exception:
+        pass
