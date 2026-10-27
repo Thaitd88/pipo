@@ -46,151 +46,219 @@ async def create_order(payload: dict):
         raise HTTPException(status_code=400, detail="Thiếu thông tin bàn hoặc danh sách món ăn")
 
     conn = get_db()
-    cursor = conn.cursor()
+    try:
+        cursor = conn.cursor()
 
-    # 1. Lấy thông tin bàn
-    cursor.execute("SELECT * FROM tables WHERE id = ?", (table_id,))
-    table = cursor.fetchone()
-    if not table:
-        conn.close()
-        raise HTTPException(status_code=404, detail="Bàn không tồn tại")
+        # 1. Lấy thông tin bàn
+        cursor.execute("SELECT * FROM tables WHERE id = ?", (table_id,))
+        t_row = cursor.fetchone()
+        if not t_row:
+            raise HTTPException(status_code=404, detail="Bàn không tồn tại")
+        table = dict(t_row)
 
-    # 2. Kiểm tra hoặc tạo mới Session bàn
-    cursor.execute("SELECT * FROM table_sessions WHERE table_id = ? AND status = 'ACTIVE'", (table_id,))
-    session = cursor.fetchone()
-    if not session:
-        import uuid
-        session_token = f"sess_{uuid.uuid4().hex[:12]}"
-        cursor.execute(
-            "INSERT INTO table_sessions (table_id, session_token, guest_count, status) VALUES (?, ?, 2, 'ACTIVE')",
-            (table_id, session_token)
-        )
-        session_id = cursor.lastrowid
-        cursor.execute("UPDATE tables SET status = 'OCCUPIED', current_session_id = ? WHERE id = ?", (session_id, table_id))
-    else:
-        session_id = session["id"]
-        cursor.execute("UPDATE tables SET status = 'OCCUPIED', current_session_id = ? WHERE id = ?", (session_id, table_id))
-
-    # 3. Tính số đợt gọi món (Round Number) của bàn
-    cursor.execute("SELECT COUNT(*) as round_cnt FROM orders WHERE session_id = ?", (session_id,))
-    round_number = (cursor.fetchone()["round_cnt"] or 0) + 1
-
-    # 4. Tính toán tổng tiền đơn
-    subtotal = 0
-    detailed_items = []
-    
-    for it in items:
-        item_id = it.get("item_id")
-        qty = int(it.get("quantity", 1))
-        note = it.get("note", "")
-        mods = it.get("modifiers", [])
-
-        cursor.execute("SELECT * FROM menu_items WHERE id = ?", (item_id,))
-        menu_row = cursor.fetchone()
-        if not menu_row:
-            continue
-
-        # Kiểm tra nếu món bị tắt bán hoặc hết nguyên liệu thì từ chối đặt
-        if menu_row["is_available"] == 0 or menu_row.get("out_of_ingredients") == 1:
-            conn.close()
-            raise HTTPException(
-                status_code=400,
-                detail=f"Món '{menu_row['name']}' hiện đang tạm hết nguyên liệu chế biến, quý khách vui lòng chọn món khác trong thực đơn nhé!"
+        # 2. Kiểm tra hoặc tạo mới Session bàn
+        cursor.execute("SELECT * FROM table_sessions WHERE table_id = ? AND status = 'ACTIVE'", (table_id,))
+        session = cursor.fetchone()
+        if not session:
+            import uuid
+            session_token = f"sess_{uuid.uuid4().hex[:12]}"
+            cursor.execute(
+                "INSERT INTO table_sessions (table_id, session_token, guest_count, status) VALUES (?, ?, 2, 'ACTIVE')",
+                (table_id, session_token)
             )
-
-        orig_price = menu_row["price"]
-        disc_pct = menu_row["discount_percent"] if "discount_percent" in menu_row.keys() and menu_row["discount_percent"] else 0
-        if 0 < disc_pct <= 100:
-            effective_price = int(round(orig_price * (100 - disc_pct) / 100))
+            session_id = cursor.lastrowid
+            cursor.execute("UPDATE tables SET status = 'OCCUPIED', current_session_id = ? WHERE id = ?", (session_id, table_id))
         else:
-            disc_pct = 0
-            effective_price = orig_price
+            session_id = session["id"]
+            cursor.execute("UPDATE tables SET status = 'OCCUPIED', current_session_id = ? WHERE id = ?", (session_id, table_id))
 
-        line_total = effective_price * qty
-        subtotal += line_total
+        # 3. Tính số đợt gọi món (Round Number) của bàn
+        cursor.execute("SELECT COUNT(*) as round_cnt FROM orders WHERE session_id = ?", (session_id,))
+        round_number = (cursor.fetchone()["round_cnt"] or 0) + 1
 
-        detailed_items.append({
-            "item_id": item_id,
-            "item_name": menu_row["name"],
-            "quantity": qty,
-            "unit_price": effective_price,
-            "original_price": orig_price,
-            "discount_percent": disc_pct,
-            "total_price": line_total,
-            "station": menu_row["station"],
-            "note": note,
-            "modifiers": mods,
-            "portion": menu_row["portion"] if "portion" in menu_row.keys() and menu_row["portion"] else "",
-        })
+        # 4. Tính toán tổng tiền đơn
+        subtotal = 0
+        detailed_items = []
+    
+        for it in items:
+            item_id = it.get("item_id")
+            qty = int(it.get("quantity", 1))
+            note = it.get("note", "")
+            mods = it.get("modifiers", [])
 
-    if not detailed_items:
-        conn.close()
-        raise HTTPException(status_code=400, detail="Các món được chọn không hợp lệ")
+            cursor.execute("SELECT * FROM menu_items WHERE id = ?", (item_id,))
+            menu_row = cursor.fetchone()
+            if not menu_row:
+                continue
 
-    total = subtotal
+            # Kiểm tra nếu món bị tắt bán hoặc hết nguyên liệu thì từ chối đặt
+            is_avail = menu_row["is_available"] if "is_available" in menu_row.keys() else 1
+            is_out = menu_row["out_of_ingredients"] if "out_of_ingredients" in menu_row.keys() and menu_row["out_of_ingredients"] else 0
+            if is_avail == 0 or is_out == 1:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Món '{menu_row['name']}' hiện đang tạm hết nguyên liệu chế biến, quý khách vui lòng chọn món khác trong thực đơn nhé!"
+                )
 
-    # 5. Lưu vào bảng Orders (Ghi nhận thời gian tạo chuẩn Việt Nam GMT+7)
-    import uuid
-    new_order_uuid = f"ord_{uuid.uuid4().hex}"
-    now_ts = now_vn_str("%Y-%m-%d %H:%M:%S")
-    now_time = now_vn_time_str("%H:%M:%S")
+            orig_price = menu_row["price"]
+            disc_pct = menu_row["discount_percent"] if "discount_percent" in menu_row.keys() and menu_row["discount_percent"] else 0
+            if 0 < disc_pct <= 100:
+                effective_price = int(round(orig_price * (100 - disc_pct) / 100))
+            else:
+                disc_pct = 0
+                effective_price = orig_price
 
-    order_source = str(payload.get("order_source", "")).strip().upper()
-    is_pos_pickle = (order_source == "POS_PICKLE")
-    order_status = "COMPLETED" if is_pos_pickle else "CONFIRMED"
-    payment_status = "PAID" if is_pos_pickle else "UNPAID"
-    payment_method = str(payload.get("payment_method") or "CASH").strip().upper()
-    bill_target = str(payload.get("bill_target") or "CUSTOMER").strip().upper()
-    billed_admin_id = payload.get("billed_admin_id")
-    billed_admin_name = (payload.get("billed_admin_name") or "").strip()
-    if payment_method == "INTERNAL":
-        bill_target = "ADMIN"
-    completed_at = now_ts if is_pos_pickle else None
+            line_total = effective_price * qty
+            subtotal += line_total
 
-    cursor.execute("""
-        INSERT INTO orders (
-            order_uuid, session_id, table_id, round_number, subtotal, total, 
-            status, payment_status, payment_method, bill_target, billed_admin_id, billed_admin_name,
-            customer_note, created_at, completed_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        new_order_uuid, session_id, table_id, round_number, subtotal, total, 
-        order_status, payment_status, payment_method, bill_target, billed_admin_id, billed_admin_name,
-        customer_note, now_ts, completed_at
-    ))
-    order_id = cursor.lastrowid
+            detailed_items.append({
+                "item_id": item_id,
+                "item_name": menu_row["name"],
+                "quantity": qty,
+                "unit_price": effective_price,
+                "original_price": orig_price,
+                "discount_percent": disc_pct,
+                "total_price": line_total,
+                "station": menu_row["station"],
+                "note": note,
+                "modifiers": mods,
+                "portion": menu_row["portion"] if "portion" in menu_row.keys() and menu_row["portion"] else "",
+            })
 
-    # 6. Lưu vào bảng Order Items
-    order_items_to_broadcast = []
-    item_status = "QUEUED"
-    for dit in detailed_items:
+        if not detailed_items:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Các món được chọn không hợp lệ")
+
+        total = subtotal
+
+        # 5. Lưu vào bảng Orders (Ghi nhận thời gian tạo chuẩn Việt Nam GMT+7)
+        import uuid
+        new_order_uuid = f"ord_{uuid.uuid4().hex}"
+        now_ts = now_vn_str("%Y-%m-%d %H:%M:%S")
+        now_time = now_vn_time_str("%H:%M:%S")
+
+        order_source = str(payload.get("order_source", "")).strip().upper()
+        is_pos_pickle = (order_source == "POS_PICKLE")
+        order_status = "COMPLETED" if is_pos_pickle else "CONFIRMED"
+        payment_status = "PAID" if is_pos_pickle else "UNPAID"
+        payment_method = str(payload.get("payment_method") or "CASH").strip().upper()
+        bill_target = str(payload.get("bill_target") or "CUSTOMER").strip().upper()
+        billed_admin_id = payload.get("billed_admin_id")
+        billed_admin_name = (payload.get("billed_admin_name") or "").strip()
+        if payment_method == "INTERNAL":
+            bill_target = "ADMIN"
+        completed_at = now_ts if is_pos_pickle else None
+
         cursor.execute("""
-            INSERT INTO order_items (order_id, item_id, item_name, quantity, unit_price, total_price, station, note, modifiers_json, status, discount_percent, original_price, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (order_id, dit["item_id"], dit["item_name"], dit["quantity"], dit["unit_price"], dit["total_price"], 
-              dit["station"], dit["note"], json.dumps(dit["modifiers"]), item_status, dit["discount_percent"], dit["original_price"], now_ts, now_ts))
-        order_item_id = cursor.lastrowid
-        order_items_to_broadcast.append({**dit, "id": order_item_id, "status": item_status})
+            INSERT INTO orders (
+                order_uuid, session_id, table_id, round_number, subtotal, total, 
+                status, payment_status, payment_method, bill_target, billed_admin_id, billed_admin_name,
+                customer_note, created_at, completed_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            new_order_uuid, session_id, table_id, round_number, subtotal, total, 
+            order_status, payment_status, payment_method, bill_target, billed_admin_id, billed_admin_name,
+            customer_note, now_ts, completed_at
+        ))
+        order_id = cursor.lastrowid
 
-    if is_pos_pickle:
-        # Tự động trừ kho NVL cho các món/dịch vụ sân (nước uống, nước tặng kèm)
-        try:
-            from ..database import deduct_inventory_for_order_item
-            for oit in order_items_to_broadcast:
-                deduct_inventory_for_order_item(conn, oit["id"])
-        except Exception as _deduct_err:
-            print("[create_order POS_PICKLE] deduct inventory error:", _deduct_err)
-        # Giữ sân ở trạng thái OCCUPIED (Đang Chơi) để nhân viên quản lý
-        cursor.execute("UPDATE tables SET status = 'OCCUPIED' WHERE id = ?", (table_id,))
+        # 6. Lưu vào bảng Order Items
+        order_items_to_broadcast = []
+        item_status = "QUEUED"
+        for dit in detailed_items:
+            cursor.execute("""
+                INSERT INTO order_items (order_id, item_id, item_name, quantity, unit_price, total_price, station, note, modifiers_json, status, discount_percent, original_price, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (order_id, dit["item_id"], dit["item_name"], dit["quantity"], dit["unit_price"], dit["total_price"], 
+                  dit["station"], dit["note"], json.dumps(dit["modifiers"]), item_status, dit["discount_percent"], dit["original_price"], now_ts, now_ts))
+            order_item_id = cursor.lastrowid
+            order_items_to_broadcast.append({**dit, "id": order_item_id, "status": item_status})
 
-    # 7. TỰ ĐỘNG TẠO PHIẾU IN: PHIẾU THANH TOÁN (NẾU TỪ POS PICK) HOẶC PHIẾU BẾP KOT (NẾU KHÁCH QUÉT QR)
-    print_jobs_created = []
+        if is_pos_pickle:
+            # Tự động trừ kho NVL cho các món/dịch vụ sân (nước uống, nước tặng kèm)
+            try:
+                from ..database import deduct_inventory_for_order_item
+                for oit in order_items_to_broadcast:
+                    deduct_inventory_for_order_item(conn, oit["id"])
+            except Exception as _deduct_err:
+                print("[create_order POS_PICKLE] deduct inventory error:", _deduct_err)
+            # Giữ sân ở trạng thái OCCUPIED (Đang Chơi) để nhân viên quản lý
+            cursor.execute("UPDATE tables SET status = 'OCCUPIED' WHERE id = ?", (table_id,))
 
-    if is_pos_pickle:
-        # Từ giao diện POS Sân Pick:
-        # 1. Chọn món bếp nóng thì in vào máy in bếp (HOT_KITCHEN - 192.168.31.251) bình thường
-        hot_items = [dit for dit in detailed_items if dit.get("station") in ["HOT_KITCHEN", "KITCHEN"]]
-        if hot_items:
+        # 7. TỰ ĐỘNG TẠO PHIẾU IN: PHIẾU THANH TOÁN (NẾU TỪ POS PICK) HOẶC PHIẾU BẾP KOT (NẾU KHÁCH QUÉT QR)
+        print_jobs_created = []
+
+        if is_pos_pickle:
+            # Từ giao diện POS Sân Pick:
+            # 1. Chọn món bếp nóng thì in vào máy in bếp (HOT_KITCHEN - 192.168.31.251) bình thường
+            hot_items = [dit for dit in detailed_items if dit.get("station") in ["HOT_KITCHEN", "KITCHEN"]]
+            if hot_items:
+                order_info = {
+                    "id": order_id,
+                    "table_name": table["name"],
+                    "area": table["area"],
+                    "round_number": round_number,
+                    "customer_note": customer_note,
+                    "created_at": now_ts
+                }
+                ticket_text = format_kitchen_ticket_text(order_info, hot_items, "HOT_KITCHEN")
+                escpos_bytes = build_escpos_kitchen_bytes(order_info, hot_items, station="HOT_KITCHEN", beep=True)
+                escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
+
+                cursor.execute("""
+                    INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+                    VALUES (?, 'HOT_KITCHEN', 'KOT', 'PENDING', ?)
+                """, (order_id, ticket_text))
+                job_id = cursor.lastrowid
+
+                print_jobs_created.append({
+                    "job_id": job_id,
+                    "station": "HOT_KITCHEN",
+                    "job_type": "KOT",
+                    "ticket_text": ticket_text,
+                    "escpos_b64": escpos_b64,
+                    "table_name": table["name"]
+                })
+
+            # 2. Chọn nước, dịch vụ sân xong xác nhận thì in bill ở máy in bar/bếp lạnh (CASHIER - 192.168.31.252)
+            from ..escpos import format_receipt_ticket_text, build_escpos_receipt_bytes
+            totals_info = {
+                "title": "HOA DON THANH TOAN",
+                "cashier_name": "Thu Ngan San Pick",
+                "discount": 0,
+                "service_fee": 0,
+                "payment_method": payment_method,
+                "bill_target": bill_target,
+                "billed_admin_name": billed_admin_name,
+                "created_at": now_ts
+            }
+            receipt_text = format_receipt_ticket_text(dict(table), detailed_items, totals_info=totals_info)
+            receipt_bytes = build_escpos_receipt_bytes(dict(table), detailed_items, totals_info=totals_info)
+            receipt_b64 = base64.b64encode(receipt_bytes).decode("ascii")
+
+            cursor.execute("""
+                INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+                VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?)
+            """, (order_id, receipt_text))
+            r_job_id = cursor.lastrowid
+
+            print_jobs_created.append({
+                "job_id": r_job_id,
+                "station": "CASHIER",
+                "job_type": "RECEIPT",
+                "ticket_text": receipt_text,
+                "escpos_b64": receipt_b64,
+                "table_name": table["name"]
+            })
+        else:
+            # Khách tự quét mã QR tại bàn: Bóc tách trạm và in phiếu order KOT gửi Bếp / Quầy Bar
+            station_groups = {}
+            for dit in detailed_items:
+                st = dit["station"]
+                if st not in station_groups:
+                    station_groups[st] = []
+                station_groups[st].append(dit)
+
             order_info = {
                 "id": order_id,
                 "table_name": table["name"],
@@ -199,95 +267,30 @@ async def create_order(payload: dict):
                 "customer_note": customer_note,
                 "created_at": now_ts
             }
-            ticket_text = format_kitchen_ticket_text(order_info, hot_items, "HOT_KITCHEN")
-            escpos_bytes = build_escpos_kitchen_bytes(order_info, hot_items, station="HOT_KITCHEN", beep=True)
-            escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
 
-            cursor.execute("""
-                INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
-                VALUES (?, 'HOT_KITCHEN', 'KOT', 'PENDING', ?)
-            """, (order_id, ticket_text))
-            job_id = cursor.lastrowid
+            for station, st_items in station_groups.items():
+                ticket_text = format_kitchen_ticket_text(order_info, st_items, station)
+                escpos_bytes = build_escpos_kitchen_bytes(order_info, st_items, station=station, beep=True)
+                escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
 
-            print_jobs_created.append({
-                "job_id": job_id,
-                "station": "HOT_KITCHEN",
-                "job_type": "KOT",
-                "ticket_text": ticket_text,
-                "escpos_b64": escpos_b64,
-                "table_name": table["name"]
-            })
+                cursor.execute("""
+                    INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+                    VALUES (?, ?, 'KOT', 'PENDING', ?)
+                """, (order_id, station, ticket_text))
+                job_id = cursor.lastrowid
 
-        # 2. Chọn nước, dịch vụ sân xong xác nhận thì in bill ở máy in bar/bếp lạnh (CASHIER - 192.168.31.252)
-        from ..escpos import format_receipt_ticket_text, build_escpos_receipt_bytes
-        totals_info = {
-            "title": "HOA DON THANH TOAN",
-            "cashier_name": "Thu Ngan San Pick",
-            "discount": 0,
-            "service_fee": 0,
-            "payment_method": payment_method,
-            "bill_target": bill_target,
-            "billed_admin_name": billed_admin_name,
-            "created_at": now_ts
-        }
-        receipt_text = format_receipt_ticket_text(dict(table), detailed_items, totals_info=totals_info)
-        receipt_bytes = build_escpos_receipt_bytes(dict(table), detailed_items, totals_info=totals_info)
-        receipt_b64 = base64.b64encode(receipt_bytes).decode("ascii")
+                print_jobs_created.append({
+                    "job_id": job_id,
+                    "station": station,
+                    "job_type": "KOT",
+                    "ticket_text": ticket_text,
+                    "escpos_b64": escpos_b64,
+                    "table_name": table["name"]
+                })
 
-        cursor.execute("""
-            INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
-            VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?)
-        """, (order_id, receipt_text))
-        r_job_id = cursor.lastrowid
-
-        print_jobs_created.append({
-            "job_id": r_job_id,
-            "station": "CASHIER",
-            "job_type": "RECEIPT",
-            "ticket_text": receipt_text,
-            "escpos_b64": receipt_b64,
-            "table_name": table["name"]
-        })
-    else:
-        # Khách tự quét mã QR tại bàn: Bóc tách trạm và in phiếu order KOT gửi Bếp / Quầy Bar
-        station_groups = {}
-        for dit in detailed_items:
-            st = dit["station"]
-            if st not in station_groups:
-                station_groups[st] = []
-            station_groups[st].append(dit)
-
-        order_info = {
-            "id": order_id,
-            "table_name": table["name"],
-            "area": table["area"],
-            "round_number": round_number,
-            "customer_note": customer_note,
-            "created_at": now_ts
-        }
-
-        for station, st_items in station_groups.items():
-            ticket_text = format_kitchen_ticket_text(order_info, st_items, station)
-            escpos_bytes = build_escpos_kitchen_bytes(order_info, st_items, station=station, beep=True)
-            escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
-
-            cursor.execute("""
-                INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
-                VALUES (?, ?, 'KOT', 'PENDING', ?)
-            """, (order_id, station, ticket_text))
-            job_id = cursor.lastrowid
-
-            print_jobs_created.append({
-                "job_id": job_id,
-                "station": station,
-                "job_type": "KOT",
-                "ticket_text": ticket_text,
-                "escpos_b64": escpos_b64,
-                "table_name": table["name"]
-            })
-
-    conn.commit()
-    conn.close()
+        conn.commit()
+    finally:
+        conn.close()
 
     # Bắn lệnh in trực tiếp qua mạng LAN nếu server chạy nội bộ (không chạy trên Cloud)
     is_cloud = os.environ.get("VIBE_PROJECT_ID") or os.environ.get("KUBERNETES_SERVICE_HOST") or (os.name != "nt")
