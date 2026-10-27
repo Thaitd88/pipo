@@ -1506,9 +1506,8 @@
           <div>
             <label class="block font-semibold text-stone-700 mb-1">Trạm chế biến *:</label>
             <select id="itemFormStation" required class="w-full p-2.5 rounded-xl border border-stone-300 bg-white font-medium">
-              <option value="HOT_KITCHEN">🔥 Bếp Nóng</option>
-              <option value="COLD_KITCHEN">🥗 Bếp Lạnh</option>
-              <option value="BAR">🍹 Quầy Bar</option>
+              <option value="HOT_KITCHEN">🔥 Bếp Nóng (Món ăn)</option>
+              <option value="BAR">🍹 Quầy Bar (Đồ uống)</option>
             </select>
           </div>
           <div>
@@ -1756,9 +1755,8 @@
           <div>
             <label class="block font-semibold text-stone-700 mb-1">Trạm chế biến mặc định:</label>
             <select id="bulkDefaultStation" class="w-full p-2.5 rounded-xl border border-stone-300 bg-white font-medium">
-              <option value="HOT_KITCHEN">🔥 Bếp Nóng</option>
-              <option value="COLD_KITCHEN">🥗 Bếp Lạnh</option>
-              <option value="BAR">🍹 Quầy Bar</option>
+              <option value="HOT_KITCHEN">🔥 Bếp Nóng (Mặc định)</option>
+              <option value="BAR">🍹 Quầy Bar (Đồ uống)</option>
             </select>
           </div>
         </div>
@@ -2460,7 +2458,7 @@
 
     function renderAdminTopItemsTable(items) {
       const tbody = document.getElementById("topItemsTableBody");
-      const stationMap = { HOT_KITCHEN: "🔥 Bếp Nóng", COLD_KITCHEN: "🥗 Bếp Lạnh", BAR: "🍹 Quầy Bar" };
+      const stationMap = { HOT_KITCHEN: "🔥 Bếp Nóng", BAR: "🍹 Quầy Bar" };
 
       if (!items || items.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-stone-400">Chưa có dữ liệu món bán</td></tr>`;
@@ -4296,6 +4294,15 @@
       }
       const selCat = document.getElementById("itemFormCategory");
       selCat.innerHTML = allCategories.map(c => `<option value="${c.id}">${c.icon || '🍽️'} ${c.name}</option>`).join('');
+      selCat.onchange = function() {
+        const selectedCat = (allCategories || []).find(c => c.id == selCat.value);
+        const catName = (selectedCat ? selectedCat.name : '').toLowerCase();
+        if (catName.includes('uống') || catName.includes('nước') || catName.includes('bar') || catName.includes('bia') || catName.includes('cafe')) {
+          document.getElementById("itemFormStation").value = "BAR";
+        } else {
+          document.getElementById("itemFormStation").value = "HOT_KITCHEN";
+        }
+      };
 
       await loadAdminInventory();
 
@@ -4346,7 +4353,7 @@
         document.getElementById("itemModalTitle").innerText = `Chỉnh Sửa Món: ${item.name}`;
         document.getElementById("itemFormId").value = item.id;
         document.getElementById("itemFormCategory").value = item.category_id;
-        document.getElementById("itemFormStation").value = item.station;
+        document.getElementById("itemFormStation").value = (item.station === "BAR" ? "BAR" : "HOT_KITCHEN");
         document.getElementById("itemFormName").value = item.name;
         document.getElementById("itemFormPrice").value = item.price;
         document.getElementById("itemFormDesc").value = item.description || "";
@@ -4740,7 +4747,7 @@
         document.getElementById("kdsCookingCount").innerText = `${cookingCount} món`;
         document.getElementById("kdsReadyCount").innerText = `${readyCount} món`;
 
-        const stationMap = { HOT_KITCHEN: "🔥 Bếp Nóng", COLD_KITCHEN: "🥗 Bếp Lạnh", BAR: "🍹 Quầy Bar" };
+        const stationMap = { HOT_KITCHEN: "🔥 Bếp Nóng", BAR: "🍹 Quầy Bar" };
         const statusMap = {
           QUEUED: `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Chờ nấu</span>`,
           COOKING: `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">Đang nấu</span>`,

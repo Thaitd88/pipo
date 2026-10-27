@@ -1,3 +1,27 @@
+def ensure_kitchen_and_bar_stations(conn):
+    """
+    Chuẩn hóa trạm chế biến: Bỏ Bếp Lạnh (COLD_KITCHEN), chỉ giữ Bếp Nóng và Quầy Bar.
+    Mặc định toàn bộ món ăn là Bếp Nóng (HOT_KITCHEN), Đồ uống thuộc Quầy Bar (BAR).
+    """
+    try:
+        cur = conn.cursor()
+        cur.execute("UPDATE menu_items SET station = 'HOT_KITCHEN' WHERE station = 'COLD_KITCHEN'")
+        cur.execute("""
+            UPDATE menu_items 
+            SET station = 'BAR' 
+            WHERE category_id IN (SELECT id FROM categories WHERE name LIKE '%Uống%' OR name LIKE '%Nước%' OR name LIKE '%Bar%')
+        """)
+        cur.execute("""
+            UPDATE menu_items 
+            SET station = 'HOT_KITCHEN' 
+            WHERE category_id NOT IN (SELECT id FROM categories WHERE name LIKE '%Uống%' OR name LIKE '%Nước%' OR name LIKE '%Bar%' OR name LIKE '%Pickleball%')
+        """)
+        cur.execute("UPDATE order_items SET station = 'HOT_KITCHEN' WHERE station = 'COLD_KITCHEN'")
+        cur.execute("UPDATE print_jobs SET station = 'HOT_KITCHEN' WHERE station = 'COLD_KITCHEN'")
+        conn.commit()
+    except Exception as e:
+        print("[ensure_kitchen_and_bar_stations] Loi:", e)
+
 # Database models, schema and initialization for PiPo Garden
 import sqlite3
 import os
@@ -558,6 +582,9 @@ def init_db():
 
     # Đảm bảo định lượng món đơn giản, chuẩn xác cho bếp nhìn trực quan
     ensure_simple_dish_portions(conn)
+
+    # Chuẩn hóa trạm: Toàn bộ món ăn là Bếp Nóng, Đồ uống là Quầy Bar (bỏ Bếp Lạnh)
+    ensure_kitchen_and_bar_stations(conn)
 
     # Gom món theo loại nguyên liệu và tạo tùy chọn vị chế biến
     consolidate_menu_items_with_options(conn)

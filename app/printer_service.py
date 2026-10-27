@@ -147,7 +147,7 @@ def get_printers_status() -> dict:
     return {
         "kitchen": {
             "name": "Máy in Bếp (KOT / Beeper)",
-            "role": "Bếp Nóng / Bếp Lạnh",
+            "role": "Bếp Nóng",
             **k_status,
             "enabled": cfg["kitchen_enabled"]
         },
@@ -164,7 +164,7 @@ def get_printers_status() -> dict:
 def print_kitchen_order(order_info: dict, items: list, station: str = "HOT_KITCHEN", beep: bool = True) -> tuple[bool, str]:
     """In phiếu chế biến món ăn 80mm: Bếp nóng gửi Máy in Bếp 251, Bếp lạnh & Bar gửi Máy in Thu Ngân 252."""
     cfg = get_printer_config()
-    is_cashier_side = station in ["COLD_KITCHEN", "BAR", "CASHIER"]
+    is_cashier_side = station in ["BAR", "CASHIER"]
     dest_ip = cfg["cashier_ip"] if is_cashier_side else cfg["kitchen_ip"]
     dest_port = cfg["cashier_port"] if is_cashier_side else cfg["kitchen_port"]
     enabled = cfg["cashier_enabled"] if is_cashier_side else cfg["kitchen_enabled"]

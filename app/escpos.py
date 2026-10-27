@@ -179,8 +179,7 @@ def format_kitchen_ticket_text(order_info: dict, items: list, station: str = "HO
     """
     station_names = {
         "HOT_KITCHEN": "PHIEU BEP NONG (NUONG / LAU / XAO)",
-        "COLD_KITCHEN": "PHIEU BEP LANH (KHAI VI / GOI)",
-        "BAR": "PHIEU QUAY BAR (PHA CHE / BIA)",
+                "BAR": "PHIEU QUAY BAR (PHA CHE / BIA)",
         "ALL": "PHIEU TONG BEP DIEU PHOI"
     }
     st_title = station_names.get(station, "PHIEU CHE BIEN")
@@ -413,8 +412,7 @@ def build_escpos_kitchen_bytes(order_info: dict, items: list, station: str = "HO
 
     station_names = {
         "HOT_KITCHEN": "PHIEU BEP NONG (NUONG / LAU / XAO)",
-        "COLD_KITCHEN": "PHIEU BEP LANH (KHAI VI / GOI)",
-        "BAR": "PHIEU QUAY BAR (PHA CHE / BIA)",
+                "BAR": "PHIEU QUAY BAR (PHA CHE / BIA)",
         "ALL": "PHIEU TONG BEP DIEU PHOI"
     }
     st_title = station_names.get(station, "PHIEU CHE BIEN")

@@ -15,13 +15,6 @@
       "port": 9100,
       "enabled": true
     },
-    "COLD_KITCHEN": {
-      "name": "Máy in Bếp Lạnh (In tại Quầy Thu Ngân)",
-      "type": "tcp",
-      "host": "192.168.31.252",
-      "port": 9100,
-      "enabled": true
-    },
     "BAR": {
       "name": "Máy in Quầy Bar & Vé Sân Pick (In tại Quầy Thu Ngân)",
       "type": "tcp",

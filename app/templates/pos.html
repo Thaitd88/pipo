@@ -659,7 +659,6 @@
           <span class="text-xs font-bold text-stone-700 mr-1"><i class="fa-solid fa-filter text-emerald-600"></i> Lọc Trạm:</span>
           <button onclick="filterPosKitchenStation('ALL')" id="posStationFilter-ALL" class="pos-station-btn px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold shadow-xs">Tất cả</button>
           <button onclick="filterPosKitchenStation('HOT_KITCHEN')" id="posStationFilter-HOT_KITCHEN" class="pos-station-btn px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold">🔥 Bếp Nóng</button>
-          <button onclick="filterPosKitchenStation('COLD_KITCHEN')" id="posStationFilter-COLD_KITCHEN" class="pos-station-btn px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold">🥗 Bếp Lạnh</button>
           <button onclick="filterPosKitchenStation('BAR')" id="posStationFilter-BAR" class="pos-station-btn px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold">🍹 Bar Pha Chế</button>
         </div>
 
@@ -2056,12 +2055,7 @@
               <span class="text-[9.5px] text-stone-500">Mì, Cơm, Nướng, Lẩu</span>
             </label>
 
-            <label class="ckp-station-card flex flex-col items-center justify-center p-2.5 rounded-2xl border border-stone-200 bg-white hover:border-orange-300 cursor-pointer transition text-center shadow-2xs">
-              <input type="radio" name="ckpStation" value="COLD_KITCHEN" class="hidden" onchange="updateCkpStationUI()">
-              <span class="text-lg mb-0.5">🥗</span>
-              <span class="font-black text-xs text-stone-900">Bếp Lạnh</span>
-              <span class="text-[9.5px] text-stone-500">Khai vị, Gỏi, Salad</span>
-            </label>
+            
 
             <label class="ckp-station-card flex flex-col items-center justify-center p-2.5 rounded-2xl border border-stone-200 bg-white hover:border-orange-300 cursor-pointer transition text-center shadow-2xs">
               <input type="radio" name="ckpStation" value="BAR" class="hidden" onchange="updateCkpStationUI()">
@@ -4455,8 +4449,7 @@
       const tbody = document.getElementById("topItemsTableBody");
       const stationMap = {
         HOT_KITCHEN: "🔥 Bếp Nóng",
-        COLD_KITCHEN: "🥗 Bếp Lạnh",
-        BAR: "🍹 Quầy Bar"
+                BAR: "🍹 Quầy Bar"
       };
 
       tbody.innerHTML = items.map((it, idx) => `
@@ -4753,7 +4746,7 @@
         return;
       }
 
-      const stationMap = { HOT_KITCHEN: "🔥 Bếp Nóng", COLD_KITCHEN: "🥗 Bếp Lạnh", BAR: "🍹 Bar" };
+      const stationMap = { HOT_KITCHEN: "🔥 Bếp Nóng",  BAR: "🍹 Bar" };
       const statusBadges = {
         QUEUED: `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">⏳ Chờ nấu</span>`,
         COOKING: `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 animate-pulse">🔥 Đang nấu</span>`,

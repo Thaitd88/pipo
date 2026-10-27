@@ -590,15 +590,11 @@ def _parse_price(raw_price: Any) -> int:
 
 def _normalize_station(raw_station: str, default_station: str = "HOT_KITCHEN") -> str:
     s = (raw_station or "").strip().upper()
-    if not s:
-        return default_station
-    if s in ("HOT_KITCHEN", "COLD_KITCHEN", "BAR"):
-        return s
-    s_low = s.lower()
-    if "bar" in s_low or "uống" in s_low or "nước" in s_low or "bia" in s_low or "rượu" in s_low or "cafe" in s_low:
+    if s in ("BAR", "QUẦY BAR", "QUAY BAR"):
         return "BAR"
-    if "lạnh" in s_low or "cold" in s_low or "gỏi" in s_low or "salad" in s_low or "tráng miệng" in s_low:
-        return "COLD_KITCHEN"
+    s_low = s.lower()
+    if any(w in s_low for w in ("bar", "uống", "nước", "bia", "rượu", "cafe", "cà phê", "trà", "sinh tố", "nước ép")):
+        return "BAR"
     return "HOT_KITCHEN"
 
 @router.post("/bulk-import")

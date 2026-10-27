@@ -218,7 +218,7 @@ async def create_order(payload: dict):
                 "table_name": table["name"]
             })
 
-        # 2. Chọn nước, bếp lạnh, dịch vụ sân xong xác nhận thì in bill ở máy in bar/bếp lạnh (CASHIER - 192.168.31.252)
+        # 2. Chọn nước, dịch vụ sân xong xác nhận thì in bill ở máy in bar/bếp lạnh (CASHIER - 192.168.31.252)
         from ..escpos import format_receipt_ticket_text, build_escpos_receipt_bytes
         totals_info = {
             "title": "HOA DON THANH TOAN",
@@ -296,7 +296,7 @@ async def create_order(payload: dict):
             p_cfg = get_printer_config()
             if p_cfg.get("auto_kitchen"):
                 for pjob in print_jobs_created:
-                    is_cashier_side = pjob["station"] in ["BAR", "COLD_KITCHEN", "CASHIER"]
+                    is_cashier_side = pjob["station"] in ["BAR", "CASHIER"]
                     dest_ip = p_cfg["cashier_ip"] if is_cashier_side else p_cfg["kitchen_ip"]
                     dest_port = p_cfg["cashier_port"] if is_cashier_side else p_cfg["kitchen_port"]
                     raw_b = base64.b64decode(pjob["escpos_b64"]) if pjob.get("escpos_b64") else b""

@@ -194,7 +194,7 @@ class CustomKitchenTicketPayload(BaseModel):
     quantity: Optional[int] = 1
     price: Optional[int] = 0
     note: Optional[str] = ""
-    station: Optional[str] = "HOT_KITCHEN"  # HOT_KITCHEN, COLD_KITCHEN, BAR
+    station: Optional[str] = "HOT_KITCHEN"  # HOT_KITCHEN, BAR
     add_to_bill: Optional[bool] = False
     beep: Optional[bool] = True
 
@@ -213,7 +213,7 @@ async def api_custom_kitchen_ticket(payload: CustomKitchenTicketPayload):
     quantity = max(1, payload.quantity or 1)
     price = max(0, payload.price or 0)
     station = (payload.station or "HOT_KITCHEN").strip().upper()
-    if station not in ("HOT_KITCHEN", "COLD_KITCHEN", "BAR"):
+    if station not in ("HOT_KITCHEN", "BAR"):
         station = "HOT_KITCHEN"
 
     note = (payload.note or "").strip()
@@ -338,7 +338,7 @@ async def api_custom_kitchen_ticket(payload: CustomKitchenTicketPayload):
     if not is_cloud:
         try:
             p_cfg = get_printer_config()
-            is_cashier_side = station in ["BAR", "COLD_KITCHEN", "CASHIER"]
+            is_cashier_side = station in ["BAR", "CASHIER"]
             dest_ip = p_cfg["cashier_ip"] if is_cashier_side else p_cfg["kitchen_ip"]
             dest_port = p_cfg["cashier_port"] if is_cashier_side else p_cfg["kitchen_port"]
             import asyncio
@@ -346,7 +346,7 @@ async def api_custom_kitchen_ticket(payload: CustomKitchenTicketPayload):
         except Exception as _e:
             print("[Custom Kitchen Socket Error]:", _e)
 
-    st_names = {"HOT_KITCHEN": "Bếp Nóng (251)", "COLD_KITCHEN": "Bếp Lạnh", "BAR": "Quầy Bar (252)"}
+    st_names = {"HOT_KITCHEN": "Bếp Nóng (251)", "BAR": "Quầy Bar (252)"}
     st_display = st_names.get(station, "Bếp")
     return {
         "status": "SUCCESS",

@@ -125,7 +125,7 @@ def sync(timeout=5, download_images=True):
             it.get('description', ''),
             it.get('price', 0),
             it.get('image_url', ''),
-            it.get('station', 'HOT_KITCHEN'),
+            ('BAR' if it.get('station') == 'BAR' or it.get('category_id') == 6 else 'HOT_KITCHEN'),
             it.get('is_available', 1),
             opts_json or '[]',
             trans_json or '{}',
