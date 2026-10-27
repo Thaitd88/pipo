@@ -1397,7 +1397,7 @@
       // Đếm số món thực tế thuộc Menu chính đang chọn
       let totalDishes = 0;
       const filteredCats = menuData.map(cat => {
-        const items = (cat.items || []).filter(it => isItemInMainMenu(it, currentMainMenu));
+        const items = (cat.items || []).filter(it => (it.is_available === 1 || it.is_available === true) && isItemInMainMenu(it, currentMainMenu));
         totalDishes += items.length;
         return { ...cat, matchingCount: items.length };
       });
@@ -1464,7 +1464,7 @@
       const html = selectedCats.map(cat => {
         const theme = getCategoryTheme(cat.id);
         // Lọc các món thuộc Menu chính đang chọn (Nhà Hàng, Cơm Trưa, Cafe/Sáng)
-        const items = (cat.items || []).filter(it => isItemInMainMenu(it, currentMainMenu));
+        const items = (cat.items || []).filter(it => (it.is_available === 1 || it.is_available === true) && isItemInMainMenu(it, currentMainMenu));
         if (items.length === 0) return '';
         hasAnyDish = true;
         const catName = getCategoryName(cat);
@@ -1713,6 +1713,17 @@
             addBtn.className = "flex-1 bg-stone-200 text-stone-500 font-bold py-2.5 px-4 rounded-xl cursor-not-allowed flex items-center justify-center text-xs";
             addBtn.innerHTML = `<span>⚠️ ${t('dish_out_of_ingredients_badge')}</span>`;
           }
+        } else if (!item.is_available || item.is_available === 0 || item.is_available === '0') {
+          outAlert.classList.add("hidden");
+          if (statusBadge) {
+            statusBadge.className = "inline-flex items-center gap-1 text-rose-700 font-semibold";
+            statusBadge.innerHTML = `<i class="fa-solid fa-ban text-[10px]"></i> Tạm ngưng phục vụ`;
+          }
+          if (addBtn) {
+            addBtn.disabled = true;
+            addBtn.className = "flex-1 bg-stone-200 text-stone-500 font-bold py-2.5 px-4 rounded-xl cursor-not-allowed flex items-center justify-center text-xs";
+            addBtn.innerHTML = `<span>Tạm ngưng phục vụ</span>`;
+          }
         } else {
           outAlert.classList.add("hidden");
           if (statusBadge) {
@@ -1720,14 +1731,9 @@
             statusBadge.innerHTML = `<i class="fa-solid fa-circle-check text-[10px]"></i> Sẵn sàng phục vụ`;
           }
           if (addBtn) {
-            addBtn.disabled = !item.is_available;
-            if (item.is_available) {
-              addBtn.className = "flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-between text-sm";
-              addBtn.innerHTML = `<span id="modalAddToCartBtnText">${t('btn_add_to_cart')}</span><span id="modalAddToCartBtnPrice" class="font-extrabold bg-emerald-700/60 px-2.5 py-0.5 rounded-lg text-xs">${formatVND(effectivePrice * modalQty)}</span>`;
-            } else {
-              addBtn.className = "flex-1 bg-stone-200 text-stone-500 font-bold py-2.5 px-4 rounded-xl cursor-not-allowed flex items-center justify-center text-xs";
-              addBtn.innerHTML = `<span>Hết hàng</span>`;
-            }
+            addBtn.disabled = false;
+            addBtn.className = "flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-between text-sm";
+            addBtn.innerHTML = `<span id="modalAddToCartBtnText">${t('btn_add_to_cart')}</span><span id="modalAddToCartBtnPrice" class="font-extrabold bg-emerald-700/60 px-2.5 py-0.5 rounded-lg text-xs">${formatVND(effectivePrice * modalQty)}</span>`;
           }
         }
       }

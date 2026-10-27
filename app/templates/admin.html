@@ -3589,13 +3589,26 @@
 
     async function toggleItemAvailability(id, isAvailable) {
       try {
-        await fetch(`/api/menu/items/${id}`, {
+        const res = await fetch(`/api/menu/items/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ is_available: isAvailable ? 1 : 0 })
         });
+        if (res.ok) {
+          const item = allMenuItems.find(x => x.id === id);
+          if (item) {
+            item.is_available = isAvailable ? 1 : 0;
+            const dishName = item.name || `Món #${id}`;
+            showAdminToast(isAvailable ? `Đã BẬT món "${dishName}" (hiển thị trên thực đơn khách)` : `Đã TẮT món "${dishName}" (đã ẩn hoàn toàn khỏi menu khách)`);
+          } else {
+            showAdminToast(isAvailable ? `Đã BẬT phục vụ món #${id}` : `Đã TẮT món #${id} (ẩn khỏi menu khách)`);
+          }
+        } else {
+          showAdminToast(`Lỗi khi cập nhật trạng thái món #${id}`);
+        }
       } catch (e) {
         console.error(e);
+        showAdminToast(`Lỗi kết nối khi cập nhật món #${id}`);
       }
     }
 

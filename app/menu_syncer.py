@@ -2245,16 +2245,26 @@ def ensure_updated_menu(conn: sqlite3.Connection):
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (iv["id"], iv["code"], iv["name"], iv["unit"], iv["stock_quantity"], iv["min_stock"], iv["cost_price"], iv["supplier"]))
 
-    # 3. CLEAR SẠCH MÓN CŨ TRÊN HOST VÀ NẠP LẠI TOÀN BỘ MENU CHUẨN XÁC (BẢO TOÀN ẢNH ĐÃ UPLOAD)
-    # Lấy lại danh sách ảnh do người dùng đã upload lên
-    cur.execute("SELECT id, image_url FROM menu_items WHERE image_url IS NOT NULL AND image_url != '' AND image_url NOT LIKE '%logo.png'")
-    existing_user_images = {row[0]: row[1] for row in cur.fetchall()}
+    # 3. CLEAR SẠCH MÓN CŨ TRÊN HOST VÀ NẠP LẠI TOÀN BỘ MENU CHUẨN XÁC (BẢO TOÀN ẢNH VÀ TRẠNG THÁI ĐÃ CẤU HÌNH)
+    # Lấy lại danh sách ảnh và trạng thái bật/tắt, hết NVL do quản trị viên đã cấu hình
+    cur.execute("SELECT id, image_url, is_available, out_of_ingredients, discount_percent FROM menu_items")
+    existing_items_state = {}
+    for row in cur.fetchall():
+        existing_items_state[row[0]] = {
+            "image_url": row[1],
+            "is_available": row[2],
+            "out_of_ingredients": row[3],
+            "discount_percent": row[4],
+        }
 
     cur.execute("DELETE FROM menu_items")
     cur.execute("DELETE FROM recipe_bom")
 
     for it in MENU_ITEMS:
-        img_url = existing_user_images.get(it["id"]) or it["image_url"]
+        saved_state = existing_items_state.get(it["id"], {})
+        saved_img = saved_state.get("image_url")
+        img_url = saved_img if (saved_img and "logo.png" not in saved_img) else it["image_url"]
+
         # Tự động chuẩn hóa tên ảnh cũ nếu là ảnh screenshot
         if it["id"] == 333:
             img_url = "/static/dishes/suon_bo_nuong.webp"
@@ -2263,12 +2273,16 @@ def ensure_updated_menu(conn: sqlite3.Connection):
         elif it["id"] == 342:
             img_url = "/static/dishes/muc_ong_nuong.webp"
 
+        is_avail = saved_state["is_available"] if ("is_available" in saved_state and saved_state["is_available"] is not None) else it.get("is_available", 1)
+        out_of_ing = saved_state["out_of_ingredients"] if ("out_of_ingredients" in saved_state and saved_state["out_of_ingredients"] is not None) else 0
+        disc_pct = saved_state["discount_percent"] if ("discount_percent" in saved_state and saved_state["discount_percent"] is not None) else it.get("discount_percent", 0)
+
         cur.execute("""
-            INSERT INTO menu_items (id, category_id, name, price, station, image_url, description, is_available, calories, portion, main_menu_type, options_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO menu_items (id, category_id, name, price, station, image_url, description, is_available, calories, portion, main_menu_type, options_json, out_of_ingredients, discount_percent)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (it["id"], it["category_id"], it["name"], it["price"], it["station"],
-              img_url, it["description"], it["is_available"], it["calories"], it["portion"],
-              it["main_menu_type"], it["options_json"]))
+              img_url, it["description"], is_avail, it["calories"], it["portion"],
+              it["main_menu_type"], it["options_json"], out_of_ing, disc_pct))
 
     # 4. Nạp lại Định mức Recipe BOM
     for b in RECIPE_BOM:
