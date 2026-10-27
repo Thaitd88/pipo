@@ -1978,7 +1978,7 @@
   <div id="adminBillDetailModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
     <div class="bg-white rounded-3xl max-w-md w-full p-4 sm:p-5 shadow-2xl flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
       <!-- Header modal -->
-      <div class="flex items-center justify-between pb-3 border-b border-stone-100 flex-shrink-0">
+      <div class="flex items-center justify-between pb-2.5 border-b border-stone-100 flex-shrink-0">
         <h3 class="font-bold text-sm text-stone-900 flex items-center gap-2">
           <i class="fa-solid fa-receipt text-emerald-700"></i>
           <span id="adminModalBillTitle">Chi Tiết Hóa Đơn #HD-00</span>
@@ -1988,9 +1988,21 @@
         </button>
       </div>
 
+      <!-- Tab Switcher: Xem Phiếu In vs Sửa Bill -->
+      <div class="flex items-center gap-1.5 p-1 bg-stone-100 rounded-xl my-2 flex-shrink-0">
+        <button type="button" id="adminBillTabReceiptBtn" onclick="switchAdminBillTab('RECEIPT')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition bg-white text-stone-900 shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-receipt text-emerald-700"></i> <span>Xem Phiếu In</span>
+        </button>
+        <button type="button" id="adminBillTabEditBtn" onclick="switchAdminBillTab('EDIT')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition text-stone-600 hover:text-stone-900 flex items-center justify-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-pen-to-square text-amber-600"></i> <span>Sửa Món & Tiền Bill</span>
+        </button>
+      </div>
+
       <!-- Khung hóa đơn in 80mm cuộn được -->
-      <div class="flex-1 overflow-y-auto py-2.5 custom-scrollbar">
-        <div id="adminPrintableReceipt" class="bg-stone-50 p-4 rounded-2xl border border-dashed border-stone-300 text-xs font-mono text-stone-800">
+      <div class="flex-1 overflow-y-auto py-1 custom-scrollbar">
+        <!-- TAB 1: XEM PHIẾU IN -->
+        <div id="adminBillViewTab">
+          <div id="adminPrintableReceipt" class="bg-stone-50 p-4 rounded-2xl border border-dashed border-stone-300 text-xs font-mono text-stone-800">
           <div class="text-center pb-3 border-b border-dashed border-stone-300">
             <div class="font-black text-sm text-stone-900 tracking-wider uppercase">PiPo Garden</div>
             <div class="text-[10px] text-stone-500">Restaurant, Cafe, Pool Bar</div>
@@ -2097,12 +2109,116 @@
             <span>Lưu Thay Đổi Hình Thức Thanh Toán</span>
           </button>
         </div>
+        </div> <!-- End of adminBillViewTab -->
+
+        <!-- TAB 2: CHỈNH SỬA HÓA ĐƠN ĐÃ THANH TOÁN -->
+        <div id="adminBillEditTab" class="hidden space-y-3 pb-2">
+          <!-- Banner Cảnh Báo -->
+          <div class="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5 shadow-2xs">
+            <i class="fa-solid fa-triangle-exclamation text-amber-600 text-base mt-0.5 flex-shrink-0"></i>
+            <div>
+              <div class="font-bold text-amber-950">Chế độ Sửa Hóa Đơn & Cập Nhật Doanh Thu</div>
+              <div class="text-[11px] text-amber-800 mt-0.5">Dành cho trường hợp khách báo tính nhầm sau khi in bill. Mọi thay đổi về số lượng món, hủy món hay chiết khấu sẽ tự động đồng bộ lại <b>doanh thu, tồn kho và các báo cáo</b>.</div>
+            </div>
+          </div>
+
+          <!-- Danh Sách Món Có Thể Sửa -->
+          <div class="border border-stone-200 rounded-2xl p-3 bg-white shadow-2xs space-y-2">
+            <div class="flex justify-between items-center text-xs font-bold text-stone-800 pb-2 border-b border-stone-100">
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-utensils text-emerald-700"></i> Món ăn trong hóa đơn</span>
+              <span id="adminEditBillItemCountBadge" class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">0 món</span>
+            </div>
+            <div id="adminEditBillItemsList" class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar pr-1">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Thêm Món Mới Vào Hóa Đơn -->
+          <div class="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+            <div class="text-xs font-bold text-stone-800 flex items-center justify-between">
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-plus-circle text-emerald-600"></i> Thêm món vào hóa đơn này:</span>
+            </div>
+            <div class="flex gap-1.5 items-center">
+              <select id="adminAddDishSelect" class="flex-1 text-xs p-2 rounded-xl border border-stone-300 font-semibold bg-white text-stone-800 focus:outline-emerald-600">
+                <!-- Populated dynamically -->
+              </select>
+              <input type="number" id="adminAddDishQty" min="1" value="1" class="w-14 text-xs p-2 rounded-xl border border-stone-300 font-bold text-center bg-white" placeholder="SL">
+              <button type="button" onclick="adminAddDishToCurrentBill()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl font-bold text-xs shadow-xs transition cursor-pointer whitespace-nowrap flex items-center gap-1">
+                <i class="fa-solid fa-plus"></i> <span>Thêm</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Giảm Giá & Phí Dịch Vụ -->
+          <div class="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-2 text-xs">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-bold text-stone-700 mb-1 text-[11px]">Tiền Giảm Giá (đ):</label>
+                <input type="number" id="adminEditDiscountInput" oninput="recalcAdminEditBillTotals()" min="0" step="1000" class="w-full p-2 text-xs font-bold rounded-xl border border-stone-300 text-rose-600 focus:outline-rose-500 bg-white" placeholder="0">
+              </div>
+              <div>
+                <label class="block font-bold text-stone-700 mb-1 text-[11px]">Phí Phục Vụ (đ):</label>
+                <input type="number" id="adminEditServiceFeeInput" oninput="recalcAdminEditBillTotals()" min="0" step="1000" class="w-full p-2 text-xs font-bold rounded-xl border border-stone-300 text-emerald-700 focus:outline-emerald-500 bg-white" placeholder="0">
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold text-stone-700 mb-1 text-[11px]">Lý do giảm giá (nếu có):</label>
+              <input type="text" id="adminEditDiscountReasonInput" class="w-full p-2 text-xs rounded-xl border border-stone-300 bg-white" placeholder="Ví dụ: Giảm 10% khách quen, trừ tiền món trả...">
+            </div>
+          </div>
+
+          <!-- Lý Do Sửa Hóa Đơn (Bắt buộc kiểm toán) -->
+          <div class="p-3 bg-rose-50/60 rounded-2xl border border-rose-200 text-xs">
+            <label class="block font-bold text-rose-900 mb-1 text-[11px]">
+              <i class="fa-solid fa-shield-halved text-rose-600 mr-1"></i> Lý do sửa hóa đơn (Bắt buộc):
+            </label>
+            <input type="text" id="adminEditBillReasonInput" required class="w-full p-2 text-xs font-semibold rounded-xl border border-rose-300 bg-white text-stone-900 focus:outline-rose-600" placeholder="Ví dụ: Khách báo tính nhầm 2 bia, nhân viên bấm nhầm bàn...">
+          </div>
+
+          <!-- Bảng Tóm Tắt & Chênh Lệch Doanh Thu Mới -->
+          <div class="p-3.5 bg-gradient-to-br from-stone-900 to-stone-950 text-white rounded-2xl shadow-md space-y-1.5 text-xs font-mono border border-stone-800">
+            <div class="flex justify-between items-center text-stone-300">
+              <span>Tổng tiền món mới:</span>
+              <span id="adminEditSubtotalText" class="font-bold text-white">0 đ</span>
+            </div>
+            <div class="flex justify-between items-center text-rose-300">
+              <span>Giảm giá mới:</span>
+              <span id="adminEditDiscountText" class="font-bold">-0 đ</span>
+            </div>
+            <div class="flex justify-between items-center text-emerald-300">
+              <span>Phí phục vụ mới:</span>
+              <span id="adminEditServiceFeeText" class="font-bold">+0 đ</span>
+            </div>
+            <div class="flex justify-between items-center text-sm font-black pt-2 border-t border-stone-700">
+              <span class="text-amber-300 uppercase font-sans tracking-wide">TỔNG THANH TOÁN MỚI:</span>
+              <span id="adminEditGrandTotalText" class="text-base text-amber-300 font-black">0 đ</span>
+            </div>
+            <div class="flex justify-between items-center pt-1 text-[11px] text-stone-300">
+              <span>Chênh lệch doanh thu:</span>
+              <span id="adminEditDiffBadge" class="font-bold px-2 py-0.5 rounded-lg bg-stone-800">0 đ</span>
+            </div>
+          </div>
+
+          <!-- Nút Lưu Sửa Bill -->
+          <div class="flex gap-2 pt-1">
+            <button type="button" onclick="switchAdminBillTab('RECEIPT')" class="px-4 py-2.5 rounded-xl border border-stone-300 text-stone-700 font-bold text-xs hover:bg-stone-100 transition cursor-pointer">
+              Hủy
+            </button>
+            <button type="button" id="btnAdminSaveEditedBill" onclick="submitAdminEditBill()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 active:scale-95 text-stone-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-md cursor-pointer">
+              <i class="fa-solid fa-floppy-disk"></i> <span>LƯU & CẬP NHẬT DOANH THU</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Footer modal -->
-      <div class="pt-3 border-t border-stone-100 flex items-center gap-2 flex-shrink-0">
+      <div class="pt-2.5 border-t border-stone-100 flex items-center gap-2 flex-shrink-0">
         <button onclick="closeAdminBillDetailModal()" class="px-3.5 py-2.5 rounded-xl border border-stone-300 text-stone-700 font-bold text-xs hover:bg-stone-50 transition cursor-pointer">
           Đóng
+        </button>
+        <button type="button" onclick="switchAdminBillTab('EDIT')" class="px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-stone-950 font-black text-xs flex items-center gap-1.5 shadow-2xs transition cursor-pointer" title="Chỉnh sửa món tính nhầm, thay đổi số lượng và doanh thu">
+          <i class="fa-solid fa-pen-to-square"></i>
+          <span>Sửa Bill Này</span>
         </button>
         <button onclick="reprintFromAdminModal()" class="flex-1 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition cursor-pointer" title="In lại hóa đơn ra máy in 80mm">
           <i class="fa-solid fa-print"></i>
@@ -2628,6 +2744,309 @@
       }
     }
 
+        let editingBillItems = [];
+    let currentAdminEditTab = 'RECEIPT';
+
+    function switchAdminBillTab(tab) {
+      currentAdminEditTab = tab;
+      const receiptBtn = document.getElementById("adminBillTabReceiptBtn");
+      const editBtn = document.getElementById("adminBillTabEditBtn");
+      const receiptView = document.getElementById("adminBillViewTab");
+      const editView = document.getElementById("adminBillEditTab");
+
+      if (tab === 'EDIT') {
+        if (receiptBtn) receiptBtn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition text-stone-600 hover:text-stone-900 flex items-center justify-center gap-1.5 cursor-pointer";
+        if (editBtn) editBtn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition bg-amber-500 text-stone-950 font-black shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer";
+        if (receiptView) receiptView.classList.add("hidden");
+        if (editView) editView.classList.remove("hidden");
+        initAdminEditBillData();
+      } else {
+        if (receiptBtn) receiptBtn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition bg-white text-stone-900 shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer";
+        if (editBtn) editBtn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition text-stone-600 hover:text-stone-900 flex items-center justify-center gap-1.5 cursor-pointer";
+        if (receiptView) receiptView.classList.remove("hidden");
+        if (editView) editView.classList.add("hidden");
+      }
+    }
+
+    function initAdminEditBillData() {
+      if (!currentAdminViewingBill) return;
+      editingBillItems = (currentAdminViewingBill.items || []).map(it => ({
+        id: it.id || null,
+        item_id: it.item_id || null,
+        item_name: it.item_name || "Món",
+        quantity: it.quantity || 1,
+        unit_price: it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0),
+        total_price: it.total_price || 0,
+        station: it.station || "HOT_KITCHEN",
+        note: it.note || ""
+      }));
+
+      const discInp = document.getElementById("adminEditDiscountInput");
+      if (discInp) discInp.value = currentAdminViewingBill.discount || 0;
+
+      const discReasonInp = document.getElementById("adminEditDiscountReasonInput");
+      if (discReasonInp) discReasonInp.value = currentAdminViewingBill.discount_reason || "";
+
+      const feeInp = document.getElementById("adminEditServiceFeeInput");
+      if (feeInp) feeInp.value = currentAdminViewingBill.service_fee || 0;
+
+      const reasonInp = document.getElementById("adminEditBillReasonInput");
+      if (reasonInp) reasonInp.value = "";
+
+      populateAdminAddDishSelect();
+      renderAdminEditBillItems();
+      recalcAdminEditBillTotals();
+    }
+
+    function populateAdminAddDishSelect() {
+      const sel = document.getElementById("adminAddDishSelect");
+      if (!sel) return;
+      if (!allMenuItems || allMenuItems.length === 0) {
+        sel.innerHTML = `<option value="">-- Chưa tải danh mục món --</option>`;
+        return;
+      }
+      const activeItems = allMenuItems.filter(x => x.is_available === 1);
+      sel.innerHTML = activeItems.map(m => `
+        <option value="${m.id}" data-name="${m.name.replace(/"/g, '&quot;')}" data-price="${m.price}" data-station="${m.station || 'HOT_KITCHEN'}">
+          ${m.name} (${formatVND(m.price)})
+        </option>
+      `).join('');
+    }
+
+    function renderAdminEditBillItems() {
+      const container = document.getElementById("adminEditBillItemsList");
+      const badge = document.getElementById("adminEditBillItemCountBadge");
+      if (!container) return;
+
+      const activeCount = editingBillItems.filter(x => x.quantity > 0).length;
+      if (badge) badge.innerText = `${activeCount} món`;
+
+      if (editingBillItems.length === 0) {
+        container.innerHTML = `<div class="text-center py-4 text-xs text-stone-400 italic">Chưa có món nào trong hóa đơn.</div>`;
+        return;
+      }
+
+      container.innerHTML = editingBillItems.map((it, idx) => {
+        const isZero = (it.quantity <= 0);
+        return `
+          <div class="flex items-center justify-between p-2 rounded-xl border transition ${isZero ? 'bg-rose-50/50 border-rose-200 opacity-60' : 'bg-stone-50 border-stone-200'}">
+            <div class="flex-1 min-w-0 pr-2">
+              <div class="font-bold text-xs ${isZero ? 'line-through text-stone-500' : 'text-stone-900'} truncate">
+                ${it.item_name}
+              </div>
+              <div class="text-[10px] text-stone-500 flex items-center gap-2 mt-0.5">
+                <span>Đơn giá: ${formatVND(it.unit_price)}</span>
+                ${it.note ? `<span class="text-amber-700 italic">(${it.note})</span>` : ''}
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <div class="flex items-center bg-white rounded-lg border border-stone-300 shadow-2xs overflow-hidden">
+                <button type="button" onclick="changeAdminEditBillItemQty(${idx}, -1)" class="w-6 h-6 flex items-center justify-center text-xs font-bold text-stone-600 hover:bg-stone-100 transition active:scale-95 cursor-pointer">−</button>
+                <input type="number" min="0" value="${it.quantity}" onchange="setAdminEditBillItemQty(${idx}, this.value)" class="w-8 text-center text-xs font-bold text-stone-900 border-x border-stone-200 p-0.5 focus:outline-none">
+                <button type="button" onclick="changeAdminEditBillItemQty(${idx}, 1)" class="w-6 h-6 flex items-center justify-center text-xs font-bold text-stone-600 hover:bg-stone-100 transition active:scale-95 cursor-pointer">+</button>
+              </div>
+
+              <div class="w-20 text-right font-black text-xs ${isZero ? 'text-stone-400 line-through' : 'text-stone-900'}">
+                ${formatVND(it.quantity * it.unit_price)}
+              </div>
+
+              <button type="button" onclick="removeAdminEditBillItem(${idx})" class="w-6 h-6 rounded-lg text-rose-500 hover:bg-rose-100 flex items-center justify-center text-xs transition cursor-pointer" title="Xóa món khỏi bill">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function changeAdminEditBillItemQty(idx, delta) {
+      if (!editingBillItems[idx]) return;
+      editingBillItems[idx].quantity = Math.max(0, editingBillItems[idx].quantity + delta);
+      editingBillItems[idx].total_price = editingBillItems[idx].quantity * editingBillItems[idx].unit_price;
+      renderAdminEditBillItems();
+      recalcAdminEditBillTotals();
+    }
+
+    function setAdminEditBillItemQty(idx, val) {
+      if (!editingBillItems[idx]) return;
+      const q = Math.max(0, parseInt(val) || 0);
+      editingBillItems[idx].quantity = q;
+      editingBillItems[idx].total_price = q * editingBillItems[idx].unit_price;
+      renderAdminEditBillItems();
+      recalcAdminEditBillTotals();
+    }
+
+    function removeAdminEditBillItem(idx) {
+      if (!editingBillItems[idx]) return;
+      editingBillItems[idx].quantity = 0;
+      editingBillItems[idx].total_price = 0;
+      renderAdminEditBillItems();
+      recalcAdminEditBillTotals();
+    }
+
+    function adminAddDishToCurrentBill() {
+      const sel = document.getElementById("adminAddDishSelect");
+      const qtyInp = document.getElementById("adminAddDishQty");
+      if (!sel || !sel.value) {
+        alert("Vui lòng chọn món cần thêm!");
+        return;
+      }
+      const dishId = parseInt(sel.value);
+      const qty = Math.max(1, parseInt(qtyInp ? qtyInp.value : 1) || 1);
+      const opt = sel.options[sel.selectedIndex];
+      const name = opt.getAttribute("data-name") || opt.text;
+      const price = parseInt(opt.getAttribute("data-price")) || 0;
+      const station = opt.getAttribute("data-station") || "HOT_KITCHEN";
+
+      const existing = editingBillItems.find(x => x.item_id === dishId && x.unit_price === price);
+      if (existing) {
+        existing.quantity += qty;
+        existing.total_price = existing.quantity * existing.unit_price;
+      } else {
+        editingBillItems.push({
+          id: null,
+          item_id: dishId,
+          item_name: name,
+          quantity: qty,
+          unit_price: price,
+          total_price: qty * price,
+          station: station,
+          note: ""
+        });
+      }
+
+      if (qtyInp) qtyInp.value = 1;
+      renderAdminEditBillItems();
+      recalcAdminEditBillTotals();
+    }
+
+    function recalcAdminEditBillTotals() {
+      const newSubtotal = editingBillItems.reduce((acc, it) => acc + (it.quantity * it.unit_price), 0);
+      const discInp = document.getElementById("adminEditDiscountInput");
+      const feeInp = document.getElementById("adminEditServiceFeeInput");
+
+      const newDiscount = Math.max(0, parseInt(discInp ? discInp.value : 0) || 0);
+      const newServiceFee = Math.max(0, parseInt(feeInp ? feeInp.value : 0) || 0);
+      const newGrandTotal = Math.max(0, newSubtotal - newDiscount + newServiceFee);
+
+      const subEl = document.getElementById("adminEditSubtotalText");
+      const discEl = document.getElementById("adminEditDiscountText");
+      const feeEl = document.getElementById("adminEditServiceFeeText");
+      const grandEl = document.getElementById("adminEditGrandTotalText");
+      const diffBadge = document.getElementById("adminEditDiffBadge");
+
+      if (subEl) subEl.innerText = formatVND(newSubtotal);
+      if (discEl) discEl.innerText = `-${formatVND(newDiscount)}`;
+      if (feeEl) feeEl.innerText = `+${formatVND(newServiceFee)}`;
+      if (grandEl) grandEl.innerText = formatVND(newGrandTotal);
+
+      if (diffBadge && currentAdminViewingBill) {
+        const oldTotal = currentAdminViewingBill.total || 0;
+        const diff = newGrandTotal - oldTotal;
+        if (diff === 0) {
+          diffBadge.className = "font-bold px-2 py-0.5 rounded-lg bg-stone-800 text-stone-300 text-xs";
+          diffBadge.innerText = "Không thay đổi (0 đ)";
+        } else if (diff > 0) {
+          diffBadge.className = "font-bold px-2 py-0.5 rounded-lg bg-emerald-700 text-white text-xs";
+          diffBadge.innerText = `Thu thêm +${formatVND(diff)}`;
+        } else {
+          diffBadge.className = "font-bold px-2 py-0.5 rounded-lg bg-rose-700 text-white text-xs";
+          diffBadge.innerText = `Hoàn lại khách ${formatVND(diff)}`;
+        }
+      }
+    }
+
+    async function submitAdminEditBill() {
+      if (!currentAdminViewingBill) return;
+
+      const reasonInp = document.getElementById("adminEditBillReasonInput");
+      const reason = (reasonInp ? reasonInp.value : "").trim();
+      if (!reason) {
+        alert("⚠️ Vui lòng nhập lý do sửa hóa đơn để lưu vết kiểm toán (audit log)!");
+        if (reasonInp) reasonInp.focus();
+        return;
+      }
+
+      const activeItems = editingBillItems.filter(x => x.quantity > 0);
+      if (activeItems.length === 0) {
+        if (!confirm("Hóa đơn sẽ không còn món nào (tổng tiền món = 0). Bạn có chắc chắn muốn tiếp tục?")) {
+          return;
+        }
+      }
+
+      const discInp = document.getElementById("adminEditDiscountInput");
+      const discReasonInp = document.getElementById("adminEditDiscountReasonInput");
+      const feeInp = document.getElementById("adminEditServiceFeeInput");
+
+      const discountVal = Math.max(0, parseInt(discInp ? discInp.value : 0) || 0);
+      const discountReasonVal = (discReasonInp ? discReasonInp.value : "").trim();
+      const serviceFeeVal = Math.max(0, parseInt(feeInp ? feeInp.value : 0) || 0);
+
+      let adminId = null;
+      let adminName = "";
+      if (currentAdminEditBillMethod === 'INTERNAL') {
+        const admSel = document.getElementById("adminEditBillAdminSelect");
+        if (admSel && admSel.value) {
+          adminId = parseInt(admSel.value) || null;
+          const opt = admSel.options[admSel.selectedIndex];
+          adminName = opt ? (opt.getAttribute("data-name") || opt.text.split('(')[0].trim()) : "";
+        }
+      }
+
+      const payload = {
+        items: editingBillItems,
+        discount: discountVal,
+        discount_reason: discountReasonVal,
+        service_fee: serviceFeeVal,
+        payment_method: currentAdminEditBillMethod || "CASH",
+        bill_target: currentAdminEditBillMethod === 'INTERNAL' ? 'ADMIN' : 'CUSTOMER',
+        billed_admin_id: adminId,
+        billed_admin_name: adminName,
+        edit_reason: reason
+      };
+
+      const btn = document.getElementById("btnAdminSaveEditedBill");
+      const origHtml = btn ? btn.innerHTML : "";
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu & cập nhật doanh thu...`;
+      }
+
+      try {
+        const res = await fetch(`/api/pos/bills/${currentAdminViewingBill.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Không thể cập nhật hóa đơn");
+        }
+
+        alert(data.message || "🎉 Đã cập nhật hóa đơn và doanh thu thành công!");
+
+        // Refresh toàn bộ báo cáo doanh thu & hóa đơn
+        if (typeof loadRevenueReports === 'function') loadRevenueReports();
+        if (typeof fetchDetailReport === 'function') fetchDetailReport();
+        if (typeof loadAdminOverviewStats === 'function') loadAdminOverviewStats();
+
+        // Mở lại bill detail ở chế độ xem
+        await openAdminBillDetail(currentAdminViewingBill.id);
+        switchAdminBillTab('RECEIPT');
+
+      } catch (err) {
+        console.error("Lỗi submitAdminEditBill:", err);
+        alert("❌ Lỗi khi sửa bill: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+        }
+      }
+    }
+
+
     async function openAdminBillDetail(billId) {
       let bill = null;
       try {
@@ -2645,6 +3064,7 @@
         return;
       }
       currentAdminViewingBill = bill;
+      switchAdminBillTab('RECEIPT');
 
       document.getElementById("adminModalBillTitle").innerText = `Hóa Đơn #HD-${bill.id}`;
       document.getElementById("adminModalBillTable").innerText = `${bill.table_name} (${bill.area} • ${bill.table_code || ''})`;

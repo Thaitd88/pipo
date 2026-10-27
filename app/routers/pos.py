@@ -12,7 +12,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
-from ..database import get_db
+from ..database import get_db, deduct_inventory_for_order_item, restore_inventory_for_order_item, get_dynamic_bom_for_item
 from ..timezone_utils import now_vn_str
 from .auth import require_api_auth, get_current_user_from_request
 
@@ -918,6 +918,285 @@ async def dismiss_all_service_calls():
     conn.commit()
     conn.close()
     return {"status": "SUCCESS"}
+
+class BillEditItem(BaseModel):
+    id: Optional[int] = None
+    item_id: Optional[int] = None
+    item_name: str
+    quantity: int
+    unit_price: int
+    total_price: Optional[int] = None
+    station: Optional[str] = "HOT_KITCHEN"
+    note: Optional[str] = ""
+
+class EditBillRequest(BaseModel):
+    items: List[BillEditItem]
+    discount: int = 0
+    discount_reason: Optional[str] = ""
+    service_fee: int = 0
+    payment_method: str = "CASH"
+    bill_target: Optional[str] = "CUSTOMER"
+    billed_admin_id: Optional[int] = None
+    billed_admin_name: Optional[str] = ""
+    edit_reason: Optional[str] = "Khách báo nhầm"
+
+@router.get("/bills/{order_id}")
+def get_bill_detail(order_id: int):
+    """Lấy chi tiết đầy đủ của 1 hóa đơn bao gồm danh sách món để sửa hoặc xem."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT o.*, t.name as table_name, t.table_code, t.area
+        FROM orders o
+        JOIN tables t ON o.table_id = t.id
+        WHERE o.id = ?
+    """, (order_id,))
+    order_row = cursor.fetchone()
+    if not order_row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Không tìm thấy hóa đơn.")
+    
+    order_dict = dict(order_row)
+    session_id = order_dict.get("session_id")
+    if session_id:
+        cursor.execute("SELECT id FROM orders WHERE session_id = ? AND payment_status = 'PAID'", (session_id,))
+        order_ids = [r[0] for r in cursor.fetchall()]
+        if order_id not in order_ids:
+            order_ids.append(order_id)
+    else:
+        order_ids = [order_id]
+        
+    placeholders = ",".join("?" for _ in order_ids)
+    cursor.execute(f"""
+        SELECT oi.*, m.category_id
+        FROM order_items oi
+        LEFT JOIN menu_items m ON oi.item_id = m.id
+        WHERE oi.order_id IN ({placeholders}) AND oi.status != 'CANCELLED'
+        ORDER BY oi.id ASC
+    """, order_ids)
+    raw_items = [dict(it) for it in cursor.fetchall()]
+    conn.close()
+    
+    return {
+        "status": "SUCCESS",
+        "bill": {
+            **order_dict,
+            "order_ids": order_ids,
+            "items": raw_items
+        }
+    }
+
+@router.put("/bills/{order_id}")
+async def edit_paid_bill(order_id: int, req: EditBillRequest, request: Request):
+    """
+    Cho phép Admin chỉnh sửa hóa đơn đã thanh toán:
+    - Sửa số lượng món, xóa món tính nhầm, thêm món mới
+    - Sửa giảm giá, phí dịch vụ, hình thức thanh toán
+    - Tự động hoàn/trừ kho nguyên vật liệu tương ứng
+    - Cập nhật lại tổng tiền đơn hàng và doanh thu / báo cáo tức thì
+    """
+    user = get_current_user_from_request(request)
+    admin_name = (user.get("full_name") if user else None) or "Quản trị viên"
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT o.*, t.name as table_name, t.table_code, t.area
+        FROM orders o
+        JOIN tables t ON o.table_id = t.id
+        WHERE o.id = ?
+    """, (order_id,))
+    order_row = cursor.fetchone()
+    if not order_row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Không tìm thấy hóa đơn cần sửa.")
+        
+    order = dict(order_row)
+    session_id = order.get("session_id")
+    if session_id:
+        cursor.execute("SELECT id FROM orders WHERE session_id = ? AND payment_status = 'PAID'", (session_id,))
+        order_ids = [r[0] for r in cursor.fetchall()]
+        if order_id not in order_ids:
+            order_ids.append(order_id)
+    else:
+        order_ids = [order_id]
+        
+    main_order_id = order_id
+    
+    placeholders = ",".join("?" for _ in order_ids)
+    cursor.execute(f"""
+        SELECT * FROM order_items
+        WHERE order_id IN ({placeholders}) AND status != 'CANCELLED'
+    """, order_ids)
+    existing_items = {r["id"]: dict(r) for r in cursor.fetchall()}
+    
+    payload_item_ids = set()
+    new_subtotal = 0
+    now_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    for it in req.items:
+        qty = max(0, int(it.quantity))
+        u_price = max(0, int(it.unit_price))
+        tot_price = qty * u_price
+        
+        if it.id and it.id in existing_items:
+            payload_item_ids.add(it.id)
+            old_item = existing_items[it.id]
+            old_qty = old_item["quantity"]
+            
+            if qty == 0:
+                cursor.execute("""
+                    UPDATE order_items
+                    SET status = 'CANCELLED',
+                        cancelled_by = ?,
+                        cancel_reason = ?,
+                        cancelled_at = ?,
+                        updated_at = ?
+                    WHERE id = ?
+                """, (f"{admin_name} (Sửa bill)", req.edit_reason or "Admin xóa khỏi bill", now_ts, now_ts, it.id))
+                
+                if old_item.get("inventory_deducted") == 1:
+                    try:
+                        restore_inventory_for_order_item(conn, it.id, reason=f"Sửa bill #{main_order_id}: hủy {old_item['item_name']}")
+                    except Exception as _e:
+                        logger.warning(f"[Inventory Restore Error]: {_e}")
+            else:
+                cursor.execute("""
+                    UPDATE order_items
+                    SET quantity = ?, unit_price = ?, total_price = ?, note = ?, updated_at = ?
+                    WHERE id = ?
+                """, (qty, u_price, tot_price, it.note or "", now_ts, it.id))
+                new_subtotal += tot_price
+                
+                if old_item.get("inventory_deducted") == 1 and old_item.get("item_id"):
+                    delta = qty - old_qty
+                    if delta != 0:
+                        try:
+                            recipes = get_dynamic_bom_for_item(cursor, old_item["item_id"], old_item["modifiers_json"], old_item["item_name"])
+                            for r in recipes:
+                                ing_delta = r["bom_qty"] * delta
+                                cursor.execute("UPDATE inventory_items SET stock_quantity = stock_quantity - ? WHERE id = ?", (ing_delta, r["ingredient_id"]))
+                                cursor.execute("""
+                                    INSERT INTO inventory_transactions 
+                                    (ingredient_id, transaction_type, quantity, unit_price, reference_id, note, created_by)
+                                    VALUES (?, 'ORDER_DEDUCT', ?, ?, ?, ?, ?)
+                                """, (
+                                    r["ingredient_id"],
+                                    -ing_delta,
+                                    r["cost_price"],
+                                    main_order_id,
+                                    f"Sửa bill #{main_order_id}: {old_item['item_name']} (SL {old_qty} -> {qty})",
+                                    admin_name
+                                ))
+                        except Exception as _ie:
+                            logger.warning(f"[Inventory Delta Error]: {_ie}")
+        elif qty > 0:
+            station = it.station or "HOT_KITCHEN"
+            item_name = it.item_name.strip()
+            item_id_val = it.item_id
+            cursor.execute("""
+                INSERT INTO order_items 
+                (order_id, item_id, item_name, quantity, unit_price, total_price, station, note, status, created_at, updated_at, inventory_deducted)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'SERVED', ?, ?, 0)
+            """, (main_order_id, item_id_val, item_name, qty, u_price, tot_price, station, it.note or "", now_ts, now_ts))
+            new_item_id = cursor.lastrowid
+            new_subtotal += tot_price
+            
+            try:
+                deduct_inventory_for_order_item(conn, new_item_id)
+            except Exception as _de:
+                logger.warning(f"[Inventory Deduct Error]: {_de}")
+                
+    for old_id, old_it in existing_items.items():
+        if old_id not in payload_item_ids:
+            cursor.execute("""
+                UPDATE order_items
+                SET status = 'CANCELLED',
+                    cancelled_by = ?,
+                    cancel_reason = ?,
+                    cancelled_at = ?,
+                    updated_at = ?
+                WHERE id = ?
+            """, (f"{admin_name} (Sửa bill)", req.edit_reason or "Admin xóa khỏi bill", now_ts, now_ts, old_id))
+            if old_it.get("inventory_deducted") == 1:
+                try:
+                    restore_inventory_for_order_item(conn, old_id, reason=f"Sửa bill #{main_order_id}: hủy {old_it['item_name']}")
+                except Exception as _re:
+                    logger.warning(f"[Inventory Restore Error]: {_re}")
+                    
+    discount_amt = max(0, int(req.discount))
+    service_fee_amt = max(0, int(req.service_fee))
+    new_grand_total = max(0, new_subtotal - discount_amt + service_fee_amt)
+    
+    p_method = (req.payment_method or "CASH").strip().upper()
+    if p_method == "VIETQR":
+        p_method = "TRANSFER"
+    b_target = (req.bill_target or "CUSTOMER").strip().upper()
+    b_admin_id = req.billed_admin_id
+    b_admin_name = (req.billed_admin_name or "").strip()
+    if p_method == "INTERNAL":
+        b_target = "ADMIN"
+    else:
+        b_target = "CUSTOMER"
+        b_admin_id = None
+        b_admin_name = ""
+        
+    edit_note_entry = f" [Sửa bill: {req.edit_reason or 'Khách báo nhầm'} - {admin_name} lúc {now_ts}]"
+    existing_note = order.get("customer_note") or ""
+    new_note = existing_note + edit_note_entry
+    
+    cursor.execute("""
+        UPDATE orders
+        SET subtotal = ?,
+            discount = ?,
+            discount_reason = ?,
+            service_fee = ?,
+            total = ?,
+            payment_method = ?,
+            bill_target = ?,
+            billed_admin_id = ?,
+            billed_admin_name = ?,
+            customer_note = ?
+        WHERE id = ?
+    """, (new_subtotal, discount_amt, req.discount_reason or "", service_fee_amt, new_grand_total,
+          p_method, b_target, b_admin_id, b_admin_name, new_note, main_order_id))
+          
+    for other_oid in order_ids:
+        if other_oid != main_order_id:
+            cursor.execute("""
+                UPDATE orders
+                SET subtotal = 0,
+                    discount = 0,
+                    service_fee = 0,
+                    total = 0,
+                    payment_method = ?,
+                    bill_target = ?,
+                    billed_admin_id = ?,
+                    billed_admin_name = ?
+                WHERE id = ?
+            """, (p_method, b_target, b_admin_id, b_admin_name, other_oid))
+            
+    conn.commit()
+    conn.close()
+    
+    if ws_broadcaster:
+        try:
+            await ws_broadcaster.send_to_pos({"event": "BILL_UPDATED", "bill_id": main_order_id, "total": new_grand_total})
+            await ws_broadcaster.send_to_pos({"event": "ORDERS_REFRESH"})
+        except Exception as _wse:
+            logger.warning(f"[WS Error]: {_wse}")
+            
+    return {
+        "status": "SUCCESS",
+        "message": f"Đã cập nhật hóa đơn #HD-{main_order_id} thành công! Doanh thu mới: {new_grand_total:,} đ",
+        "bill_id": main_order_id,
+        "subtotal": new_subtotal,
+        "discount": discount_amt,
+        "service_fee": service_fee_amt,
+        "total": new_grand_total,
+        "payment_method": p_method
+    }
+
 
 class UpdateBillPaymentMethodRequest(BaseModel):
     payment_method: str  # "CASH", "TRANSFER", "INTERNAL"
