@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+  <base href="https://pipogarden.com/">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quyển Thực Đơn PiPo Garden Phú Quốc - Bản In A4 Cao Cấp</title>
@@ -313,7 +314,7 @@
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             {% for it in menu[0]["items"] %}
             <div class="dish-card">
-              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
                 <div class="flex items-baseline justify-between">
                   <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
@@ -344,7 +345,7 @@
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             {% for it in menu[1]["items"] %}
             <div class="dish-card bg-amber-50/40 border-amber-200">
-              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
                 <div class="flex items-baseline justify-between">
                   <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
@@ -399,7 +400,7 @@
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             {% for it in menu[2]["items"] %}
             <div class="dish-card">
-              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
                 <div class="flex items-baseline justify-between">
                   <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
@@ -430,7 +431,7 @@
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             {% for it in menu[3]["items"] %}
             <div class="dish-card">
-              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
                 <div class="flex items-baseline justify-between">
                   <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
@@ -489,7 +490,7 @@
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             {% for it in menu[4]["items"] %}
             <div class="dish-card">
-              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
                 <div class="flex items-baseline justify-between">
                   <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
@@ -520,7 +521,7 @@
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             {% for it in menu[5]["items"] %}
             <div class="dish-card">
-              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
                 <div class="flex items-baseline justify-between">
                   <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
@@ -579,7 +580,7 @@
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             {% for it in menu[6]["items"] %}
             <div class="dish-card">
-              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
                 <div class="flex items-baseline justify-between">
                   <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
@@ -610,7 +611,7 @@
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             {% for it in menu[7]["items"] %}
             <div class="dish-card">
-              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
                 <div class="flex items-baseline justify-between">
                   <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
@@ -641,7 +642,7 @@
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             {% for it in menu[8]["items"] %}
             <div class="dish-card bg-rose-50/30 border-rose-200">
-              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
                 <div class="flex items-baseline justify-between">
                   <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
@@ -696,7 +697,7 @@
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             {% for it in menu[9]["items"] %}
             <div class="dish-card">
-              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="{{ it.image_url }}" alt="{{ it.name }}" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
                 <div class="flex items-baseline justify-between">
                   <h4 class="font-bold text-stone-900 text-xs truncate">{{ it.name }}</h4>
