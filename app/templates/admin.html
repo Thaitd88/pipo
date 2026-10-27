@@ -4042,9 +4042,9 @@
           if (item) {
             item.is_available = isAvailable ? 1 : 0;
             const dishName = item.name || `Món #${id}`;
-            showAdminToast(isAvailable ? `Đã BẬT món "${dishName}" (hiển thị trên thực đơn khách)` : `Đã TẮT món "${dishName}" (đã ẩn hoàn toàn khỏi menu khách)`);
+            showAdminToast(isAvailable ? `Đã BẬT phục vụ món "${dishName}" (sẵn sàng gọi món)` : `Đã BÁO HẾT NVL món "${dishName}" (hiển thị tạm hết NVL trên menu khách)`);
           } else {
-            showAdminToast(isAvailable ? `Đã BẬT phục vụ món #${id}` : `Đã TẮT món #${id} (ẩn khỏi menu khách)`);
+            showAdminToast(isAvailable ? `Đã BẬT phục vụ món #${id}` : `Đã BÁO HẾT NVL món #${id} (hiển thị tạm hết NVL trên menu khách)`);
           }
         } else {
           showAdminToast(`Lỗi khi cập nhật trạng thái món #${id}`);

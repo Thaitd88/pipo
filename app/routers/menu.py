@@ -92,15 +92,13 @@ def get_full_menu(for_customer: bool = Query(False), scope: Optional[str] = Quer
     if for_customer or scope == "customer":
         categories = [c for c in categories if c["id"] != 8 and "sân" not in c["name"].lower()]
     
-    # 2. Lấy toàn bộ món ăn
+    # 2. Lấy toàn bộ món ăn (kể cả món hết NVL / tắt bán để khách thấy thực đơn đầy đủ)
     sql = """
         SELECT m.*, c.name as category_name
         FROM menu_items m
         JOIN categories c ON m.category_id = c.id
+        ORDER BY c.display_order, m.id
     """
-    if for_customer or scope == "customer":
-        sql += " WHERE m.is_available = 1 "
-    sql += " ORDER BY c.display_order, m.id"
 
     cursor.execute(sql)
     items = [dict(it) for it in cursor.fetchall()]

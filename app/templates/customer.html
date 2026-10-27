@@ -1394,10 +1394,10 @@
         activeCategoryId = 'ALL';
       }
 
-      // Đếm số món thực tế thuộc Menu chính đang chọn
+      // Đếm số món thực tế thuộc Menu chính đang chọn (bao gồm món tạm hết NVL)
       let totalDishes = 0;
       const filteredCats = menuData.map(cat => {
-        const items = (cat.items || []).filter(it => (it.is_available === 1 || it.is_available === true) && isItemInMainMenu(it, currentMainMenu));
+        const items = (cat.items || []).filter(it => isItemInMainMenu(it, currentMainMenu));
         totalDishes += items.length;
         return { ...cat, matchingCount: items.length };
       });
@@ -1464,7 +1464,7 @@
       const html = selectedCats.map(cat => {
         const theme = getCategoryTheme(cat.id);
         // Lọc các món thuộc Menu chính đang chọn (Nhà Hàng, Cơm Trưa, Cafe/Sáng)
-        const items = (cat.items || []).filter(it => (it.is_available === 1 || it.is_available === true) && isItemInMainMenu(it, currentMainMenu));
+        const items = (cat.items || []).filter(it => isItemInMainMenu(it, currentMainMenu));
         if (items.length === 0) return '';
         hasAnyDish = true;
         const catName = getCategoryName(cat);
@@ -1501,8 +1501,8 @@
               const itemName = getItemName(item);
               const itemDesc = getItemDesc(item);
               const parsed = parsePortionAndDesc(itemDesc);
-              const isOutOfIngredients = (item.out_of_ingredients === 1);
-              const isAvailable = (item.is_available === 1 && !isOutOfIngredients);
+              const isOutOfIngredients = (item.out_of_ingredients === 1 || item.is_available === 0 || item.is_available === false || item.is_available === '0');
+              const isAvailable = (item.is_available === 1 && item.out_of_ingredients !== 1);
               const discPct = item.discount_percent || 0;
               const hasDisc = discPct > 0 && discPct <= 100;
               const effectivePrice = hasDisc ? Math.round(item.price * (100 - discPct) / 100) : item.price;
@@ -1694,7 +1694,7 @@
       document.getElementById("modalItemNote").value = "";
 
       // Xử lý Cảnh báo Tạm Hết NVL
-      const isOutOfIngredients = (item.out_of_ingredients === 1);
+      const isOutOfIngredients = (item.out_of_ingredients === 1 || item.is_available === 0 || item.is_available === false || item.is_available === '0');
       const outAlert = document.getElementById("modalOutOfIngredientsAlert");
       const addBtn = document.getElementById("modalAddToCartBtn");
       const statusBadge = document.getElementById("modalItemStatusBadge");
@@ -1838,10 +1838,10 @@
       }
       if (!item) return;
 
-      const isOutOfIngredients = (item.out_of_ingredients === 1);
+      const isOutOfIngredients = (item.out_of_ingredients === 1 || item.is_available === 0 || item.is_available === false || item.is_available === '0');
       const isAvailable = (item.is_available === 1 && !isOutOfIngredients);
-      if (!isAvailable) {
-        alert("Món ăn hiện tạm hết nguyên liệu hoặc ngưng phục vụ!");
+      if (!isAvailable || isOutOfIngredients) {
+        showToast("⚠️ Món ăn này hiện đang tạm hết nguyên liệu chế biến!");
         return;
       }
 
@@ -1928,10 +1928,10 @@
       }
       if (!item) return;
 
-      const isOutOfIngredients = (item.out_of_ingredients === 1);
+      const isOutOfIngredients = (item.out_of_ingredients === 1 || item.is_available === 0 || item.is_available === false || item.is_available === '0');
       const isAvailable = (item.is_available === 1 && !isOutOfIngredients);
-      if (!isAvailable) {
-        showToast("⚠️ Món ăn hiện tạm hết nguyên liệu hoặc ngưng phục vụ!");
+      if (!isAvailable || isOutOfIngredients) {
+        showToast("⚠️ Món ăn này hiện đang tạm hết nguyên liệu chế biến!");
         return;
       }
 
@@ -1972,10 +1972,10 @@
       }
       if (!item) return;
 
-      const isOutOfIngredients = (item.out_of_ingredients === 1);
+      const isOutOfIngredients = (item.out_of_ingredients === 1 || item.is_available === 0 || item.is_available === false || item.is_available === '0');
       const isAvailable = (item.is_available === 1 && !isOutOfIngredients);
-      if (!isAvailable) {
-        showToast("⚠️ Món ăn hiện tạm hết hoặc ngưng phục vụ!");
+      if (!isAvailable || isOutOfIngredients) {
+        showToast("⚠️ Món ăn này hiện đang tạm hết nguyên liệu chế biến!");
         return;
       }
 

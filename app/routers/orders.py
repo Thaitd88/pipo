@@ -90,6 +90,14 @@ async def create_order(payload: dict):
         if not menu_row:
             continue
 
+        # Kiểm tra nếu món bị tắt bán hoặc hết nguyên liệu thì từ chối đặt
+        if menu_row["is_available"] == 0 or menu_row.get("out_of_ingredients") == 1:
+            conn.close()
+            raise HTTPException(
+                status_code=400,
+                detail=f"Món '{menu_row['name']}' hiện đang tạm hết nguyên liệu chế biến, quý khách vui lòng chọn món khác trong thực đơn nhé!"
+            )
+
         orig_price = menu_row["price"]
         disc_pct = menu_row["discount_percent"] if "discount_percent" in menu_row.keys() and menu_row["discount_percent"] else 0
         if 0 < disc_pct <= 100:
