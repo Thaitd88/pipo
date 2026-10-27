@@ -675,9 +675,13 @@ async def get_bills_history(limit: int = 60, search: str = ""):
     """
     params = []
     if search:
-        query += " AND (t.name LIKE ? OR t.table_code LIKE ? OR o.id LIKE ? OR o.billed_admin_name LIKE ?)"
-        s = f"%{search}%"
-        params.extend([s, s, s, s])
+        clean_s = search.strip()
+        query += """ AND (
+            t.name LIKE ? OR t.table_code LIKE ? OR o.id LIKE ? OR o.billed_admin_name LIKE ?
+            OR o.session_id IN (SELECT session_id FROM orders WHERE id = ? AND session_id IS NOT NULL)
+        )"""
+        s = f"%{clean_s}%"
+        params.extend([s, s, s, s, clean_s])
 
     query += " ORDER BY COALESCE(o.completed_at, o.created_at) DESC, o.id DESC, oi.id ASC LIMIT ?"
     params.append(limit * 4 * 20)  # Giới hạn đủ rộng để cover items
@@ -942,7 +946,7 @@ class EditBillRequest(BaseModel):
 
 @router.get("/bills/{order_id}")
 def get_bill_detail(order_id: int):
-    """Lấy chi tiết đầy đủ của 1 hóa đơn bao gồm danh sách món để sửa hoặc xem."""
+    """Lấy chi tiết đầy đủ của 1 hóa đơn bao gồm toàn bộ các món trong phiên để sửa hoặc xem."""
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
@@ -959,12 +963,25 @@ def get_bill_detail(order_id: int):
     order_dict = dict(order_row)
     session_id = order_dict.get("session_id")
     if session_id:
-        cursor.execute("SELECT id FROM orders WHERE session_id = ? AND payment_status = 'PAID'", (session_id,))
-        order_ids = [r[0] for r in cursor.fetchall()]
+        cursor.execute("""
+            SELECT id, subtotal, discount, discount_reason, service_fee, total
+            FROM orders 
+            WHERE session_id = ? AND payment_status = 'PAID'
+            ORDER BY id ASC
+        """, (session_id,))
+        sess_rows = [dict(r) for r in cursor.fetchall()]
+        order_ids = [r["id"] for r in sess_rows]
         if order_id not in order_ids:
             order_ids.append(order_id)
+            
+        tot_discount = sum(r.get("discount") or 0 for r in sess_rows)
+        tot_service_fee = sum(r.get("service_fee") or 0 for r in sess_rows)
+        disc_reason = next((r.get("discount_reason") for r in sess_rows if r.get("discount_reason")), order_dict.get("discount_reason") or "")
     else:
         order_ids = [order_id]
+        tot_discount = order_dict.get("discount") or 0
+        tot_service_fee = order_dict.get("service_fee") or 0
+        disc_reason = order_dict.get("discount_reason") or ""
         
     placeholders = ",".join("?" for _ in order_ids)
     cursor.execute(f"""
@@ -977,12 +994,45 @@ def get_bill_detail(order_id: int):
     raw_items = [dict(it) for it in cursor.fetchall()]
     conn.close()
     
+    # Nhóm các món cùng tên, cùng đơn giá, cùng ghi chú
+    from collections import OrderedDict
+    merged_items = OrderedDict()
+    for it in raw_items:
+        name = it.get("item_name") or "Món"
+        price = it.get("unit_price") or 0
+        note = (it.get("note") or "").strip()
+        k = (name, price, note)
+        if k not in merged_items:
+            merged_items[k] = {
+                "id": it.get("id"),
+                "order_id": it.get("order_id"),
+                "item_id": it.get("item_id"),
+                "item_name": name,
+                "quantity": 0,
+                "unit_price": price,
+                "total_price": 0,
+                "station": it.get("station") or "HOT_KITCHEN",
+                "note": note,
+                "category_id": it.get("category_id")
+            }
+        merged_items[k]["quantity"] += (it.get("quantity") or 1)
+        merged_items[k]["total_price"] += ((it.get("quantity") or 1) * price)
+
+    final_items = list(merged_items.values())
+    calc_subtotal = sum(it["total_price"] for it in final_items)
+    calc_total = max(0, calc_subtotal - tot_discount + tot_service_fee)
+    
     return {
         "status": "SUCCESS",
         "bill": {
             **order_dict,
+            "subtotal": calc_subtotal,
+            "discount": tot_discount,
+            "discount_reason": disc_reason,
+            "service_fee": tot_service_fee,
+            "total": calc_total,
             "order_ids": order_ids,
-            "items": raw_items
+            "items": final_items
         }
     }
 

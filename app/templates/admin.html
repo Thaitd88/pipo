@@ -3050,13 +3050,28 @@
     async function openAdminBillDetail(billId) {
       let bill = null;
       try {
-        const res = await fetch(`/api/pos/bills/history?search=${billId}`);
+        // 1. Thử gọi trực tiếp API chi tiết hóa đơn /api/pos/bills/{billId} (lấy đầy đủ toàn bộ món trong phiên)
+        const res = await fetch(`/api/pos/bills/${billId}`);
         if (res.ok) {
           const data = await res.json();
-          bill = (data.bills || []).find(b => b.id === billId || (b.order_ids && b.order_ids.includes(billId))) || (data.bills && data.bills[0]);
+          if (data && data.bill) {
+            bill = data.bill;
+          }
         }
       } catch (e) {
-        console.error("Lỗi lấy thông tin bill:", e);
+        console.warn("Lỗi lấy /api/pos/bills/${billId}, thử history:", e);
+      }
+
+      if (!bill) {
+        try {
+          const res = await fetch(`/api/pos/bills/history?search=${billId}`);
+          if (res.ok) {
+            const data = await res.json();
+            bill = (data.bills || []).find(b => b.id === billId || (b.order_ids && b.order_ids.includes(billId))) || (data.bills && data.bills[0]);
+          }
+        } catch (e) {
+          console.error("Lỗi lấy thông tin bill:", e);
+        }
       }
 
       if (!bill) {
