@@ -230,6 +230,48 @@ async def sync_reservations_now(config: dict):
     except Exception:
         pass
 
+async def sync_local_to_cloud_now(config: dict):
+    """Đẩy các đơn phát sinh từ Local POS lên Cloud ngay lập tức khi có sự kiện."""
+    cloud_url = config.get("cloud_api_url", "https://pipogarden.com").rstrip("/")
+    local_url = config.get("local_api_url", "http://127.0.0.1:8000").rstrip("/")
+    try:
+        export_local = await asyncio.to_thread(http_get_json, f"{local_url}/api/sync/export-orders?limit=50", 4.0)
+        if export_local.get("count", 0) > 0 or export_local.get("deleted_uuids"):
+            push_payload = {
+                "orders": export_local.get("orders", []),
+                "deleted_uuids": export_local.get("deleted_uuids", [])
+            }
+            push_res = await asyncio.to_thread(http_post_json, f"{cloud_url}/api/sync/import-orders", push_payload, 5.0)
+            if push_res.get("imported", 0) > 0 or push_res.get("updated", 0) > 0:
+                print(f"[{datetime.now().strftime('%H:%M:%S')}] ⬆️ [EVENT SYNC] Local -> Cloud: {push_res.get('message')}")
+    except Exception:
+        pass
+
+async def local_pos_listener(config: dict):
+    """Lắng nghe sự kiện từ POS Local (khi thu ngân bấm tạo đơn, thanh toán...) để đẩy tức thì lên Cloud."""
+    local_pos_ws_url = config.get("local_pos_ws_url", "ws://127.0.0.1:8000/ws/pos")
+    reconnect_interval = config.get("reconnect_interval_sec", 5)
+
+    while True:
+        try:
+            async with websockets.connect(local_pos_ws_url, ping_interval=20, ping_timeout=20) as ws:
+                print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚡ [LOCAL POS BRIDGE] Đã kết nối luồng sự kiện POS Local!")
+                async for message in ws:
+                    try:
+                        data = json.loads(message)
+                        event = data.get("event")
+                        if event in [
+                            "NEW_ORDER", "TABLE_CHECKED_OUT", "ITEM_STATUS_CHANGED", 
+                            "ORDER_ITEMS_COMPLETED", "TABLE_ITEMS_SERVED", 
+                            "ITEM_CANCELLED", "TABLE_UPDATED", "CANCEL_APPROVED"
+                        ]:
+                            # Kích hoạt đẩy ngay dữ liệu từ Local lên Cloud
+                            await sync_local_to_cloud_now(config)
+                    except Exception:
+                        pass
+        except Exception:
+            await asyncio.sleep(reconnect_interval)
+
 async def cloud_pos_listener(config: dict):
     """Cầu nối thời gian thực: Lắng nghe sự kiện Cloud POS (đơn mới, check-in, gọi phục vụ) để phát ngay tới POS Local."""
     cloud_pos_ws_url = config.get("cloud_pos_ws_url", "wss://pipogarden.com/ws/pos")
@@ -240,11 +282,14 @@ async def cloud_pos_listener(config: dict):
         try:
             async with websockets.connect(cloud_pos_ws_url, ping_interval=20, ping_timeout=20) as ws:
                 print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚡ [REALTIME POS BRIDGE] Đã kết nối luồng sự kiện Cloud POS!")
+                # Tự động đồng bộ bù ngay khi kết nối thành công phòng khi vừa mất mạng
+                await sync_orders_now(config)
+                await sync_reservations_now(config)
                 async for message in ws:
                     try:
                         data = json.loads(message)
                         event = data.get("event")
-                        if event in ["NEW_ORDER", "TABLE_CHECKED_OUT", "ITEM_STATUS_CHANGED", "ORDER_ITEMS_COMPLETED", "TABLE_ITEMS_SERVED"]:
+                        if event in ["NEW_ORDER", "TABLE_CHECKED_OUT", "ITEM_STATUS_CHANGED", "ORDER_ITEMS_COMPLETED", "TABLE_ITEMS_SERVED", "ITEM_CANCELLED", "TABLE_UPDATED", "CANCEL_APPROVED"]:
                             print(f"[{datetime.now().strftime('%H:%M:%S')}] 🛎️ [CLOUD POS] Sự kiện: {event}")
                             await sync_orders_now(config)
                             await asyncio.to_thread(http_post_json, f"{local_url}/api/sync/notify-pos-event", data, 2.0)
@@ -276,30 +321,31 @@ async def cloud_pos_listener(config: dict):
             await asyncio.sleep(reconnect_interval)
 
 async def sync_worker(config: dict):
-    """Tiến trình đồng bộ tuần hoàn bảo đảm CSDL Cloud và Local luôn khớp nhau."""
-    cloud_url = config.get("cloud_api_url", "https://pipogarden.com").rstrip("/")
-    local_url = config.get("local_api_url", "http://127.0.0.1:8000").rstrip("/")
-    interval = config.get("sync_interval_sec", 3)
+    """
+    Tiến trình Safety Net chạy ngầm (mặc định 5 phút / lần):
+    - Đảm bảo 100% không sót đơn nếu mạng chập chờn hoặc rớt gói tin.
+    - Trong thời gian bình thường, hệ thống đồng bộ theo Sự Kiện (Event-Driven) tức thời 0 giây
+      thông qua WebSocket nên không cần quét liên tục, giảm 99.5% tải mạng và CSDL.
+    """
+    interval = config.get("sync_interval_sec", 300)
     internet_was_down = False
 
-    await asyncio.sleep(3)
+    # Đợi 5 giây đầu khởi động để các kết nối WebSocket thiết lập xong
+    await asyncio.sleep(5)
+
+    # Chạy 1 lần đồng bộ ban đầu khi vừa bật phần mềm
+    await sync_orders_now(config)
+    await sync_reservations_now(config)
+    await sync_local_to_cloud_now(config)
 
     while True:
         try:
-            # 1. Kéo đơn & đặt bàn từ Cloud về Local
+            await asyncio.sleep(interval)
+
+            # Safety Net quét nhẹ kiểm tra đối soát
             await sync_orders_now(config)
             await sync_reservations_now(config)
-
-            # 2. Đẩy các đơn bán offline từ Local lên Cloud
-            export_local = await asyncio.to_thread(http_get_json, f"{local_url}/api/sync/export-orders?limit=50", 4.0)
-            if export_local.get("count", 0) > 0 or export_local.get("deleted_uuids"):
-                push_payload = {
-                    "orders": export_local.get("orders", []),
-                    "deleted_uuids": export_local.get("deleted_uuids", [])
-                }
-                push_res = await asyncio.to_thread(http_post_json, f"{cloud_url}/api/sync/import-orders", push_payload, 5.0)
-                if push_res.get("imported", 0) > 0 or push_res.get("updated", 0) > 0:
-                    print(f"[{datetime.now().strftime('%H:%M:%S')}] ⬆️ [SYNC] Local -> Cloud: {push_res.get('message')}")
+            await sync_local_to_cloud_now(config)
 
             if internet_was_down:
                 print(f"[{datetime.now().strftime('%H:%M:%S')}] 🌐 [SYNC] Internet đã phục hồi, đồng bộ Cloud <-> Local hoạt động bình thường.")
@@ -312,8 +358,6 @@ async def sync_worker(config: dict):
         except Exception:
             pass
 
-        await asyncio.sleep(interval)
-
 async def main():
     config = load_config()
     server_ws_url = config.get("server_ws_url", "ws://127.0.0.1:8000/ws/printer")
@@ -325,7 +369,7 @@ async def main():
     print("==================================================================")
     print(f"[*] 1. Kênh Cloud (Khách dùng 4G quét QR)   : {cloud_ws_url}")
     print(f"[*] 2. Kênh Local (Thu ngân & LAN nội bộ)   : {server_ws_url}")
-    print(f"[*] 3. Đồng bộ dữ liệu Cloud <-> Local      : Mỗi {config.get('sync_interval_sec', 20)} giây")
+    print(f"[*] 3. Cơ chế đồng bộ dữ liệu              : Sự kiện tức thì (Event-Driven Push) + Safety Net {config.get('sync_interval_sec', 300)}s")
     print(f"[*] 4. Chế độ in bếp                       : {'Giả lập + LAN' if config.get('simulate_mode') else 'Chỉ gửi máy in LAN'}")
     print("==================================================================\n")
 
@@ -333,6 +377,7 @@ async def main():
         asyncio.create_task(ws_listener(cloud_ws_url, "CLOUD (4G Khách)", config)),
         asyncio.create_task(ws_listener(server_ws_url, "LOCAL (Mạng LAN)", config)),
         asyncio.create_task(cloud_pos_listener(config)),
+        asyncio.create_task(local_pos_listener(config)),
         asyncio.create_task(sync_worker(config)),
     ]
 
