@@ -915,6 +915,51 @@
   </div>
 
   <!-- ======================================================== -->
+    <!-- ======================================================== -->
+  <!-- MODAL: Ô XIN MẬT KHẨU ADMIN NỔI NHANH (HỦY MÓN Ở POS) -->
+  <!-- ======================================================== -->
+  <div id="quickAdminAuthModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl animate-in zoom-in-95 duration-150">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-lg shadow-xs">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-stone-900 text-sm">Xác Nhận Hủy Món</h3>
+            <p id="quickAuthDishSubtitle" class="text-xs text-stone-500 truncate max-w-[200px]">Món ăn</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeQuickAdminAuthModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleQuickAdminAuthSubmit(event)" class="py-4 space-y-3.5">
+        <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-[11.5px] text-amber-900 leading-relaxed">
+          Vui lòng nhập mật khẩu Quản lý (Admin) để hủy món này khỏi bill:
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 text-xs mb-1">Mật khẩu Quản lý *:</label>
+          <input type="password" id="quickAuthAdminPassword" required placeholder="Nhập pass Admin..." class="w-full p-3 rounded-xl border border-stone-300 focus:border-rose-600 focus:outline-none text-sm font-bold bg-stone-50">
+        </div>
+
+        <div id="quickAuthError" class="p-2.5 rounded-xl bg-rose-100 text-rose-800 text-xs font-semibold hidden"></div>
+
+        <div class="flex items-center gap-2 pt-2 border-t border-stone-100">
+          <button type="button" onclick="closeQuickAdminAuthModal()" class="flex-1 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition">
+            Hủy bỏ
+          </button>
+          <button type="submit" id="btnSubmitQuickAuth" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-check"></i>
+            <span>Duyệt Hủy</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL: TRẢ MÓN / HỦY MÓN BÀN (THU NGÂN & QUẢN LÝ) -->
   <!-- ======================================================== -->
   <div id="posCancelDishModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
@@ -2304,6 +2349,28 @@
       }
     }
 
+    function formatTimeOnly(dateStr) {
+      if (!dateStr) return '';
+      try {
+        const str = String(dateStr).trim();
+        const parts = str.split(' ');
+        if (parts.length === 2 && parts[1].includes(':')) {
+          return parts[1].substring(0, 5); // "HH:MM"
+        }
+        if (str.includes('T')) {
+          const tPart = str.split('T')[1];
+          return tPart.substring(0, 5);
+        }
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) {
+          return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
+        }
+        return str;
+      } catch (e) {
+        return dateStr;
+      }
+    }
+
     function formatVND(amount) {
       return new Intl.NumberFormat('vi-VN').format(amount) + " đ";
     }
@@ -3170,6 +3237,11 @@
                   <span>${formatVND(uPrice)}</span>
                   <span class="text-stone-400 text-[10px]">=</span>
                   <span class="font-bold text-emerald-700">${formatVND(it.total_price)}</span>
+                  <span class="text-stone-300 mx-0.5">|</span>
+                  <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200 font-mono text-[10.5px] font-bold" title="Thời gian xác nhận gửi vào bếp">
+                    <i class="fa-regular fa-clock text-[9.5px] text-amber-600"></i> ${formatTimeOnly(it.created_at || it.order_created_at)}
+                    ${it.round_number ? `<span class="text-amber-700 font-semibold">• Đợt ${it.round_number}</span>` : ''}
+                  </span>
                 </div>
                 ${it.note ? `<div class="text-[11px] text-amber-700 italic mt-0.5">Lưu ý: ${it.note}</div>` : ''}
               </div>
@@ -3231,10 +3303,53 @@
 
     let posActiveCancelItem = null;
 
+    async function executeDirectCancel(itemId, itemName, qty, reason = "Khách hủy món", adminPwd = null) {
+      try {
+        const payload = {
+          cancel_quantity: qty,
+          reason: reason,
+          admin_password: adminPwd || undefined
+        };
+        const res = await fetch(`/api/orders/item/${itemId}/cancel-request`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showPosToast(data.message || `Đã hủy món "${itemName}" thành công!`);
+          if (data.table_cleared) {
+            closeBillDrawer();
+            showPosToast("🔔 Bàn đã hủy hết các món, hệ thống tự động giải phóng thành bàn trống!");
+            await fetchTablesOverview();
+          } else if (selectedTable) {
+            await openTableDetails(selectedTable.id);
+            await fetchTablesOverview();
+          }
+          return { success: true, data };
+        } else {
+          return { success: false, detail: data.detail || "Không thể hủy món này!" };
+        }
+      } catch (err) {
+        return { success: false, detail: "Lỗi kết nối máy chủ: " + (err.message || "") };
+      }
+    }
+
     function openPosCancelModal(itemId, itemName, maxQty, status) {
       posActiveCancelItem = { id: itemId, name: itemName, maxQty: maxQty, status: status };
       const isServed = (status === 'SERVED');
-      const isAdmin = (currentUser && currentUser.role === 'ADMIN');
+      const isAdmin = (currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN'));
+
+      // 1. NẾU LÀ ADMIN: MẶC ĐỊNH CHO HỦY LUÔN (Không cần nhập mật khẩu)
+      if (isAdmin) {
+        if (!confirm(`Xác nhận HỦY món "${itemName}" (x${maxQty})?`)) return;
+        executeDirectCancel(itemId, itemName, maxQty, "Admin duyệt hủy món trực tiếp");
+        return;
+      }
+
+      // 2. NẾU LÀ THU NGÂN / PHỤC VỤ (POS): BẬT Ô XIN MẬT KHẨU ADMIN NỔI LÊN NGAY TRÊN MÀN HÌNH POS
+      openQuickAdminAuthModal(itemId, itemName, maxQty);
+      return;
 
       document.getElementById("posCancelModalTitle").innerText = isServed ? "Trả lại món ăn" : "Hủy món ăn";
       document.getElementById("posCancelModalSubtitle").innerText = `${selectedTable ? selectedTable.name : 'Bàn'} • ${itemName}`;
@@ -3287,6 +3402,46 @@
 
       document.getElementById("posCancelNote").value = "";
       document.getElementById("posCancelDishModal").classList.remove("hidden");
+    }
+
+        let quickAuthActiveItem = null;
+    function openQuickAdminAuthModal(itemId, itemName, maxQty) {
+      quickAuthActiveItem = { id: itemId, name: itemName, maxQty: maxQty };
+      document.getElementById("quickAuthDishSubtitle").innerText = `${itemName} (x${maxQty})`;
+      const pwdEl = document.getElementById("quickAuthAdminPassword");
+      pwdEl.value = "";
+      document.getElementById("quickAuthError").classList.add("hidden");
+      document.getElementById("quickAdminAuthModal").classList.remove("hidden");
+      setTimeout(() => pwdEl.focus(), 100);
+    }
+
+    function closeQuickAdminAuthModal() {
+      document.getElementById("quickAdminAuthModal").classList.add("hidden");
+      quickAuthActiveItem = null;
+    }
+
+    async function handleQuickAdminAuthSubmit(e) {
+      e.preventDefault();
+      if (!quickAuthActiveItem) return;
+      const pwd = document.getElementById("quickAuthAdminPassword").value;
+      const errBox = document.getElementById("quickAuthError");
+      const submitBtn = document.getElementById("btnSubmitQuickAuth");
+      errBox.classList.add("hidden");
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang duyệt...`;
+
+      const result = await executeDirectCancel(quickAuthActiveItem.id, quickAuthActiveItem.name, quickAuthActiveItem.maxQty, "Thu ngân hủy kèm mật khẩu Admin", pwd);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `<i class="fa-solid fa-check"></i> <span>Duyệt Hủy</span>`;
+
+      if (result.success) {
+        // NHẬP PASS XONG THÌ HIDE ĐI LUÔN
+        closeQuickAdminAuthModal();
+      } else {
+        errBox.innerText = result.detail || "Mật khẩu Admin không chính xác!";
+        errBox.classList.remove("hidden");
+        document.getElementById("quickAuthAdminPassword").focus();
+      }
     }
 
     function closePosCancelModal() {
@@ -5113,6 +5268,11 @@
       const promptEl = document.getElementById("posFlavorModalPrompt");
       if (promptEl) promptEl.innerText = `Chọn cách chế biến cho ${item.name}:`;
 
+      const qtyContainer = document.getElementById("posFlavorQtyContainer");
+      if (qtyContainer) {
+        document.getElementById("posFlavorInputQty").value = 1;
+      }
+
       const container = document.getElementById("posFlavorChoicesList");
       const optGroup = (item.options && item.options.length > 0) ? item.options[0] : { name: "Chọn vị", options: [] };
 
@@ -5142,15 +5302,18 @@
       if (!posPendingFlavorItem) return;
       const targetItem = posPendingFlavorItem;
 
+      const qInput = document.getElementById("posFlavorInputQty");
+      const addQty = qInput ? Math.max(1, parseInt(qInput.value) || 1) : 1;
+
       const existing = posOrderCart.find(ci => ci.item_id === targetItem.id && ci.selected_flavor === choice);
       if (existing) {
-        existing.quantity += 1;
+        existing.quantity += addQty;
       } else {
         posOrderCart.push({
           item_id: targetItem.id,
           name: targetItem.name,
           price: targetItem.price,
-          quantity: 1,
+          quantity: addQty,
           selected_flavor: choice,
           note: choice,
           modifiers: [{ name: optName, value: choice }]
@@ -5175,15 +5338,18 @@
         return;
       }
 
+      const qInput = document.getElementById("posFlavorInputQty");
+      const addQty = qInput ? Math.max(1, parseInt(qInput.value) || 1) : 1;
+
       const existing = posOrderCart.find(ci => ci.item_id === targetItem.id && ci.selected_flavor === choice);
       if (existing) {
-        existing.quantity += 1;
+        existing.quantity += addQty;
       } else {
         posOrderCart.push({
           item_id: targetItem.id,
           name: targetItem.name,
           price: targetItem.price,
-          quantity: 1,
+          quantity: addQty,
           selected_flavor: choice,
           note: choice,
           modifiers: [{ name: optName, value: choice }]
@@ -5225,6 +5391,18 @@
         });
       }
 
+      renderPosOrderCart();
+      filterPosOrderDishes();
+    }
+
+    function setPosCartQty(idx, val) {
+      if (!posOrderCart[idx]) return;
+      const q = parseInt(val);
+      if (isNaN(q) || q <= 0) {
+        posOrderCart.splice(idx, 1);
+      } else {
+        posOrderCart[idx].quantity = q;
+      }
       renderPosOrderCart();
       filterPosOrderDishes();
     }
@@ -5321,7 +5499,7 @@
               <button type="button" onclick="updatePosCartQty(${idx}, -1)" class="w-6 h-6 flex items-center justify-center text-stone-600 hover:bg-stone-100 font-bold text-xs">
                 -
               </button>
-              <span class="w-7 text-center font-bold text-xs text-stone-900">${it.quantity}</span>
+              <input type="number" min="1" max="999" value="${it.quantity}" onclick="this.select()" onchange="setPosCartQty(${idx}, this.value)" class="w-9 text-center font-bold text-xs text-stone-900 bg-transparent border-0 focus:ring-1 focus:ring-emerald-500 focus:bg-emerald-50/50 p-0">
               <button type="button" onclick="updatePosCartQty(${idx}, 1)" class="w-6 h-6 flex items-center justify-center text-stone-600 hover:bg-stone-100 font-bold text-xs">
                 +
               </button>

@@ -185,6 +185,8 @@ def get_table_bill(table_id: int):
             it["name"] = it["item_name"]
             it["price"] = it["unit_price"]
             it["total"] = it["total_price"]
+            it["order_created_at"] = order.get("created_at")
+            it["round_number"] = order.get("round_number", 1)
         all_items.extend(items)
         # Chỉ cộng các món chưa bị hủy (status != 'CANCELLED')
         order_active_sum = sum(it["total_price"] for it in items if it["status"] != "CANCELLED")

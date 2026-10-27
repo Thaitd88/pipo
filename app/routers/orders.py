@@ -677,6 +677,31 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
                 total = MAX(0, (SELECT COALESCE(SUM(total_price), 0) FROM order_items WHERE order_id = ? AND status != 'CANCELLED') - COALESCE(discount, 0) + COALESCE(service_fee, 0))
             WHERE id = ?
         """, (item["order_id"], item["order_id"], item["order_id"]))
+
+        # Kiểm tra nếu bàn không còn món nào hoạt động (tất cả các món đã bị hủy) -> Tự động giải phóng bàn trống
+        table_id = item["table_id"]
+        cursor.execute("""
+            SELECT COUNT(*) as active_cnt 
+            FROM order_items oi
+            JOIN orders o ON oi.order_id = o.id
+            WHERE o.table_id = ? AND o.payment_status = 'UNPAID' AND oi.status != 'CANCELLED'
+        """, (table_id,))
+        active_cnt = cursor.fetchone()["active_cnt"]
+        table_cleared = False
+        if active_cnt == 0:
+            cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL WHERE id = ?", (table_id,))
+            cursor.execute("""
+                UPDATE table_sessions 
+                SET status = 'CLOSED', closed_at = CURRENT_TIMESTAMP 
+                WHERE table_id = ? AND status = 'ACTIVE'
+            """, (table_id,))
+            cursor.execute("""
+                UPDATE orders 
+                SET status = 'CANCELLED' 
+                WHERE table_id = ? AND payment_status = 'UNPAID'
+            """, (table_id,))
+            table_cleared = True
+
         conn.commit()
         conn.close()
 
@@ -701,10 +726,18 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
                 print(f"[WS ITEM_CANCELLED Error]: {_ws_err}")
 
         succ_msg = f"Đã duyệt trả món '{item['item_name']} x{cancelled_quantity}' thành công và giảm tiền trên hóa đơn bàn!" if is_admin and current_status == "SERVED" else f"Đã hủy món '{item['item_name']} x{cancelled_quantity}' thành công và cập nhật lại hóa đơn!"
+        if table_cleared and ws_broadcaster:
+            try:
+                await ws_broadcaster.send_to_pos({"event": "TABLE_UPDATED", "table_id": table_id, "status": "AVAILABLE"})
+            except Exception:
+                pass
+
         return {
             "status": "CANCELLED_IMMEDIATELY",
             "message": succ_msg,
-            "order_item_id": target_item_id
+            "order_item_id": target_item_id,
+            "table_cleared": table_cleared,
+            "table_id": table_id
         }
 
     # TRƯỜNG HỢP 2: Món đã ra bàn (SERVED) nhưng chưa có Admin duyệt -> Chuyển CANCEL_PENDING để Admin xác nhận
@@ -821,6 +854,31 @@ async def kitchen_confirm_cancel(order_item_id: int, payload: dict, request: Req
                 total = MAX(0, (SELECT COALESCE(SUM(total_price), 0) FROM order_items WHERE order_id = ? AND status != 'CANCELLED') - COALESCE(discount, 0) + COALESCE(service_fee, 0))
             WHERE id = ?
         """, (item["order_id"], item["order_id"], item["order_id"]))
+
+        # Kiểm tra nếu bàn không còn món nào hoạt động (tất cả các món đã bị hủy) -> Tự động giải phóng bàn trống
+        table_id = item["table_id"]
+        cursor.execute("""
+            SELECT COUNT(*) as active_cnt 
+            FROM order_items oi
+            JOIN orders o ON oi.order_id = o.id
+            WHERE o.table_id = ? AND o.payment_status = 'UNPAID' AND oi.status != 'CANCELLED'
+        """, (table_id,))
+        active_cnt = cursor.fetchone()["active_cnt"]
+        table_cleared = False
+        if active_cnt == 0:
+            cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL WHERE id = ?", (table_id,))
+            cursor.execute("""
+                UPDATE table_sessions 
+                SET status = 'CLOSED', closed_at = CURRENT_TIMESTAMP 
+                WHERE table_id = ? AND status = 'ACTIVE'
+            """, (table_id,))
+            cursor.execute("""
+                UPDATE orders 
+                SET status = 'CANCELLED' 
+                WHERE table_id = ? AND payment_status = 'UNPAID'
+            """, (table_id,))
+            table_cleared = True
+
         conn.commit()
         conn.close()
 

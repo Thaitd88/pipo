@@ -3140,7 +3140,12 @@
                 ${cleanNote ? `<div class="text-[10px] text-amber-700 italic">(${cleanNote})</div>` : ''}
               </td>
               <td class="py-1.5 text-right font-bold text-stone-900 align-bottom whitespace-nowrap">
-                ${formatVND(it.total_price)}
+                <div>${formatVND(it.total_price)}</div>
+                ${it.status !== 'CANCELLED' ? `
+                  <button type="button" onclick="adminQuickCancelOrderItem(${it.id}, '${displayName.replace(/'/g, "\'")}', ${it.quantity})" class="mt-1 px-1.5 py-0.5 rounded text-[10px] bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold transition" title="Admin hủy món này">
+                    Hủy món
+                  </button>
+                ` : `<span class="text-[10px] text-rose-500 font-semibold">Đã hủy</span>`}
               </td>
             </tr>
           `;
@@ -3175,6 +3180,33 @@
 
       document.getElementById("adminModalBillGrandTotal").innerText = formatVND(bill.total);
       document.getElementById("adminBillDetailModal").classList.remove("hidden");
+    }
+
+        async function adminQuickCancelOrderItem(itemId, itemName, qty) {
+      if (!confirm(`Quản lý (Admin): Xác nhận HỦY món "${itemName}" (x${qty}) khỏi hóa đơn?`)) return;
+      try {
+        const res = await fetch(`/api/orders/item/${itemId}/cancel-request`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cancel_quantity: qty,
+            reason: "Admin hủy món trực tiếp",
+            admin_password: "admin" // hoặc quyền admin trong session
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAdminToast(data.message || `Đã hủy món "${itemName}" thành công!`);
+          if (currentAdminViewingBill) {
+            await openAdminBillDetail(currentAdminViewingBill.id);
+          }
+          await loadAdminBillsData();
+        } else {
+          alert(data.detail || "Không thể hủy món này!");
+        }
+      } catch (err) {
+        alert("Lỗi kết nối: " + (err.message || ""));
+      }
     }
 
     function closeAdminBillDetailModal() {
