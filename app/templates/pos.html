@@ -3442,19 +3442,22 @@
       } else {
         tbody.innerHTML = currentBillData.items.map(it => {
           const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
+          let flav = "";
+          if (it.modifiers && it.modifiers.length > 0) {
+            flav = it.modifiers.map(m => (typeof m === 'object' ? (m.value || m.name) : m)).filter(Boolean).join(", ");
+          }
+          let baseName = (it.item_name || "").replace(/\s*[\(\[][^\)\]]+[\)\]]\s*$/, "").trim();
+          let displayName = flav ? `${baseName} (${flav})` : (it.item_name || "Món");
+          let cleanNote = (it.note || "").trim();
+          if (cleanNote && flav && cleanNote.toLowerCase() === flav.toLowerCase()) cleanNote = "";
           return `
             <tr class="py-1.5 ${it.status === 'CANCELLED' ? 'line-through text-stone-400' : ''}">
               <td class="py-1.5 pr-2 align-top">
-                <div class="font-bold text-stone-800 leading-tight">${it.item_name}</div>
-                ${(it.modifiers && it.modifiers.length > 0) ? `
-                  <div class="text-[10px] text-emerald-900 font-bold font-sans">
-                    * Vị: ${it.modifiers.map(m => m.value || m.name).join(', ')}
-                  </div>
-                ` : ''}
+                <div class="font-bold text-stone-800 leading-tight">${displayName}</div>
                 <div class="text-[10px] text-stone-600 font-mono mt-0.5">
                   ${it.quantity} × ${formatVND(uPrice)}
                 </div>
-                ${it.note ? `<div class="text-[10px] text-amber-700 italic">(${it.note})</div>` : ''}
+                ${cleanNote ? `<div class="text-[10px] text-amber-700 italic">(${cleanNote})</div>` : ''}
               </td>
               <td class="py-1.5 text-right font-bold text-stone-900 align-bottom whitespace-nowrap">
                 ${it.status === 'CANCELLED' ? 'Hủy' : formatVND(it.total_price)}
@@ -4073,19 +4076,22 @@
       } else {
         itemsList.innerHTML = (bill.items || []).map(it => {
           const uPrice = it.unit_price || (it.quantity > 0 ? Math.round(it.total_price / it.quantity) : 0);
+          let flav = "";
+          if (it.modifiers && it.modifiers.length > 0) {
+            flav = it.modifiers.map(m => (typeof m === 'object' ? (m.value || m.name) : m)).filter(Boolean).join(", ");
+          }
+          let baseName = (it.item_name || "").replace(/\s*[\(\[][^\)\]]+[\)\]]\s*$/, "").trim();
+          let displayName = flav ? `${baseName} (${flav})` : (it.item_name || "Món");
+          let cleanNote = (it.note || "").trim();
+          if (cleanNote && flav && cleanNote.toLowerCase() === flav.toLowerCase()) cleanNote = "";
           return `
             <tr class="py-1.5">
               <td class="py-1.5 pr-2 align-top">
-                <div class="font-bold text-stone-800 leading-tight">${it.item_name}</div>
-                ${(it.modifiers && it.modifiers.length > 0) ? `
-                  <div class="text-[10px] text-emerald-900 font-bold font-sans">
-                    * Vị: ${it.modifiers.map(m => m.value || m.name).join(', ')}
-                  </div>
-                ` : ''}
+                <div class="font-bold text-stone-800 leading-tight">${displayName}</div>
                 <div class="text-[10px] text-stone-600 font-mono mt-0.5">
                   ${it.quantity} × ${formatVND(uPrice)}
                 </div>
-                ${it.note ? `<div class="text-[10px] text-amber-700 italic">(${it.note})</div>` : ''}
+                ${cleanNote ? `<div class="text-[10px] text-amber-700 italic">(${cleanNote})</div>` : ''}
               </td>
               <td class="py-1.5 text-right font-bold text-stone-900 align-bottom whitespace-nowrap">
                 ${formatVND(it.total_price)}

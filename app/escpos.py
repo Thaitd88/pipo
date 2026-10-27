@@ -1,6 +1,7 @@
 # ESC/POS byte generator and 80mm Formatter (T80W / Xprinter / Epson standard) for PiPo Garden
 import re
 import unicodedata
+import json
 from datetime import datetime
 from .timezone_utils import now_vn_str
 
@@ -69,64 +70,104 @@ def generate_vietqr_emvco(bank_bin: str = "970422", account_no: str = "075624456
     return payload + crc
 
 
-def resolve_item_name_and_portion(name: str, portion: str, modifiers: list) -> tuple[str, str, str]:
+def get_item_portion_from_db(item_id: int) -> str:
+    """Truy vấn định lượng NVL chính của món từ CSDL nếu dict order_item chưa có."""
+    if not item_id:
+        return ""
+    try:
+        from .database import get_db
+        conn = get_db()
+        c = conn.cursor()
+        c.execute("SELECT portion FROM menu_items WHERE id = ?", (item_id,))
+        row = c.fetchone()
+        conn.close()
+        if row and row["portion"]:
+            return str(row["portion"]).strip()
+    except Exception:
+        pass
+    return ""
+
+
+def extract_item_details(name: str, portion: str = "", modifiers = None, note: str = "") -> tuple[str, str, str, str]:
     """
-    Chuẩn hóa tên món và định lượng NVL theo vị/tùy chọn chế biến để Bếp không bao giờ làm nhầm.
-    Ví dụ: 'Mì xào' + vị 'Bò' ->
-        name: 'Mì xào [VỊ BÒ]'
-        portion: 'Mì 2 vắt, thịt bò 100g, rau cải'
-        chosen_flavor: 'Bò'
+    Trích xuất tên gốc, vị chế biến (flavor), định lượng NVL (portion) và ghi chú thực sự (clean_note).
+    Trả về: (base_name, chosen_flavor, resolved_portion, clean_note)
+    Quy chuẩn hiển thị tiết kiệm giấy in:
+      - Bill tính tiền: Tên món (vị chế biến) chung 1 dòng: 'Gà ta nguyên con (Hấp hành)'
+      - Bill bếp / bar: Dòng 1: 'Tên món (vị chế biến) x <SL>'
+                        Dòng 2: '  * Dinh luong: <NVL chính>'
     """
     clean_name = str(name or "").strip()
     clean_port = str(portion or "").strip()
+    clean_note = str(note or "").strip()
+
+    # 1. Trích xuất modifier/vị chế biến
     mod_values = []
+    if isinstance(modifiers, str) and modifiers.strip():
+        try:
+            parsed = json.loads(modifiers)
+            if isinstance(parsed, list):
+                modifiers = parsed
+        except Exception:
+            pass
 
     if modifiers and isinstance(modifiers, list):
         for m in modifiers:
             if isinstance(m, dict):
-                val = str(m.get("value") or "").strip()
-                if val:
-                    mod_values.append(val)
+                v = str(m.get("value") or "").strip()
+                if not v:
+                    raw_n = str(m.get("name") or "").strip()
+                    if raw_n.lower() not in ("chọn vị chế biến", "chon vi che bien", "vị", "vi"):
+                        v = raw_n
+                if v and v.lower() not in ("chọn vị chế biến", "chon vi che bien"):
+                    mod_values.append(v)
             elif isinstance(m, str) and m.strip():
                 mod_values.append(m.strip())
 
     chosen_flavor = " - ".join(mod_values) if mod_values else ""
 
-    # 1. Trường hợp Mì xào
+    # 2. Xử lý trường hợp tên món đã có sẵn ngoặc [VỊ...] hoặc (...)
+    m = re.search(r"\s*[\(\[]([^\)\]]+)[\)\]]\s*$", clean_name)
+    if m:
+        extracted = m.group(1).strip()
+        clean_ext = re.sub(r"^(vị|vi)\s*:\s*", "", extracted, flags=re.IGNORECASE).strip()
+        if clean_ext.lower().startswith("vị ") or clean_ext.lower().startswith("vi "):
+            clean_ext = clean_ext[3:].strip()
+        clean_name = re.sub(r"\s*[\(\[]([^\)\]]+)[\)\]]\s*$", "", clean_name).strip()
+        if not chosen_flavor and clean_ext:
+            chosen_flavor = clean_ext
+
+    # 3. Định lượng chuẩn theo vị cho các món xào / chiên
     lower_name = clean_name.lower()
-    if "mì xào" in lower_name or "mi xao" in lower_name or "mỳ xào" in lower_name or "my xao" in lower_name:
-        lower_flavor = chosen_flavor.lower()
+    lower_flavor = chosen_flavor.lower()
+    if any(k in lower_name for k in ("mì xào", "mi xao", "mỳ xào", "my xao")):
         if "bò" in lower_flavor or "bo" in lower_flavor:
-            clean_name = f"{clean_name} [VỊ BÒ]"
             clean_port = "Mì 2 vắt, thịt bò 100g, rau cải"
         elif "hải sản" in lower_flavor or "hai san" in lower_flavor:
-            clean_name = f"{clean_name} [VỊ HẢI SẢN]"
             clean_port = "Mì 2 vắt, tôm mực 100g, rau cải"
-        elif chosen_flavor:
-            clean_name = f"{clean_name} [VỊ {chosen_flavor.upper()}]"
-
-    # 2. Trường hợp Cơm chiên
-    elif "cơm chiên" in lower_name or "com chien" in lower_name:
-        lower_flavor = chosen_flavor.lower()
+    elif any(k in lower_name for k in ("cơm chiên", "com chien")):
         if "bò" in lower_flavor or "bo" in lower_flavor:
-            clean_name = f"{clean_name} [VỊ BÒ]"
             clean_port = "Cơm 250g, thịt bò 100g, trứng"
         elif "hải sản" in lower_flavor or "hai san" in lower_flavor:
-            clean_name = f"{clean_name} [VỊ HẢI SẢN]"
             clean_port = "Cơm 250g, tôm mực 100g, trứng"
         elif "ghẹ" in lower_flavor or "ghe" in lower_flavor:
-            clean_name = f"{clean_name} [VỊ GHẸ]"
             clean_port = "Cơm 250g, thịt ghẹ 80g, trứng"
-        elif chosen_flavor:
-            clean_name = f"{clean_name} [VỊ {chosen_flavor.upper()}]"
 
-    # 3. Các món có vị chế biến khác (Gà, Sườn, Tôm, Rau, Ốc...)
-    elif chosen_flavor:
-        # Nếu tên món chưa chứa vị đó, đính kèm vào tên món để in chữ to đậm
-        if chosen_flavor.lower() not in lower_name:
-            clean_name = f"{clean_name} [{chosen_flavor.upper()}]"
+    # 4. Làm sạch ghi chú nếu ghi chú chỉ lặp lại vị hoặc tên món
+    if clean_note:
+        if chosen_flavor and (clean_note.lower() == chosen_flavor.lower() or f"({clean_note.lower()})" == chosen_flavor.lower()):
+            clean_note = ""
+        elif clean_note.lower() in clean_name.lower():
+            clean_note = ""
 
-    return clean_name, clean_port, chosen_flavor
+    return clean_name, chosen_flavor, clean_port, clean_note
+
+
+def resolve_item_name_and_portion(name: str, portion: str, modifiers: list) -> tuple[str, str, str]:
+    """Hàm tương thích ngược với code cũ."""
+    base_name, flavor, clean_port, _ = extract_item_details(name, portion, modifiers, "")
+    display_name = f"{base_name} ({flavor})" if flavor else base_name
+    return display_name, clean_port, flavor
 
 
 def format_kitchen_ticket_text(order_info: dict, items: list, station: str = "HOT_KITCHEN") -> str:
@@ -163,7 +204,7 @@ def format_kitchen_ticket_text(order_info: dict, items: list, station: str = "HO
     lines.append(f" Don so: #{order_id} | Dot goi: {round_no}")
     lines.append(f" Gio goi: {now_str}")
     lines.append(div_single)
-    lines.append(" SL   TEN MON")
+    lines.append(" MON CHE BIEN & SO LUONG")
     lines.append(div_single)
 
     for it in items:
@@ -175,25 +216,25 @@ def format_kitchen_ticket_text(order_info: dict, items: list, station: str = "HO
         modifiers = it.get("modifiers", [])
         portion = it.get("portion") or ""
 
-        # Chuẩn hóa tên món và định lượng theo vị (VD: Mì xào [VỊ BÒ], Định lượng: thịt bò 100g)
-        resolved_name, resolved_portion, flavor = resolve_item_name_and_portion(name, portion, modifiers)
+        # Lấy định lượng NVL từ DB nếu chưa có
+        if not portion and (it.get("item_id") or it.get("id")):
+            portion = get_item_portion_from_db(it.get("item_id") or it.get("id"))
 
-        # Dòng 1: Số lượng và tên món nổi bật
-        lines.append(f"[ {qty} ]  {resolved_name}")
+        base_name, flavor, resolved_portion, clean_note = extract_item_details(name, portion, modifiers, note)
 
-        # Định lượng chính của món để bếp định lượng chế biến
+        # Dòng 1: Tên món (vị chế biến) x <SL>
+        if flavor:
+            lines.append(f" {base_name.upper()} ({flavor.upper()}) x {qty}")
+        else:
+            lines.append(f" {base_name.upper()} x {qty}")
+
+        # Dòng 2: Định lượng NVL chính (1 hàng ngắn gọn bên dưới)
         if resolved_portion:
-            lines.append(f"       * Dinh luong: {resolved_portion}")
+            lines.append(f"   * Dinh luong: {resolved_portion}")
 
-        # Tùy chọn nếu có
-        if modifiers and isinstance(modifiers, list):
-            mod_str = ", ".join([f"{m.get('name')}: {m.get('value')}" for m in modifiers if isinstance(m, dict)])
-            if mod_str:
-                lines.append(f"       * VỊ / TÙY CHỌN: {mod_str}")
-
-        # Ghi chú chế biến riêng của món
-        if note:
-            lines.append(f"       >>> GHI CHU: {note}")
+        # Ghi chú chế biến riêng nếu có (khác vị)
+        if clean_note:
+            lines.append(f"   * Ghi chu: {clean_note}")
 
         lines.append(div_single)
 
@@ -257,8 +298,15 @@ def format_receipt_ticket_text(table_info: dict, items: list, totals_info: dict 
         total_price = int(it.get("total_price", qty * price))
         subtotal += total_price
 
-        # Dòng 1: Tên món
-        lines.append(f" {idx}. {name}")
+        modifiers = it.get("modifiers")
+        note = it.get("note", "")
+        portion = it.get("portion", "")
+
+        base_name, flavor, _, clean_note = extract_item_details(name, portion, modifiers, note)
+        display_name = f"{base_name} ({flavor})" if flavor else base_name
+
+        # Dòng 1: Tên món kèm vị chế biến trên cùng hàng để tiết kiệm giấy in
+        lines.append(f" {idx}. {display_name}")
 
         # Dòng 2: SL x Đơn giá = Thành tiền (căn chỉnh đúng 48 ký tự)
         left_col = f"    {qty} x {price:,.0f}".replace(",", ".")
@@ -268,18 +316,9 @@ def format_receipt_ticket_text(table_info: dict, items: list, totals_info: dict 
             spacing = 1
         lines.append(f"{left_col}{' ' * spacing}{right_col}")
 
-        # Tùy chọn / Vị chế biến nếu có
-        modifiers = it.get("modifiers")
-        mod_str = ""
-        if modifiers and isinstance(modifiers, list):
-            mod_str = ", ".join([f"{m.get('value', m.get('name'))}" for m in modifiers if isinstance(m, dict)])
-            if mod_str:
-                lines.append(f"       * Vi: {mod_str}")
-
-        # Ghi chú nếu có
-        note = it.get("note", "")
-        if note and note != mod_str:
-            lines.append(f"       >>> {note}")
+        # Ghi chú nếu có và khác vị
+        if clean_note:
+            lines.append(f"       >>> {clean_note}")
 
         idx += 1
 
@@ -422,7 +461,7 @@ def build_escpos_kitchen_bytes(order_info: dict, items: list, station: str = "HO
     buf.extend(div_single)
 
     buf.extend(ESC + b'E\x01')
-    buf.extend(b' SL   TEN MON\n')
+    buf.extend(b' MON CHE BIEN & SO LUONG\n')
     buf.extend(ESC + b'E\x00')
     buf.extend(div_single)
 
@@ -431,51 +470,37 @@ def build_escpos_kitchen_bytes(order_info: dict, items: list, station: str = "HO
             continue
         qty = it.get("quantity", 1)
         raw_name = it.get("item_name") or it.get("name", "")
-        note = remove_vietnamese_accents(it.get("note", ""))
+        note = it.get("note", "")
         modifiers = it.get("modifiers", [])
         raw_portion = it.get("portion") or ""
 
         # Fallback lấy định lượng món từ DB nếu chưa có trong dict
         if not raw_portion and (it.get("item_id") or it.get("id")):
-            try:
-                from .database import get_db
-                _conn = get_db()
-                _c = _conn.cursor()
-                _c.execute("SELECT portion FROM menu_items WHERE id = ?", (it.get("item_id") or it.get("id"),))
-                _row = _c.fetchone()
-                if _row and _row["portion"]:
-                    raw_portion = _row["portion"]
-                _conn.close()
-            except Exception:
-                pass
+            raw_portion = get_item_portion_from_db(it.get("item_id") or it.get("id"))
 
-        # Chuẩn hóa tên món và định lượng theo vị (VD: MI XAO [VI BO], Dinh luong: thit bo 100g)
-        resolved_name, resolved_portion, flavor = resolve_item_name_and_portion(raw_name, raw_portion, modifiers)
-        name = remove_vietnamese_accents(resolved_name).upper()
-        portion = remove_vietnamese_accents(resolved_portion)
+        base_name, flavor, resolved_portion, clean_note = extract_item_details(raw_name, raw_portion, modifiers, note)
+        name_ascii = remove_vietnamese_accents(base_name).upper()
+        flavor_ascii = remove_vietnamese_accents(flavor).upper() if flavor else ""
+        portion_ascii = remove_vietnamese_accents(resolved_portion)
+        note_ascii = remove_vietnamese_accents(clean_note)
 
-        # Số lượng và tên món in đậm, chiều cao chuẩn (gọn gàng, không bị kéo cao)
+        # Dòng 1: Tên món (vị chế biến) x <SL> in đậm
+        if flavor_ascii:
+            item_line = f" {name_ascii} ({flavor_ascii}) x {qty}\n"
+        else:
+            item_line = f" {name_ascii} x {qty}\n"
+
         buf.extend(ESC + b'E\x01') # Bold on
-        buf.extend(f"[ {qty} ] {name}\n".encode("ascii"))
+        buf.extend(item_line.encode("ascii"))
         buf.extend(ESC + b'E\x00') # Bold off
 
-        # Hiển thị định lượng chính của món bên dưới để bếp biết mà làm
-        if portion:
-            buf.extend(ESC + b'E\x01')
-            buf.extend(f"      * Dinh luong: {portion}\n".encode("ascii"))
-            buf.extend(ESC + b'E\x00')
+        # Dòng 2: Định lượng NVL chính (1 hàng ngắn gọn bên dưới)
+        if portion_ascii:
+            buf.extend(f"   * Dinh luong: {portion_ascii}\n".encode("ascii"))
 
-        if modifiers and isinstance(modifiers, list):
-            mod_str = ", ".join([f"{remove_vietnamese_accents(str(m.get('name')))}: {remove_vietnamese_accents(str(m.get('value')))}" for m in modifiers if isinstance(m, dict)])
-            if mod_str:
-                buf.extend(ESC + b'E\x01')
-                buf.extend(f"      * VI / TUY CHON: {mod_str}\n".encode("ascii"))
-                buf.extend(ESC + b'E\x00')
-
-        if note:
-            buf.extend(ESC + b'E\x01')
-            buf.extend(f"      >>> GHI CHU: {note}\n".encode("ascii"))
-            buf.extend(ESC + b'E\x00')
+        # Ghi chú chế biến riêng
+        if note_ascii:
+            buf.extend(f"   * Ghi chu: {note_ascii}\n".encode("ascii"))
 
         buf.extend(div_single)
 
@@ -573,8 +598,17 @@ def build_escpos_receipt_bytes(table_info: dict, items: list, totals_info: dict 
         total_price = int(it.get("total_price", qty * price))
         subtotal += total_price
 
-        # Dòng 1: Tên món
-        buf.extend(f" {idx}. {name}\n".encode("ascii"))
+        raw_name = it.get("item_name") or it.get("name", "")
+        modifiers = it.get("modifiers")
+        note = it.get("note", "")
+        portion = it.get("portion", "")
+
+        base_name, flavor, _, clean_note = extract_item_details(raw_name, portion, modifiers, note)
+        display_name = f"{base_name} ({flavor})" if flavor else base_name
+        name_ascii = remove_vietnamese_accents(display_name)
+
+        # Dòng 1: Tên món kèm vị chế biến trên cùng hàng để tiết kiệm giấy in
+        buf.extend(f" {idx}. {name_ascii}\n".encode("ascii"))
 
         # Dòng 2: SL x Đơn giá = Thành tiền (căn chỉnh đúng 48 ký tự)
         left_col = f"    {qty} x {price:,.0f}".replace(",", ".")
@@ -585,20 +619,10 @@ def build_escpos_receipt_bytes(table_info: dict, items: list, totals_info: dict 
         line_2 = f"{left_col}{' ' * spacing}{right_col}\n"
         buf.extend(line_2.encode("ascii"))
 
-        # Tùy chọn / Vị chế biến nếu có
-        modifiers = it.get("modifiers")
-        mod_ascii = ""
-        if modifiers and isinstance(modifiers, list):
-            mod_ascii = ", ".join([f"{remove_vietnamese_accents(str(m.get('value', m.get('name'))))}" for m in modifiers if isinstance(m, dict)])
-            if mod_ascii:
-                buf.extend(ESC + b'E\x01')
-                buf.extend(f"       * Vi: {mod_ascii}\n".encode("ascii"))
-                buf.extend(ESC + b'E\x00')
-
-        # Ghi chú nếu có
-        note = remove_vietnamese_accents(it.get("note", ""))
-        if note and note != mod_ascii:
-            buf.extend(f"       >>> {note}\n".encode("ascii"))
+        # Ghi chú nếu có và khác vị
+        if clean_note:
+            note_ascii = remove_vietnamese_accents(clean_note)
+            buf.extend(f"       >>> {note_ascii}\n".encode("ascii"))
 
         idx += 1
 
