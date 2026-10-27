@@ -321,13 +321,24 @@ def home_page(request: Request):
 @app.get("/portal", response_class=HTMLResponse)
 @app.get("/login", response_class=HTMLResponse)
 def staff_portal_page(request: Request):
-    """Cổng Đăng Nhập & Phân Quyền Vai Trò Nhân Viên PiPo Garden."""
+    """Cổng Đăng Nhập & Bàn Làm Việc Vận Hành Nội Bộ PiPo Garden."""
     user = get_current_user_from_request(request)
     error = request.query_params.get("error")
     redirect_target = request.query_params.get("redirect")
 
     conn = get_db()
     cursor = conn.cursor()
+    
+    # Chỉ số vận hành nhanh thời gian thực
+    cursor.execute("SELECT COUNT(*) FROM tables")
+    total_tables = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM tables WHERE status = 'OCCUPIED'")
+    occupied_tables = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM orders WHERE status IN ('QUEUED', 'PREPARING')")
+    pending_orders = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM menu_items WHERE is_available = 1")
+    menu_items_count = cursor.fetchone()[0]
+
     cursor.execute("SELECT * FROM tables WHERE table_code LIKE 'HB%' OR area LIKE '%Hồ Bơi%' ORDER BY id ASC LIMIT 1")
     nh_row = cursor.fetchone()
     if not nh_row:
@@ -348,6 +359,12 @@ def staff_portal_page(request: Request):
             "user": user,
             "error": error,
             "redirect_target": redirect_target,
+            "stats": {
+                "total_tables": total_tables,
+                "occupied_tables": occupied_tables,
+                "pending_orders": pending_orders,
+                "menu_items_count": menu_items_count
+            },
             "nh_table": dict(nh_row) if nh_row else None,
             "cf_table": dict(cf_row) if cf_row else None
         }
