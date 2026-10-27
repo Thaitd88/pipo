@@ -91,7 +91,7 @@ def check_page_access(request: Request, allowed_roles: Optional[List[str]] = Non
         )
 
     # Quyền tối cao (SUPER_ADMIN hoặc tài khoản Thaitd) luôn được phép truy cập tất cả các trang
-    if user.get("role") == "SUPER_ADMIN" or user.get("username", "").lower() == "thaitd":
+    if user.get("role") == "SUPER_ADMIN" or user.get("username", "").lower() in ("superadmin", "thaitd"):
         return user
 
     if allowed_roles and user["role"] not in allowed_roles:
@@ -118,7 +118,7 @@ def require_api_auth(request: Request, allowed_roles: Optional[List[str]] = None
         raise HTTPException(status_code=401, detail="Yêu cầu đăng nhập để thực hiện thao tác này")
     
     # Quyền tối cao (SUPER_ADMIN hoặc tài khoản Thaitd) luôn có quyền thực hiện tất cả API
-    if user.get("role") == "SUPER_ADMIN" or user.get("username", "").lower() == "thaitd":
+    if user.get("role") == "SUPER_ADMIN" or user.get("username", "").lower() in ("superadmin", "thaitd"):
         return user
 
     if allowed_roles and user["role"] not in allowed_roles:
@@ -363,7 +363,7 @@ def delete_staff(user_id: int, request: Request):
         conn.close()
         raise HTTPException(status_code=404, detail="Không tìm thấy nhân viên")
 
-    if user["username"].lower() in ("admin", "thaitd"):
+    if user["username"].lower() in ("admin", "thaitd", "superadmin"):
         conn.close()
         raise HTTPException(status_code=400, detail="Không thể xóa tài khoản Quản trị viên tối cao (Thaitd / admin)")
 

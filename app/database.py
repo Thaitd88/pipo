@@ -1591,7 +1591,7 @@ def ensure_main_menu_classification(conn):
 def seed_default_users(conn):
     cursor = conn.cursor()
     default_staff = [
-        ("Thaitd", hash_password("123456"), "Thái TD", "SUPER_ADMIN", "0838993316"),
+        ("superadmin", hash_password("123456"), "Super Admin", "SUPER_ADMIN", "0838993316"),
         ("admin", hash_password("admin123"), "Nguyễn Văn Quản Lý", "ADMIN", "0901234567"),
         ("thungan", hash_password("123456"), "Trần Thị Thu Ngân", "CASHIER", "0912345678"),
         ("bep", hash_password("123456"), "Lê Hoàng Bếp Trưởng", "CHEF", "0923456789"),

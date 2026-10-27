@@ -106,7 +106,7 @@ async def clear_pickleball_revenue(request: Request):
         if auth_header != "pipo_secure_clear_revenue_2026" and payload_token != "pipo_secure_clear_revenue_2026":
             from .auth import get_current_user_from_request, verify_password
             user = get_current_user_from_request(request)
-            is_admin = user and (user.get("role") in ["ADMIN", "SUPER_ADMIN"] or user.get("username", "").lower() == "thaitd")
+            is_admin = user and (user.get("role") in ["ADMIN", "SUPER_ADMIN"] or user.get("username", "").lower() in ("superadmin", "thaitd"))
             if not is_admin and payload.get("admin_password"):
                 cursor.execute("SELECT id, full_name, password_hash FROM users WHERE role IN ('ADMIN', 'SUPER_ADMIN')")
                 for adm in cursor.fetchall():

@@ -623,7 +623,7 @@ async def request_cancel_item(order_item_id: int, payload: dict, request: Reques
     current_status = item["status"]
 
     # Kiểm tra quyền Admin (qua session đăng nhập hoặc mật khẩu Admin truyền kèm)
-    is_admin = (user.get("role") in ["ADMIN", "SUPER_ADMIN"] or user.get("username", "").lower() == "thaitd")
+    is_admin = (user.get("role") in ["ADMIN", "SUPER_ADMIN"] or user.get("username", "").lower() in ("superadmin", "thaitd"))
     admin_name = user.get("full_name", "Admin") if is_admin else None
 
     if not is_admin and payload.get("admin_password"):
@@ -750,7 +750,7 @@ async def kitchen_confirm_cancel(order_item_id: int, payload: dict, request: Req
     conn = get_db()
     cursor = conn.cursor()
 
-    is_admin = (user.get("role") in ["ADMIN", "SUPER_ADMIN"] or user.get("username", "").lower() == "thaitd")
+    is_admin = (user.get("role") in ["ADMIN", "SUPER_ADMIN"] or user.get("username", "").lower() in ("superadmin", "thaitd"))
     admin_name = user.get("full_name", "Quản lý") if is_admin else None
 
     if action == "APPROVE" and not is_admin and payload.get("admin_password"):

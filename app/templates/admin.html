@@ -64,7 +64,7 @@
       <div class="flex items-center gap-2 pl-2 sm:pl-3 border-l border-emerald-800 text-xs">
         <div class="text-right hidden sm:block">
           <div class="text-white font-bold text-xs" id="adminUserName">{{ user.full_name }}</div>
-          <div class="text-[9px] text-amber-300 font-semibold">{% if user.role == 'SUPER_ADMIN' or user.username.lower() == 'thaitd' %}👑 Chủ Nhà Hàng (Super Admin){% else %}Quản Trị Viên{% endif %}</div>
+          <div class="text-[9px] text-amber-300 font-semibold">{% if user.role == 'SUPER_ADMIN' or user.username.lower() in ('superadmin', 'thaitd') %}👑 Super Admin{% else %}Quản Trị Viên{% endif %}</div>
         </div>
         <button onclick="openChangePasswordModal()" class="w-8 h-8 rounded-lg bg-emerald-950/80 hover:bg-emerald-800 text-emerald-200 hover:text-white flex items-center justify-center transition" title="Đổi mật khẩu cá nhân">
           <i class="fa-solid fa-key text-xs"></i>
@@ -185,7 +185,7 @@
           </button>
         </div>
         <div class="flex items-center gap-2">
-          {% if user.role == 'SUPER_ADMIN' or user.username.lower() == 'thaitd' %}
+          {% if user.role == 'SUPER_ADMIN' or user.username.lower() in ('superadmin', 'thaitd') %}
           <button onclick="openCleanHistoryModal()" class="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition active:scale-95" title="Xóa dữ liệu chạy thử nghiệm để bắt đầu lại">
             <i class="fa-solid fa-calendar-xmark text-white"></i>
             <span>Xóa Doanh Thu & Dữ Liệu Test</span>
@@ -1810,8 +1810,8 @@
           <div>
             <label class="block font-semibold text-stone-700 mb-1">Vai trò phân quyền *:</label>
             <select id="staffFormRole" class="w-full p-2.5 rounded-xl border border-stone-300 bg-white font-medium">
-              {% if user.role == 'SUPER_ADMIN' or user.username.lower() == 'thaitd' %}
-              <option value="SUPER_ADMIN">👑 Chủ Nhà Hàng (Super Admin)</option>
+              {% if user.role == 'SUPER_ADMIN' or user.username.lower() in ('superadmin', 'thaitd') %}
+              <option value="SUPER_ADMIN">👑 Super Admin</option>
               {% endif %}
               <option value="ADMIN">Quản lý (Admin)</option>
               <option value="CASHIER">Thu ngân (Cashier)</option>
@@ -1848,7 +1848,7 @@
           </div>
           <div>
             <h3 class="font-black text-sm sm:text-base leading-tight">Xóa Doanh Thu & Dữ Liệu Bán Hàng</h3>
-            <p class="text-[10px] text-white/80">Đặc quyền Chủ Nhà Hàng (Super Admin - Thaitd)</p>
+            <p class="text-[10px] text-white/80">Đặc quyền Super Admin</p>
           </div>
         </div>
         <button onclick="closeCleanHistoryModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
@@ -4779,7 +4779,7 @@
         const staff = await res.json();
 
         const roleBadges = {
-          SUPER_ADMIN: { label: "👑 Chủ Nhà Hàng (Super Admin)", color: "bg-rose-100 text-rose-800 border-rose-300 font-black" },
+          SUPER_ADMIN: { label: "👑 Super Admin", color: "bg-rose-100 text-rose-800 border-rose-300 font-black" },
           ADMIN: { label: "Quản lý (Admin)", color: "bg-purple-100 text-purple-800 border-purple-300 font-bold" },
           CASHIER: { label: "Thu ngân (POS)", color: "bg-blue-100 text-blue-800 border-blue-300 font-semibold" },
           CHEF: { label: "Bếp trưởng", color: "bg-amber-100 text-amber-800 border-amber-300 font-semibold" },
@@ -4790,7 +4790,7 @@
         const tbody = document.getElementById("staffTableBody");
         tbody.innerHTML = staff.map(u => {
           const badge = roleBadges[u.role] || { label: u.role, color: "bg-stone-100 text-stone-700 font-semibold" };
-          const isSuper = (u.username === 'admin' || u.username.toLowerCase() === 'thaitd' || u.role === 'SUPER_ADMIN');
+          const isSuper = (u.username === 'admin' || (u.username.toLowerCase() === 'thaitd' || u.username.toLowerCase() === 'superadmin') || u.role === 'SUPER_ADMIN');
           return `
             <tr class="hover:bg-stone-50 transition">
               <td class="py-3 px-4">

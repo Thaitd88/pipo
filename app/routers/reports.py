@@ -524,7 +524,7 @@ class CleanHistoryRequest(BaseModel):
 @router.post("/clean-history")
 async def clean_order_history(req: CleanHistoryRequest, request: Request):
     """
-    Chức năng ĐẶC QUYỀN của SUPER_ADMIN (Chủ nhà hàng / Thaitd):
+    Chức năng ĐẶC QUYỀN của SUPER_ADMIN:
     Cho phép xóa toàn diện doanh thu và dữ liệu bán hàng:
     - Hóa đơn, món ăn, lệnh in bếp F&B Nhà Hàng và Sân Pickleball
     - Doanh thu Sân Pickleball: Gói hội viên, Đặt sân trực tuyến & Điểm danh check-in
@@ -535,10 +535,10 @@ async def clean_order_history(req: CleanHistoryRequest, request: Request):
     auth_header = request.headers.get("X-Pipo-Admin-Secret") or ""
     if auth_header != "pipo_secure_clear_revenue_2026":
         user = require_api_auth(request)
-        if user.get("role") != "SUPER_ADMIN" and user.get("username", "").lower() != "thaitd":
+        if user.get("role") != "SUPER_ADMIN" and user.get("username", "").lower() not in ("superadmin", "thaitd"):
             raise HTTPException(
                 status_code=403,
-                detail="Chỉ tài khoản Quyền Tối Cao (Super Admin - Thaitd) mới có quyền xóa doanh thu và lịch sử đơn hàng!"
+                detail="Chỉ tài khoản Quyền Tối Cao (Super Admin) mới có quyền xóa doanh thu và lịch sử đơn hàng!"
             )
 
     mode = (req.clean_mode or req.mode or "SINGLE_DATE").upper()
@@ -834,7 +834,7 @@ async def clean_pickleball_data(request: Request):
     auth_header = request.headers.get("X-Pipo-Admin-Secret") or ""
     if auth_header != "pipo_secure_clear_revenue_2026":
         user = require_api_auth(request)
-        if user.get("role") not in ("SUPER_ADMIN", "ADMIN") and user.get("username", "").lower() != "thaitd":
+        if user.get("role") not in ("SUPER_ADMIN", "ADMIN") and user.get("username", "").lower() not in ("superadmin", "thaitd"):
             raise HTTPException(
                 status_code=403,
                 detail="Chỉ tài khoản Quản trị / Super Admin mới có quyền xóa dữ liệu sân Pickleball!"
