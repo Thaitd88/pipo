@@ -17,6 +17,9 @@ if sys.platform == "win32":
         pass
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT_DIR)
+from app.menu_translations import enrich_menu_item
+
 DB_PATH = os.path.join(ROOT_DIR, "data", "pipo_garden.db")
 
 conn = sqlite3.connect(DB_PATH)
@@ -38,14 +41,7 @@ conn.close()
 
 cat_map = {c["id"]: {**c, "items": []} for c in categories}
 for it in items:
-    if it.get("options_json"):
-        try:
-            it["options"] = json.loads(it["options_json"])
-        except Exception:
-            it["options"] = []
-    else:
-        it["options"] = []
-        
+    enrich_menu_item(it)
     if it["category_id"] in cat_map:
         cat_map[it["category_id"]]["items"].append(it)
         
@@ -61,9 +57,15 @@ output_html = template.render(
     categories=categories
 )
 
-# Đường dẫn lưu file
+# 1. Đường dẫn lưu file dự án
 out_file_project = os.path.join(ROOT_DIR, "Menu_Ban_Cung_A4_PiPo_Garden.html")
 with open(out_file_project, "w", encoding="utf-8") as f:
     f.write(output_html)
-
 print(f"[+] Da xuat file Menu ban cung thanh cong tai: {out_file_project}")
+
+# 2. Cập nhật artifact
+out_artifact = os.path.join(r"C:\Users\ThaiTD\.gemini\antigravity\brain\b0313d80-ed0b-4181-9a6f-5183e3c4ae98", "Menu_Ban_Cung_A4_PiPo_Garden.html")
+if os.path.exists(os.path.dirname(out_artifact)):
+    with open(out_artifact, "w", encoding="utf-8") as f:
+        f.write(output_html)
+    print(f"[+] Da cap nhat artifact thanh cong tai: {out_artifact}")

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+  <base href="https://pipogarden.com/">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quyển Thực Đơn PiPo Garden Phú Quốc - Bản In A4 Cao Cấp</title>
+  <title>Quyển Thực Đơn Song Ngữ PiPo Garden Phú Quốc - Bilingual A4 Menu</title>
   
   <!-- Tailwind CSS & FontAwesome -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -104,7 +105,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 6px 8px;
+      padding: 5px 8px;
       background: #ffffff;
       border: 1px solid #f1f5f9;
       border-radius: 8px;
@@ -117,21 +118,13 @@
       background-color: #fafaf9;
     }
     .dish-img {
-      width: 58px;
-      height: 58px;
+      width: 56px;
+      height: 56px;
       object-fit: cover;
       border-radius: 6px;
       border: 1px solid #e2e8f0;
       flex-shrink: 0;
       background-color: #f8fafc;
-    }
-
-    .dish-dots-price {
-      flex: 1;
-      border-bottom: 1.5px dotted #94a3b8;
-      margin: 0 8px;
-      position: relative;
-      top: -3px;
     }
 
     /* KHI IN: CẤU HÌNH IN CHÍNH XÁC */
@@ -160,7 +153,6 @@
         page-break-after: always !important;
         break-after: page !important;
       }
-      /* Tùy chọn ẩn ảnh khi in tiết kiệm mực */
       body.hide-images .dish-img {
         display: none !important;
       }
@@ -186,7 +178,7 @@
             <i class="fa-solid fa-book-open"></i>
           </span>
           <div>
-            <h1 class="text-sm font-black tracking-wide text-amber-300 uppercase">Quyển Thực Đơn Bản Cứng A4</h1>
+            <h1 class="text-sm font-black tracking-wide text-amber-300 uppercase">Quyển Thực Đơn Bản Cứng A4 • Song Ngữ (ENG - VN)</h1>
             <p class="text-[10px] text-stone-400">PiPo Garden Phú Quốc • 6 Trang Chuẩn Xưởng In & Xuất PDF</p>
           </div>
         </div>
@@ -210,7 +202,7 @@
     <!-- Dải hướng dẫn in tối ưu -->
     <div class="max-w-6xl mx-auto mt-2 pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-amber-200/80">
       <span><i class="fa-solid fa-circle-info text-amber-400 mr-1"></i> <b>Cài đặt in chuẩn đẹp nhất:</b> Chọn Khổ <b>A4</b> • Hướng <b>Dọc (Portrait)</b> • Tỷ lệ <b>100%</b> • Lề <b>Không có (None)</b> • Bật <b>"Đồ họa nền (Background graphics)"</b>.</span>
-      <span class="text-stone-400">Tự động cập nhật 100% theo giá & món mới nhất</span>
+      <span class="text-stone-400">Song ngữ Việt - Anh cao cấp cho du khách quốc tế</span>
     </div>
   </header>
 
@@ -233,20 +225,21 @@
       <!-- Top Branding -->
       <div class="text-center pt-8 z-10">
         <div class="inline-flex items-center justify-center p-3 rounded-full bg-emerald-50 border-2 border-amber-500 shadow-md mb-3">
-          <img src="/static/logo.png" alt="PiPo Garden" class="w-20 h-20 object-contain rounded-full">
+          <img src="https://pipogarden.com/static/logo.png" alt="PiPo Garden" class="w-20 h-20 object-contain rounded-full">
         </div>
         <h2 class="text-2xl font-black tracking-widest text-emerald-900 uppercase font-title-playfair">PIPO GARDEN</h2>
-        <p class="text-xs uppercase tracking-widest text-amber-700 font-bold mt-0.5">RESORT & GARDEN DINING • PHÚ QUỐC</p>
+        <p class="text-xs uppercase tracking-widest text-amber-700 font-bold mt-0.5">RESTAURANT • CAFE • POOL BAR • PHÚ QUỐC</p>
         <div class="w-24 h-0.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mt-2"></div>
       </div>
 
       <!-- Center Feature Artwork -->
       <div class="relative z-10 px-4 my-auto text-center">
         <div class="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-amber-500/60 max-w-[150mm] mx-auto">
-          <img src="/static/home/hero_twilight.jpg" alt="PiPo Garden Resort" class="w-full h-64 object-cover">
-          <div class="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-transparent flex flex-col justify-end p-5 text-white">
-            <span class="text-xs font-bold text-amber-300 tracking-wider uppercase mb-1">Ẩm Thực Sân Vườn Đảo Ngọc</span>
+          <img src="https://pipogarden.com/static/home/hero_twilight.jpg" alt="PiPo Garden Dining" class="w-full h-64 object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-stone-950/85 via-transparent to-transparent flex flex-col justify-end p-5 text-white">
+            <span class="text-xs font-bold text-amber-300 tracking-wider uppercase mb-1">Ẩm Thực Sân Vườn Đảo Ngọc • Island Garden Dining</span>
             <p class="text-sm font-medium text-stone-200 italic">"Nơi hương vị than hoa hòa cùng làn gió biển hoàng hôn Phú Quốc"</p>
+            <p class="text-xs text-amber-200/90 italic mt-0.5">"Where charcoal aroma meets the gentle sunset breeze of Phu Quoc"</p>
           </div>
         </div>
 
@@ -255,7 +248,9 @@
             ✨ CULINARY SIGNATURE MENU ✨
           </span>
           <h3 class="text-3xl font-black text-stone-900 mt-2 font-title-playfair tracking-wide uppercase">THỰC ĐƠN ĐẶC SẢN</h3>
+          <p class="text-xs font-semibold text-emerald-800 tracking-wider uppercase mt-0.5">SIGNATURE CULINARY SELECTION</p>
           <p class="text-xs text-stone-500 font-medium mt-1">Đại tiệc Hot BBQ • Hải Sản Tươi Sống • Món Lẩu • Đồ Uống Chill</p>
+          <p class="text-[11px] text-stone-400 italic">Garden BBQ • Live Seafood • Specialty Hotpot • Refreshing Drinks</p>
         </div>
       </div>
 
@@ -264,15 +259,15 @@
         <div class="grid grid-cols-3 gap-2 text-[11px] text-stone-700 max-w-[160mm] mx-auto font-medium">
           <div class="border-r border-stone-200 pr-2">
             <i class="fa-solid fa-map-location-dot text-emerald-700 mb-0.5 block text-sm"></i>
-            <span>Búng Gội, Cửa Dương, TP. Phú Quốc</span>
+            <span>Sonasea, Bãi Trường, TP. Phú Quốc</span>
           </div>
           <div class="border-r border-stone-200 px-2">
             <i class="fa-solid fa-phone-volume text-emerald-700 mb-0.5 block text-sm"></i>
-            <span class="font-bold text-emerald-900">Hotline: 0986 443 289</span>
+            <span class="font-bold text-emerald-900">Hotline: 0838.993.316</span>
           </div>
           <div class="pl-2">
             <i class="fa-solid fa-wifi text-emerald-700 mb-0.5 block text-sm"></i>
-            <span>Wi-Fi: PiPo Garden (Free)</span>
+            <span>Wi-Fi: PiPo Garden (Pass: 88888888)</span>
           </div>
         </div>
         <p class="text-[9px] text-stone-400 mt-3 uppercase tracking-wider">Trang 1 / 6 • PiPo Garden Phú Quốc</p>
@@ -294,10 +289,10 @@
             <span class="text-lg">🔥</span>
             <div>
               <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">ĐẠI TIỆC NƯỚNG & BEST SELLER</h2>
-              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">GARDEN HOT BBQ & CHEF'S RECOMMENDATIONS</p>
+              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">GARDEN CHARCOAL BBQ & CHEF'S RECOMMENDATIONS</p>
             </div>
           </div>
-          <img src="/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
+          <img src="https://pipogarden.com/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
         </div>
 
         <!-- 1. HOT BBQ (12 MÓN) -->
@@ -305,7 +300,7 @@
           <div class="section-header">
             <div class="flex items-center gap-1.5">
               <i class="fa-solid fa-fire-flame-curved text-amber-300 text-xs"></i>
-              <span class="text-xs font-black uppercase tracking-wider">1. 🔥 HOT BBQ THAN HOA SÂN VƯỜN</span>
+              <span class="text-xs font-black uppercase tracking-wider">1. 🔥 HOT BBQ THAN HOA SÂN VƯỜN / CHARCOAL BBQ</span>
             </div>
             <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">12 Món Nướng Đặc Sắc</span>
           </div>
@@ -313,192 +308,228 @@
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             
             <div class="dish-card">
-              <img src="/static/dishes/suon_bo_nuong.webp" alt="Sườn bò nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/suon_bo_nuong.webp" alt="Sườn bò nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Sườn bò nướng</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">220,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Sườn bò nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Beef Ribs</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">220,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Phần 300g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Phần 300g • <span class="text-stone-400 italic">300g portion</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt BBQ, Sốt mắm nhĩ
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt BBQ / BBQ Sauce, Sốt mắm nhĩ / Fish Sauce Glaze
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/ga_en_nguyen_con.jpg" alt="Gà đen nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/ga_en_nguyen_con.jpg" alt="Gà đen nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Gà đen nướng</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">399,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Gà đen nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Black Chicken</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">399,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Gà 1 con (1.3kg)</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Gà 1 con (1.3kg) • <span class="text-stone-400 italic">Whole 1.3kg chicken</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt BBQ, Sốt mắm nhĩ, Muối ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt BBQ / BBQ Sauce, Sốt mắm nhĩ / Fish Sauce Glaze, Muối ớt / Chili Salt
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/ga_nuong_muoi_ot_long_me_xao.jpg" alt="Gà ta nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/ga_nuong_muoi_ot_long_me_xao.jpg" alt="Gà ta nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Gà ta nướng</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">350,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Gà ta nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Free-Range Chicken</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">350,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Gà 1 con (1.3kg) + cháo/lòng mề</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Gà 1 con (1.3kg) + cháo/lòng mề • <span class="text-stone-400 italic">Whole 1.3kg + congee & giblets</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt BBQ, Sốt mắm nhĩ, Muối ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt BBQ / BBQ Sauce, Sốt mắm nhĩ / Fish Sauce Glaze, Muối ớt / Chili Salt
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/canh_ga_nuong_muoi_ot.jpg" alt="Cánh gà nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/canh_ga_nuong_muoi_ot.jpg" alt="Cánh gà nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Cánh gà nướng</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">99,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Cánh gà nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Chicken Wings</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">99,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 3 cái (400g)</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 3 cái (400g) • <span class="text-stone-400 italic">Plate of 3 wings (400g)</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt BBQ, Sốt mắm nhĩ, Muối ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt BBQ / BBQ Sauce, Sốt mắm nhĩ / Fish Sauce Glaze, Muối ớt / Chili Salt
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/chan_ga_nuong.jpg" alt="Chân gà nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/chan_ga_nuong.jpg" alt="Chân gà nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Chân gà nướng</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">79,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Chân gà nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Chicken Feet</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">79,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 5 cặp</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 5 cặp • <span class="text-stone-400 italic">Plate of 5 pairs</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt BBQ, Sốt mắm nhĩ, Muối ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt BBQ / BBQ Sauce, Sốt mắm nhĩ / Fish Sauce Glaze, Muối ớt / Chili Salt
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/dui_ga_nuong.webp" alt="Đùi gà nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/dui_ga_nuong.webp" alt="Đùi gà nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Đùi gà nướng</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">99,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Đùi gà nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Chicken Drumsticks</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">99,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 2 đùi lớn</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 2 đùi lớn • <span class="text-stone-400 italic">Plate of 2 large drumsticks</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt BBQ, Sốt mắm nhĩ, Muối ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt BBQ / BBQ Sauce, Sốt mắm nhĩ / Fish Sauce Glaze, Muối ớt / Chili Salt
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/suon_heo_nuong_muoi_ot.jpg" alt="Sườn heo nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/suon_heo_nuong_muoi_ot.jpg" alt="Sườn heo nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Sườn heo nướng</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">150,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Sườn heo nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Pork Ribs</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 400g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 400g • <span class="text-stone-400 italic">400g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt BBQ, Sốt mắm nhĩ, Muối ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt BBQ / BBQ Sauce, Sốt mắm nhĩ / Fish Sauce Glaze, Muối ớt / Chili Salt
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/heo_nuong_gieng_me.jpg" alt="Ba chỉ heo nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/heo_nuong_gieng_me.jpg" alt="Ba chỉ heo nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Ba chỉ heo nướng</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">150,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Ba chỉ heo nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Pork Belly</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 350g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 350g • <span class="text-stone-400 italic">350g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt BBQ, Sốt mắm nhĩ, Muối ớt, Riềng mẻ
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt BBQ / BBQ Sauce, Sốt mắm nhĩ / Fish Sauce Glaze, Muối ớt / Chili Salt, Riềng mẻ / Galangal & Rice
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/tom_su_nuong.webp" alt="Tôm sú nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/tom_su_nuong.webp" alt="Tôm sú nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Tôm sú nướng</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">179,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Tôm sú nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Black Tiger Prawns</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">179,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 250g (6-8 con)</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 250g (6-8 con) • <span class="text-stone-400 italic">250g plate (6-8 prawns)</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt BBQ, Sốt mắm nhĩ, Muối ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt BBQ / BBQ Sauce, Sốt mắm nhĩ / Fish Sauce Glaze, Muối ớt / Chili Salt
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/muc_ong_nuong.webp" alt="Mực ống nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/muc_ong_nuong.webp" alt="Mực ống nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Mực ống nướng</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">180,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Mực ống nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Calamari (Squid)</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">180,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 300g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 300g • <span class="text-stone-400 italic">300g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt BBQ, Sốt mắm nhĩ, Muối ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt BBQ / BBQ Sauce, Sốt mắm nhĩ / Fish Sauce Glaze, Muối ớt / Chili Salt
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/ca_chim_bien_nuong.webp" alt="Cá chim biển nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/ca_chim_bien_nuong.webp" alt="Cá chim biển nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Cá chim biển nướng</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">250,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Cá chim biển nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Sea Pomfret</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">250,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Con 800g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Con 800g • <span class="text-stone-400 italic">Whole 800g fish</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt BBQ, Sốt mắm nhĩ, Muối ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt BBQ / BBQ Sauce, Sốt mắm nhĩ / Fish Sauce Glaze, Muối ớt / Chili Salt
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/hau_nuong_pho_mai.jpg" alt="Hàu nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/hau_nuong_pho_mai.jpg" alt="Hàu nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Hàu nướng</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">25,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Hàu nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Fresh Oysters</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">25,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Con lớn</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Con lớn • <span class="text-stone-400 italic">Large fresh oyster</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Phô mai, Mỡ hành
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Phô mai / Melted Cheese, Mỡ hành / Scallion Oil & Peanuts
                 </div>
                 
               </div>
@@ -512,7 +543,7 @@
           <div class="section-header !bg-gradient-to-r !from-amber-700 !to-yellow-700">
             <div class="flex items-center gap-1.5">
               <i class="fa-solid fa-star text-amber-200 text-xs"></i>
-              <span class="text-xs font-black uppercase tracking-wider">2. ⭐ BEST SELLER - ĐẦU BẾP KHUYÊN DÙNG</span>
+              <span class="text-xs font-black uppercase tracking-wider">2. ⭐ BEST SELLER - ĐẦU BẾP KHUYÊN DÙNG / CHEF'S PICKS</span>
             </div>
             <span class="text-[9px] font-bold text-stone-950 bg-amber-300 px-2 py-0.5 rounded-full">Bán Chạy Nhất</span>
           </div>
@@ -520,74 +551,77 @@
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             
             <div class="dish-card bg-amber-50/40 border-amber-200">
-              <img src="/static/logo.png" alt="Heo Massage" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/logo.png" alt="Tôm khô rang muối hạt" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Heo Massage</h4>
-                  <span class="font-black text-amber-800 text-xs whitespace-nowrap ml-1">180,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Tôm khô rang muối hạt</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Roasted Dried Shrimp with Sea Salt</div>
+                  </div>
+                  <span class="font-black text-amber-800 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 300g</div>
-                <div class="text-[8px] text-stone-400 truncate italic">Thịt heo tẩm ướp đặc biệt nướng thơm giòn</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 100g • <span class="text-stone-400 italic">100g plate</span></div>
+                
               </div>
             </div>
             
             <div class="dish-card bg-amber-50/40 border-amber-200">
-              <img src="/static/logo.png" alt="Tôm khô rang muối hạt" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/kho_muc_nup_lum.webp" alt="Khô Mực Núp Lùm" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Tôm khô rang muối hạt</h4>
-                  <span class="font-black text-amber-800 text-xs whitespace-nowrap ml-1">150,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Khô Mực Núp Lùm</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Crispy Shredded Dried Squid 'Nup Lum'</div>
+                  </div>
+                  <span class="font-black text-amber-800 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 100g</div>
-                <div class="text-[8px] text-stone-400 truncate italic">Tôm khô rang muối hạt tại PiPo Garden Phú Quốc</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 100g • <span class="text-stone-400 italic">100g plate</span></div>
+                
               </div>
             </div>
             
             <div class="dish-card bg-amber-50/40 border-amber-200">
-              <img src="/static/dishes/kho_muc_nup_lum.webp" alt="Khô Mực Núp Lùm" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/cha_gio_hai_san.webp" alt="Chả giò hải sản" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Khô Mực Núp Lùm</h4>
-                  <span class="font-black text-amber-800 text-xs whitespace-nowrap ml-1">150,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Chả giò hải sản</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Crispy Seafood Spring Rolls</div>
+                  </div>
+                  <span class="font-black text-amber-800 text-xs whitespace-nowrap ml-1 self-start">99,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 100g</div>
-                <div class="text-[8px] text-stone-400 truncate italic">Khô Mực Núp Lùm tại PiPo Garden Phú Quốc</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 4 cuộn • <span class="text-stone-400 italic">4 rolls</span></div>
+                
               </div>
             </div>
             
             <div class="dish-card bg-amber-50/40 border-amber-200">
-              <img src="/static/dishes/cha_gio_hai_san.webp" alt="Chả giò hải sản" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/mien_xao_hai_san_x_o.webp" alt="Miến xào hải sản X.O" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Chả giò hải sản</h4>
-                  <span class="font-black text-amber-800 text-xs whitespace-nowrap ml-1">99,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Miến xào hải sản X.O</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Stir-Fried Glass Noodles with Seafood in X.O Sauce</div>
+                  </div>
+                  <span class="font-black text-amber-800 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 4 cuộn</div>
-                <div class="text-[8px] text-stone-400 truncate italic">Chả giò hải sản tại PiPo Garden Phú Quốc</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 80g miến khô, hải sản • <span class="text-stone-400 italic">Plate with seafood</span></div>
+                
               </div>
             </div>
             
             <div class="dish-card bg-amber-50/40 border-amber-200">
-              <img src="/static/dishes/mien_xao_hai_san_x_o.webp" alt="Miến xào hải sản X.O" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/com_chien_tom_x_o.webp" alt="Cơm Chiên Tôm X.O" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Miến xào hải sản X.O</h4>
-                  <span class="font-black text-amber-800 text-xs whitespace-nowrap ml-1">150,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Cơm Chiên Tôm X.O</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Signature Shrimp Fried Rice in X.O Sauce</div>
+                  </div>
+                  <span class="font-black text-amber-800 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 80g miến khô, hải sản</div>
-                <div class="text-[8px] text-stone-400 truncate italic">Miến xào hải sản X.O tại PiPo Garden Phú Quốc</div>
-              </div>
-            </div>
-            
-            <div class="dish-card bg-amber-50/40 border-amber-200">
-              <img src="/static/dishes/com_chien_tom_x_o.webp" alt="Cơm Chiên Tôm X.O" class="dish-img" onerror="this.src='/static/logo.png'">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Cơm Chiên Tôm X.O</h4>
-                  <span class="font-black text-amber-800 text-xs whitespace-nowrap ml-1">150,000đ</span>
-                </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 150 cơm, tôm tươi</div>
-                <div class="text-[8px] text-stone-400 truncate italic">Cơm Chiên Tôm X.O tại PiPo Garden Phú Quốc</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 150 cơm, tôm tươi • <span class="text-stone-400 italic">Plate with fresh prawns</span></div>
+                
               </div>
             </div>
             
@@ -597,7 +631,7 @@
 
       <!-- Footer trang -->
       <div class="pt-2 border-t border-stone-200 flex justify-between items-center text-[9px] text-stone-400">
-        <span>PiPo Garden Phú Quốc • Thực đơn nướng & đặc sản</span>
+        <span>PiPo Garden Phú Quốc • Thực đơn nướng & đặc sản / Garden BBQ & Specialties</span>
         <span class="font-bold">Trang 2 / 6</span>
       </div>
     </div>
@@ -615,177 +649,210 @@
           <div class="flex items-center gap-2">
             <span class="text-lg">🥗</span>
             <div>
-              <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">KHAI VỊ THANH VỊ & GIA CẦM THẢO MỘC</h2>
-              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">APPETIZERS, SALADS & GARDEN POULTRY</p>
+              <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">KHAI VỊ THANH MÁT & MÓN GÀ - VỊT ĐẶC SẢN</h2>
+              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">FRESH APPETIZERS, GREENS & POULTRY SPECIALTIES</p>
             </div>
           </div>
-          <img src="/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
+          <img src="https://pipogarden.com/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
         </div>
 
-        <!-- 3. KHAI VỊ (9 MÓN) -->
+        <!-- 3. KHAI VỊ -->
         <div class="mb-3">
           <div class="section-header">
             <div class="flex items-center gap-1.5">
               <i class="fa-solid fa-leaf text-amber-300 text-xs"></i>
-              <span class="text-xs font-black uppercase tracking-wider">3. 🥗 KHAI VỊ & ĂN NHẸ SÂN VƯỜN</span>
+              <span class="text-xs font-black uppercase tracking-wider">3. 🥗 KHAI VỊ & RAU THANH MÁT / APPETIZERS & GREENS</span>
             </div>
-            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">9 Món Khai Vị</span>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Khởi Vị Tươi Ngon</span>
           </div>
 
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             
             <div class="dish-card">
-              <img src="/static/dishes/khoai_tay_chien.jpg" alt="Khoai tây" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/khoai_tay_chien.jpg" alt="Khoai tây" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Khoai tây</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">79,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Khoai tây</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Crispy French Fries</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">79,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 300g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 300g • <span class="text-stone-400 italic">300g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Chiên, Xốc bơ sữa
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Chiên / Fried, Xốc bơ sữa / Butter Milk
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/goi_xoai_kho_muc.webp" alt="Gỏi xoài khô mực" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/goi_xoai_kho_muc.webp" alt="Gỏi xoài khô mực" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Gỏi xoài khô mực</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">99,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Gỏi xoài khô mực</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Green Mango Salad with Dried Squid</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">99,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 350g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 350g • <span class="text-stone-400 italic">350g plate</span></div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/rau_muong_xao_toi.jpg" alt="Rau muống" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/rau_muong_xao_toi.jpg" alt="Rau muống" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Rau muống</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">59,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Rau muống</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Stir-Fried Morning Glory (Water Spinach)</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">59,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 400g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 400g • <span class="text-stone-400 italic">400g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Xào tỏi, Luộc
-                </div>
-                
-              </div>
-            </div>
-            
-            <div class="dish-card">
-              <img src="/static/dishes/cai_thia_sot_dau_hao.jpg" alt="Cải thìa" class="dish-img" onerror="this.src='/static/logo.png'">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Cải thìa</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">59,000đ</span>
-                </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 400g</div>
-                
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt dầu hào, Xào tỏi, Luộc
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Xào tỏi / Garlic Stir-fry, Luộc / Boiled
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/dau_hu_chien_gion.jpg" alt="Đậu hũ" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/cai_thia_sot_dau_hao.jpg" alt="Cải thìa" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Đậu hũ</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">79,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Cải thìa</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Braised / Stir-Fried Bok Choy</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">59,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 4 bìa</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 400g • <span class="text-stone-400 italic">400g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Chiên giòn, Tẩm hành, Chiên sả ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt dầu hào / Oyster Sauce, Xào tỏi / Garlic Stir-fry, Luộc / Boiled
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/khoai_mon_chien_nuoc_mam.jpg" alt="Khoai môn" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/dau_hu_chien_gion.jpg" alt="Đậu hũ" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Khoai môn</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">79,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Đậu hũ</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Fresh Tofu Special</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">79,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 350g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 4 bìa • <span class="text-stone-400 italic">4 pieces plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Chiên nước mắm, Chiên giòn
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Chiên giòn / Crispy Fried, Tẩm hành / Scallion Oil, Chiên sả ớt / Lemongrass & Chili
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/logo.png" alt="Trứng gà luộc" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/khoai_mon_chien_nuoc_mam.jpg" alt="Khoai môn" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Trứng gà luộc</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">10,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Khoai môn</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Crispy Taro Fries</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">79,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 quả</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 350g • <span class="text-stone-400 italic">350g plate</span></div>
                 
-              </div>
-            </div>
-            
-            <div class="dish-card">
-              <img src="/static/logo.png" alt="Cải Thìa Đông Cô Sốt Bào Ngư" class="dish-img" onerror="this.src='/static/logo.png'">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Cải Thìa Đông Cô Sốt Bào Ngư</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">150,000đ</span>
-                </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 5 con bào ngư</div>
-                
-              </div>
-            </div>
-            
-            <div class="dish-card">
-              <img src="/static/dishes/ca_tim.webp" alt="Cà tím" class="dish-img" onerror="this.src='/static/logo.png'">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Cà tím</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">79,000đ</span>
-                </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 350g</div>
-                
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Chiên nước mắm, Nướng mỡ hành
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Chiên nước mắm / Fish Sauce Glaze, Chiên giòn / Crispy Fried
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/kho_muc_nup_lum.webp" alt="Khô Mực Núp Lùm" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/logo.png" alt="Trứng gà luộc" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Khô Mực Núp Lùm</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">150,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Trứng gà luộc</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Boiled Chicken Egg</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">10,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 100g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">1 quả • <span class="text-stone-400 italic">1 piece</span></div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/cha_gio_hai_san.webp" alt="Chả giò hải sản" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/logo.png" alt="Cải Thìa Đông Cô Sốt Bào Ngư" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Chả giò hải sản</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">99,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Cải Thìa Đông Cô Sốt Bào Ngư</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Braised Bok Choy & Shiitake in Abalone Sauce</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 4 cuộn</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 5 con bào ngư • <span class="text-stone-400 italic">Plate with 5 abalones</span></div>
+                
+              </div>
+            </div>
+            
+            <div class="dish-card">
+              <img src="https://pipogarden.com/static/dishes/ca_tim.webp" alt="Cà tím" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Cà tím</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled / Fried Eggplant</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">79,000đ</span>
+                </div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 350g • <span class="text-stone-400 italic">350g plate</span></div>
+                
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Chiên nước mắm / Fish Sauce Glaze, Nướng mỡ hành / Scallion Oil
+                </div>
+                
+              </div>
+            </div>
+            
+            <div class="dish-card">
+              <img src="https://pipogarden.com/static/dishes/kho_muc_nup_lum.webp" alt="Khô Mực Núp Lùm" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Khô Mực Núp Lùm</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Crispy Shredded Dried Squid</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
+                </div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 100g • <span class="text-stone-400 italic">100g plate</span></div>
+                
+              </div>
+            </div>
+            
+            <div class="dish-card">
+              <img src="https://pipogarden.com/static/dishes/cha_gio_hai_san.webp" alt="Chả giò hải sản" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Chả giò hải sản</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Seafood Spring Rolls</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">99,000đ</span>
+                </div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 4 cuộn • <span class="text-stone-400 italic">4 rolls</span></div>
                 
               </div>
             </div>
@@ -793,105 +860,123 @@
           </div>
         </div>
 
-        <!-- 4. GÀ - VỊT (6 MÓN) -->
+        <!-- 4. GÀ - VỊT -->
         <div>
           <div class="section-header">
             <div class="flex items-center gap-1.5">
               <i class="fa-solid fa-drumstick-bite text-amber-300 text-xs"></i>
-              <span class="text-xs font-black uppercase tracking-wider">4. 🍗 GÀ TA THẢ VƯỜN & VỊT QUAY THẢO MỘC</span>
+              <span class="text-xs font-black uppercase tracking-wider">4. 🍗 GÀ TA & VỊT QUAY THẢO MỘC / POULTRY & ROAST DUCK</span>
             </div>
-            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Gà Ta • Gà Đen H'Mông</span>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Gà Đồi & Vịt Quay</span>
           </div>
 
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             
             <div class="dish-card">
-              <img src="/static/dishes/ga_en_nguyen_con.jpg" alt="Gà đen nguyên con" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/ga_en_nguyen_con.jpg" alt="Gà đen nguyên con" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Gà đen nguyên con</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">399,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Gà đen nguyên con</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Whole Herbal Black Chicken</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">399,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Gà 1 con (1.3kg)</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Gà 1 con (1.3kg) • <span class="text-stone-400 italic">Whole 1.3kg chicken</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Chế biến: Hấp mắm nhĩ, Chiên mắm, Nướng muối ớt, Luộc + cháo
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Hấp mắm nhĩ / Fish Sauce Steamed, Chiên mắm / Fish Sauce Glaze, Nướng muối ớt / Grilled Chili Salt, Luộc + cháo / Boiled + Congee
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/ga_nuong_muoi_ot_long_me_xao.jpg" alt="Gà ta nguyên con" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/ga_nuong_muoi_ot_long_me_xao.jpg" alt="Gà ta nguyên con" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Gà ta nguyên con</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">350,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Gà ta nguyên con</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Whole Free-Range Garden Chicken</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">350,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Gà 1 con (1.3kg) + cháo/lòng mề</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Gà 1 con (1.3kg) + cháo/lòng mề • <span class="text-stone-400 italic">Whole 1.3kg + congee & giblets</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Chế biến: Luộc + cháo, Hấp hành, Hấp mắm nhĩ, Chiên mắm, Nấu chanh ớt, Nướng muối ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Luộc + cháo / Boiled + Congee, Hấp hành / Steamed Scallion, Hấp mắm nhĩ / Fish Sauce Steamed, Chiên mắm / Fish Sauce Glaze, Nấu chanh ớt / Chili & Lime Broth, Nướng muối ớt / Grilled Chili Salt
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/canh_ga_nuong_muoi_ot.jpg" alt="Cánh gà" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/canh_ga_nuong_muoi_ot.jpg" alt="Cánh gà" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Cánh gà</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">99,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Cánh gà</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Savory Chicken Wings</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">99,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 3 cái (400g)</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 3 cái (400g) • <span class="text-stone-400 italic">3 pieces (400g)</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Chế biến: Chiên nước mắm, Nướng muối ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Chiên nước mắm / Fish Sauce Glaze, Nướng muối ớt / Grilled Chili Salt
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/vit_quay_thao_moc.jpg" alt="Vịt quay thảo mộc" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/vit_quay_thao_moc.jpg" alt="Vịt quay thảo mộc" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Vịt quay thảo mộc</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">250,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Vịt quay thảo mộc</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Herbal Roasted Duck</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">250,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Vịt 1/2 con (900g)</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Vịt 1/2 con (900g) • <span class="text-stone-400 italic">Half duck (900g)</span></div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/chan_ga_nuong.jpg" alt="Chân gà" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/chan_ga_nuong.jpg" alt="Chân gà" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Chân gà</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">79,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Chân gà</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Crispy Chicken Feet</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">79,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 5 cặp</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 5 cặp • <span class="text-stone-400 italic">5 pairs plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Chế biến: Cháy tỏi, Chiên mắm, Nướng muối ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Cháy tỏi / Garlic Butter, Chiên mắm / Fish Sauce Glaze, Nướng muối ớt / Grilled Chili Salt
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/dui_ga.webp" alt="Đùi gà" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/dui_ga.webp" alt="Đùi gà" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Đùi gà</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">99,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Đùi gà</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Chicken Drumsticks</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">99,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 2 đùi lớn</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 2 đùi lớn • <span class="text-stone-400 italic">2 large drumsticks</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Chế biến: Sốt mật ong, Sốt mắm tỏi, Nướng BBQ
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt mật ong / Honey Glazed, Sốt mắm tỏi / Garlic Fish Sauce, Nướng BBQ / BBQ Grilled
                 </div>
                 
               </div>
@@ -903,7 +988,7 @@
 
       <!-- Footer trang -->
       <div class="pt-2 border-t border-stone-200 flex justify-between items-center text-[9px] text-stone-400">
-        <span>PiPo Garden Phú Quốc • Khai vị & Gà thả vườn</span>
+        <span>PiPo Garden Phú Quốc • Khai vị & Gà vịt đặc sản / Appetizers & Poultry</span>
         <span class="font-bold">Trang 3 / 6</span>
       </div>
     </div>
@@ -921,113 +1006,97 @@
           <div class="flex items-center gap-2">
             <span class="text-lg">🦐</span>
             <div>
-              <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">HẢI SẢN PHÚ QUỐC & HEO - BÒ</h2>
-              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">FRESH SEAFOOD & PREMIUM PORK - BEEF</p>
+              <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">THỊT HEO, THỊT BÒ & HẢI SẢN TƯƠI SỐNG</h2>
+              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">CHOICE MEATS & FRESH PHU QUOC ISLAND SEAFOOD</p>
             </div>
           </div>
-          <img src="/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
+          <img src="https://pipogarden.com/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
         </div>
 
-        <!-- 5. HEO - BÒ (4 MÓN) -->
+        <!-- 5. HEO - BÒ -->
         <div class="mb-3">
           <div class="section-header">
             <div class="flex items-center gap-1.5">
               <i class="fa-solid fa-bacon text-amber-300 text-xs"></i>
-              <span class="text-xs font-black uppercase tracking-wider">5. 🥩 THỊT HEO & BÒ TƯƠI ĐẬM VỊ</span>
+              <span class="text-xs font-black uppercase tracking-wider">5. 🥩 THỊT HEO & THỊT BÒ CHỌN LỌC / PREMIUM MEATS</span>
             </div>
-            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Bò Tiêu Xanh • Sườn Heo</span>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Thịt Tươi Hảo Hạng</span>
           </div>
 
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             
             <div class="dish-card">
-              <img src="/static/dishes/bo_xuyen_tieu.jpg" alt="Bò" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/bo_xuyen_tieu.jpg" alt="Bò" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Bò</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">279,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Bò</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Tender Beef Slices</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">279,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Gói chuẩn bị sẵn 250g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Gói chuẩn bị sẵn 250g • <span class="text-stone-400 italic">250g prepped pack</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt tiêu đen, Cháy Tỏi, Lúc lắc + khoai chiên
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt tiêu đen / Black Pepper Sauce, Cháy Tỏi / Garlic Butter, Lúc lắc + khoai chiên / Shaking Beef + Fries
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/heo_nuong_gieng_me.jpg" alt="Ba chỉ heo" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/heo_nuong_gieng_me.jpg" alt="Ba chỉ heo" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Ba chỉ heo</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">150,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Ba chỉ heo</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Pork Belly Slices</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 350g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 350g • <span class="text-stone-400 italic">350g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Nướng riềng mẻ, Chiên giòn, Chiên nước mắm, Nướng muối ớt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Nướng riềng mẻ / Galangal & Fermented Rice, Chiên giòn / Crispy Fried, Chiên nước mắm / Fish Sauce Glaze, Nướng muối ớt / Grilled Chili Salt
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/suon_heo_nuong_muoi_ot.jpg" alt="Sườn heo" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/suon_heo_nuong_muoi_ot.jpg" alt="Sườn heo" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Sườn heo</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">150,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Sườn heo</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Pork Ribs Special</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 400g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 400g • <span class="text-stone-400 italic">400g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt chua ngọt, Nướng muối ớt, BBQ, Chiên mắm
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt chua ngọt / Sweet & Sour, Nướng muối ớt / Grilled Chili Salt, BBQ / BBQ Sauce, Chiên mắm / Fish Sauce Glaze
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/suon_bo.webp" alt="Sườn bò" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/suon_bo.webp" alt="Sườn bò" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Sườn bò</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">220,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Sườn bò</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Prime Beef Short Ribs</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">220,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Phần 300g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Phần 300g • <span class="text-stone-400 italic">300g portion</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Nướng Sốt BBQ, Nướng sốt mắm nhĩ
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Nướng Sốt BBQ / BBQ Sauce, Nướng sốt mắm nhĩ / Fish Sauce Glaze
                 </div>
-                
-              </div>
-            </div>
-            
-            <div class="dish-card">
-              <img src="/static/logo.png" alt="Má heo" class="dish-img" onerror="this.src='/static/logo.png'">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Má heo</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">150,000đ</span>
-                </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 250g</div>
-                
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Cháy tỏi
-                </div>
-                
-              </div>
-            </div>
-            
-            <div class="dish-card">
-              <img src="/static/logo.png" alt="Heo Massage" class="dish-img" onerror="this.src='/static/logo.png'">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Heo Massage</h4>
-                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1">180,000đ</span>
-                </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 300g</div>
                 
               </div>
             </div>
@@ -1035,201 +1104,237 @@
           </div>
         </div>
 
-        <!-- 6. HẢI SẢN (11 MÓN) -->
+        <!-- 6. HẢI SẢN -->
         <div>
           <div class="section-header">
             <div class="flex items-center gap-1.5">
               <i class="fa-solid fa-shrimp text-amber-300 text-xs"></i>
-              <span class="text-xs font-black uppercase tracking-wider">6. 🦐 HẢI SẢN TƯƠI SỐNG ĐẢO NGỌC</span>
+              <span class="text-xs font-black uppercase tracking-wider">6. 🦐 HẢI SẢN TƯƠI SỐNG PHÚ QUỐC / FRESH SEAFOOD</span>
             </div>
-            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">11 Món Tươi Sống</span>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Đánh Bắt Trong Ngày</span>
           </div>
 
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             
             <div class="dish-card">
-              <img src="/static/dishes/hau_nuong_pho_mai.jpg" alt="Hàu nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/hau_nuong_pho_mai.jpg" alt="Hàu nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Hàu nướng</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">25,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Hàu nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Fresh Oysters</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">25,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Con lớn</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Con lớn • <span class="text-stone-400 italic">Large fresh oyster</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Phô mai, Mỡ hành
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Phô mai / Melted Cheese, Mỡ hành / Scallion Oil & Peanuts
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/ngheu_hap_sa.jpg" alt="Nghêu" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/ngheu_hap_sa.jpg" alt="Nghêu" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Nghêu</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">79,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Nghêu</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Steamed Fresh Clams</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">79,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Tô 500g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Tô 500g • <span class="text-stone-400 italic">500g bowl</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Hấp Thái, Hấp sả, Xào lá quế
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Hấp Thái / Spicy Thai Style, Hấp sả / Steamed with Lemongrass, Xào lá quế / Basil Stir-fry
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/tom_hap.jpg" alt="Tôm sú" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/tom_hap.jpg" alt="Tôm sú" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Tôm sú</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">179,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Tôm sú</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Black Tiger Prawns</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">179,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 250g (6-8 con)</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 250g (6-8 con) • <span class="text-stone-400 italic">250g plate (6-8 prawns)</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Cháy tỏi, Rang muối HK, Nướng muối ớt, Hấp nước dừa / sả, Sốt bơ tỏi, Chiên xù
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Cháy tỏi / Garlic Butter, Rang muối HK / Hong Kong Salt Bake, Nướng muối ớt / Grilled Chili Salt, Hấp nước dừa / sả / Coconut Water & Lemongrass, Sốt bơ tỏi / Garlic Butter, Chiên xù / Crispy Breaded
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/oc_huong_sot_trung_muoi_banh_mi.jpg" alt="Ốc hương" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/oc_huong_sot_trung_muoi_banh_mi.jpg" alt="Ốc hương" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Ốc hương</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">150,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Ốc hương</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Spotted Babylon Snails (Oc Huong)</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Ốc hương 250g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Ốc hương 250g • <span class="text-stone-400 italic">250g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt trứng muối (kèm bánh mì), Cháy tỏi, Hấp sả
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt trứng muối (kèm bánh mì) / Salted Egg Lava (w/ bread), Cháy tỏi / Garlic Butter, Hấp sả / Steamed with Lemongrass
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/oc_mong_tay_chay_toi.jpg" alt="Ốc móng tay" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/oc_mong_tay_chay_toi.jpg" alt="Ốc móng tay" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Ốc móng tay</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">99,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Ốc móng tay</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Fresh Razor Clams</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">99,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Ốc móng tay 300g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Ốc móng tay 300g • <span class="text-stone-400 italic">300g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Cháy tỏi, Nướng mỡ hành, Xào rau muống
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Cháy tỏi / Garlic Butter, Nướng mỡ hành / Scallion Oil, Xào rau muống / Morning Glory Stir-fry
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/bach_tuoc_nuong_muoi_ot.jpg" alt="Bạch tuộc" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/bach_tuoc_nuong_muoi_ot.jpg" alt="Bạch tuộc" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Bạch tuộc</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">150,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Bạch tuộc</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Fresh Octopus</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Bạch tuộc 300g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Bạch tuộc 300g • <span class="text-stone-400 italic">300g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Nướng muối ớt, Xào cay, Hấp hành gừng
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Nướng muối ớt / Grilled Chili Salt, Xào cay / Spicy Stir-fry, Hấp hành gừng / Ginger & Scallion Steamed
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/ca_mu_2_mon.webp" alt="Cá Mú 2 Món" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/ca_mu_2_mon.webp" alt="Cá Mú 2 Món" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Cá Mú 2 Món</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">800,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Cá Mú 2 Món</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Live Grouper Prepared 2 Ways</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">800,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Con 2.0kg</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Con 2.0kg • <span class="text-stone-400 italic">Whole 2.0kg fish</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Hấp Hồng Kông, Nấu lẩu, Chiên xù, nấu cháo, sashimi
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Hấp Hồng Kông / Hong Kong Steamed, Nấu lẩu / Hotpot Broth, Chiên xù / Crispy Breaded, nấu cháo / Congee Broth, sashimi / Sashimi
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/casongnuong_06516bf4.webp" alt="Cá Sòng nướng" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/casongnuong_06516bf4.webp" alt="Cá Sòng nướng" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Cá Sòng nướng</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">75,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Cá Sòng nướng</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Grilled Phu Quoc Mackerel</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">75,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Con 400gram</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Con 400gram • <span class="text-stone-400 italic">Whole 400g fish</span></div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/goi_ca.webp" alt="Gỏi cá" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/goi_ca.webp" alt="Gỏi cá" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Gỏi cá</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">150,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Gỏi cá</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Phu Quoc Raw Herring Salad (Goi Ca)</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 phần</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">1 phần • <span class="text-stone-400 italic">1 portion</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Trích
-                </div>
-                
-              </div>
-            </div>
-            
-            <div class="dish-card">
-              <img src="/static/dishes/muc_ong.webp" alt="Mực ống" class="dish-img" onerror="this.src='/static/logo.png'">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Mực ống</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">180,000đ</span>
-                </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 300g</div>
-                
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Chiên nước mắm, Nướng muối ớt, Hấp hành gừng, Xào chua ngọt
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Trích / Herring
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/oc_huong_sot_trung_muoi_banh_mi_a153a5.webp" alt="Ốc Hương" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/muc_ong.webp" alt="Mực ống" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Ốc Hương</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">150,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Mực ống</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Fresh Calamari (Squid)</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">180,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa 350g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 300g • <span class="text-stone-400 italic">300g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Sốt trứng muối, Rang muối, Cháy tỏi, Hấp sả, Sốt XO
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Chiên nước mắm / Fish Sauce Glaze, Nướng muối ớt / Grilled Chili Salt, Hấp hành gừng / Ginger & Scallion Steamed, Xào chua ngọt / Sweet & Sour
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/ca_chim_bien.webp" alt="Cá chim biển" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/oc_huong_sot_trung_muoi_banh_mi_a153a5.webp" alt="Ốc Hương" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Cá chim biển</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">250,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Ốc Hương</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Spotted Babylon Snails Special</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Con 800g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa 350g • <span class="text-stone-400 italic">350g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Nướng muối ớt, Hấp Hồng Kông, nấu lẩu
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Sốt trứng muối / Salted Egg Sauce, Rang muối / Salt Roasted, Cháy tỏi / Garlic Butter, Hấp sả / Steamed with Lemongrass, Sốt XO / XO Sauce
+                </div>
+                
+              </div>
+            </div>
+            
+            <div class="dish-card">
+              <img src="https://pipogarden.com/static/dishes/ca_chim_bien.webp" alt="Cá chim biển" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Cá chim biển</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Fresh Sea Pomfret</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">250,000đ</span>
+                </div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Con 800g • <span class="text-stone-400 italic">Whole 800g fish</span></div>
+                
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Nướng muối ớt / Grilled Chili Salt, Hấp Hồng Kông / Hong Kong Steamed, nấu lẩu / Hotpot Broth
                 </div>
                 
               </div>
@@ -1241,7 +1346,7 @@
 
       <!-- Footer trang -->
       <div class="pt-2 border-t border-stone-200 flex justify-between items-center text-[9px] text-stone-400">
-        <span>PiPo Garden Phú Quốc • Hải sản đảo ngọc & Thịt bò hảo hạng</span>
+        <span>PiPo Garden Phú Quốc • Thịt bò heo & Hải sản tươi sống / Choice Meats & Seafood</span>
         <span class="font-bold">Trang 4 / 6</span>
       </div>
     </div>
@@ -1259,77 +1364,89 @@
           <div class="flex items-center gap-2">
             <span class="text-lg">🥘</span>
             <div>
-              <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">LẨU SÂN VƯỜN, SÚP CHÁO & CƠM MÌ</h2>
-              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">HOTPOTS, NOURISHING SOUPS & RICE - NOODLES</p>
+              <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">CƠM - MÌ, SÚP - CHÁO & MÓN LẨU ĐẶC SẮC</h2>
+              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">RICE, NOODLES, HOT SOUPS, CONGEE & SIGNATURE HOTPOT</p>
             </div>
           </div>
-          <img src="/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
+          <img src="https://pipogarden.com/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
         </div>
 
-        <!-- 7. CƠM - MÌ (4 MÓN) -->
+        <!-- 7. CƠM - MÌ -->
         <div class="mb-3">
           <div class="section-header">
             <div class="flex items-center gap-1.5">
               <i class="fa-solid fa-bowl-rice text-amber-300 text-xs"></i>
-              <span class="text-xs font-black uppercase tracking-wider">7. 🍚 CƠM CHIÊN & MÌ XÀO NO BỤNG</span>
+              <span class="text-xs font-black uppercase tracking-wider">7. 🍚 CƠM CHIÊN & MÌ XÀO / FRIED RICE & NOODLES</span>
             </div>
-            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Cơm Ghẹ • Miến X.O</span>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">No Bụng Ấm Lòng</span>
           </div>
 
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             
             <div class="dish-card">
-              <img src="/static/dishes/com_chien_ghe.jpg" alt="Cơm chiên" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/com_chien_ghe.jpg" alt="Cơm chiên" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Cơm chiên</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">119,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Cơm chiên</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Special Fried Rice</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">119,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa lớn 250g</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa lớn 250g • <span class="text-stone-400 italic">Large 250g plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Hải sản, Bò, Úp trứng
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Hải sản / Seafood, Bò / Beef, Úp trứng / Sunny Egg
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/mi_xao_hai_san.jpg" alt="Mì xào" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/mi_xao_hai_san.jpg" alt="Mì xào" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Mì xào</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">99,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Mì xào</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Stir-Fried Egg Noodles</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">99,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Đĩa lớn 2 vắt</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Đĩa lớn 2 vắt • <span class="text-stone-400 italic">Large 2 cakes plate</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Xào hải sản, Xào bò
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Xào hải sản / Seafood, Xào bò / Beef
                 </div>
-                
-              </div>
-            </div>
-            
-            <div class="dish-card">
-              <img src="/static/dishes/mien_xao_hai_san_x_o.webp" alt="Miến xào hải sản X.O" class="dish-img" onerror="this.src='/static/logo.png'">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Miến xào hải sản X.O</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">150,000đ</span>
-                </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 80g miến khô, hải sản</div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/com_chien_tom_x_o.webp" alt="Cơm Chiên Tôm X.O" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/mien_xao_hai_san_x_o.webp" alt="Miến xào hải sản X.O" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Cơm Chiên Tôm X.O</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">150,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Miến xào hải sản X.O</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Stir-Fried Glass Noodles with Seafood in X.O Sauce</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Dĩa 150 cơm, tôm tươi</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 80g miến khô, hải sản • <span class="text-stone-400 italic">Glass noodles with seafood</span></div>
+                
+              </div>
+            </div>
+            
+            <div class="dish-card">
+              <img src="https://pipogarden.com/static/dishes/com_chien_tom_x_o.webp" alt="Cơm Chiên Tôm X.O" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Cơm Chiên Tôm X.O</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Signature Shrimp Fried Rice in X.O Sauce</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">150,000đ</span>
+                </div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Dĩa 150 cơm, tôm tươi • <span class="text-stone-400 italic">Fried rice with fresh shrimp</span></div>
                 
               </div>
             </div>
@@ -1337,58 +1454,67 @@
           </div>
         </div>
 
-        <!-- 8. SÚP - CHÁO (3 MÓN) -->
+        <!-- 8. SÚP - CHÁO -->
         <div class="mb-3">
           <div class="section-header">
             <div class="flex items-center gap-1.5">
-              <i class="fa-solid fa-mug-hot text-amber-300 text-xs"></i>
-              <span class="text-xs font-black uppercase tracking-wider">8. 🍲 SÚP CUA & CHÁO NÓNG HỔI</span>
+              <i class="fa-solid fa-bowl-food text-amber-300 text-xs"></i>
+              <span class="text-xs font-black uppercase tracking-wider">8. 🍲 SÚP KHAI VỊ & CHÁO NÓNG / SOUPS & CONGEE</span>
             </div>
-            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Bổ Dưỡng Ấm Bụng</span>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Nóng Hổi Bổ Dưỡng</span>
           </div>
 
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             
             <div class="dish-card">
-              <img src="/static/dishes/sup.webp" alt="Súp" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/sup.webp" alt="Súp" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Súp</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">89,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Súp</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Hot Gourmet Soup</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">89,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Tô vừa</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Tô vừa • <span class="text-stone-400 italic">Medium bowl</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: Súp hải sản, Súp bào ngư
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Súp hải sản / Seafood Soup, Súp bào ngư / Abalone Soup
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/chao.webp" alt="Cháo" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/chao.webp" alt="Cháo" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Cháo</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">89,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Cháo</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Nutritious Rice Congee / Porridge</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">89,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Tô lớn</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Tô lớn • <span class="text-stone-400 italic">Large bowl</span></div>
                 
-                <div class="text-[8px] text-amber-700 font-semibold truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                  Vị: hải sản, bò băm, bào ngư, Ngheu
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> hải sản / Seafood, bò băm / Minced Beef, bào ngư / Abalone, Ngheu / Clams
                 </div>
                 
               </div>
             </div>
             
             <div class="dish-card">
-              <img src="/static/dishes/sup_cua_tomyum.webp" alt="Súp Cua TomYum" class="dish-img" onerror="this.src='/static/logo.png'">
+              <img src="https://pipogarden.com/static/dishes/sup_cua_tomyum.webp" alt="Súp Cua TomYum" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Súp Cua TomYum</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">129,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Súp Cua TomYum</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Tom Yum Crab Soup</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">129,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Tô lớn</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Tô lớn • <span class="text-stone-400 italic">Large bowl</span></div>
                 
               </div>
             </div>
@@ -1396,51 +1522,64 @@
           </div>
         </div>
 
-        <!-- 9. MÓN LẨU (3 MÓN) -->
+        <!-- 9. LẨU -->
         <div>
           <div class="section-header !bg-gradient-to-r !from-rose-800 !to-red-700">
             <div class="flex items-center gap-1.5">
               <i class="fa-solid fa-fire text-amber-300 text-xs"></i>
-              <span class="text-xs font-black uppercase tracking-wider">9. 🥘 NỒI LẨU ĐẶC SẢN SÂN VƯỜN</span>
+              <span class="text-xs font-black uppercase tracking-wider">9. 🥘 MÓN LẨU ĐẶC SẮC / SIGNATURE HOTPOT</span>
             </div>
-            <span class="text-[9px] font-bold text-stone-950 bg-amber-300 px-2 py-0.5 rounded-full">Lẩu Thái • Lẩu Gà Chanh Ớt</span>
+            <span class="text-[9px] font-bold text-amber-100 bg-rose-950/40 px-2 py-0.5 rounded-full">Lẩu Tươi Ngọt Nước</span>
           </div>
 
           <div class="grid grid-cols-2 gap-1.5 text-xs">
             
-            <div class="dish-card bg-rose-50/30 border-rose-200">
-              <img src="/static/dishes/lau_thai_hai_san.webp" alt="Lẩu Thái Hải Sản" class="dish-img" onerror="this.src='/static/logo.png'">
+            <div class="dish-card border-rose-200">
+              <img src="https://pipogarden.com/static/dishes/lau_thai_hai_san.webp" alt="Lẩu Thái Hải Sản" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Lẩu Thái Hải Sản</h4>
-                  <span class="font-black text-rose-800 text-xs whitespace-nowrap ml-1">350,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Lẩu Thái Hải Sản</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Thai Spicy Seafood Hotpot</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">350,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Nồi lẩu (3-4 người)</div>
-                <div class="text-[8px] text-stone-500 truncate italic">Lẩu Thái hải sản chua cay thơm đậm đà</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Nồi lẩu (3-4 người) • <span class="text-stone-400 italic">Hotpot set (3-4 pax)</span></div>
+                
               </div>
             </div>
             
-            <div class="dish-card bg-rose-50/30 border-rose-200">
-              <img src="/static/dishes/lau_ga_chanh_ot.webp" alt="Lẩu Gà Chanh Ớt" class="dish-img" onerror="this.src='/static/logo.png'">
+            <div class="dish-card border-rose-200">
+              <img src="https://pipogarden.com/static/dishes/lau_ga_chanh_ot.webp" alt="Lẩu Gà Chanh Ớt" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Lẩu Gà Chanh Ớt</h4>
-                  <span class="font-black text-rose-800 text-xs whitespace-nowrap ml-1">350,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Lẩu Gà Chanh Ớt</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Chicken Hotpot with Chili & Lime</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">350,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Nồi lẩu</div>
-                <div class="text-[8px] text-stone-500 truncate italic">Lẩu gà chanh ớt xiêm xanh cay thơm nức</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Nồi lẩu • <span class="text-stone-400 italic">Hotpot set (3-4 pax)</span></div>
+                
               </div>
             </div>
             
-            <div class="dish-card bg-rose-50/30 border-rose-200">
-              <img src="/static/dishes/lau_ca_dat_truoc.webp" alt="Lẩu Cá - đặt trước" class="dish-img" onerror="this.src='/static/logo.png'">
+            <div class="dish-card border-rose-200">
+              <img src="https://pipogarden.com/static/dishes/lau_ca_dat_truoc.webp" alt="Lẩu Cá - đặt trước" class="dish-img" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Lẩu Cá - đặt trước</h4>
-                  <span class="font-black text-rose-800 text-xs whitespace-nowrap ml-1">400,000đ</span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Lẩu Cá - đặt trước</h4>
+                    <div class="text-[9px] text-emerald-800 font-medium italic truncate leading-tight">Whole Fish Sour Hotpot (Pre-order)</div>
+                  </div>
+                  <span class="font-black text-rose-700 text-xs whitespace-nowrap ml-1 self-start">400,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">Nồi lẩu 1 con</div>
-                <div class="text-[8px] text-stone-500 truncate italic">Lẩu cá tươi nấu ngọt thanh hoặc nấu Thái chua cay</div>
+                <div class="text-[8.5px] text-stone-500 truncate mt-0.5">Nồi lẩu 1 con • <span class="text-stone-400 italic">Whole fish hotpot</span></div>
+                
+                <div class="text-[8px] text-amber-800 font-medium truncate mt-0.5 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  <span class="font-bold">Vị / Flavors:</span> Chim biển / Sea Pomfret, bớp / Cobia, Mú / Grouper
+                </div>
+                
               </div>
             </div>
             
@@ -1450,7 +1589,7 @@
 
       <!-- Footer trang -->
       <div class="pt-2 border-t border-stone-200 flex justify-between items-center text-[9px] text-stone-400">
-        <span>PiPo Garden Phú Quốc • Nồi lẩu & Cơm chiên ghẹ</span>
+        <span>PiPo Garden Phú Quốc • Cơm mì, súp cháo & Món lẩu / Staples, Soups & Hotpot</span>
         <span class="font-bold">Trang 5 / 6</span>
       </div>
     </div>
@@ -1468,185 +1607,210 @@
           <div class="flex items-center gap-2">
             <span class="text-lg">🍹</span>
             <div>
-              <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">ĐỒ UỐNG & DỊCH VỤ SÂN PICKLEBALL</h2>
-              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">BEVERAGES, BEERS & PICKLEBALL SERVICES</p>
+              <h2 class="text-base font-black text-emerald-950 font-title-playfair uppercase tracking-wide">ĐỒ UỐNG GIẢI KHÁT & DỊCH VỤ SÂN PICKLEBALL</h2>
+              <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">REFRESHING BEVERAGES, BEERS & PICKLEBALL COURT SERVICES</p>
             </div>
           </div>
-          <img src="/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
+          <img src="https://pipogarden.com/static/logo.png" alt="PiPo" class="w-8 h-8 rounded-full border border-amber-400">
         </div>
 
-        <!-- 10. ĐỒ UỐNG (10 MÓN) -->
+        <!-- 10. ĐỒ UỐNG -->
         <div class="mb-3">
           <div class="section-header">
             <div class="flex items-center gap-1.5">
               <i class="fa-solid fa-beer-mug-empty text-amber-300 text-xs"></i>
-              <span class="text-xs font-black uppercase tracking-wider">10. 🍹 BIA HƠI, BIA CHILL & NƯỚC GIẢI KHÁT</span>
+              <span class="text-xs font-black uppercase tracking-wider">10. 🍹 ĐỒ UỐNG & BIA GIẢI KHÁT / BEVERAGES & BEERS</span>
             </div>
-            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Bia Hơi 1L • Bia Bivina</span>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Bia & Nước Ngọt</span>
           </div>
 
-          <div class="grid grid-cols-2 gap-1.5 text-xs">
+          <div class="grid grid-cols-3 gap-1.5 text-xs">
             
-            <div class="dish-card">
-              <img src="/static/dishes/nuoc_suoi.jpg" alt="Nước suối" class="dish-img" onerror="this.src='/static/logo.png'">
+            <div class="dish-card !p-1.5">
+              <img src="https://pipogarden.com/static/dishes/nuoc_suoi.jpg" alt="Nước suối" class="dish-img !w-10 !h-10" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Nước suối</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">10,000đ</span>
+                <div class="font-bold text-stone-900 text-[11px] truncate leading-snug">Nước suối</div>
+                <div class="text-[8.5px] text-emerald-800 font-medium italic truncate leading-tight">Bottled Mineral Water</div>
+                <div class="flex items-center justify-between mt-0.5">
+                  <span class="text-[8px] text-stone-500 truncate">1 chai (500ml)</span>
+                  <span class="font-black text-rose-700 text-[11px]">10,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 chai (500ml)</div>
               </div>
             </div>
             
-            <div class="dish-card">
-              <img src="/static/dishes/coca_cola.jpg" alt="Coca Cola" class="dish-img" onerror="this.src='/static/logo.png'">
+            <div class="dish-card !p-1.5">
+              <img src="https://pipogarden.com/static/dishes/coca_cola.jpg" alt="Coca Cola" class="dish-img !w-10 !h-10" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Coca Cola</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">15,000đ</span>
+                <div class="font-bold text-stone-900 text-[11px] truncate leading-snug">Coca Cola</div>
+                <div class="text-[8.5px] text-emerald-800 font-medium italic truncate leading-tight">Coca-Cola Can</div>
+                <div class="flex items-center justify-between mt-0.5">
+                  <span class="text-[8px] text-stone-500 truncate">1 lon (320ml)</span>
+                  <span class="font-black text-rose-700 text-[11px]">15,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 lon (320ml)</div>
               </div>
             </div>
             
-            <div class="dish-card">
-              <img src="/static/dishes/pepsi.jpg" alt="Pepsi" class="dish-img" onerror="this.src='/static/logo.png'">
+            <div class="dish-card !p-1.5">
+              <img src="https://pipogarden.com/static/dishes/pepsi.jpg" alt="Pepsi" class="dish-img !w-10 !h-10" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Pepsi</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">15,000đ</span>
+                <div class="font-bold text-stone-900 text-[11px] truncate leading-snug">Pepsi</div>
+                <div class="text-[8.5px] text-emerald-800 font-medium italic truncate leading-tight">Pepsi Can</div>
+                <div class="flex items-center justify-between mt-0.5">
+                  <span class="text-[8px] text-stone-500 truncate">1 lon (320ml)</span>
+                  <span class="font-black text-rose-700 text-[11px]">15,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 lon (320ml)</div>
               </div>
             </div>
             
-            <div class="dish-card">
-              <img src="/static/dishes/aquarius.jpg" alt="Aquarius" class="dish-img" onerror="this.src='/static/logo.png'">
+            <div class="dish-card !p-1.5">
+              <img src="https://pipogarden.com/static/dishes/aquarius.jpg" alt="Aquarius" class="dish-img !w-10 !h-10" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Aquarius</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">15,000đ</span>
+                <div class="font-bold text-stone-900 text-[11px] truncate leading-snug">Aquarius</div>
+                <div class="text-[8.5px] text-emerald-800 font-medium italic truncate leading-tight">Aquarius Isotonic Drink</div>
+                <div class="flex items-center justify-between mt-0.5">
+                  <span class="text-[8px] text-stone-500 truncate">1 chai (390ml)</span>
+                  <span class="font-black text-rose-700 text-[11px]">15,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 chai (390ml)</div>
               </div>
             </div>
             
-            <div class="dish-card">
-              <img src="/static/dishes/revive.jpg" alt="Revive" class="dish-img" onerror="this.src='/static/logo.png'">
+            <div class="dish-card !p-1.5">
+              <img src="https://pipogarden.com/static/dishes/revive.jpg" alt="Revive" class="dish-img !w-10 !h-10" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Revive</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">15,000đ</span>
+                <div class="font-bold text-stone-900 text-[11px] truncate leading-snug">Revive</div>
+                <div class="text-[8.5px] text-emerald-800 font-medium italic truncate leading-tight">Revive Electrolyte Drink</div>
+                <div class="flex items-center justify-between mt-0.5">
+                  <span class="text-[8px] text-stone-500 truncate">1 chai (500ml)</span>
+                  <span class="font-black text-rose-700 text-[11px]">15,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 chai (500ml)</div>
               </div>
             </div>
             
-            <div class="dish-card">
-              <img src="/static/dishes/bia_bivina.jpg" alt="Bia Bivina" class="dish-img" onerror="this.src='/static/logo.png'">
+            <div class="dish-card !p-1.5">
+              <img src="https://pipogarden.com/static/dishes/bia_bivina.jpg" alt="Bia Bivina" class="dish-img !w-10 !h-10" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Bia Bivina</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">16,000đ</span>
+                <div class="font-bold text-stone-900 text-[11px] truncate leading-snug">Bia Bivina</div>
+                <div class="text-[8.5px] text-emerald-800 font-medium italic truncate leading-tight">Bivina Phu Quoc Beer</div>
+                <div class="flex items-center justify-between mt-0.5">
+                  <span class="text-[8px] text-stone-500 truncate">1 lon (330ml)</span>
+                  <span class="font-black text-rose-700 text-[11px]">16,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 lon (330ml)</div>
               </div>
             </div>
             
-            <div class="dish-card">
-              <img src="/static/dishes/bia_sai_gon.jpg" alt="Bia Sài Gòn" class="dish-img" onerror="this.src='/static/logo.png'">
+            <div class="dish-card !p-1.5">
+              <img src="https://pipogarden.com/static/dishes/bia_sai_gon.jpg" alt="Bia Sài Gòn" class="dish-img !w-10 !h-10" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Bia Sài Gòn</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">22,000đ</span>
+                <div class="font-bold text-stone-900 text-[11px] truncate leading-snug">Bia Sài Gòn</div>
+                <div class="text-[8.5px] text-emerald-800 font-medium italic truncate leading-tight">Saigon Special Beer</div>
+                <div class="flex items-center justify-between mt-0.5">
+                  <span class="text-[8px] text-stone-500 truncate">1 lon (330ml)</span>
+                  <span class="font-black text-rose-700 text-[11px]">22,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 lon (330ml)</div>
               </div>
             </div>
             
-            <div class="dish-card">
-              <img src="/static/dishes/bia_heineken.jpg" alt="Bia Heineken" class="dish-img" onerror="this.src='/static/logo.png'">
+            <div class="dish-card !p-1.5">
+              <img src="https://pipogarden.com/static/dishes/bia_heineken.jpg" alt="Bia Heineken" class="dish-img !w-10 !h-10" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Bia Heineken</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">25,000đ</span>
+                <div class="font-bold text-stone-900 text-[11px] truncate leading-snug">Bia Heineken</div>
+                <div class="text-[8.5px] text-emerald-800 font-medium italic truncate leading-tight">Heineken Beer</div>
+                <div class="flex items-center justify-between mt-0.5">
+                  <span class="text-[8px] text-stone-500 truncate">1 lon (250ml)</span>
+                  <span class="font-black text-rose-700 text-[11px]">25,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 lon (250ml)</div>
               </div>
             </div>
             
-            <div class="dish-card">
-              <img src="/static/dishes/biahoihn1l_c4483f52.webp" alt="Bia Hơi Hà Nội" class="dish-img" onerror="this.src='/static/logo.png'">
+            <div class="dish-card !p-1.5">
+              <img src="https://pipogarden.com/static/dishes/biahoihn1l_c4483f52.webp" alt="Bia Hơi Hà Nội" class="dish-img !w-10 !h-10" onerror="this.onerror=null; this.src='https://pipogarden.com/static/logo.png';">
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Bia Hơi Hà Nội</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">80,000đ</span>
+                <div class="font-bold text-stone-900 text-[11px] truncate leading-snug">Bia Hơi Hà Nội</div>
+                <div class="text-[8.5px] text-emerald-800 font-medium italic truncate leading-tight">Hanoi Fresh Draught Beer (1L Pitcher)</div>
+                <div class="flex items-center justify-between mt-0.5">
+                  <span class="text-[8px] text-stone-500 truncate">1L</span>
+                  <span class="font-black text-rose-700 text-[11px]">80,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1L</div>
               </div>
             </div>
             
           </div>
         </div>
 
-        <!-- 11. DỊCH VỤ SÂN PICKLEBALL (8 MÓN) -->
+        <!-- 11. PICKLEBALL -->
         
         <div class="mb-3">
           <div class="section-header !bg-gradient-to-r !from-emerald-800 !to-teal-800">
             <div class="flex items-center gap-1.5">
               <i class="fa-solid fa-table-tennis-paddle-ball text-amber-300 text-xs"></i>
-              <span class="text-xs font-black uppercase tracking-wider">11. 🎾 DỊCH VỤ SÂN THỂ THAO PICKLEBALL</span>
+              <span class="text-xs font-black uppercase tracking-wider">11. 🎾 DỊCH VỤ SÂN PICKLEBALL / COURT SERVICES</span>
             </div>
-            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">4 Sân Tiêu Chuẩn Mái Che</span>
+            <span class="text-[9px] font-bold text-amber-200 bg-emerald-950/40 px-2 py-0.5 rounded-full">Sân Chuẩn Thi Đấu</span>
           </div>
 
-          <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
             
-            <div class="dish-card bg-emerald-50/30 border-emerald-200">
+            <div class="dish-card bg-emerald-50/40 border-emerald-200 !py-1.5">
+              <div class="w-8 h-8 rounded-lg bg-emerald-700 text-amber-300 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                🎾
+              </div>
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Vé Social Chiều (16h-22h kèm nước)</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">
-                    60,000đ
-                  </span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Vé Social Chiều (16h-22h kèm nước)</h4>
+                    <div class="text-[8.5px] text-emerald-800 font-medium italic truncate leading-tight">Afternoon Social Session (4PM-10PM + Drink)</div>
+                  </div>
+                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1 self-start">60,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 lượt chơi + 1 nước</div>
+                <div class="text-[8px] text-stone-500 truncate">1 lượt chơi + 1 nước</div>
               </div>
             </div>
             
-            <div class="dish-card bg-emerald-50/30 border-emerald-200">
+            <div class="dish-card bg-emerald-50/40 border-emerald-200 !py-1.5">
+              <div class="w-8 h-8 rounded-lg bg-emerald-700 text-amber-300 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                🎾
+              </div>
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Vé Social Sáng (06h-16h)</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">
-                    30,000đ
-                  </span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Vé Social Sáng (06h-16h)</h4>
+                    <div class="text-[8.5px] text-emerald-800 font-medium italic truncate leading-tight">Morning Social Session (6AM-4PM)</div>
+                  </div>
+                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1 self-start">30,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 lượt chơi sáng</div>
+                <div class="text-[8px] text-stone-500 truncate">1 lượt chơi sáng</div>
               </div>
             </div>
             
-            <div class="dish-card bg-emerald-50/30 border-emerald-200">
+            <div class="dish-card bg-emerald-50/40 border-emerald-200 !py-1.5">
+              <div class="w-8 h-8 rounded-lg bg-emerald-700 text-amber-300 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                🎾
+              </div>
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Thuê Vợt Pickleball</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">
-                    50,000đ
-                  </span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Thuê Vợt Pickleball</h4>
+                    <div class="text-[8.5px] text-emerald-800 font-medium italic truncate leading-tight">Pickleball Paddle Rental</div>
+                  </div>
+                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1 self-start">50,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 cây / lượt</div>
+                <div class="text-[8px] text-stone-500 truncate">1 cây / lượt</div>
               </div>
             </div>
             
-            <div class="dish-card bg-emerald-50/30 border-emerald-200">
+            <div class="dish-card bg-emerald-50/40 border-emerald-200 !py-1.5">
+              <div class="w-8 h-8 rounded-lg bg-emerald-700 text-amber-300 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                🎾
+              </div>
               <div class="min-w-0 flex-1">
-                <div class="flex items-baseline justify-between">
-                  <h4 class="font-bold text-stone-900 text-xs truncate">Thuê Sân Theo Giờ (200k/giờ, tặng 2 nước)</h4>
-                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1">
-                    200,000đ
-                  </span>
+                <div class="flex items-start justify-between gap-1">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-stone-900 text-xs truncate leading-snug">Thuê Sân Theo Giờ (200k/giờ, tặng 2 nước)</h4>
+                    <div class="text-[8.5px] text-emerald-800 font-medium italic truncate leading-tight">Hourly Court Rental (+2 Drinks Included)</div>
+                  </div>
+                  <span class="font-black text-emerald-800 text-xs whitespace-nowrap ml-1 self-start">200,000đ</span>
                 </div>
-                <div class="text-[9px] text-stone-500 truncate mt-0.5">1 giờ / sân (kèm 2 nước)</div>
+                <div class="text-[8px] text-stone-500 truncate">1 giờ / sân (kèm 2 nước)</div>
               </div>
             </div>
             
@@ -1655,32 +1819,54 @@
         
       </div>
 
-      <!-- Bìa Sau & Lời Cảm Ơn (Back Cover Card) -->
-      <div class="mt-auto bg-stone-50 border-2 border-dashed border-amber-300 rounded-xl p-3 text-center">
-        <h4 class="font-black text-emerald-950 text-xs tracking-wider uppercase font-title-playfair">PIPO GARDEN RESORT & RESTAURANT XIN CẢM ƠN QUÝ KHÁCH!</h4>
-        <p class="text-[10px] text-stone-600 italic mt-0.5">Kính chúc Quý khách một bữa tiệc ấm cúng, ngon miệng và tràn ngập niềm vui bên gia đình & bạn bè.</p>
-        <div class="flex justify-center items-center gap-6 mt-2 text-[10px] text-stone-700 font-semibold">
-          <span><i class="fa-solid fa-phone text-emerald-700 mr-1"></i> 0986 443 289</span>
-          <span><i class="fa-solid fa-globe text-emerald-700 mr-1"></i> pipogarden.com</span>
-          <span><i class="fa-solid fa-qrcode text-emerald-700 mr-1"></i> Quét QR tại bàn để gọi món nhanh</span>
-        </div>
-      </div>
+      <!-- BÌA SAU: LỜI CẢM ƠN & THÔNG TIN DỊCH VỤ -->
+      <div class="z-10 text-center pb-4 pt-3 border-t-2 border-dashed border-amber-300/80 mt-auto">
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-950 text-white shadow-xl max-w-[170mm] mx-auto border border-amber-500/50">
+          <div class="flex items-center justify-center gap-2 mb-1">
+            <span class="text-amber-400">✨</span>
+            <h3 class="text-sm font-black tracking-widest uppercase font-title-playfair text-amber-300">CẢM ƠN QUÝ KHÁCH • THANK YOU FOR VISITING</h3>
+            <span class="text-amber-400">✨</span>
+          </div>
+          <p class="text-[11px] text-stone-200 font-medium italic">"PiPo Garden - Hân hạnh mang đến cho Quý khách những trải nghiệm ẩm thực sân vườn tuyệt hảo nhất tại Đảo Ngọc"</p>
+          <p class="text-[10px] text-amber-200/90 italic mt-0.5">"Delighted to bring you memorable island garden dining experiences in Phu Quoc"</p>
 
-      <!-- Footer trang -->
-      <div class="pt-2 border-t border-stone-200 flex justify-between items-center text-[9px] text-stone-400">
-        <span>PiPo Garden Phú Quốc • Hẹn gặp lại Quý khách</span>
-        <span class="font-bold">Trang 6 / 6</span>
+          <div class="grid grid-cols-4 gap-2 text-[10px] text-stone-300 mt-3 pt-3 border-t border-white/15">
+            <div>
+              <span class="block text-amber-400 font-bold uppercase text-[9px]">📍 ĐỊA CHỈ / ADDRESS</span>
+              <span>Sonasea, Bãi Trường, Phú Quốc</span>
+            </div>
+            <div>
+              <span class="block text-amber-400 font-bold uppercase text-[9px]">📞 HOTLINE ĐẶT BÀN</span>
+              <span class="font-bold text-white">0838.993.316</span>
+            </div>
+            <div>
+              <span class="block text-amber-400 font-bold uppercase text-[9px]">🌐 WEBSITE</span>
+              <span class="text-amber-300">www.PiPoGarden.com</span>
+            </div>
+            <div>
+              <span class="block text-amber-400 font-bold uppercase text-[9px]">🎾 SÂN PICKLEBALL</span>
+              <span>Mở cửa 06:00 - 22:00</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-[9px] text-stone-400 mt-2 uppercase tracking-wider">Trang 6 / 6 • PiPo Garden Phú Quốc • Hẹn gặp lại Quý khách!</p>
       </div>
     </div>
 
   </main>
 
   <script>
-    // Hàm bật/tắt hiển thị ảnh để xem trước hoặc in tiết kiệm mực
+    // Hàm bật / tắt ảnh để in tiết kiệm mực
     function toggleImages() {
       document.body.classList.toggle('hide-images');
       const isHidden = document.body.classList.contains('hide-images');
-      document.getElementById('textToggleImg').innerText = isHidden ? 'Hiện ảnh món ăn' : 'Ẩn ảnh (In tiết kiệm mực)';
+      const textEl = document.getElementById('textToggleImg');
+      if (isHidden) {
+        textEl.innerText = 'Hiện ảnh món';
+      } else {
+        textEl.innerText = 'Ẩn ảnh (In tiết kiệm mực)';
+      }
     }
   </script>
 </body>

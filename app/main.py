@@ -546,16 +546,10 @@ def print_menu_page(request: Request):
     items = [dict(it) for it in cursor.fetchall()]
     conn.close()
     
+    from .menu_translations import enrich_menu_item
     cat_map = {c["id"]: {**c, "items": []} for c in categories}
     for it in items:
-        if it.get("options_json"):
-            try:
-                it["options"] = json.loads(it["options_json"])
-            except Exception:
-                it["options"] = []
-        else:
-            it["options"] = []
-            
+        enrich_menu_item(it)
         if it["category_id"] in cat_map:
             cat_map[it["category_id"]]["items"].append(it)
             
