@@ -86,6 +86,8 @@ printed_job_hashes = set()
 async def ws_listener(url: str, label: str, config: dict):
     """Lắng nghe lệnh in từ 1 máy chủ (Cloud hoặc Local). Tự động kết nối lại nếu mất mạng."""
     reconnect_interval = config.get("reconnect_interval_sec", 3)
+    if "LOCAL" in label:
+        reconnect_interval = 15  # Giảm thông báo khi quán chỉ chạy Cloud không bật server local
     simulate_mode = config.get("simulate_mode", True)
     printers = config.get("printers", {})
 
@@ -365,8 +367,9 @@ async def pull_pending_jobs(server_api_url: str, label: str, config: dict):
     printers = config.get("printers", {})
     simulate_mode = config.get("simulate_mode", False)
     clean_url = server_api_url.rstrip("/")
+    timeout_sec = 2.0 if label == "LOCAL" else 6.0
     try:
-        data = await asyncio.to_thread(http_get_json, f"{clean_url}/api/printer/pending-jobs?limit=30", 5.0)
+        data = await asyncio.to_thread(http_get_json, f"{clean_url}/api/printer/pending-jobs?limit=30", timeout_sec)
         jobs = data.get("jobs", [])
         if not jobs:
             return
@@ -433,8 +436,10 @@ async def pending_jobs_worker(config: dict):
     await asyncio.sleep(2)
     while True:
         try:
-            await pull_pending_jobs(cloud_url, "CLOUD", config)
-            await pull_pending_jobs(local_url, "LOCAL", config)
+            tasks = [pull_pending_jobs(cloud_url, "CLOUD", config)]
+            if local_url:
+                tasks.append(pull_pending_jobs(local_url, "LOCAL", config))
+            await asyncio.gather(*tasks, return_exceptions=True)
         except Exception:
             pass
         await asyncio.sleep(10)
