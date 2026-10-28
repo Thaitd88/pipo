@@ -54,14 +54,43 @@ def load_config():
         "printers": {}
     }
 
+_VN_ACCENTS = u'ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝàáâãèéêìíòóôõùúýĂăĐđĨĩŨũƠơƯưẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾếỀềỂểỄễỆệỈỉỊịỌọỎỏỐốỒồỔổỖỗỘộỚớỜờỞởỠỡỢợỤụỦủỨứỪừỬửỮữỰựỲỳỴỵỶỷỸỹ'
+_VN_NO_ACCENTS = u'AAAAEEEIIOOOOUUYaaaaeeeiioooouuyAaDdIiUuOoUuAaAaAaAaAaAaAaAaAaAaAaAaEeEeEeEeEeEeEeEeIiIiOoOoOoOoOoOoOoOoOoOoOoOoUuUuUuUuUuUuUuYyYyYyYy'
+_VN_TRANS_TABLE = str.maketrans(_VN_ACCENTS, _VN_NO_ACCENTS)
+
+def remove_vietnamese_accents(input_str: str) -> str:
+    if not input_str:
+        return ""
+    return str(input_str).translate(_VN_TRANS_TABLE)
+
+def text_to_escpos(ticket_text: str, station: str = "HOT_KITCHEN") -> bytes:
+    """Biên dịch văn bản phiếu in sang luồng mã ESC/POS nhị phân chuẩn cho máy in nhiệt LAN 80mm."""
+    if not ticket_text:
+        return b""
+    clean_text = remove_vietnamese_accents(ticket_text)
+    ESC = b'\x1b'
+    GS = b'\x1d'
+    b = bytearray()
+    b.extend(ESC + b'@')           # Khởi tạo máy in
+    b.extend(ESC + b't\x00')       # Bảng mã chuẩn ASCII
+    if station in ["HOT_KITCHEN", "KITCHEN"]:
+        b.extend(ESC + b'B\x03\x02')   # Còi hú 3 tiếng cảnh báo Bếp
+    b.extend(clean_text.encode('ascii', errors='ignore'))
+    b.extend(b'\n\n\n\n\n')        # Đẩy giấy qua dao cắt
+    b.extend(GS + b'V\x42\x00')    # Cắt giấy tự động
+    return bytes(b)
+
 def print_to_lan_printer(host: str, port: int, payload_bytes: bytes) -> bool:
     """Gửi dữ liệu ESC/POS trực tiếp tới máy in nhiệt qua socket mạng LAN nội bộ."""
+    if not payload_bytes or len(payload_bytes) == 0:
+        print(f"  [CẢNH BÁO] Không có dữ liệu in (payload rỗng) cho máy in {host}:{port}")
+        return False
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(5.0)
         s.connect((host, port))
         s.sendall(payload_bytes)
-        time.sleep(0.05)
+        time.sleep(0.08)
         s.close()
         return True
     except Exception as e:
@@ -86,8 +115,6 @@ printed_job_hashes = set()
 async def ws_listener(url: str, label: str, config: dict):
     """Lắng nghe lệnh in từ 1 máy chủ (Cloud hoặc Local). Tự động kết nối lại nếu mất mạng."""
     reconnect_interval = config.get("reconnect_interval_sec", 3)
-    if "LOCAL" in label:
-        reconnect_interval = 15  # Giảm thông báo khi quán chỉ chạy Cloud không bật server local
     simulate_mode = config.get("simulate_mode", True)
     printers = config.get("printers", {})
 
@@ -115,6 +142,8 @@ async def ws_listener(url: str, label: str, config: dict):
                             table_name = data.get("table_name", "")
                             escpos_b64 = data.get("escpos_b64", "")
                             escpos_bytes = base64.b64decode(escpos_b64) if escpos_b64 else b""
+                            if not escpos_bytes and ticket_text:
+                                escpos_bytes = text_to_escpos(ticket_text, station)
 
                             # Kiểm tra chống in trùng
                             job_key = f"{job_id}_{station}_{table_name}"
@@ -367,9 +396,8 @@ async def pull_pending_jobs(server_api_url: str, label: str, config: dict):
     printers = config.get("printers", {})
     simulate_mode = config.get("simulate_mode", False)
     clean_url = server_api_url.rstrip("/")
-    timeout_sec = 2.0 if label == "LOCAL" else 6.0
     try:
-        data = await asyncio.to_thread(http_get_json, f"{clean_url}/api/printer/pending-jobs?limit=30", timeout_sec)
+        data = await asyncio.to_thread(http_get_json, f"{clean_url}/api/printer/pending-jobs?limit=30", 5.0)
         jobs = data.get("jobs", [])
         if not jobs:
             return
@@ -380,6 +408,8 @@ async def pull_pending_jobs(server_api_url: str, label: str, config: dict):
             table_name = pjob.get("table_name", "")
             escpos_b64 = pjob.get("escpos_b64", "")
             escpos_bytes = base64.b64decode(escpos_b64) if escpos_b64 else b""
+            if not escpos_bytes and ticket_text:
+                escpos_bytes = text_to_escpos(ticket_text, station)
 
             job_key = f"{job_id}_{station}_{table_name}"
             if job_key in printed_job_hashes:
@@ -436,10 +466,8 @@ async def pending_jobs_worker(config: dict):
     await asyncio.sleep(2)
     while True:
         try:
-            tasks = [pull_pending_jobs(cloud_url, "CLOUD", config)]
-            if local_url:
-                tasks.append(pull_pending_jobs(local_url, "LOCAL", config))
-            await asyncio.gather(*tasks, return_exceptions=True)
+            await pull_pending_jobs(cloud_url, "CLOUD", config)
+            await pull_pending_jobs(local_url, "LOCAL", config)
         except Exception:
             pass
         await asyncio.sleep(10)
