@@ -355,3 +355,188 @@ async def api_custom_kitchen_ticket(payload: CustomKitchenTicketPayload):
         "ticket_text": ticket_text,
         "order_id": order_id
     }
+
+
+def get_pending_print_jobs_list(limit: int = 50):
+    """Lấy danh sách các lệnh in đang PENDING để gửi xuống Print Agent máy thu ngân."""
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("PRAGMA table_info(print_jobs)")
+        cols = [r["name"] for r in cursor.fetchall()]
+        has_escpos = "escpos_b64" in cols
+    except Exception:
+        has_escpos = False
+
+    select_sql = f"""
+        SELECT pj.id as job_id, pj.order_id, pj.station, pj.job_type, pj.ticket_text,
+               { "pj.escpos_b64" if has_escpos else "'' as escpos_b64" },
+               pj.created_at,
+               COALESCE(t.name, 'Bàn ' || COALESCE(o.table_id, '')) as table_name,
+               o.table_id, o.round_number, o.customer_note
+        FROM print_jobs pj
+        LEFT JOIN orders o ON pj.order_id = o.id
+        LEFT JOIN tables t ON o.table_id = t.id
+        WHERE pj.status = 'PENDING'
+        ORDER BY pj.id ASC
+        LIMIT ?
+    """
+    try:
+        cursor.execute(select_sql, (limit,))
+        rows = [dict(r) for r in cursor.fetchall()]
+    except Exception as _e:
+        print("[get_pending_print_jobs_list error]:", _e)
+        rows = []
+    finally:
+        conn.close()
+
+    result = []
+    for r in rows:
+        escpos_b64 = r.get("escpos_b64") or ""
+        if not escpos_b64 and r.get("ticket_text"):
+            try:
+                from ..escpos import remove_vietnamese_accents
+                clean_text = remove_vietnamese_accents(r["ticket_text"])
+                ESC = b'\x1b'
+                GS = b'\x1d'
+                b = bytearray()
+                b.extend(ESC + b'@')
+                b.extend(ESC + b't\x00')
+                b.extend(clean_text.encode('ascii', errors='ignore'))
+                b.extend(b'\n\n\n\n')
+                b.extend(GS + b'V\x42\x00')
+                escpos_b64 = base64.b64encode(b).decode('ascii')
+            except Exception:
+                pass
+
+        result.append({
+            "job_id": r["job_id"],
+            "station": r["station"],
+            "job_type": r.get("job_type", "KOT"),
+            "ticket_text": r["ticket_text"],
+            "escpos_b64": escpos_b64,
+            "table_name": r.get("table_name") or "Bàn"
+        })
+    return result
+
+@router.get("/pending-jobs")
+def api_get_pending_jobs(limit: int = 50):
+    """API lấy danh sách các lệnh in đang chờ (PENDING) để Print Agent kéo về in bù ngay."""
+    jobs = get_pending_print_jobs_list(limit=limit)
+    return {"status": "SUCCESS", "count": len(jobs), "jobs": jobs}
+
+@router.post("/jobs/{job_id}/mark-printed")
+def api_mark_job_printed(job_id: int):
+    """API đánh dấu lệnh in đã được in thành công."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE print_jobs SET status = 'PRINTED', printed_at = CURRENT_TIMESTAMP WHERE id = ?", (job_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "SUCCESS", "message": f"Đã đánh dấu lệnh in #{job_id} đã in hoàn tất"}
+
+@router.post("/table/{table_id}/print-kitchen-ticket")
+async def api_print_table_kitchen_ticket(table_id: int):
+    """
+    In Lại Vé Bếp & Bar cho toàn bộ món đang hoạt động của bàn:
+    - Bóc tách theo trạm HOT_KITCHEN (Bếp Nóng 251) và BAR (Quầy Bar 252).
+    - Tạo lệnh in KOT và đẩy ngay xuống Print Agent máy thu ngân.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM tables WHERE id = ?", (table_id,))
+    t_row = cursor.fetchone()
+    if not t_row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Bàn không tồn tại")
+    table = dict(t_row)
+    session_id = table.get("current_session_id")
+
+    if session_id:
+        cursor.execute("SELECT * FROM orders WHERE table_id = ? AND (session_id = ? OR session_id IS NULL) AND payment_status = 'UNPAID'", (table_id, session_id))
+    else:
+        cursor.execute("SELECT * FROM orders WHERE table_id = ? AND payment_status = 'UNPAID'", (table_id,))
+    orders = [dict(o) for o in cursor.fetchall()]
+
+    if not orders:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Bàn hiện không có đơn hàng nào chưa thanh toán")
+
+    order_ids = [o["id"] for o in orders]
+    placeholders = ",".join("?" for _ in order_ids)
+    cursor.execute(f"SELECT * FROM order_items WHERE order_id IN ({placeholders}) AND status != 'CANCELLED' ORDER BY id ASC", order_ids)
+    items = [dict(it) for it in cursor.fetchall()]
+
+    if not items:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Bàn hiện không có món nào cần chế biến")
+
+    station_groups = {}
+    for it in items:
+        st = it.get("station") or "HOT_KITCHEN"
+        if st not in station_groups:
+            station_groups[st] = []
+        station_groups[st].append(it)
+
+    now_ts = now_vn_str("%Y-%m-%d %H:%M:%S")
+    first_order = orders[0]
+    order_info = {
+        "id": first_order["id"],
+        "table_name": table["name"],
+        "area": table["area"],
+        "round_number": len(orders),
+        "customer_note": first_order.get("customer_note") or "",
+        "created_at": now_ts
+    }
+
+    created_jobs = []
+    has_escpos_col = False
+    try:
+        cursor.execute("PRAGMA table_info(print_jobs)")
+        cols = [r["name"] for r in cursor.fetchall()]
+        has_escpos_col = "escpos_b64" in cols
+    except Exception:
+        pass
+
+    for station, st_items in station_groups.items():
+        ticket_text = format_kitchen_ticket_text(order_info, st_items, station)
+        escpos_bytes = build_escpos_kitchen_bytes(order_info, st_items, station=station, beep=True)
+        escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
+
+        if has_escpos_col:
+            cursor.execute("""
+                INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text, escpos_b64)
+                VALUES (?, ?, 'KOT', 'PENDING', ?, ?)
+            """, (first_order["id"], station, ticket_text, escpos_b64))
+        else:
+            cursor.execute("""
+                INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+                VALUES (?, ?, 'KOT', 'PENDING', ?)
+            """, (first_order["id"], station, ticket_text))
+        job_id = cursor.lastrowid
+
+        created_jobs.append({
+            "job_id": job_id,
+            "station": station,
+            "job_type": "KOT",
+            "ticket_text": ticket_text,
+            "escpos_b64": escpos_b64,
+            "table_name": table["name"]
+        })
+
+    conn.commit()
+    conn.close()
+
+    if ws_broadcaster:
+        for pjob in created_jobs:
+            await ws_broadcaster.send_to_printers({
+                "event": "PRINT_JOB",
+                **pjob
+            })
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Đã gửi {len(created_jobs)} phiếu in vé bếp/bar cho bàn {table['name']}!",
+        "jobs_count": len(created_jobs)
+    }

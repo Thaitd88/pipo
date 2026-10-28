@@ -236,12 +236,33 @@ def get_pwa_service_worker():
 @app.websocket("/ws/printer")
 async def ws_printer_endpoint(websocket: WebSocket):
     await broadcaster.connect_printer(websocket)
+    # Tự động đẩy ngay các lệnh in PENDING cho Print Agent vừa kết nối
+    try:
+        from .routers.printer import get_pending_print_jobs_list
+        pending = get_pending_print_jobs_list()
+        for pjob in pending:
+            await websocket.send_json({
+                "event": "PRINT_JOB",
+                **pjob
+            })
+    except Exception as _push_err:
+        print("[ws_printer_endpoint auto push error]:", _push_err)
+
     try:
         while True:
             data = await websocket.receive_text()
             try:
                 payload = json.loads(data)
-                if payload.get("event") == "JOB_COMPLETED":
+                ev = payload.get("event")
+                if ev == "AGENT_READY":
+                    from .routers.printer import get_pending_print_jobs_list
+                    pending = get_pending_print_jobs_list()
+                    for pjob in pending:
+                        await websocket.send_json({
+                            "event": "PRINT_JOB",
+                            **pjob
+                        })
+                elif ev == "JOB_COMPLETED":
                     job_id = payload.get("job_id")
                     conn = get_db()
                     cursor = conn.cursor()

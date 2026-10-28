@@ -187,6 +187,35 @@ def get_table_bill(table_id: int):
             it["total"] = it["total_price"]
             it["order_created_at"] = order.get("created_at")
             it["round_number"] = order.get("round_number", 1)
+
+            # Phân giải danh sách tùy chọn / vị (modifiers)
+            mods = []
+            raw_mods = it.get("modifiers_json")
+            if raw_mods:
+                try:
+                    mods = json.loads(raw_mods) if isinstance(raw_mods, str) else raw_mods
+                    if not isinstance(mods, list):
+                        mods = []
+                except Exception:
+                    mods = []
+            it["modifiers"] = mods
+
+            # Trích xuất chuỗi tên vị trực quan (VD: "Úp trứng", "Muối ớt")
+            flav = ""
+            for m in mods:
+                if isinstance(m, dict):
+                    v = str(m.get("value") or "").strip()
+                    if not v:
+                        raw_n = str(m.get("name") or "").strip()
+                        if raw_n.lower() not in ("chọn vị chế biến", "chon vi che bien", "vị", "vi"):
+                            v = raw_n
+                    if v and v.lower() not in ("chọn vị chế biến", "chon vi che bien"):
+                        flav = v
+                        break
+                elif isinstance(m, str) and m.strip():
+                    flav = m.strip()
+                    break
+            it["flavor"] = flav
         all_items.extend(items)
         # Chỉ cộng các món chưa bị hủy (status != 'CANCELLED')
         order_active_sum = sum(it["total_price"] for it in items if it["status"] != "CANCELLED")

@@ -320,6 +320,11 @@ def init_db():
 
     # 7. Print Jobs (KOT)
     cursor.execute("""
+    try:
+        cursor.execute("ALTER TABLE print_jobs ADD COLUMN escpos_b64 TEXT")
+    except Exception:
+        pass
+
     CREATE TABLE IF NOT EXISTS print_jobs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         order_id INTEGER NOT NULL,

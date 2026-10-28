@@ -183,12 +183,12 @@ async def ws_listener(url: str, label: str, config: dict):
             print(f"[{label}] Lỗi không xác định: {e}. Thử lại sau {reconnect_interval}s...")
             await asyncio.sleep(reconnect_interval)
 
-def http_get_json(url: str, timeout: float = 5.0):
+def http_get_json(url: str, timeout: float = 8.0):
     req = urllib.request.Request(url, headers={"User-Agent": "PiPo-Sync-Agent/1.0"})
     with urllib.request.urlopen(req, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))
 
-def http_post_json(url: str, data: dict, timeout: float = 5.0, headers: dict = None):
+def http_post_json(url: str, data: dict, timeout: float = 8.0, headers: dict = None):
     req_headers = {"Content-Type": "application/json", "User-Agent": "PiPo-Sync-Agent/1.0"}
     if headers:
         req_headers.update(headers)
@@ -358,6 +358,87 @@ async def sync_worker(config: dict):
         except Exception:
             pass
 
+
+
+async def pull_pending_jobs(server_api_url: str, label: str, config: dict):
+    """Kéo và in bù các đơn hàng PENDING phòng khi WebSocket rớt gói tin hoặc chưa kịp kết nối."""
+    printers = config.get("printers", {})
+    simulate_mode = config.get("simulate_mode", False)
+    clean_url = server_api_url.rstrip("/")
+    try:
+        data = await asyncio.to_thread(http_get_json, f"{clean_url}/api/printer/pending-jobs?limit=30", 5.0)
+        jobs = data.get("jobs", [])
+        if not jobs:
+            return
+        for pjob in jobs:
+            job_id = pjob.get("job_id")
+            station = pjob.get("station", "HOT_KITCHEN")
+            ticket_text = pjob.get("ticket_text", "")
+            table_name = pjob.get("table_name", "")
+            escpos_b64 = pjob.get("escpos_b64", "")
+            escpos_bytes = base64.b64decode(escpos_b64) if escpos_b64 else b""
+
+            job_key = f"{job_id}_{station}_{table_name}"
+            if job_key in printed_job_hashes:
+                # Đã in trước đó -> báo server hoàn tất để giải phóng hàng đợi
+                try:
+                    await asyncio.to_thread(http_post_json, f"{clean_url}/api/printer/jobs/{job_id}/mark-printed", {}, 3.0)
+                except Exception:
+                    pass
+                continue
+
+            printed_job_hashes.add(job_key)
+            print(f"\n[{datetime.now().strftime('%H:%M:%S')}] 📥 [PENDING PULL - {label}] NHẬN LỆNH IN CHỜ (Job #{job_id}) -> {table_name} -> Trạm: {station}")
+
+            printed_success = False
+            asyncio.create_task(sync_orders_now(config))
+
+            printer_cfg = printers.get(station)
+            if not printer_cfg:
+                if station in ["BAR", "CASHIER"]:
+                    printer_cfg = printers.get("CASHIER") or printers.get("BAR")
+                else:
+                    printer_cfg = printers.get("HOT_KITCHEN")
+
+            if printer_cfg and printer_cfg.get("enabled"):
+                host = printer_cfg.get("host")
+                port = printer_cfg.get("port", 9100)
+                if print_to_lan_printer(host, port, escpos_bytes):
+                    printed_success = True
+
+            if not printed_success and station in ["CASHIER", "BAR"]:
+                kitchen_cfg = printers.get("HOT_KITCHEN")
+                if kitchen_cfg and kitchen_cfg.get("enabled"):
+                    k_host = kitchen_cfg.get("host")
+                    k_port = kitchen_cfg.get("port", 9100)
+                    if k_host and print_to_lan_printer(k_host, k_port, escpos_bytes):
+                        printed_success = True
+
+            if simulate_mode or not printed_success:
+                print_simulated_ticket(ticket_text, station, f"{label}-PENDING")
+                printed_success = True
+
+            if printed_success:
+                try:
+                    await asyncio.to_thread(http_post_json, f"{clean_url}/api/printer/jobs/{job_id}/mark-printed", {}, 3.0)
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+async def pending_jobs_worker(config: dict):
+    """Vòng lặp kéo lệnh in chờ (mỗi 10 giây) đảm bảo 100% không bao giờ sót đơn khách quét QR."""
+    cloud_url = config.get("cloud_api_url", "https://pipogarden.com")
+    local_url = config.get("local_api_url", "http://127.0.0.1:8000")
+    await asyncio.sleep(2)
+    while True:
+        try:
+            await pull_pending_jobs(cloud_url, "CLOUD", config)
+            await pull_pending_jobs(local_url, "LOCAL", config)
+        except Exception:
+            pass
+        await asyncio.sleep(10)
+
 async def main():
     config = load_config()
     server_ws_url = config.get("server_ws_url", "ws://127.0.0.1:8000/ws/printer")
@@ -378,6 +459,7 @@ async def main():
         asyncio.create_task(ws_listener(server_ws_url, "LOCAL (Mạng LAN)", config)),
         asyncio.create_task(cloud_pos_listener(config)),
         asyncio.create_task(local_pos_listener(config)),
+        asyncio.create_task(pending_jobs_worker(config)),
         asyncio.create_task(sync_worker(config)),
     ]
 

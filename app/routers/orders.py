@@ -273,10 +273,16 @@ async def create_order(payload: dict):
                 escpos_bytes = build_escpos_kitchen_bytes(order_info, st_items, station=station, beep=True)
                 escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
 
-                cursor.execute("""
-                    INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
-                    VALUES (?, ?, 'KOT', 'PENDING', ?)
-                """, (order_id, station, ticket_text))
+                try:
+                    cursor.execute("""
+                        INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text, escpos_b64)
+                        VALUES (?, ?, 'KOT', 'PENDING', ?, ?)
+                    """, (order_id, station, ticket_text, escpos_b64))
+                except Exception:
+                    cursor.execute("""
+                        INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+                        VALUES (?, ?, 'KOT', 'PENDING', ?)
+                    """, (order_id, station, ticket_text))
                 job_id = cursor.lastrowid
 
                 print_jobs_created.append({

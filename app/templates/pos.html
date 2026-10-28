@@ -1238,11 +1238,15 @@
         </button>
       </div>
 
-      <!-- Xem Bill Tạm Tính & Tải Ảnh / In Bill -->
-      <div>
-        <button onclick="openPrintBillModal()" class="w-full bg-indigo-700 hover:bg-indigo-800 active:scale-95 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-xs cursor-pointer" title="Xem trước mẫu hóa đơn, in tạm tính hoặc lưu ảnh gửi khách">
+      <!-- Xem Bill Tạm Tính & In Lại Vé Bếp -->
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" onclick="openPrintBillModal()" class="w-full bg-indigo-700 hover:bg-indigo-800 active:scale-95 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer" title="Xem trước mẫu hóa đơn, in tạm tính hoặc lưu ảnh gửi khách">
           <i class="fa-solid fa-receipt text-amber-300"></i>
-          <span>Xem Bill Tạm Tính (In & Tải Ảnh)</span>
+          <span>Bill Tạm Tính</span>
+        </button>
+        <button type="button" onclick="posPrintKitchenTicketForCurrentTable()" id="btnDrawerPrintKitchen" class="w-full bg-stone-800 hover:bg-stone-900 active:scale-95 text-amber-300 font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer border border-stone-700" title="In lại toàn bộ phiếu order của bàn này ra máy in Bếp & Quầy Bar">
+          <i class="fa-solid fa-print"></i>
+          <span>In Lại Vé Bếp</span>
         </button>
       </div>
 
@@ -3221,14 +3225,30 @@
             `;
           }
 
+          let flav = it.flavor || "";
+          if (!flav && it.modifiers && it.modifiers.length > 0) {
+            flav = it.modifiers.map(m => (typeof m === 'object' ? (m.value || m.name) : m)).filter(Boolean).join(", ");
+          }
+          if (!flav && it.modifiers_json) {
+            try {
+              const p = typeof it.modifiers_json === 'string' ? JSON.parse(it.modifiers_json) : it.modifiers_json;
+              if (Array.isArray(p)) flav = p.map(m => (typeof m === 'object' ? (m.value || m.name) : m)).filter(Boolean).join(", ");
+            } catch(e) {}
+          }
+          let baseName = (it.item_name || it.name || "").replace(/\s*[\(\[][^\)\]]+[\)\]]\s*$/, "").trim();
+          let displayName = flav ? `${baseName} (${flav})` : (it.item_name || it.name || "Món");
+
           return `
             <div class="flex items-center justify-between text-xs py-2.5 border-b border-stone-100 ${it.status === 'CANCELLED' ? 'opacity-50 line-through' : ''}">
               <div class="pr-2">
-                <div class="font-bold text-stone-800 leading-tight">${it.item_name}</div>
-                ${(it.modifiers && it.modifiers.length > 0) ? `
-                  <div class="text-[10.5px] text-emerald-800 font-bold mt-0.5 flex items-center gap-1">
-                    <i class="fa-solid fa-tag text-[9px] text-emerald-600"></i>
-                    <span>Vị: ${it.modifiers.map(m => m.value || m.name).join(', ')}</span>
+                <div class="font-extrabold text-stone-900 leading-tight text-[13px] flex items-center gap-1.5 flex-wrap">
+                  <span>${displayName}</span>
+                  <span class="text-amber-800 font-extrabold text-xs bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">x ${it.quantity}</span>
+                </div>
+                ${flav ? `
+                  <div class="text-[11px] text-emerald-800 font-bold mt-0.5 flex items-center gap-1">
+                    <i class="fa-solid fa-tag text-[9.5px] text-emerald-600"></i>
+                    <span>Vị: ${flav}</span>
                   </div>
                 ` : ''}
                 <div class="text-[11px] text-stone-500 font-medium mt-0.5 flex items-center gap-1 flex-wrap">
@@ -5856,7 +5876,37 @@
   </div>
 
   <script src="/static/js/change_password.js"></script>
-  <script src="/static/js/pos_accounting.js"></script>
+  <script src="/static/js/pos_accounting.js">
+    async function posPrintKitchenTicketForCurrentTable() {
+      if (!selectedTable) {
+        showPosToast("⚠️ Chưa chọn bàn để in vé bếp!");
+        return;
+      }
+      const btn = document.getElementById("btnDrawerPrintKitchen");
+      const origHtml = btn ? btn.innerHTML : "";
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang gửi...</span>';
+      }
+      try {
+        const res = await fetch(`/api/printer/table/${selectedTable.id}/print-kitchen-ticket`, { method: "POST" });
+        const data = await res.json();
+        if (res.ok) {
+          showPosToast(`🖨️ ${data.message || 'Đã gửi lệnh in vé bếp thành công!'}`);
+        } else {
+          alert("Lỗi in vé bếp: " + (data.detail || "Không thể tạo lệnh in"));
+        }
+      } catch (e) {
+        alert("Lỗi kết nối máy in: " + e.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+        }
+      }
+    }
+
+</script>
 
 
   <!-- MODAL: XEM ẢNH CHỨNG TỪ PHIẾU THU CHI -->

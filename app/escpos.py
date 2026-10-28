@@ -212,7 +212,7 @@ def format_kitchen_ticket_text(order_info: dict, items: list, station: str = "HO
         qty = it.get("quantity", 1)
         name = it.get("item_name") or it.get("name", "")
         note = it.get("note", "")
-        modifiers = it.get("modifiers", [])
+        modifiers = it.get("modifiers") or it.get("modifiers_json") or []
         portion = it.get("portion") or ""
 
         # Lấy định lượng NVL từ DB nếu chưa có
@@ -297,7 +297,7 @@ def format_receipt_ticket_text(table_info: dict, items: list, totals_info: dict 
         total_price = int(it.get("total_price", qty * price))
         subtotal += total_price
 
-        modifiers = it.get("modifiers")
+        modifiers = it.get("modifiers") or it.get("modifiers_json")
         note = it.get("note", "")
         portion = it.get("portion", "")
 
@@ -469,7 +469,7 @@ def build_escpos_kitchen_bytes(order_info: dict, items: list, station: str = "HO
         qty = it.get("quantity", 1)
         raw_name = it.get("item_name") or it.get("name", "")
         note = it.get("note", "")
-        modifiers = it.get("modifiers", [])
+        modifiers = it.get("modifiers") or it.get("modifiers_json") or []
         raw_portion = it.get("portion") or ""
 
         # Fallback lấy định lượng món từ DB nếu chưa có trong dict
@@ -597,7 +597,7 @@ def build_escpos_receipt_bytes(table_info: dict, items: list, totals_info: dict 
         subtotal += total_price
 
         raw_name = it.get("item_name") or it.get("name", "")
-        modifiers = it.get("modifiers")
+        modifiers = it.get("modifiers") or it.get("modifiers_json")
         note = it.get("note", "")
         portion = it.get("portion", "")
 
