@@ -540,3 +540,19 @@ async def api_print_table_kitchen_ticket(table_id: int):
         "message": f"Đã gửi {len(created_jobs)} phiếu in vé bếp/bar cho bàn {table['name']}!",
         "jobs_count": len(created_jobs)
     }
+
+@router.get("/debug-jobs")
+def api_debug_jobs():
+    """Kiểm tra 20 lệnh in gần nhất trong CSDL để gỡ lỗi."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, order_id, station, job_type, status, created_at, printed_at
+        FROM print_jobs
+        ORDER BY id DESC
+        LIMIT 20
+    """)
+    rows = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    return {"status": "SUCCESS", "count": len(rows), "jobs": rows}
+
