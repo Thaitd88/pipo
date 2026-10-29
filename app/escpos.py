@@ -1,4 +1,4 @@
-# ESC/POS byte generator and 80mm Formatter (T80W / Xprinter / Epson standard) for PiPo Garden
+﻿# ESC/POS byte generator and 80mm Formatter (T80W / Xprinter / Epson standard) for PiPo Garden
 import re
 import unicodedata
 import json
@@ -271,7 +271,7 @@ def format_receipt_ticket_text(table_info: dict, items: list, totals_info: dict 
     lines.append("PIPO GARDEN".center(w))
     lines.append("Restaurant, Cafe, Pool Bar".center(w))
     lines.append("Sonasea, Bai Truong, Phu Quoc".center(w))
-    lines.append("Hotline: 0838.993.316".center(w))
+    lines.append("Hotline: 0888 07 1139".center(w))
     lines.append(div_double)
     lines.append(f"*** {invoice_title} ***".center(w))
     lines.append(div_double)
@@ -555,7 +555,7 @@ def build_escpos_receipt_bytes(table_info: dict, items: list, totals_info: dict 
     buf.extend(GS + b'!\x00')  # Normal size
     buf.extend(b'Restaurant, Cafe, Pool Bar\n')
     buf.extend(b'Sonasea, Bai Truong, Phu Quoc\n')
-    buf.extend(b'Hotline: 0838.993.316\n')
+    buf.extend(b'Hotline: 0888 07 1139\n')
     buf.extend(ESC + b'E\x00') # Bold off
     buf.extend(div_double)
 

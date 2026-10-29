@@ -201,8 +201,8 @@ def export_orders(since: Optional[str] = None, limit: int = 200):
             query += " AND (o.payment_status = 'UNPAID' OR o.created_at > ? OR o.completed_at > ?)"
             params.extend([since, since])
         
-        # Ưu tiên các đơn UNPAID lên đầu tiên, sau đó đến các đơn mới nhất (ID giảm dần)
-        query += " ORDER BY (CASE WHEN o.payment_status = 'UNPAID' THEN 0 ELSE 1 END) ASC, o.id DESC LIMIT ?"
+        # Ưu tiên các đơn mới nhất (ID giảm dần) để các đơn vừa đặt hoặc vừa thanh toán luôn được xuất đồng bộ ngay
+        query += " ORDER BY o.id DESC LIMIT ?"
         params.append(limit)
 
         cursor.execute(query, tuple(params))
@@ -331,6 +331,10 @@ async def import_orders(payload: Dict[str, Any]):
                 existing_order = dict(existing_order_row)
                 # 1. BẢO VỆ CHỐNG HỒI QUY: Đơn đã PAID thì tuyệt đối không bao giờ bị ghi đè ngược về UNPAID do sync trễ/cũ!
                 if existing_order.get("payment_status") == "PAID" and o.get("payment_status") != "PAID":
+                    cursor.execute("SELECT COUNT(*) as unpaid FROM orders WHERE table_id = ? AND payment_status = 'UNPAID'", (local_table_id,))
+                    if cursor.fetchone()["unpaid"] == 0:
+                        cursor.execute("UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL WHERE id = ?", (local_table_id,))
+                        cursor.execute("UPDATE table_sessions SET status = 'CLOSED' WHERE table_id = ?", (local_table_id,))
                     continue
 
                 # 2. ĐÃ TỒN TẠI: Cập nhật order_uuid nếu đơn này chưa có

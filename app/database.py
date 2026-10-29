@@ -1,4 +1,4 @@
-def ensure_kitchen_and_bar_stations(conn):
+﻿def ensure_kitchen_and_bar_stations(conn):
     """
     Chuẩn hóa trạm chế biến: Bỏ Bếp Lạnh (COLD_KITCHEN), chỉ giữ Bếp Nóng và Quầy Bar.
     Mặc định toàn bộ món ăn là Bếp Nóng (HOT_KITCHEN), Đồ uống thuộc Quầy Bar (BAR).
@@ -319,11 +319,6 @@ def init_db():
             pass
 
     # 7. Print Jobs (KOT)
-    try:
-        cursor.execute("ALTER TABLE print_jobs ADD COLUMN escpos_b64 TEXT")
-    except Exception:
-        pass
-
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS print_jobs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -337,6 +332,11 @@ def init_db():
         FOREIGN KEY (order_id) REFERENCES orders(id)
     )
     """)
+
+    try:
+        cursor.execute("ALTER TABLE print_jobs ADD COLUMN escpos_b64 TEXT")
+    except Exception:
+        pass
 
     # 8. Service Calls
     cursor.execute("""
@@ -1623,12 +1623,12 @@ def ensure_main_menu_classification(conn):
 def seed_default_users(conn):
     cursor = conn.cursor()
     default_staff = [
-        ("superadmin", hash_password("123456"), "Super Admin", "SUPER_ADMIN", "0838993316"),
+        ("superadmin", hash_password("123456"), "Super Admin", "SUPER_ADMIN", "0888071139"),
         ("admin", hash_password("admin123"), "Nguyễn Văn Quản Lý", "ADMIN", "0901234567"),
         ("thungan", hash_password("123456"), "Trần Thị Thu Ngân", "CASHIER", "0912345678"),
         ("bep", hash_password("123456"), "Lê Hoàng Bếp Trưởng", "CHEF", "0923456789"),
         ("phucvu", hash_password("123456"), "Phạm Minh Phục Vụ", "WAITER", "0934567890"),
-        ("sanpick", hash_password("123456"), "Quản Trị Sân Pickleball", "PICKLEBALL", "0838993316"),
+        ("sanpick", hash_password("123456"), "Quản Trị Sân Pickleball", "PICKLEBALL", "0888071139"),
     ]
     for username, pwd_hash, full_name, role, phone in default_staff:
         cursor.execute("""
@@ -2179,8 +2179,8 @@ def seed_homepage_cms(conn):
         "hero_subtitle": "Không gian sân vườn nhiệt đới thoáng mát, hải sản tươi ngon, hồ bơi ngoài trời và cụm sân Pickleball có mái che tại Sonasea, Bãi Trường.",
         "hero_image_url": "/static/home/hero_twilight.jpg",
         "address": "Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc",
-        "phone": "0838993316",
-        "phone_display": "0838.993.316",
+        "phone": "0888071139",
+        "phone_display": "0888 07 1139",
         "opening_hours": "06:30 - 23:00 hàng ngày",
         "about_story": "Tọa lạc tại Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, TP. Phú Quốc, PiPo Garden sở hữu không gian sân vườn nhiệt đới thoáng mát với hồ bơi uốn lượn trung tâm, các nhà chòi mái lá mộc mạc lung linh đèn lồng, kết hợp khu ẩm thực - cà phê và cụm sân thể thao Pickleball hiện đại.",
         "feature_1_title": "Ẩm Thực Sân Vườn & Hải Sản",
@@ -2204,8 +2204,8 @@ def seed_homepage_cms(conn):
                    ("Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc",))
     cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'about_story' AND (value LIKE '%Suối Mây%' OR value LIKE '%Resort%')", 
                    ("Tọa lạc tại Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, TP. Phú Quốc, PiPo Garden sở hữu không gian sân vườn nhiệt đới thoáng mát với hồ bơi uốn lượn trung tâm, các nhà chòi mái lá mộc mạc lung linh đèn lồng, kết hợp khu ẩm thực - cà phê và cụm sân thể thao Pickleball hiện đại.",))
-    cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'phone' AND value LIKE '09%'", ("0838993316",))
-    cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'phone_display' AND value LIKE '09%'", ("0838.993.316",))
+    cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'phone' AND value LIKE '09%'", ("0888071139",))
+    cursor.execute("UPDATE homepage_cms SET value = ? WHERE key = 'phone_display' AND value LIKE '09%'", ("0888 07 1139",))
     conn.commit()
 
 def ensure_standard_27_tables(conn):

@@ -1,4 +1,4 @@
-import base64
+﻿import base64
 # Router for Pickleball Court Booking System at PiPo Garden
 import json
 import random
@@ -149,9 +149,9 @@ def get_pickleball_config():
             "peak_hours": "16:00 - 22:00",
             "currency": "VND",
             "bank_name": "Ngân Hàng Quân Đội (MB Bank)",
-            "bank_account": "0838993316",
+            "bank_account": "0888071139",
             "bank_owner": "PIPO GARDEN RESORT",
-            "hotline": "0838.993.316",
+            "hotline": "0888 07 1139",
             "address": "Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc"
         }
     }
@@ -350,7 +350,7 @@ def create_court_booking(payload: PickleballBookingCreate):
     bank_memo = f"PIPO {clean_phone[-4:] if len(clean_phone) >= 4 else clean_phone} S{payload.court_id} {date_compact}"
     vietqr_url = generate_vietqr_url(
         bank_id="MB",
-        account_no="0838993316",
+        account_no="0888071139",
         account_name="PIPO GARDEN",
         amount=deposit_amount,
         memo=bank_memo
@@ -370,7 +370,7 @@ def create_court_booking(payload: PickleballBookingCreate):
         "booking": created_booking,
         "payment": {
             "bank_name": "Ngân hàng Quân Đội (MB Bank)",
-            "account_no": "0838993316",
+            "account_no": "0888071139",
             "account_name": "PIPO GARDEN RESORT",
             "memo_syntax": bank_memo,
             "total_amount": total_amount,
@@ -384,7 +384,7 @@ def create_court_booking(payload: PickleballBookingCreate):
             "date": payload.booking_date,
             "time_slots": payload.time_slots,
             "checkin_qr_url": checkin_qr_url,
-            "hotline": "0838.993.316",
+            "hotline": "0888 07 1139",
             "address": "Khu Tiện Ích Bể Bơi SV02, Sonasea, Bãi Trường, Phú Quốc"
         }
     }

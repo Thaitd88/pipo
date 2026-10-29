@@ -570,10 +570,16 @@ async def checkout_table(table_id: int, request: Request):
         first_order_id = checkout_orders[0]["id"] if checkout_orders else 0
         conn_p = get_db()
         cur_p = conn_p.cursor()
-        cur_p.execute("""
-            INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
-            VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?)
-        """, (first_order_id, receipt_text))
+        try:
+            cur_p.execute("""
+                INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text, escpos_b64)
+                VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?, ?)
+            """, (first_order_id, receipt_text, receipt_b64))
+        except Exception:
+            cur_p.execute("""
+                INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+                VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?)
+            """, (first_order_id, receipt_text))
         job_id = cur_p.lastrowid
         conn_p.commit()
         conn_p.close()

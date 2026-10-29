@@ -205,10 +205,16 @@ async def create_order(payload: dict):
                 escpos_bytes = build_escpos_kitchen_bytes(order_info, hot_items, station="HOT_KITCHEN", beep=True)
                 escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
 
-                cursor.execute("""
-                    INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
-                    VALUES (?, 'HOT_KITCHEN', 'KOT', 'PENDING', ?)
-                """, (order_id, ticket_text))
+                try:
+                    cursor.execute("""
+                        INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text, escpos_b64)
+                        VALUES (?, 'HOT_KITCHEN', 'KOT', 'PENDING', ?, ?)
+                    """, (order_id, ticket_text, escpos_b64))
+                except Exception:
+                    cursor.execute("""
+                        INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+                        VALUES (?, 'HOT_KITCHEN', 'KOT', 'PENDING', ?)
+                    """, (order_id, ticket_text))
                 job_id = cursor.lastrowid
 
                 print_jobs_created.append({
@@ -236,10 +242,16 @@ async def create_order(payload: dict):
             receipt_bytes = build_escpos_receipt_bytes(dict(table), detailed_items, totals_info=totals_info)
             receipt_b64 = base64.b64encode(receipt_bytes).decode("ascii")
 
-            cursor.execute("""
-                INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
-                VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?)
-            """, (order_id, receipt_text))
+            try:
+                cursor.execute("""
+                    INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text, escpos_b64)
+                    VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?, ?)
+                """, (order_id, receipt_text, receipt_b64))
+            except Exception:
+                cursor.execute("""
+                    INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+                    VALUES (?, 'CASHIER', 'RECEIPT', 'PENDING', ?)
+                """, (order_id, receipt_text))
             r_job_id = cursor.lastrowid
 
             print_jobs_created.append({

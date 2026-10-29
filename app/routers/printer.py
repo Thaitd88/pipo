@@ -292,10 +292,16 @@ async def api_custom_kitchen_ticket(payload: CustomKitchenTicketPayload):
     escpos_bytes = build_escpos_kitchen_bytes(order_info, [ticket_item], station=station, beep=payload.beep)
     escpos_b64 = base64.b64encode(escpos_bytes).decode("ascii")
 
-    cursor.execute("""
-        INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
-        VALUES (?, ?, 'KOT', 'PENDING', ?)
-    """, (order_id or 0, station, ticket_text))
+    try:
+        cursor.execute("""
+            INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text, escpos_b64)
+            VALUES (?, ?, 'KOT', 'PENDING', ?, ?)
+        """, (order_id or 0, station, ticket_text, escpos_b64))
+    except Exception:
+        cursor.execute("""
+            INSERT INTO print_jobs (order_id, station, job_type, status, ticket_text)
+            VALUES (?, ?, 'KOT', 'PENDING', ?)
+        """, (order_id or 0, station, ticket_text))
     job_id = cursor.lastrowid
     conn.commit()
     conn.close()

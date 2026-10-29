@@ -324,6 +324,33 @@ def home_page(request: Request):
 
     cursor.execute("SELECT key, value FROM homepage_cms")
     cms_settings = {r["key"]: r["value"] for r in cursor.fetchall()}
+
+    # Lấy các món featured cho trang chủ — chọn đa dạng từng nhóm có ảnh thực
+    featured_ids = [
+        150,  # Gà ta nguyên con
+        159,  # Vịt quay thảo mộc
+        176,  # Bạch tuộc
+        169,  # Ốc hương
+        325,  # Lẩu Thái Hải Sản
+        326,  # Lẩu Gà Chanh Ớt
+        310,  # Mực ống
+        167,  # Tôm sú
+        309,  # Gỏi cá
+        142,  # Gỏi xoài khô mực
+        157,  # Cánh gà
+        180,  # Cơm chiên
+    ]
+    placeholders = ",".join(["?" for _ in featured_ids])
+    cursor.execute(
+        f"""SELECT m.id, m.name, m.price, m.image_url, m.station, cat.name as cat_name
+            FROM menu_items m
+            LEFT JOIN categories cat ON m.category_id = cat.id
+            WHERE m.id IN ({placeholders}) AND m.is_available = 1 AND m.image_url IS NOT NULL AND LENGTH(m.image_url) > 0
+            ORDER BY m.price DESC""",
+        featured_ids
+    )
+    featured_dishes = [dict(r) for r in cursor.fetchall()]
+
     conn.close()
 
     user = get_current_user_from_request(request)
@@ -335,7 +362,8 @@ def home_page(request: Request):
             "user": user,
             "nh_table": dict(nh_row) if nh_row else None,
             "cf_table": dict(cf_row) if cf_row else None,
-            "cms": cms_settings
+            "cms": cms_settings,
+            "featured_dishes": featured_dishes,
         }
     )
 

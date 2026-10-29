@@ -58,6 +58,31 @@ def list_tables(status: Optional[str] = None):
         cursor.execute(query, tuple(params))
         rows = cursor.fetchall()
         tables = [dict(r) for r in rows]
+
+        # TỰ ĐỘNG PHỤC HỒI BÀN TRỐNG (Self-healing):
+        # Đối với các bàn Nhà Hàng / Hồ Bơi (không phải Sân Pickle đang thuê):
+        # Nếu bàn KHÔNG CÒN đơn hàng chưa thanh toán nào (unpaid_orders_count == 0 và current_bill_total == 0)
+        # thì bàn đó 100% PHẢI là AVAILABLE! Nếu CSDL còn lưu OCCUPIED thì lập tức sửa lại.
+        healed_table_ids = []
+        for t in tables:
+            is_pickle = (t.get("area") or "").strip() == "Sân Pickle"
+            unpaid_cnt = t.get("unpaid_orders_count") or 0
+            bill_tot = t.get("current_bill_total") or 0
+            if not is_pickle and unpaid_cnt == 0 and bill_tot == 0 and t.get("status") in ("OCCUPIED", "BILLING"):
+                t["status"] = "AVAILABLE"
+                t["current_session_id"] = None
+                t["active_session_id"] = None
+                healed_table_ids.append(t["id"])
+
+        if healed_table_ids:
+            try:
+                placeholders = ",".join("?" for _ in healed_table_ids)
+                cursor.execute(f"UPDATE tables SET status = 'AVAILABLE', current_session_id = NULL WHERE id IN ({placeholders})", healed_table_ids)
+                cursor.execute(f"UPDATE table_sessions SET status = 'CLOSED', closed_at = CURRENT_TIMESTAMP WHERE table_id IN ({placeholders}) AND status = 'ACTIVE'", healed_table_ids)
+                conn.commit()
+            except Exception as _heal_err:
+                logger.warning(f"[Self-healing tables error]: {_heal_err}")
+
         return tables
     finally:
         conn.close()

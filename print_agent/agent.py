@@ -186,19 +186,25 @@ async def ws_listener(url: str, label: str, config: dict):
                                             print(f"  [FALLBACK] Đã in thành công phiếu {station} qua máy in {k_host}:{k_port}")
 
                             # In giả lập ra màn hình nếu bật simulate_mode
-                            if simulate_mode or not printed_success:
+                            if simulate_mode:
                                 print_simulated_ticket(ticket_text, station, label)
                                 printed_success = True
+                            elif not printed_success:
+                                print(f"  [⚠️ LỖI MÁY IN] Chưa thể gửi dữ liệu tới máy in vật lý cho Job #{job_id}! Sẽ giữ lệnh để tự động thử lại.")
 
-                            # Phản hồi hoàn tất cho Server
-                            ack_payload = {
-                                "event": "JOB_COMPLETED",
-                                "job_id": job_id,
-                                "station": station,
-                                "success": printed_success,
-                                "printed_at": datetime.now().isoformat()
-                            }
-                            await ws.send(json.dumps(ack_payload))
+                            # Phản hồi hoàn tất cho Server chỉ khi đã in thành công ra giấy hoặc ở chế độ giả lập
+                            if printed_success:
+                                printed_job_hashes.add(job_key)
+                                if len(printed_job_hashes) > 1000:
+                                    printed_job_hashes.clear()
+                                ack_payload = {
+                                    "event": "JOB_COMPLETED",
+                                    "job_id": job_id,
+                                    "station": station,
+                                    "success": True,
+                                    "printed_at": datetime.now().isoformat()
+                                }
+                                await ws.send(json.dumps(ack_payload))
 
                         elif event == "PING":
                             await ws.send(json.dumps({"event": "PONG"}))
@@ -420,7 +426,6 @@ async def pull_pending_jobs(server_api_url: str, label: str, config: dict):
                     pass
                 continue
 
-            printed_job_hashes.add(job_key)
             print(f"\n[{datetime.now().strftime('%H:%M:%S')}] 📥 [PENDING PULL - {label}] NHẬN LỆNH IN CHỜ (Job #{job_id}) -> {table_name} -> Trạm: {station}")
 
             printed_success = False
@@ -447,11 +452,16 @@ async def pull_pending_jobs(server_api_url: str, label: str, config: dict):
                     if k_host and print_to_lan_printer(k_host, k_port, escpos_bytes):
                         printed_success = True
 
-            if simulate_mode or not printed_success:
+            if simulate_mode:
                 print_simulated_ticket(ticket_text, station, f"{label}-PENDING")
                 printed_success = True
+            elif not printed_success:
+                print(f"  [⚠️ LỖI MÁY IN] Chưa thể gửi dữ liệu tới máy in LAN cho Job #{job_id}! Giữ lại hàng đợi để tự động thử lại sau 10s.")
 
             if printed_success:
+                printed_job_hashes.add(job_key)
+                if len(printed_job_hashes) > 1000:
+                    printed_job_hashes.clear()
                 try:
                     await asyncio.to_thread(http_post_json, f"{clean_url}/api/printer/jobs/{job_id}/mark-printed", {}, 3.0)
                 except Exception:
